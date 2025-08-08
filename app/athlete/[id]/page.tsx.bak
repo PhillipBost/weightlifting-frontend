@@ -1,0 +1,1269 @@
+"use client";
+
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { supabase } from '../../../lib/supabase';
+import { Trophy, Calendar, Weight, TrendingUp, Medal, User, Building, MapPin, ExternalLink, ArrowLeft, BarChart3, Dumbbell, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, AreaChart, Area, ScatterChart, Scatter, Brush } from 'recharts';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import Papa from 'papaparse';
+
+// Improved export functions with better quality and sizing
+const exportChartToPDF = async (chartRef: React.RefObject<HTMLDivElement>, filename: string) => {
+  if (!chartRef.current) return;
+  
+  try {
+    // Get the actual dimensions of the chart
+    const element = chartRef.current;
+    const rect = element.getBoundingClientRect();
+    
+    const canvas = await html2canvas(element, {
+      backgroundColor: '#1F2937',
+      scale: 1, // Use scale 1 to avoid blurriness
+      useCORS: true,
+      allowTaint: true,
+      width: rect.width,
+      height: rect.height,
+      scrollX: 0,
+      scrollY: 0,
+      windowWidth: window.innerWidth,
+      windowHeight: window.innerHeight,
+      // Capture the full element
+      x: 0,
+      y: 0,
+    });
+    
+    const imgData = canvas.toDataURL('image/png', 1.0); // Maximum quality
+    
+    // Calculate proper PDF dimensions
+    const imgWidth = canvas.width;
+    const imgHeight = canvas.height;
+    
+    // Use A4 landscape with proper scaling
+    const pdf = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: a3 
+    });
+    
+    // Add image with padding
+    pdf.addImage(imgData, 'PNG', 20, 20, imgWidth, imgHeight);
+    pdf.save(filename);
+  } catch (error) {
+    console.error('Error exporting chart:', error);
+    alert('Failed to export chart. Please try again.');
+  }
+};
+
+const exportTableToPDF = async (tableRef: React.RefObject<HTMLDivElement>, filename: string, athleteName: string) => {
+  if (!tableRef.current) return;
+  
+  try {
+    const element = tableRef.current;
+    
+    // Get the table element specifically
+    const table = element.querySelector('table');
+    if (!table) {
+      alert('No table found to export');
+      return;
+    }
+    
+    // Temporarily style the table for better PDF capture
+    const originalStyles = {
+      width: table.style.width,
+      fontSize: table.style.fontSize,
+      transform: table.style.transform,
+      transformOrigin: table.style.transformOrigin
+    };
+    
+    // Calculate scale to fit table width in viewport
+    const tableWidth = table.scrollWidth;
+    const viewportWidth = window.innerWidth - 100; // Leave some margin
+    const scale = Math.min(1, viewportWidth / tableWidth);
+    
+    // Apply temporary styles
+    table.style.transform = `scale(${scale})`;
+    table.style.transformOrigin = 'top left';
+    table.style.width = `${tableWidth}px`;
+    table.style.fontSize = '10px'; // Smaller font for better fit
+    
+    // Wait for layout to settle
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    const canvas = await html2canvas(element, {
+      backgroundColor: '#1F2937',
+      scale: 1,
+      useCORS: true,
+      allowTaint: true,
+      scrollX: 0,
+      scrollY: 0,
+      windowWidth: tableWidth * scale + 100,
+      windowHeight: window.innerHeight,
+      width: tableWidth * scale + 40,
+      height: element.scrollHeight,
+    });
+    
+    // Restore original styles
+    table.style.width = originalStyles.width;
+    table.style.fontSize = originalStyles.fontSize;
+    table.style.transform = originalStyles.transform;
+    table.style.transformOrigin = originalStyles.transformOrigin;
+    
+    const imgData = canvas.toDataURL('image/png', 1.0);
+    
+    // Calculate dimensions
+    const imgWidth = canvas.width;
+    const imgHeight = canvas.height;
+    
+    // Create PDF sized to content
+    const pdf = new jsPDF({
+      orientation: 'landscape',
+      unit: 'px',
+      format: [imgWidth + 40, imgHeight + 80] // Extra space for title
+    });
+    
+    // Add title
+    pdf.setFontSize(16);
+    pdf.setTextColor(0, 0, 0);
+    pdf.text(`${athleteName} - Competition Results`, 20, 40);
+    
+    // Add image below title
+    pdf.addImage(imgData, 'PNG', 20, 60, imgWidth, imgHeight);
+    pdf.save(filename);
+  } catch (error) {
+    console.error('Error exporting table:', error);
+    alert('Failed to export table. Please try again.');
+  }
+};
+
+const exportTableToCSV = (results: any[], athleteName: string) => {
+  try {
+    const csvData = results.map(result => ({
+      'Date': new Date(result.date).toLocaleDateString('en-US'),
+      'Meet': result.meet_name || '',
+      'Age Category': result.age_category || '',
+      'Weight Class': result.weight_class || '',
+      'Body Weight (kg)': result.body_weight_kg || '',
+      'Competition Age': result.competition_age || '',
+      'Snatch Lift 1': result.snatch_lift_1 || '',
+      'Snatch Lift 2': result.snatch_lift_2 || '',
+      'Snatch Lift 3': result.snatch_lift_3 || '',
+      'Best Snatch (kg)': result.best_snatch || '',
+      'C&J Lift 1': result.cj_lift_1 || '',
+      'C&J Lift 2': result.cj_lift_2 || '',
+      'C&J Lift 3': result.cj_lift_3 || '',
+      'Best C&J (kg)': result.best_cj || '',
+      'Total (kg)': result.total || '',
+      'Q-Youth': result.q_youth || '',
+      'Q-Points': result.qpoints || '',
+      'Q-Masters': result.q_masters || ''
+    }));
+
+    const csv = Papa.unparse(csvData);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `${athleteName.replace(/\s+/g, '_')}_competition_results.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  } catch (error) {
+    console.error('Error exporting CSV:', error);
+    alert('Failed to export CSV. Please try again.');
+  }
+};
+
+const LiftAttempts = ({ lift1, lift2, lift3, best, type }) => {
+  const attempts = [lift1, lift2, lift3];
+  
+  return (
+    <div className="space-y-1">
+      <div className="text-sm font-medium text-gray-300">{type}</div>
+      <div className="flex space-x-2">
+        {attempts.map((attempt, index) => {
+          const value = parseInt(attempt || '0');
+          const isGood = value > 0;
+          const isBest = attempt === best;
+          const attemptWeight = Math.abs(value);
+          
+          return (
+            <span
+              key={index}
+              className={`px-2 py-1 rounded text-xs font-mono ${
+                isBest 
+                  ? 'bg-green-600 text-white' 
+                  : isGood 
+                    ? 'bg-gray-600 text-white'
+                    : value < 0
+                      ? 'bg-red-900 text-red-300'
+                      : 'bg-gray-800 text-gray-500'
+              }`}
+            >
+              {value === 0 
+                ? '-' 
+                : isGood 
+                  ? `${value}kg` 
+                  : `${attemptWeight}kg X`
+              }
+            </span>
+          );
+        })}
+      </div>
+      <div className="text-lg font-bold text-white">
+        Best: {best && parseInt(best) > 0 ? `${best}kg` : '-'}
+      </div>
+    </div>
+  );
+};
+
+// Custom Pagination Component
+const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+  if (totalPages <= 1) return null;
+
+  const getPageNumbers = () => {
+    const delta = 2;
+    const pages = [];
+    const start = Math.max(1, currentPage - delta);
+    const end = Math.min(totalPages, currentPage + delta);
+
+    // Always show first page
+    if (start > 1) {
+      pages.push(1);
+      if (start > 2) pages.push('...');
+    }
+
+    // Show pages around current
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+
+    // Always show last page
+    if (end < totalPages) {
+      if (end < totalPages - 1) pages.push('...');
+      pages.push(totalPages);
+    }
+
+    return pages;
+  };
+
+  return (
+    <div className="flex items-center justify-between mt-6">
+      <div className="text-sm text-gray-400">
+        Showing {Math.min((currentPage - 1) * 20 + 1, totalPages * 20)} to {Math.min(currentPage * 20, totalPages * 20)} of {totalPages * 20} results
+      </div>
+      
+      <div className="flex items-center space-x-2">
+        <button
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="flex items-center px-3 py-2 text-sm font-medium text-gray-300 bg-gray-700 border border-gray-600 rounded-lg hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <ChevronLeft className="h-4 w-4 mr-1" />
+          Previous
+        </button>
+
+        <div className="flex space-x-1">
+          {getPageNumbers().map((page, index) => (
+            <button
+              key={index}
+              onClick={() => typeof page === 'number' && onPageChange(page)}
+              disabled={page === '...'}
+              className={`px-3 py-2 text-sm font-medium rounded-lg ${
+                page === currentPage
+                  ? 'bg-blue-600 text-white border border-blue-600'
+                  : page === '...'
+                    ? 'text-gray-500 cursor-default'
+                    : 'text-gray-300 bg-gray-700 border border-gray-600 hover:bg-gray-600'
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+        </div>
+
+        <button
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="flex items-center px-3 py-2 text-sm font-medium text-gray-300 bg-gray-700 border border-gray-600 rounded-lg hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Next
+          <ChevronRight className="h-4 w-4 ml-1" />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default function AthletePage({ params }: { params: Promise<{ id: string }> }) {
+  const router = useRouter();
+  const [selectedTab, setSelectedTab] = useState('overview');
+  const [athlete, setAthlete] = useState<any>(null);
+  const [results, setResults] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [autoScalePerformance, setAutoScalePerformance] = useState(true);
+  const [showPerformanceBrush, setShowPerformanceBrush] = useState(false);
+  const [autoScaleQScores, setAutoScaleQScores] = useState(true);
+  const [showQScoresBrush, setShowQScoresBrush] = useState(false);
+  const resultsPerPage = 20;
+
+  // Refs for export functionality
+  const performanceChartRef = useRef<HTMLDivElement>(null);
+  const qScoresChartRef = useRef<HTMLDivElement>(null);
+  const resultsTableRef = useRef<HTMLDivElement>(null);
+
+  const { displayResults, totalPages } = useMemo(() => {
+    const startIndex = (currentPage - 1) * resultsPerPage;
+    const endIndex = startIndex + resultsPerPage;
+    return {
+      displayResults: results.slice(startIndex, endIndex),
+      totalPages: Math.ceil(results.length / resultsPerPage)
+    };
+  }, [currentPage, results, resultsPerPage]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    // Optionally scroll to top of results
+    document.querySelector('.results-table')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Unwrap the params Promise
+  const resolvedParams = React.use(params);
+
+  useEffect(() => {
+    async function fetchAthleteData() {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Try to find athlete by membership number first (if it's a number)
+        let athleteData = null;
+        let athleteError = null;
+
+        if (!isNaN(Number(resolvedParams.id))) {
+          // resolvedParams.id is a number, search by membership_number
+          const result = await supabase
+            .from('lifters')
+            .select('*')
+            .eq('membership_number', parseInt(resolvedParams.id))
+            .single();
+          
+          athleteData = result.data;
+          athleteError = result.error;
+        } 
+        
+        // If not found by membership number or resolvedParams.id is not a number, try by name
+        if (!athleteData) {
+          // Convert URL slug back to name format (e.g., "john-doe" -> "John Doe")
+          const nameFromSlug = resolvedParams.id
+            .split('-')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(' ');
+
+          const result = await supabase
+            .from('lifters')
+            .select('*')
+            .ilike('athlete_name', nameFromSlug)
+            .single();
+          
+          athleteData = result.data;
+          athleteError = result.error;
+        }
+
+        if (athleteError || !athleteData) {
+          throw new Error('Athlete not found');
+        }
+
+        // Fetch athlete's competition results using lifter_id
+        const { data: resultsData, error: resultsError } = await supabase
+          .from('meet_results')
+          .select('*')
+          .eq('lifter_id', athleteData.lifter_id)
+          .order('date', { ascending: false });
+
+        if (resultsError) throw resultsError;
+
+        setAthlete(athleteData);
+        setResults(resultsData || []);
+      } catch (err: any) {
+        setError(err.message);
+        console.error('Error fetching athlete data:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchAthleteData();
+  }, [resolvedParams.id]);
+
+  // Reset to page 1 when results change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [results]);
+
+  // Calculate personal bests from results
+  const personalBests = results.length > 0 ? {
+    best_snatch: Math.max(...results.map(r => parseInt(r.best_snatch || '0')).filter(v => v > 0)),
+    best_cj: Math.max(...results.map(r => parseInt(r.best_cj || '0')).filter(v => v > 0)),
+    best_total: Math.max(...results.map(r => parseInt(r.total || '0')).filter(v => v > 0)),
+    best_qpoints: Math.max(...results.map(r => r.qpoints || 0).filter(v => v > 0))
+  } : { best_snatch: 0, best_cj: 0, best_total: 0, best_qpoints: 0 };
+
+  // Prepare chart data - sort by date and format for charts
+  const chartData = results
+    .filter(r => r.date && (r.best_snatch || r.best_cj || r.total || r.qpoints || r.q_youth || r.q_masters))
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .map(r => {
+      const baseData = {
+        date: r.date,
+        meet: r.meet_name || 'Unknown',
+        snatch: parseInt(r.best_snatch || '0') || null,
+        cleanJerk: parseInt(r.best_cj || '0') || null,
+        total: parseInt(r.total || '0') || null,
+        bodyweight: parseFloat(r.body_weight_kg || '0') || null,
+        qpoints: r.qpoints || null,
+        qYouth: r.q_youth || null,
+        qMasters: r.q_masters || null,
+        shortDate: new Date(r.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+        competitionAge: r.competition_age || null,
+        dateWithAge: r.competition_age 
+          ? `${new Date(r.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} (${r.competition_age})`
+          : new Date(r.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+        timestamp: new Date(r.date).getTime()
+      };
+
+      // Add snatch attempts
+      const snatchAttempts = [r.snatch_lift_1, r.snatch_lift_2, r.snatch_lift_3];
+      snatchAttempts.forEach((attempt, index) => {
+        if (attempt && attempt !== '0') {
+          const weight = parseInt(attempt);
+          const isGood = weight > 0;
+          if (isGood) {
+            baseData[`snatchGood${index + 1}`] = Math.abs(weight);
+          } else {
+            baseData[`snatchMiss${index + 1}`] = Math.abs(weight);
+          }
+        }
+      });
+
+      // Add clean & jerk attempts
+      const cjAttempts = [r.cj_lift_1, r.cj_lift_2, r.cj_lift_3];
+      cjAttempts.forEach((attempt, index) => {
+        if (attempt && attempt !== '0') {
+          const weight = parseInt(attempt);
+          const isGood = weight > 0;
+          if (isGood) {
+            baseData[`cjGood${index + 1}`] = Math.abs(weight);
+          } else {
+            baseData[`cjMiss${index + 1}`] = Math.abs(weight);
+          }
+        }
+      });
+
+      return baseData;
+    });
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-slate-800 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-400 mx-auto mb-4"></div>
+          <p className="text-lg text-gray-300">Loading athlete data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !athlete) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-slate-800 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-white mb-4">Error Loading Athlete</h1>
+          <p className="text-gray-300 mb-4">{error || 'Athlete not found'}</p>
+          <button 
+            onClick={() => window.history.back()}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-slate-800">
+      {/* Header */}
+      <header className="bg-gray-800/80 backdrop-blur-sm border-b border-gray-700 sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <div className="flex items-center space-x-4">
+				<button 
+				  onClick={() => window.location.href = '/'}
+				  className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
+				>
+				  <ArrowLeft className="h-5 w-5" />
+				  <span>Back to Search</span>
+				</button>
+            </div>
+            <div className="flex items-center space-x-4">
+				  {athlete && athlete.internal_id && (
+					<button
+					  onClick={() => window.open(`https://usaweightlifting.sport80.com/public/rankings/member/${athlete.internal_id}`, '_blank')}
+					  className="flex items-center space-x-2 text-gray-300 hover:text-blue-400 transition-colors"
+					>
+					  <ExternalLink className="h-4 w-4" />
+					  <span>External Profile</span>
+					</button>
+				  )}
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Athlete Header */}
+        <div className="bg-gray-800 rounded-2xl p-8 mb-8 border border-gray-700">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between">
+            <div className="flex items-start space-x-6">
+              <div className="bg-gray-700 rounded-full p-4">
+                <User className="h-12 w-12 text-gray-300" />
+              </div>
+              <div>
+                <div className="flex flex-col">
+				  <h1 className="text-3xl font-bold text-white mb-2">{athlete.athlete_name}</h1>
+				  <div className="flex flex-wrap gap-4 text-sm text-gray-300">
+					{athlete.membership_number && (
+					  <div className="flex items-center space-x-1">
+						<span>USAW Membership #{athlete.membership_number}</span>
+					  </div>
+					)}
+					{athlete.gender && (
+					  <div className="flex items-center space-x-1">
+						<span>{athlete.gender === 'M' ? 'Male' : 'Female'}</span>
+					  </div>
+					)}
+				  </div>
+				  <div className="flex flex-wrap gap-4 text-sm text-gray-300 mt-2">
+					{athlete.wso && (
+					  <div className="flex items-center space-x-1">
+						<MapPin className="h-4 w-4" />
+						<span>WSO: {athlete.wso}</span>
+					  </div>
+					)}
+					{athlete.club_name && (
+					  <div className="flex items-center space-x-1">
+						<Dumbbell className="h-4 w-4" />
+						<span>Barbell Club: {athlete.club_name}</span>
+					  </div>
+					)}
+				  </div>
+				</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Performance Charts */}
+        {chartData.length > 1 && (
+          <div className="space-y-8 mb-8">
+            {/* Progress Over Time Chart - Full Width */}
+            <div className="bg-gray-800 rounded-2xl p-6 border border-gray-700" ref={performanceChartRef}>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-white flex items-center">
+                  <TrendingUp className="h-5 w-5 mr-2" />
+                  {athlete.athlete_name} Performance Progress
+                </h3>
+                <div className="flex space-x-2">
+					<button 
+					  onClick={() => setAutoScalePerformance(!autoScalePerformance)}
+					  className={`px-3 py-1 rounded text-xs transition-colors ${
+						autoScalePerformance 
+						  ? 'bg-gray-600 text-gray-300 hover:bg-gray-500' 
+						  : 'bg-blue-600 text-white'
+					  }`}
+					>
+					  {autoScalePerformance ? 'Fixed Scale' : 'Auto Scale'}
+					</button>
+					<button
+					  onClick={() => setShowPerformanceBrush(!showPerformanceBrush)}
+					  className={`px-3 py-1 rounded text-xs transition-colors ${
+						showPerformanceBrush 
+						  ? 'bg-blue-600 text-white' 
+						  : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+					  }`}
+					>
+					  {showPerformanceBrush ? 'Hide Zoom' : 'Show Zoom'}
+					</button>
+					<button
+					  onClick={() => exportChartToPDF(performanceChartRef, `${athlete.athlete_name.replace(/\s+/g, '_')}_performance_chart.pdf`)}
+					  className="px-3 py-1 rounded text-xs transition-colors bg-gray-600 text-gray-300 hover:bg-gray-500"
+					>
+					  Export PDF
+					</button>
+				</div>
+              </div>
+              <ResponsiveContainer width="100%" height={500}>
+                <LineChart 
+                  data={chartData} 
+                  margin={{ top: 20, right: 50, left: 20, bottom: 20 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis 
+                    type="number"
+                    dataKey="timestamp"
+                    scale="time"
+                    domain={['dataMin', 'dataMax']}
+                    stroke="#9CA3AF"
+                    fontSize={11}
+                    tickFormatter={(timestamp) => {
+                      const date = new Date(timestamp);
+                      const year = date.getFullYear().toString().slice(-2);
+                      return `Jan '${year}`;
+                    }}
+					padding={{ left: 10, right: 10 }}
+                    ticks={(() => {
+                      if (chartData.length === 0) return [];
+                      const minYear = new Date(Math.min(...chartData.map(d => d.timestamp))).getFullYear();
+                      const maxYear = new Date(Math.max(...chartData.map(d => d.timestamp))).getFullYear();
+                      const ticks = [];
+                      for (let year = minYear - 1; year <= maxYear + 1; year++) {
+                        ticks.push(new Date(year, 0, 1).getTime());
+                      }
+                      return ticks;
+                    })()}
+                    allowDataOverflow={true}
+                    label={{ 
+                      value: 'Competition Date (Competition Age)', 
+                      position: 'insideBottom', 
+                      offset: -5, 
+                      style: { 
+                        textAnchor: 'middle', 
+                        fill: '#9CA3AF',
+                        fontSize: '12px'
+                      } 
+                    }}
+                  />
+                  <YAxis 
+					  stroke="#9CA3AF"
+					  fontSize={12}
+					  domain={autoScalePerformance ? ['dataMin - 10', 'dataMax + 10'] : [0, 'dataMax + 5']}
+					  allowDataOverflow={true}
+					  label={{ 
+					  value: 'Weight (kg)', 
+					  angle: -90, 
+					  position: 'insideLeft', 
+					  style: { 
+						textAnchor: 'middle', 
+						fill: '#9CA3AF',
+						fontSize: '12px'
+					  } 
+                    }}
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: '#1F2937', 
+                      border: '1px solid #374151',
+                      borderRadius: '8px',
+                      color: '#F3F4F6',
+                      fontSize: '14px',
+                      padding: '12px'
+                    }}
+                    content={({ active, payload, label }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        
+                        return (
+                          <div className="bg-gray-800 border border-gray-600 rounded-lg p-3">
+                            <p className="text-white font-medium mb-2">{`${data.meet} - ${data.dateWithAge}`}</p>
+                            
+                            <p style={{ color: '#10B981' }}>
+                              Clean & Jerk: {data.cleanJerk ? `${data.cleanJerk}kg` : '-'}
+                            </p>
+                            
+                            {[1, 2, 3].map(num => {
+                              const good = data[`cjGood${num}`];
+                              const miss = data[`cjMiss${num}`];
+                              if (good || miss) {
+                                return (
+                                  <p key={`cj-${num}`} style={{ color: 'white' }}>
+                                    C&J Attempt {num} {good ? '✓' : '✗'}: {good || miss}kg
+                                  </p>
+                                );
+                              }
+                              return null;
+                            })}
+                            
+                            <p style={{ color: '#3B82F6' }}>
+                              Snatch: {data.snatch ? `${data.snatch}kg` : '-'}
+                            </p>
+                            
+                            {[1, 2, 3].map(num => {
+                              const good = data[`snatchGood${num}`];
+                              const miss = data[`snatchMiss${num}`];
+                              if (good || miss) {
+                                return (
+                                  <p key={`snatch-${num}`} style={{ color: 'white' }}>
+                                    Snatch Attempt {num} {good ? '✓' : '✗'}: {good || miss}kg
+                                  </p>
+                                );
+                              }
+                              return null;
+                            })}
+                            
+                            {data.total && (
+                              <p style={{ color: '#F59E0B' }}>
+                                Total: {data.total}kg
+                              </p>
+                            )}
+                            
+                            {data.bodyweight && (
+                              <p style={{ color: '#EC4899' }}>
+                                Bodyweight: {data.bodyweight}kg
+                              </p>
+                            )}
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                    cursor={false}
+                    animationDuration={150}
+                    allowEscapeViewBox={{ x: false, y: true }}
+                    position={{ x: undefined, y: undefined }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="snatch" 
+                    stroke="#3B82F6" 
+                    strokeWidth={2}
+                    dot={{ 
+                      fill: '#3B82F6', 
+                      strokeWidth: 2, 
+                      r: 4,
+                      style: { cursor: 'pointer' }
+                    }}
+                    activeDot={{ 
+                      r: 7, 
+                      stroke: '#3B82F6', 
+                      strokeWidth: 3, 
+                      fill: '#ffffff',
+                      style: { cursor: 'pointer' }
+                    }}
+                    name="snatch"
+                    connectNulls={false}
+                  />
+                  {showPerformanceBrush && (
+					  <Brush 
+						key="performance-brush"
+						dataKey="timestamp" 
+						height={20}
+						y={500 - 20}
+						stroke="#6B7280"
+						fill="#374151"
+						fillOpacity={0.6}
+						tickFormatter={(timestamp) => {
+						  const date = new Date(timestamp);
+						  const year = date.getFullYear().toString().slice(-0);
+						  return year;
+						}}
+					  />
+					)}
+                  {[1, 2, 3].map(attemptNum => (
+                    <Line
+                      key={`snatch-good-${attemptNum}`}
+                      type="monotone"
+                      dataKey={`snatchGood${attemptNum}`}
+                      stroke="none"
+                      dot={{
+                        fill: '#3B82F6',
+                        fillOpacity: 0.5,
+                        stroke: '#3B82F6',
+                        strokeOpacity: 0.7,
+                        strokeWidth: 1,
+                        r: 3
+                      }}
+                      line={false}
+                      connectNulls={false}
+                      legendType="none"
+                    />
+                  ))}
+                  {[1, 2, 3].map(attemptNum => (
+                    <Line
+                      key={`snatch-miss-${attemptNum}`}
+                      type="monotone"
+                      dataKey={`snatchMiss${attemptNum}`}
+                      stroke="none"
+                      dot={{
+                        fill: '#EF4444',
+                        fillOpacity: 0.5,
+                        stroke: '#EF4444',
+                        strokeOpacity: 0.7,
+                        strokeWidth: 1,
+                        r: 3
+                      }}
+                      line={false}
+                      connectNulls={false}
+                      legendType="none"
+                    />
+                  ))}
+                  <Line 
+                    type="monotone" 
+                    dataKey="cleanJerk" 
+                    stroke="#10B981" 
+                    strokeWidth={2}
+                    dot={{ 
+                      fill: '#10B981', 
+                      strokeWidth: 2, 
+                      r: 4,
+                      style: { cursor: 'pointer' }
+                    }}
+                    activeDot={{ 
+                      r: 7, 
+                      stroke: '#10B981', 
+                      strokeWidth: 3, 
+                      fill: '#ffffff',
+                      style: { cursor: 'pointer' }
+                    }}
+                    name="cleanJerk"
+                    connectNulls={false}
+                  />
+                  {[1, 2, 3].map(attemptNum => (
+                    <Line
+                      key={`cj-good-${attemptNum}`}
+                      type="monotone"
+                      dataKey={`cjGood${attemptNum}`}
+                      stroke="none"
+                      dot={{
+                        fill: '#10B981',
+                        fillOpacity: 0.5,
+                        stroke: '#10B981',
+                        strokeOpacity: 0.7,
+                        strokeWidth: 1,
+                        r: 3
+                      }}
+                      line={false}
+                      connectNulls={false}
+                      legendType="none"
+                    />
+                  ))}
+                  {[1, 2, 3].map(attemptNum => (
+                    <Line
+                      key={`cj-miss-${attemptNum}`}
+                      type="monotone"
+                      dataKey={`cjMiss${attemptNum}`}
+                      stroke="none"
+                      dot={{
+                        fill: '#EF4444',
+                        fillOpacity: 0.5,
+                        stroke: '#EF4444',
+                        strokeOpacity: 0.7,
+                        strokeWidth: 1,
+                        r: 3
+                      }}
+                      line={false}
+                      connectNulls={false}
+                      legendType="none"
+                    />
+                  ))}
+                  <Line 
+                    type="monotone" 
+                    dataKey="total" 
+                    stroke="#F59E0B" 
+                    strokeWidth={2}
+                    dot={{ 
+                      fill: '#F59E0B', 
+                      strokeWidth: 2, 
+                      r: 4,
+                      style: { cursor: 'pointer' }
+                    }}
+                    activeDot={{ 
+                      r: 7, 
+                      stroke: '#F59E0B', 
+                      strokeWidth: 3, 
+                      fill: '#ffffff',
+                      style: { cursor: 'pointer' }
+                    }}
+                    name="total"
+                    connectNulls={false}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="bodyweight" 
+                    stroke="#EC4899" 
+                    strokeWidth={2}
+                    dot={{ 
+                      fill: '#EC4899', 
+                      strokeWidth: 2, 
+                      r: 4,
+                      style: { cursor: 'pointer' }
+                    }}
+                    activeDot={{ 
+                      r: 7, 
+                      stroke: '#EC4899', 
+                      strokeWidth: 3, 
+                      fill: '#ffffff',
+                      style: { cursor: 'pointer' }
+                    }}
+                    name="bodyweight"
+                    connectNulls={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Q-Points Chart - Full Width */}
+            <div className="bg-gray-800 rounded-2xl p-6 border border-gray-700" ref={qScoresChartRef}>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-white flex items-center">
+                  <BarChart3 className="h-5 w-5 mr-2" />
+                  {athlete.athlete_name} Q-Scores Over Time
+                </h3>
+                <div className="flex space-x-2">
+				  <button 
+					  onClick={() => setAutoScaleQScores(!autoScaleQScores)}
+					  className={`px-3 py-1 rounded text-xs transition-colors ${
+						autoScaleQScores 
+						  ? 'bg-gray-600 text-gray-300 hover:bg-gray-500' 
+						  : 'bg-blue-600 text-white'
+					  }`}
+					>
+					  {autoScaleQScores ? 'Fixed Scale' : 'Auto Scale'}
+					</button>
+					<button
+					  onClick={() => setShowQScoresBrush(!showQScoresBrush)}
+					  className={`px-3 py-1 rounded text-xs transition-colors ${
+						showQScoresBrush 
+						  ? 'bg-blue-600 text-white' 
+						  : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+					  }`}
+					>
+					  {showQScoresBrush ? 'Hide Zoom' : 'Show Zoom'}
+					</button>
+					<button
+					  onClick={() => exportChartToPDF(qScoresChartRef, `${athlete.athlete_name.replace(/\s+/g, '_')}_qscores_chart.pdf`)}
+					  className="px-3 py-1 rounded text-xs transition-colors bg-gray-600 text-gray-300 hover:bg-gray-500"
+					>
+					  Export PDF
+					</button>
+				</div>
+              </div>
+              <ResponsiveContainer width="100%" height={500}>
+                <LineChart 
+                  data={chartData} 
+                  margin={{ top: 20, right: 50, left: 20, bottom: 20 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis 
+                    type="number"
+                    dataKey="timestamp"
+                    scale="time"
+                    domain={['dataMin', 'dataMax']}
+                    stroke="#9CA3AF"
+                    fontSize={11}
+                    tickFormatter={(timestamp) => {
+                      const date = new Date(timestamp);
+                      const year = date.getFullYear().toString().slice(-2);
+                      return `Jan '${year}`;
+                    }}
+					padding={{ left: 10, right: 10 }}
+                    ticks={(() => {
+                      if (chartData.length === 0) return [];
+                      const minYear = new Date(Math.min(...chartData.map(d => d.timestamp))).getFullYear();
+                      const maxYear = new Date(Math.max(...chartData.map(d => d.timestamp))).getFullYear();
+                      const ticks = [];
+                      for (let year = minYear - 1; year <= maxYear + 1; year++) {
+                        ticks.push(new Date(year, 0, 1).getTime());
+                      }
+                      return ticks;
+                    })()}
+                    allowDataOverflow={true}
+                    label={{ 
+                      value: 'Competition Date (Competition Age)', 
+                      position: 'insideBottom', 
+                      offset: -5, 
+                      style: { 
+                        textAnchor: 'middle', 
+                        fill: '#9CA3AF',
+                        fontSize: '12px'
+                      } 
+                    }}
+                  />
+                  <YAxis 
+                    stroke="#9CA3AF"
+				    fontSize={12}
+				    domain={autoScaleQScores ? ['dataMin - 10', 'dataMax + 10'] : [0, 'dataMax + 5']}
+				    allowDataOverflow={true}
+                    label={{ 
+                      value: 'Q-Score', 
+                      angle: -90, 
+                      position: 'insideLeft', 
+                      style: { 
+                        textAnchor: 'middle', 
+                        fill: '#9CA3AF',
+                        fontSize: '12px'
+                      } 
+                    }}
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: '#1F2937', 
+                      border: '1px solid #374151',
+                      borderRadius: '8px',
+                      color: '#F3F4F6',
+                      fontSize: '14px',
+                      padding: '12px'
+                    }}
+                    formatter={(value, name) => {
+                      if (!value && value !== 0) return ['-', name];
+                      if (name === 'qpoints') return [value.toFixed(1), 'Q-Points'];
+                      if (name === 'qYouth') return [value.toFixed(1), 'Q-Youth'];
+                      if (name === 'qMasters') return [value.toFixed(1), 'Q-Masters'];
+                      return [value.toFixed(1), name];
+                    }}
+                    labelFormatter={(label, payload) => {
+                      if (payload && payload[0] && payload[0].payload) {
+                        const data = payload[0].payload;
+                        return `${data.meet} - ${data.dateWithAge}`;
+                      }
+                      return `Competition: ${new Date(label).toLocaleDateString()}`;
+                    }}
+                    cursor={false}
+                    animationDuration={150}
+                    allowEscapeViewBox={{ x: false, y: true }}
+                    position={{ x: undefined, y: undefined }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="qpoints" 
+                    stroke="#8B5CF6" 
+                    strokeWidth={2}
+                    dot={{ 
+                      fill: '#8B5CF6', 
+                      strokeWidth: 2, 
+                      r: 4,
+                      style: { cursor: 'pointer' }
+                    }}
+                    activeDot={{ 
+                      r: 8, 
+                      stroke: '#8B5CF6', 
+                      strokeWidth: 3, 
+                      fill: '#ffffff',
+                      style: { cursor: 'pointer' }
+                    }}
+                    name="qpoints"
+                    connectNulls={false}
+                  />
+                  {chartData.some(d => d.qYouth) && (
+                    <Line 
+                      type="monotone" 
+                      dataKey="qYouth" 
+                      stroke="#06B6D4" 
+                      strokeWidth={2}
+                      dot={{ 
+                        fill: '#06B6D4', 
+                        strokeWidth: 2, 
+                        r: 4,
+                        style: { cursor: 'pointer' }
+                      }}
+                      activeDot={{ 
+                        r: 8, 
+                        stroke: '#06B6D4', 
+                        strokeWidth: 3, 
+                        fill: '#ffffff',
+                        style: { cursor: 'pointer' }
+                      }}
+                      name="qYouth"
+                      connectNulls={false}
+                    />
+                  )}
+                  {showQScoresBrush && (
+					  <Brush 
+						key="q-scores-brush"
+						dataKey="timestamp" 
+						height={20}
+						y={500 - 20}
+						stroke="#6B7280"
+						fill="#374151"
+						fillOpacity={0.6}
+						tickFormatter={(timestamp) => {
+						  const date = new Date(timestamp);
+						  const year = date.getFullYear().toString().slice(-0);
+						  return year;
+						}}
+					  />
+					)}
+                  {chartData.some(d => d.qMasters) && (
+                    <Line 
+                      type="monotone" 
+                      dataKey="qMasters" 
+                      stroke="#F97316" 
+                      strokeWidth={2}
+                      dot={{ 
+                        fill: '#F97316', 
+                        strokeWidth: 2, 
+                        r: 4,
+                        style: { cursor: 'pointer' }
+                      }}
+                      activeDot={{ 
+                        r: 8, 
+                        stroke: '#F97316', 
+                        strokeWidth: 3, 
+                        fill: '#ffffff',
+                        style: { cursor: 'pointer' }
+                      }}
+                      name="qMasters"
+                      connectNulls={false}
+                    />
+                  )}
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-semibold text-gray-300">Best Snatch</h3>
+              <Weight className="h-5 w-5 text-blue-400" />
+            </div>
+            <div className="text-2xl font-bold text-white">
+              {personalBests.best_snatch > 0 ? `${personalBests.best_snatch}kg` : 'N/A'}
+            </div>
+          </div>
+          
+          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-semibold text-gray-300">Best C&J</h3>
+              <Weight className="h-5 w-5 text-green-400" />
+            </div>
+            <div className="text-2xl font-bold text-white">
+              {personalBests.best_cj > 0 ? `${personalBests.best_cj}kg` : 'N/A'}
+            </div>
+          </div>
+          
+          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-semibold text-gray-300">Best Total</h3>
+              <Trophy className="h-5 w-5 text-yellow-400" />
+            </div>
+            <div className="text-2xl font-bold text-white">
+              {personalBests.best_total > 0 ? `${personalBests.best_total}kg` : 'N/A'}
+            </div>
+          </div>
+          
+          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-semibold text-gray-300">Best Q-Points</h3>
+              <TrendingUp className="h-5 w-5 text-purple-400" />
+            </div>
+            <div className="text-2xl font-bold text-white">
+              {personalBests.best_qpoints > 0 ? personalBests.best_qpoints.toFixed(1) : 'N/A'}
+            </div>
+          </div>
+        </div>
+
+		{/* Competition Results */}
+		<div className="bg-gray-800 rounded-2xl border border-gray-700 results-table">
+		  <div className="p-6 border-b border-gray-700">
+			<div className="flex justify-between items-center">
+			  <h2 className="text-xl font-bold text-white flex items-center">
+				<Calendar className="h-5 w-5 mr-2" />
+				{athlete.athlete_name} Competition Results ({results.length} total)
+			  </h2>
+			  <div className="flex space-x-2">
+				<button
+				  onClick={() => exportTableToPDF(resultsTableRef, `${athlete.athlete_name.replace(/\s+/g, '_')}_results_table.pdf`, athlete.athlete_name)}
+				  className="px-3 py-1 rounded text-xs transition-colors bg-gray-600 text-gray-300 hover:bg-gray-500"
+				>
+				  Export PDF
+				</button>
+				<button
+				  onClick={() => exportTableToCSV(results, athlete.athlete_name)}
+				  className="px-3 py-1 rounded text-xs transition-colors bg-gray-600 text-gray-300 hover:bg-gray-500"
+				>
+				  Export CSV
+				</button>
+			  </div>
+			</div>
+		  </div>
+		  
+		  <div className="p-6" ref={resultsTableRef}>
+			{results.length === 0 ? (
+			  <div className="text-center py-8">
+				<p className="text-gray-400">No competition results found for this athlete.</p>
+			  </div>
+			) : (
+			  <>
+				<div className="overflow-x-auto">
+				  <table className="w-full text-xs text-left text-gray-300">
+					<thead className="text-xs text-gray-400 uppercase bg-gray-700">
+					  <tr>
+						<th scope="col" className="px-2 py-3">Date</th>
+						<th scope="col" className="px-2 py-3">Meet</th>
+						<th scope="col" className="px-2 py-3">Age Category</th>
+						<th scope="col" className="px-2 py-3">Weight Class</th>
+						<th scope="col" className="px-2 py-3">Body Weight</th>
+						<th scope="col" className="px-2 py-3">Comp Age</th>
+						<th scope="col" className="px-2 py-3">Sn 1</th>
+						<th scope="col" className="px-2 py-3">Sn 2</th>
+						<th scope="col" className="px-2 py-3">Sn 3</th>
+						<th scope="col" className="px-2 py-3">Best Sn</th>
+						<th scope="col" className="px-2 py-3">CJ 1</th>
+						<th scope="col" className="px-2 py-3">CJ 2</th>
+						<th scope="col" className="px-2 py-3">CJ 3</th>
+						<th scope="col" className="px-2 py-3">Best CJ</th>
+						<th scope="col" className="px-2 py-3">Total</th>
+						<th scope="col" className="px-2 py-3">Q-Youth</th>
+						<th scope="col" className="px-2 py-3">Q-Points</th>
+						<th scope="col" className="px-2 py-3">Q-Masters</th>
+					  </tr>
+					</thead>
+					<tbody className="text-xs">
+					  {displayResults.map((result, index) => (
+						<tr key={index} className="bg-gray-800 border-b border-gray-700 hover:bg-gray-750">
+						  <td className="px-2 py-3 whitespace-nowrap">{new Date(result.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
+						  <td className="px-2 py-3 max-w-xs truncate" title={result.meet_name}>{result.meet_name}</td>
+						  <td className="px-2 py-3 whitespace-nowrap">{result.age_category || '-'}</td>
+						  <td className="px-2 py-3 whitespace-nowrap">{result.weight_class || '-'}</td>
+						  <td className="px-2 py-3 whitespace-nowrap text-pink-400">{result.body_weight_kg ? `${result.body_weight_kg}kg` : '-'}</td>
+						  <td className="px-2 py-3 whitespace-nowrap">{result.competition_age || '-'}</td>	
+						  <td className="px-2 py-3 whitespace-nowrap">{result.snatch_lift_1 || '-'}</td>
+						  <td className="px-2 py-3 whitespace-nowrap">{result.snatch_lift_2 || '-'}</td>
+						  <td className="px-2 py-3 whitespace-nowrap">{result.snatch_lift_3 || '-'}</td>
+						  <td className="px-2 py-3 whitespace-nowrap font-semibold text-blue-400">{result.best_snatch ? `${result.best_snatch}kg` : '-'}</td>
+						  <td className="px-2 py-3 whitespace-nowrap">{result.cj_lift_1 || '-'}</td>
+						  <td className="px-2 py-3 whitespace-nowrap">{result.cj_lift_2 || '-'}</td>
+						  <td className="px-2 py-3 whitespace-nowrap">{result.cj_lift_3 || '-'}</td>
+						  <td className="px-2 py-3 whitespace-nowrap font-semibold text-green-400">{result.best_cj ? `${result.best_cj}kg` : '-'}</td>
+						  <td className="px-2 py-3 whitespace-nowrap font-bold text-yellow-400">{result.total ? `${result.total}kg` : '-'}</td>
+						  <td className="px-2 py-3 whitespace-nowrap text-cyan-400">{result.q_youth || '-'}</td>
+						  <td className="px-2 py-3 whitespace-nowrap text-violet-400">{result.qpoints || '-'}</td>
+						  <td className="px-2 py-3 whitespace-nowrap text-orange-400">{result.q_masters || '-'}</td>
+						</tr>
+					  ))}
+					</tbody>
+				  </table>
+				</div>
+				
+				<Pagination 
+				  currentPage={currentPage}
+				  totalPages={totalPages}
+				  onPageChange={handlePageChange}
+				/>
+			  </>
+			)}
+		  </div>
+		</div>
+      </div>
+    </div>
+  );
+}
