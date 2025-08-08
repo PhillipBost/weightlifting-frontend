@@ -14,14 +14,16 @@ Listed roughly in order of priority but also ease of implementation
 - [Choropleth map](https://www.data-to-viz.com/graph/choropleth.html) within national & international meet result pages which show increased opacity for how much each WSO was represented overlayed with a [bubblemap](https://d3-graph-gallery.com/bubblemap) which shows which (and to what degree) various barbell club members participated
 - Data visualizations within meet results pages (scatter plots, Q-score distribution, etc) 
 - IWF Results
-- Athlete Page Overall Placement at National and International Events
+- Delineate US athletes vs. international athletes ([openweightlifting.org](https://www.openweightlifting.org/) does this well).
+- Athlete Page -- Overall Placement at National and International Events
 - Athlete-to-Athlete Comparisons (potentially housed within the athlete page)
 - Country Tagging/Grouping (IWF results is a prerequisite)
 - Barbell Club / WSO page with TreeMap showing colorful sections representing WSOs and various sized blocks within representing barbell clubs. I think this one might actually be too tricky...
 - [Banded chart](https://recharts.org/en-US/examples/BandedChart) for athletes (particularly youth) which have their current q-score data and then extrapolates out based on average YOY% percentage change and an upper band representing highest YOY% ever achieved and lower band representing... I'm not sure... lowest YOY% ever acheived (within reason)? Just have the lower band match the higher band but in the opposite direction? 
 
-#### Small Ideas
+#### Smaller / easier to implement ideas
 
 - Provide link to github
 - About page
 - Result tables on athlete pages give the correct number of results above the table, but at the bottom it usually tells you a different number if there are more than 20 meets.
+- Address the database bug(?) where some athletes have older barbell club / WSO affiliations linked to their profile
