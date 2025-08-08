@@ -44,7 +44,7 @@ const exportChartToPDF = async (chartRef: React.RefObject<HTMLDivElement>, filen
     const pdf = new jsPDF({
       orientation: 'landscape',
       unit: 'mm',
-      format: a3 
+      format: 'a3' 
     });
     
     // Add image with padding
@@ -179,7 +179,13 @@ const exportTableToCSV = (results: any[], athleteName: string) => {
   }
 };
 
-const LiftAttempts = ({ lift1, lift2, lift3, best, type }) => {
+const LiftAttempts = ({ lift1, lift2, lift3, best, type }: {
+  lift1: string | null;
+  lift2: string | null;
+  lift3: string | null;
+  best: string | null;
+  type: string;
+}) => {
   const attempts = [lift1, lift2, lift3];
   
   return (
@@ -223,7 +229,11 @@ const LiftAttempts = ({ lift1, lift2, lift3, best, type }) => {
 };
 
 // Custom Pagination Component
-const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+const Pagination = ({ currentPage, totalPages, onPageChange }: {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+}) => {
   if (totalPages <= 1) return null;
 
   const getPageNumbers = () => {
@@ -421,23 +431,23 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
     .filter(r => r.date && (r.best_snatch || r.best_cj || r.total || r.qpoints || r.q_youth || r.q_masters))
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .map(r => {
-      const baseData = {
-        date: r.date,
-        meet: r.meet_name || 'Unknown',
-        snatch: parseInt(r.best_snatch || '0') || null,
-        cleanJerk: parseInt(r.best_cj || '0') || null,
-        total: parseInt(r.total || '0') || null,
-        bodyweight: parseFloat(r.body_weight_kg || '0') || null,
-        qpoints: r.qpoints || null,
-        qYouth: r.q_youth || null,
-        qMasters: r.q_masters || null,
-        shortDate: new Date(r.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
-        competitionAge: r.competition_age || null,
-        dateWithAge: r.competition_age 
-          ? `${new Date(r.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} (${r.competition_age})`
-          : new Date(r.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
-        timestamp: new Date(r.date).getTime()
-      };
+		const baseData: any = {
+		  date: r.date,
+		  meet: r.meet_name || 'Unknown',
+		  snatch: parseInt(r.best_snatch || '0') || null,
+		  cleanJerk: parseInt(r.best_cj || '0') || null,
+		  total: parseInt(r.total || '0') || null,
+		  bodyweight: parseFloat(r.body_weight_kg || '0') || null,
+		  qpoints: r.qpoints || null,
+		  qYouth: r.q_youth || null,
+		  qMasters: r.q_masters || null,
+		  shortDate: new Date(r.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+		  competitionAge: r.competition_age || null,
+		  dateWithAge: r.competition_age 
+			? `${new Date(r.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} (${r.competition_age})`
+			: new Date(r.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+		  timestamp: new Date(r.date).getTime()
+		};
 
       // Add snatch attempts
       const snatchAttempts = [r.snatch_lift_1, r.snatch_lift_2, r.snatch_lift_3];
@@ -601,12 +611,6 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 					  }`}
 					>
 					  {showPerformanceBrush ? 'Hide Zoom' : 'Show Zoom'}
-					</button>
-					<button
-					  onClick={() => exportChartToPDF(performanceChartRef, `${athlete.athlete_name.replace(/\s+/g, '_')}_performance_chart.pdf`)}
-					  className="px-3 py-1 rounded text-xs transition-colors bg-gray-600 text-gray-300 hover:bg-gray-500"
-					>
-					  Export PDF
 					</button>
 				</div>
               </div>
@@ -790,7 +794,6 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                         strokeWidth: 1,
                         r: 3
                       }}
-                      line={false}
                       connectNulls={false}
                       legendType="none"
                     />
@@ -809,7 +812,6 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                         strokeWidth: 1,
                         r: 3
                       }}
-                      line={false}
                       connectNulls={false}
                       legendType="none"
                     />
@@ -849,7 +851,6 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                         strokeWidth: 1,
                         r: 3
                       }}
-                      line={false}
                       connectNulls={false}
                       legendType="none"
                     />
@@ -868,7 +869,6 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                         strokeWidth: 1,
                         r: 3
                       }}
-                      line={false}
                       connectNulls={false}
                       legendType="none"
                     />
@@ -947,12 +947,6 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 					>
 					  {showQScoresBrush ? 'Hide Zoom' : 'Show Zoom'}
 					</button>
-					<button
-					  onClick={() => exportChartToPDF(qScoresChartRef, `${athlete.athlete_name.replace(/\s+/g, '_')}_qscores_chart.pdf`)}
-					  className="px-3 py-1 rounded text-xs transition-colors bg-gray-600 text-gray-300 hover:bg-gray-500"
-					>
-					  Export PDF
-					</button>
 				</div>
               </div>
               <ResponsiveContainer width="100%" height={500}>
@@ -1021,13 +1015,17 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                       fontSize: '14px',
                       padding: '12px'
                     }}
-                    formatter={(value, name) => {
-                      if (!value && value !== 0) return ['-', name];
-                      if (name === 'qpoints') return [value.toFixed(1), 'Q-Points'];
-                      if (name === 'qYouth') return [value.toFixed(1), 'Q-Youth'];
-                      if (name === 'qMasters') return [value.toFixed(1), 'Q-Masters'];
-                      return [value.toFixed(1), name];
-                    }}
+                    formatter={(value: any, name: string) => {
+					  if (!value && value !== 0) return ['-', name];
+					  if (typeof value === 'number') {
+						if (name === 'qpoints') return [value.toFixed(1), 'Q-Points'];
+						if (name === 'qYouth') return [value.toFixed(1), 'Q-Youth'];
+						if (name === 'qMasters') return [value.toFixed(1), 'Q-Masters'];
+						return [value.toFixed(1), name];
+					  } else {
+						return [String(value), name]; // or some other default behavior
+					  }
+					}}
                     labelFormatter={(label, payload) => {
                       if (payload && payload[0] && payload[0].payload) {
                         const data = payload[0].payload;

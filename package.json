@@ -9,9 +9,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@nivo/core": "^0.99.0",
-    "@nivo/line": "^0.99.0",
-    "@nivo/stream": "^0.99.0",
     "@supabase/supabase-js": "^2.53.0",
     "@xterm/xterm": "^5.5.0",
     "cowsay": "^1.6.0",

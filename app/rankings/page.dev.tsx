@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -607,7 +609,7 @@ export default function RankingsPage() {
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Weightlifting Rankings</title>
+          <title>USA Weightlifting Ranking Tables</title>
           <style>
             body { font-family: Arial, sans-serif; margin: 20px; }
             h1 { color: #333; text-align: center; }
