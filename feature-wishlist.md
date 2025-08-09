@@ -24,6 +24,7 @@ Listed roughly in order of priority but also ease of implementation
 #### Smaller / easier to implement ideas
 
 - Provide link to github
+- Add Vercel analytics functionality
 - About page
 - Result tables on athlete pages give the correct number of results above the table, but at the bottom it usually tells you a different number if there are more than 20 meets.
 - Address the database bug(?) where some athletes have older barbell club / WSO affiliations linked to their profile
