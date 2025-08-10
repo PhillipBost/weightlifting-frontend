@@ -19,10 +19,10 @@ mobile friendly web application for exploring USA Weightlifting competition resu
 
 ## Data Pipeline
 Competition results are automatically scraped and processed via a separate Node.js service. Data is updated daily and includes four distinct scraping tasks:
-- Meets
-- Meet results
-- Athlete information
-- Athlete metadata
+- Meets (daily)
+- Meet results (daily)
+- Athlete information (daily)
+- Athlete metadata (weekly)
 
 Q-scores and and birth years are computed within Supabase.
 Vercel pulls database information in real-time as end-users browse the website.
