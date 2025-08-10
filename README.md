@@ -5,3 +5,5 @@ Tech stack:
 | Cloud hosts   | <ul><li>Supabase</li><li>Github</li><li>Vercel</ol> |
 |Daily automated scraping / database upload|Node.js hosted by standalone backend GitHub repository|
 |Frontend|<ul><li>Next.js</li><li>React</li><li>TypeScript</li><li>Tailwind</li><li>Recharts</li></ul>|
+|Backend / Database|Supabase (PostgreSQL)|
+|Raw data resources|USA Weightlifting's Sport80 tables|
