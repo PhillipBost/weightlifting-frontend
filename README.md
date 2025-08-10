@@ -24,4 +24,18 @@ Competition results are automatically scraped and processed via a separate Node.
 - Athlete information
 - Athlete metadata
 
-- Q-scores and and birth years are computed within Supabase
+Q-scores and and birth years are computed within Supabase.
+Vercel pulls database information in real-time as end-users browse the website.
+
+## Contributing
+I would love general feedback and beta-testing notes however you can get them to me.
+
+## Costs
+- Claude $20 / month
+- Supabase $25 / month
+- Vercel free
+- GitHub free
+- Domain registration n/a yet
+
+## Licence
+Open source / MIT
