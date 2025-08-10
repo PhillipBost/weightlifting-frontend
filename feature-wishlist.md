@@ -1,4 +1,4 @@
-Grouped by type and listed roughly in order of priority (but also ease of implementation because I want to do the easy things first)
+##### Grouped by type, then listed roughly in order of priority but also ease of implementation because I want to do the easy things first
 
 
 #### Athlete Page Feature
@@ -18,8 +18,9 @@ Grouped by type and listed roughly in order of priority (but also ease of implem
 #### Meet Results Page Features
 
 - Meet Results Pages (with links to athlete pages for participating athletes)
+- Meet Rankings by division, age group rankings determind by q-scores (youth, junior, senior, and masters)
 - [Choropleth map](https://www.data-to-viz.com/graph/choropleth.html) within national & international meet result pages which show increased opacity for how much each WSO was represented overlayed with a [bubblemap](https://d3-graph-gallery.com/bubblemap) which shows which (and to what degree) various barbell club members participated
-- Data visualizations within meet results pages (scatter plots, Q-score distribution, etc) 
+- Data visualizations within meet results pages (scatter plots, Q-score distribution, etc)
 
 
 #### Backend / Database Features
@@ -35,10 +36,24 @@ Grouped by type and listed roughly in order of priority (but also ease of implem
 - TreeMap showing colorful sections representing WSOs and various sized blocks within representing barbell clubs. I think this one might actually be too tricky...
 
 
-#### Home page features
+#### Home page / General features
 
 - Provide link to github
 - About page & link to about page
+- Consider possible user interface accessibility issues & address
+- Possibility of toggling dark mode / light mode
+- Figure out a way to offset recurring hosting costs--possibly including athlete names within search bar alongside former olympians
+
+
+#### Rankings page
+- Year by year rankings for all relavent divisions determined by total
+  - Current year would begin at Jan 1 and be as up to date as possible
+  - Rolling 11-to-12 month calendar would be as up to date as possible
+- Year by year rankings for all age groups (youth, junior, senior, masters) determined by q-points
+  - Current year would begin at Jan 1 and be as up to date as possible
+  - Rolling 11-to-12 month calendar would be as up to date as possible
+- Year by year WSO rankings for all age groups (youth, junior, senior, masters) determined by q-points
+  - This would be _very_ tricky to implement as WSO is set by whatever association is listed in their most recent year they competed.
 
 
 #### Known issues / bugs
