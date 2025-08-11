@@ -8,6 +8,7 @@ https://weightlifting-db.vercel.app/
 - Interactive performance charts showing progression over time
 - Detailed competition result breakdowns
 - Q-score tracking and analysis
+- [Future feature wishlist](https://github.com/PhillipBost/weightlifting-frontend/blob/main/feature-wishlist.md
 
 ## Tech stack
 |Purpose|Tool|
