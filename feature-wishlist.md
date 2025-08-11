@@ -60,4 +60,4 @@
 
 - Result tables on athlete pages give the correct number of results above the table, but at the bottom it usually tells you a different number if there are more than 20 meets.
 - Address the database bug(?) where some athletes have older barbell club / WSO affiliations linked to their profile 🚧 **fix is underway and will populate over time as database is updated** 🚧
-- Historical q-scores for (athlete 181645)[https://weightlifting-db.vercel.app/athlete/181645] are unusual / impossible. Not sure what's going on here.
+- Historical q-scores for [athlete 181645](https://weightlifting-db.vercel.app/athlete/181645) are unusual / impossible. Not sure what's going on here.
