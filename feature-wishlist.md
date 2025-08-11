@@ -59,4 +59,4 @@
 #### Known issues / bugs
 
 - Result tables on athlete pages give the correct number of results above the table, but at the bottom it usually tells you a different number if there are more than 20 meets.
-- Address the database bug(?) where some athletes have older barbell club / WSO affiliations linked to their profile
+- Address the database bug(?) where some athletes have older barbell club / WSO affiliations linked to their profile 🚧 **fix is underway** 🚧
