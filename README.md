@@ -1,7 +1,7 @@
 # WeightliftingDB Frontend
 mobile friendly web application for exploring USA Weightlifting competition results and athlete performance data.
 
-(https://weightlifting-db.vercel.app/)
+https://weightlifting-db.vercel.app/
 
 ## Features
 - Search athletes by name or membership number
