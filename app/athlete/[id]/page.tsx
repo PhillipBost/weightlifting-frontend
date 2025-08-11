@@ -68,7 +68,7 @@ const exportChartToPDF = async (chartRef: React.RefObject<HTMLDivElement>, filen
     // Add image with padding
     pdf.addImage(imgData, 'PNG', 20, 20, imgWidth, imgHeight);
     pdf.save(filename);
-  } catch (error) {
+  } catch (error: any) {
 	console.error('Full error details:', error);
 	console.error('Error message:', error.message);
 	console.error('Error stack:', error.stack);

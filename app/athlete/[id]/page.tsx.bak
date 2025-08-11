@@ -488,7 +488,8 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
     return { wso: recentWso, club: recentClub };
   };
 
-  const recentInfo = getRecentInfo();
+  // Only calculate recent info if we have athlete and results data
+  const recentInfo = athlete && results.length > 0 ? getRecentInfo() : { wso: null, club: null };
 
   // Prepare chart data - sort by date and format for charts
   const chartData = results
