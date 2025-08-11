@@ -9,6 +9,24 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import Papa from 'papaparse';
 
+const getBestQScore = (result: any) => {
+  const qYouth = result.q_youth || 0;
+  const qPoints = result.qpoints || 0;
+  const qMasters = result.q_masters || 0;  
+
+  if (qPoints >= qYouth && qPoints >= qMasters && qPoints > 0) {
+    return { value: qPoints, type: 'qpoints', color: 'text-violet-400' };
+  }
+  if (qYouth >= qMasters && qYouth > 0) {
+    return { value: qYouth, type: 'qyouth', color: 'text-cyan-400' };
+  }
+  if (qMasters > 0) {
+    return { value: qMasters, type: 'qmasters', color: 'text-orange-400' };
+  }
+
+  return { value: null, type: 'none', color: 'text-violet-400' };
+};
+
 // Improved export functions with better quality and sizing
 const exportChartToPDF = async (chartRef: React.RefObject<HTMLDivElement>, filename: string) => {
   if (!chartRef.current) return;
@@ -51,8 +69,10 @@ const exportChartToPDF = async (chartRef: React.RefObject<HTMLDivElement>, filen
     pdf.addImage(imgData, 'PNG', 20, 20, imgWidth, imgHeight);
     pdf.save(filename);
   } catch (error) {
-    console.error('Error exporting chart:', error);
-    alert('Failed to export chart. Please try again.');
+	console.error('Full error details:', error);
+	console.error('Error message:', error.message);
+	console.error('Error stack:', error.stack);
+	alert(`Failed to export CSV: ${error.message}`);
   }
 };
 
@@ -137,28 +157,55 @@ const exportTableToPDF = async (tableRef: React.RefObject<HTMLDivElement>, filen
   }
 };
 
-const exportTableToCSV = (results: any[], athleteName: string) => {
+const exportTableToCSV = (results: any[], athleteName: string, showAllColumns: boolean) => {
+  console.log('=== CSV Export Debug ===');
+  console.log('showAllColumns:', showAllColumns);
+  console.log('results length:', results.length);
+  console.log('athleteName:', athleteName);
+  
   try {
-    const csvData = results.map(result => ({
-      'Date': new Date(result.date).toLocaleDateString('en-US'),
-      'Meet': result.meet_name || '',
-      'Age Category': result.age_category || '',
-      'Weight Class': result.weight_class || '',
-      'Body Weight (kg)': result.body_weight_kg || '',
-      'Competition Age': result.competition_age || '',
-      'Snatch Lift 1': result.snatch_lift_1 || '',
-      'Snatch Lift 2': result.snatch_lift_2 || '',
-      'Snatch Lift 3': result.snatch_lift_3 || '',
-      'Best Snatch (kg)': result.best_snatch || '',
-      'C&J Lift 1': result.cj_lift_1 || '',
-      'C&J Lift 2': result.cj_lift_2 || '',
-      'C&J Lift 3': result.cj_lift_3 || '',
-      'Best C&J (kg)': result.best_cj || '',
-      'Total (kg)': result.total || '',
-      'Q-Youth': result.q_youth || '',
-      'Q-Points': result.qpoints || '',
-      'Q-Masters': result.q_masters || ''
-    }));
+    const csvData = results.map(result => {
+      console.log('Processing result:', result.date, result.meet_name);
+      
+      if (showAllColumns) {
+        // Full 18-column export (your existing logic)
+        return {
+          'Date': new Date(result.date).toLocaleDateString('en-US'),
+          'Meet': result.meet_name || '',
+		  'WSO': result.wso || '',
+		  'Club': result.club_name || '',
+          'Age Category': result.age_category || '',
+          'Weight Class': result.weight_class || '',
+          'Body Weight (kg)': result.body_weight_kg || '',
+          'Competition Age': result.competition_age || '',
+          'Snatch Lift 1': result.snatch_lift_1 || '',
+          'Snatch Lift 2': result.snatch_lift_2 || '',
+          'Snatch Lift 3': result.snatch_lift_3 || '',
+          'Best Snatch (kg)': result.best_snatch || '',
+          'C&J Lift 1': result.cj_lift_1 || '',
+          'C&J Lift 2': result.cj_lift_2 || '',
+          'C&J Lift 3': result.cj_lift_3 || '',
+          'Best C&J (kg)': result.best_cj || '',
+          'Total (kg)': result.total || '',
+          'Q-Youth': result.q_youth || '',
+          'Q-Points': result.qpoints || '',
+          'Q-Masters': result.q_masters || ''
+        };
+      } else {
+        console.log('About to call getBestQScore...');
+        const bestQScore = getBestQScore(result);
+        console.log('getBestQScore returned:', bestQScore);
+        return {
+          'Date': new Date(result.date).toLocaleDateString('en-US'),
+          'Meet': result.meet_name || '',
+          'Weight Class': result.weight_class || '',
+          'Best Snatch (kg)': result.best_snatch || '',
+          'Best C&J (kg)': result.best_cj || '',
+          'Total (kg)': result.total || '',
+          'Best Q-Score': bestQScore.value || ''
+        };
+      }
+    });
 
     const csv = Papa.unparse(csvData);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -320,6 +367,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
   const [currentPage, setCurrentPage] = useState(1);
   const [autoScalePerformance, setAutoScalePerformance] = useState(true);
   const [showPerformanceBrush, setShowPerformanceBrush] = useState(false);
+  const [showAllColumns, setShowAllColumns] = useState(false);
   const [autoScaleQScores, setAutoScaleQScores] = useState(true);
   const [showQScoresBrush, setShowQScoresBrush] = useState(false);
   const resultsPerPage = 20;
@@ -425,6 +473,23 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
     best_total: Math.max(...results.map(r => parseInt(r.total || '0')).filter(v => v > 0)),
     best_qpoints: Math.max(...results.map(r => r.qpoints || 0).filter(v => v > 0))
   } : { best_snatch: 0, best_cj: 0, best_total: 0, best_qpoints: 0 };
+  
+  // Get most recent WSO and club info from results
+  const getRecentInfo = () => {
+    // Sort results by date descending (most recent first)
+    const sortedResults = [...results].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  
+    // Find most recent non-null/non-empty WSO
+    const recentWso = sortedResults.find(r => r.wso && typeof r.wso === 'string' && r.wso.trim() !== '')?.wso || athlete.wso;
+  
+    // Find most recent non-null/non-empty club
+    const recentClub = sortedResults.find(r => r.club_name && typeof r.club_name === 'string' && r.club_name.trim() !== '')?.club_name || athlete.club_name;
+  
+    return { wso: recentWso, club: recentClub };
+  };
+
+  // Only calculate recent info if we have athlete and results data
+  const recentInfo = athlete && results.length > 0 ? getRecentInfo() : { wso: null, club: null };
 
   // Prepare chart data - sort by date and format for charts
   const chartData = results
@@ -562,16 +627,16 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 					)}
 				  </div>
 				  <div className="flex flex-wrap gap-4 text-sm text-gray-300 mt-2">
-					{athlete.wso && (
+					{recentInfo.wso && (
 					  <div className="flex items-center space-x-1">
 						<MapPin className="h-4 w-4" />
-						<span>WSO: {athlete.wso}</span>
+						<span>WSO: {recentInfo.wso}</span>
 					  </div>
 					)}
-					{athlete.club_name && (
+					{recentInfo.club && (
 					  <div className="flex items-center space-x-1">
 						<Dumbbell className="h-4 w-4" />
-						<span>Barbell Club: {athlete.club_name}</span>
+						<span>Barbell Club: {recentInfo.club}</span>
 					  </div>
 					)}
 				  </div>
@@ -1178,8 +1243,14 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 				{athlete.athlete_name} Competition Results ({results.length} total)
 			  </h2>
 			  <div className="flex space-x-2">
+			    <button
+				  onClick={() => setShowAllColumns(!showAllColumns)}
+				  className="px-3 py-1 rounded text-xs transition-colors bg-gray-600 text-gray-300 hover:bg-gray-500"
+			    >
+				  {showAllColumns ? 'Compact View' : 'Show All Details'}
+			    </button>
 				<button
-				  onClick={() => exportTableToCSV(results, athlete.athlete_name)}
+				  onClick={() => exportTableToCSV(results, athlete.athlete_name, showAllColumns)}
 				  className="px-3 py-1 rounded text-xs transition-colors bg-gray-600 text-gray-300 hover:bg-gray-500"
 				>
 				  Export CSV
@@ -1199,49 +1270,89 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 				  <table className="w-full text-xs text-left text-gray-300">
 					<thead className="text-xs text-gray-400 uppercase bg-gray-700">
 					  <tr>
-						<th scope="col" className="px-2 py-3">Date</th>
-						<th scope="col" className="px-2 py-3">Meet</th>
-						<th scope="col" className="px-2 py-3">Age Category</th>
-						<th scope="col" className="px-2 py-3">Weight Class</th>
-						<th scope="col" className="px-2 py-3">Body Weight</th>
-						<th scope="col" className="px-2 py-3">Comp Age</th>
-						<th scope="col" className="px-2 py-3">Sn 1</th>
-						<th scope="col" className="px-2 py-3">Sn 2</th>
-						<th scope="col" className="px-2 py-3">Sn 3</th>
-						<th scope="col" className="px-2 py-3">Best Sn</th>
-						<th scope="col" className="px-2 py-3">CJ 1</th>
-						<th scope="col" className="px-2 py-3">CJ 2</th>
-						<th scope="col" className="px-2 py-3">CJ 3</th>
-						<th scope="col" className="px-2 py-3">Best CJ</th>
-						<th scope="col" className="px-2 py-3">Total</th>
-						<th scope="col" className="px-2 py-3">Q-Youth</th>
-						<th scope="col" className="px-2 py-3">Q-Points</th>
-						<th scope="col" className="px-2 py-3">Q-Masters</th>
+						{showAllColumns ? (
+						  // Original 18 columns
+						  <>
+							<th scope="col" className="px-2 py-3">Date</th>
+							<th scope="col" className="px-2 py-3">Meet</th>
+							<th scope="col" className="px-2 py-3">WSO</th>
+							<th scope="col" className="px-2 py-3">Club</th>
+							<th scope="col" className="px-2 py-3">Age Category</th>
+							<th scope="col" className="px-2 py-3">Weight Class</th>
+							<th scope="col" className="px-2 py-3">Body Weight</th>
+							<th scope="col" className="px-2 py-3">Comp Age</th>
+							<th scope="col" className="px-2 py-3">Sn 1</th>
+							<th scope="col" className="px-2 py-3">Sn 2</th>
+							<th scope="col" className="px-2 py-3">Sn 3</th>
+							<th scope="col" className="px-2 py-3">Best Sn</th>
+							<th scope="col" className="px-2 py-3">CJ 1</th>
+							<th scope="col" className="px-2 py-3">CJ 2</th>
+							<th scope="col" className="px-2 py-3">CJ 3</th>
+							<th scope="col" className="px-2 py-3">Best CJ</th>
+							<th scope="col" className="px-2 py-3">Total</th>
+							<th scope="col" className="px-2 py-3">Q-Youth</th>
+							<th scope="col" className="px-2 py-3">Q-Points</th>
+							<th scope="col" className="px-2 py-3">Q-Masters</th>
+						  </>
+						) : (
+						  // Compact 8 columns
+						  <>
+							<th scope="col" className="px-2 py-3">Date</th>
+							<th scope="col" className="px-2 py-3">Meet</th>
+							<th scope="col" className="px-2 py-3">Weight Class</th>
+							<th scope="col" className="px-2 py-3">Best Sn</th>
+							<th scope="col" className="px-2 py-3">Best CJ</th>
+							<th scope="col" className="px-2 py-3">Total</th>
+							<th scope="col" className="px-2 py-3">Best Q-Score</th>
+						  </>
+						)}
 					  </tr>
 					</thead>
 					<tbody className="text-xs">
-					  {displayResults.map((result, index) => (
-						<tr key={index} className="bg-gray-800 border-b border-gray-700 hover:bg-gray-750">
-						  <td className="px-2 py-3 whitespace-nowrap">{new Date(result.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
-						  <td className="px-2 py-3 max-w-xs truncate" title={result.meet_name}>{result.meet_name}</td>
-						  <td className="px-2 py-3 whitespace-nowrap">{result.age_category || '-'}</td>
-						  <td className="px-2 py-3 whitespace-nowrap">{result.weight_class || '-'}</td>
-						  <td className="px-2 py-3 whitespace-nowrap text-pink-400">{result.body_weight_kg ? `${result.body_weight_kg}kg` : '-'}</td>
-						  <td className="px-2 py-3 whitespace-nowrap">{result.competition_age || '-'}</td>	
-						  <td className="px-2 py-3 whitespace-nowrap">{result.snatch_lift_1 || '-'}</td>
-						  <td className="px-2 py-3 whitespace-nowrap">{result.snatch_lift_2 || '-'}</td>
-						  <td className="px-2 py-3 whitespace-nowrap">{result.snatch_lift_3 || '-'}</td>
-						  <td className="px-2 py-3 whitespace-nowrap font-semibold text-blue-400">{result.best_snatch ? `${result.best_snatch}kg` : '-'}</td>
-						  <td className="px-2 py-3 whitespace-nowrap">{result.cj_lift_1 || '-'}</td>
-						  <td className="px-2 py-3 whitespace-nowrap">{result.cj_lift_2 || '-'}</td>
-						  <td className="px-2 py-3 whitespace-nowrap">{result.cj_lift_3 || '-'}</td>
-						  <td className="px-2 py-3 whitespace-nowrap font-semibold text-green-400">{result.best_cj ? `${result.best_cj}kg` : '-'}</td>
-						  <td className="px-2 py-3 whitespace-nowrap font-bold text-yellow-400">{result.total ? `${result.total}kg` : '-'}</td>
-						  <td className="px-2 py-3 whitespace-nowrap text-cyan-400">{result.q_youth || '-'}</td>
-						  <td className="px-2 py-3 whitespace-nowrap text-violet-400">{result.qpoints || '-'}</td>
-						  <td className="px-2 py-3 whitespace-nowrap text-orange-400">{result.q_masters || '-'}</td>
-						</tr>
-					  ))}
+						{displayResults.map((result, index) => {
+						  const bestQScore = getBestQScore(result);
+						  
+						  return (
+							<tr key={index} className="bg-gray-800 border-b border-gray-700 hover:bg-gray-750">
+							  {showAllColumns ? (
+								// Original 18 columns
+								<>
+								  <td className="px-2 py-3 whitespace-nowrap">{new Date(result.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
+								  <td className="px-2 py-3 max-w-20 truncate" title={result.meet_name}>{result.meet_name}</td>
+								  <td className="px-2 py-3 whitespace-nowrap">{result.wso || '-'}</td>
+								  <td className="px-2 py-3 whitespace-nowrap">{result.club_name || '-'}</td>
+								  <td className="px-2 py-3 whitespace-nowrap">{result.age_category || '-'}</td>
+								  <td className="px-2 py-3 whitespace-nowrap">{result.weight_class || '-'}</td>
+								  <td className="px-2 py-3 whitespace-nowrap text-pink-400">{result.body_weight_kg ? `${result.body_weight_kg}kg` : '-'}</td>
+								  <td className="px-2 py-3 whitespace-nowrap">{result.competition_age || '-'}</td>
+								  <td className="px-2 py-3 whitespace-nowrap">{result.snatch_lift_1 || '-'}</td>
+								  <td className="px-2 py-3 whitespace-nowrap">{result.snatch_lift_2 || '-'}</td>
+								  <td className="px-2 py-3 whitespace-nowrap">{result.snatch_lift_3 || '-'}</td>
+								  <td className="px-2 py-3 whitespace-nowrap font-semibold text-blue-400">{result.best_snatch ? `${result.best_snatch}kg` : '-'}</td>
+								  <td className="px-2 py-3 whitespace-nowrap">{result.cj_lift_1 || '-'}</td>
+								  <td className="px-2 py-3 whitespace-nowrap">{result.cj_lift_2 || '-'}</td>
+								  <td className="px-2 py-3 whitespace-nowrap">{result.cj_lift_3 || '-'}</td>
+								  <td className="px-2 py-3 whitespace-nowrap font-semibold text-green-400">{result.best_cj ? `${result.best_cj}kg` : '-'}</td>
+								  <td className="px-2 py-3 whitespace-nowrap font-bold text-yellow-400">{result.total ? `${result.total}kg` : '-'}</td>
+								  <td className="px-2 py-3 whitespace-nowrap text-cyan-400">{result.q_youth || '-'}</td>
+								  <td className="px-2 py-3 whitespace-nowrap text-violet-400">{result.qpoints || '-'}</td>
+								  <td className="px-2 py-3 whitespace-nowrap text-orange-400">{result.q_masters || '-'}</td>
+								</>
+							  ) : (
+								// Compact 8 columns
+								<>
+								  <td className="px-2 py-3 whitespace-nowrap">{new Date(result.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
+								  <td className="px-2 py-3 max-w-xs truncate" title={result.meet_name}>{result.meet_name}</td>
+								  <td className="px-2 py-3 whitespace-nowrap">{result.weight_class || '-'}</td>
+								  <td className="px-2 py-3 whitespace-nowrap font-semibold text-blue-400">{result.best_snatch ? `${result.best_snatch}kg` : '-'}</td>
+								  <td className="px-2 py-3 whitespace-nowrap font-semibold text-green-400">{result.best_cj ? `${result.best_cj}kg` : '-'}</td>
+								  <td className="px-2 py-3 whitespace-nowrap font-bold text-yellow-400">{result.total ? `${result.total}kg` : '-'}</td>
+								  <td className={`px-2 py-3 whitespace-nowrap ${bestQScore.color}`}>{bestQScore.value || '-'}</td>
+								</>
+							  )}
+							</tr>
+						  );
+						})}
 					</tbody>
 				  </table>
 				</div>
