@@ -56,6 +56,11 @@
   - This would be non-conprehensive / incomplete as WSO is set by whatever single result comes up when you perform a sport80 search.
 
 
+#### Statistics page
+- Mostly want to see broad population data
+  - distribution of all three q-scores for all athletes.
+  - scatter plots
+
 #### Known issues / bugs
 
 - Result tables on athlete pages give the correct number of results above the table, but at the bottom it usually tells you a different number if there are more than 20 meets.
