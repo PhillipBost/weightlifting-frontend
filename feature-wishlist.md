@@ -60,6 +60,7 @@
 - Mostly want to see broad population data
   - distribution of all three q-scores for all athletes.
   - scatter plots
+  - participation trends by division
 
 #### Known issues / bugs
 
