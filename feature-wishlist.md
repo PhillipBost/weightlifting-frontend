@@ -53,7 +53,6 @@
   - Current year would begin at Jan 1 and be as up to date as possible
   - Rolling 11-to-12 month calendar would be as up to date as possible
 - Year by year WSO rankings for all age groups (youth, junior, senior, masters) determined by q-points
-  - This would be non-conprehensive / incomplete as WSO is set by whatever single result comes up when you perform a sport80 search.
 
 
 #### Statistics page
