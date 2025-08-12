@@ -57,10 +57,15 @@
 
 
 #### Statistics page
+
 - Mostly want to see broad population data
   - distribution of all three q-scores for all athletes.
   - scatter plots
   - YOY participation trends by division
+
+
+#### Tiered user access / roles
+- Better-Auth
 
 #### Known issues / bugs
 
