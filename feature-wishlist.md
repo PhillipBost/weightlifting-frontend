@@ -8,7 +8,7 @@
   - Would be nice to have all time radar charts as well as last four meets. Or local vs. all other higher stakes meets to sort of gauge how the athlete performs under pressure
 - Customize Date Range of Athlete Results
 - % Success Rate in Snatch, C&J, and All Attempts
-- YOY % Progress in Total both in tabular and graphically. Floating bar chart could be the move especially if I could also fit in YOY % progress for snatch and C&J on the same chart (overlapping bar charts could create a tricky mess though).
+- YOY % Progress in Total both in tabular and graphically. Floating bar chart could be the move especially if I could also fit in YOY % progress for snatch and C&J on the same chart (overlapping bar charts could create a tricky mess though). This would likely be best handled using the materialized views feature within Supabase.
 - Athlete page result table with links to meet results pages
 - Athlete Page -- Overall Placement at National and International Events
 - Athlete-to-Athlete Comparisons (potentially housed within the athlete page)
