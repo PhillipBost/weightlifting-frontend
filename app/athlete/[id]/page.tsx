@@ -37,7 +37,7 @@ const exportChartToPDF = async (chartRef: React.RefObject<HTMLDivElement>, filen
     const rect = element.getBoundingClientRect();
     
     const canvas = await html2canvas(element, {
-      backgroundColor: '#1F2937',
+	  backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--bg-secondary').trim(),
       scale: 1, // Use scale 1 to avoid blurriness
       useCORS: true,
       allowTaint: true,
@@ -112,7 +112,7 @@ const exportTableToPDF = async (tableRef: React.RefObject<HTMLDivElement>, filen
     await new Promise(resolve => setTimeout(resolve, 100));
     
     const canvas = await html2canvas(element, {
-      backgroundColor: '#1F2937',
+	  backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--bg-secondary').trim(),
       scale: 1,
       useCORS: true,
       allowTaint: true,
@@ -605,7 +605,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Athlete Header */}
-        <div className="bg-gray-800 rounded-2xl p-8 mb-8 border border-gray-700">
+        <div className="card-primary mb-8">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between">
             <div className="flex items-start space-x-6">
               <div className="bg-gray-700 rounded-full p-4">
@@ -650,7 +650,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
         {chartData.length > 1 && (
           <div className="space-y-8 mb-8">
             {/* Progress Over Time Chart - Full Width */}
-            <div className="bg-gray-800 rounded-2xl p-6 border border-gray-700" ref={performanceChartRef}>
+            <div className="chart-container" ref={performanceChartRef}>
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold text-white flex items-center">
                   <TrendingUp className="h-5 w-5 mr-2" />
@@ -684,13 +684,13 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                   data={chartData} 
                   margin={{ top: 20, right: 50, left: 20, bottom: 20 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" />
                   <XAxis 
                     type="number"
                     dataKey="timestamp"
                     scale="time"
                     domain={['dataMin', 'dataMax']}
-                    stroke="#9CA3AF"
+                    stroke="var(--chart-axis)"
                     fontSize={11}
                     tickFormatter={(timestamp) => {
                       const date = new Date(timestamp);
@@ -715,13 +715,13 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                       offset: -5, 
                       style: { 
                         textAnchor: 'middle', 
-                        fill: '#9CA3AF',
+                        fill: 'var(--chart-axis)',
                         fontSize: '12px'
                       } 
                     }}
                   />
                   <YAxis 
-					  stroke="#9CA3AF"
+					  stroke="var(--chart-axis)"
 					  fontSize={12}
 					  domain={autoScalePerformance ? ['dataMin - 10', 'dataMax + 10'] : [0, 'dataMax + 5']}
 					  allowDataOverflow={true}
@@ -731,17 +731,17 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 					  position: 'insideLeft', 
 					  style: { 
 						textAnchor: 'middle', 
-						fill: '#9CA3AF',
+						fill: 'var(--chart-axis)',
 						fontSize: '12px'
 					  } 
                     }}
                   />
                   <Tooltip 
                     contentStyle={{ 
-                      backgroundColor: '#1F2937', 
-                      border: '1px solid #374151',
+                      backgroundColor: 'var(--chart-tooltip-bg)', 
+                      border: '1px solid var(--chart-tooltip-border)',
                       borderRadius: '8px',
-                      color: '#F3F4F6',
+                      color: 'var(--text-primary)',
                       fontSize: '14px',
                       padding: '12px'
                     }}
@@ -753,7 +753,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                           <div className="bg-gray-800 border border-gray-600 rounded-lg p-3">
                             <p className="text-white font-medium mb-2">{`${data.meet} - ${data.dateWithAge}`}</p>
                             
-                            <p style={{ color: '#10B981' }}>
+                            <p style={{ color: 'var(--chart-cleanjerk)' }}>
                               Clean & Jerk: {data.cleanJerk ? `${data.cleanJerk}kg` : '-'}
                             </p>
                             
@@ -762,7 +762,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                               const miss = data[`cjMiss${num}`];
                               if (good || miss) {
                                 return (
-                                  <p key={`cj-${num}`} style={{ color: 'white' }}>
+                                  <p key={`cj-${num}`} style={{ color: 'var(--text-primary)' }}>
                                     C&J Attempt {num} {good ? '✓' : '✗'}: {good || miss}kg
                                   </p>
                                 );
@@ -770,7 +770,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                               return null;
                             })}
                             
-                            <p style={{ color: '#3B82F6' }}>
+                            <p style={{ color: 'var(--chart-snatch)' }}>
                               Snatch: {data.snatch ? `${data.snatch}kg` : '-'}
                             </p>
                             
@@ -779,7 +779,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                               const miss = data[`snatchMiss${num}`];
                               if (good || miss) {
                                 return (
-                                  <p key={`snatch-${num}`} style={{ color: 'white' }}>
+                                  <p key={`snatch-${num}`} style={{ color: 'var(--text-primary)' }}>
                                     Snatch Attempt {num} {good ? '✓' : '✗'}: {good || miss}kg
                                   </p>
                                 );
@@ -788,13 +788,13 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                             })}
                             
                             {data.total && (
-                              <p style={{ color: '#F59E0B' }}>
+                              <p style={{ color: 'var(--chart-total)' }}>
                                 Total: {data.total}kg
                               </p>
                             )}
                             
                             {data.bodyweight && (
-                              <p style={{ color: '#EC4899' }}>
+                              <p style={{ color: 'var(--chart-bodyweight)' }}>
                                 Bodyweight: {data.bodyweight}kg
                               </p>
                             )}
@@ -811,17 +811,17 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                   <Line 
                     type="monotone" 
                     dataKey="snatch" 
-                    stroke="#3B82F6" 
+                    stroke="var(--chart-snatch)" 
                     strokeWidth={2}
                     dot={{ 
-                      fill: '#3B82F6', 
+                      fill: 'var(--chart-snatch)', 
                       strokeWidth: 2, 
                       r: 4,
                       style: { cursor: 'pointer' }
                     }}
                     activeDot={{ 
                       r: 7, 
-                      stroke: '#3B82F6', 
+                      stroke: 'var(--chart-snatch)', 
                       strokeWidth: 3, 
                       fill: '#ffffff',
                       style: { cursor: 'pointer' }
@@ -835,8 +835,8 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 						dataKey="timestamp" 
 						height={20}
 						y={500 - 20}
-						stroke="#6B7280"
-						fill="#374151"
+						stroke="var(--text-disabled)"
+						fill="var(--chart-grid)"
 						fillOpacity={0.6}
 						tickFormatter={(timestamp) => {
 						  const date = new Date(timestamp);
@@ -852,9 +852,9 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                       dataKey={`snatchGood${attemptNum}`}
                       stroke="none"
                       dot={{
-                        fill: '#3B82F6',
+                        fill: 'var(--chart-snatch)',
                         fillOpacity: 0.5,
-                        stroke: '#3B82F6',
+                        stroke: 'var(--chart-snatch)',
                         strokeOpacity: 0.7,
                         strokeWidth: 1,
                         r: 3
@@ -870,9 +870,9 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                       dataKey={`snatchMiss${attemptNum}`}
                       stroke="none"
                       dot={{
-                        fill: '#EF4444',
+                        fill: 'var(--chart-failed)',
                         fillOpacity: 0.5,
-                        stroke: '#EF4444',
+                        stroke: 'var(--chart-failed)',
                         strokeOpacity: 0.7,
                         strokeWidth: 1,
                         r: 3
@@ -884,17 +884,17 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                   <Line 
                     type="monotone" 
                     dataKey="cleanJerk" 
-                    stroke="#10B981" 
+                    stroke="var(--chart-cleanjerk)" 
                     strokeWidth={2}
                     dot={{ 
-                      fill: '#10B981', 
+                      fill: 'var(--chart-cleanjerk)', 
                       strokeWidth: 2, 
                       r: 4,
                       style: { cursor: 'pointer' }
                     }}
                     activeDot={{ 
                       r: 7, 
-                      stroke: '#10B981', 
+                      stroke: 'var(--chart-cleanjerk)', 
                       strokeWidth: 3, 
                       fill: '#ffffff',
                       style: { cursor: 'pointer' }
@@ -909,9 +909,9 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                       dataKey={`cjGood${attemptNum}`}
                       stroke="none"
                       dot={{
-                        fill: '#10B981',
+                        fill: 'var(--chart-cleanjerk)',
                         fillOpacity: 0.5,
-                        stroke: '#10B981',
+                        stroke: 'var(--chart-cleanjerk)',
                         strokeOpacity: 0.7,
                         strokeWidth: 1,
                         r: 3
@@ -927,9 +927,9 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                       dataKey={`cjMiss${attemptNum}`}
                       stroke="none"
                       dot={{
-                        fill: '#EF4444',
+                        fill: 'var(--chart-failed)',
                         fillOpacity: 0.5,
-                        stroke: '#EF4444',
+                        stroke: 'var(--chart-failed)',
                         strokeOpacity: 0.7,
                         strokeWidth: 1,
                         r: 3
@@ -941,17 +941,17 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                   <Line 
                     type="monotone" 
                     dataKey="total" 
-                    stroke="#F59E0B" 
+                    stroke="var(--chart-total)" 
                     strokeWidth={2}
                     dot={{ 
-                      fill: '#F59E0B', 
+                      fill: 'var(--chart-total)', 
                       strokeWidth: 2, 
                       r: 4,
                       style: { cursor: 'pointer' }
                     }}
                     activeDot={{ 
                       r: 7, 
-                      stroke: '#F59E0B', 
+                      stroke: 'var(--chart-total)', 
                       strokeWidth: 3, 
                       fill: '#ffffff',
                       style: { cursor: 'pointer' }
@@ -962,17 +962,17 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                   <Line 
                     type="monotone" 
                     dataKey="bodyweight" 
-                    stroke="#EC4899" 
+                    stroke="var(--chart-bodyweight)" 
                     strokeWidth={2}
                     dot={{ 
-                      fill: '#EC4899', 
+                      fill: 'var(--chart-bodyweight)', 
                       strokeWidth: 2, 
                       r: 4,
                       style: { cursor: 'pointer' }
                     }}
                     activeDot={{ 
                       r: 7, 
-                      stroke: '#EC4899', 
+                      stroke: 'var(--chart-bodyweight)', 
                       strokeWidth: 3, 
                       fill: '#ffffff',
                       style: { cursor: 'pointer' }
@@ -985,7 +985,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
             </div>
 
             {/* Q-Points Chart - Full Width */}
-            <div className="bg-gray-800 rounded-2xl p-6 border border-gray-700" ref={qScoresChartRef}>
+            <div className="chart-container" ref={qScoresChartRef}>
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold text-white flex items-center">
                   <BarChart3 className="h-5 w-5 mr-2" />
@@ -1019,13 +1019,13 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                   data={chartData} 
                   margin={{ top: 20, right: 50, left: 20, bottom: 20 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" />
                   <XAxis 
                     type="number"
                     dataKey="timestamp"
                     scale="time"
                     domain={['dataMin', 'dataMax']}
-                    stroke="#9CA3AF"
+                    stroke="var(--chart-axis)"
                     fontSize={11}
                     tickFormatter={(timestamp) => {
                       const date = new Date(timestamp);
@@ -1050,13 +1050,13 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                       offset: -5, 
                       style: { 
                         textAnchor: 'middle', 
-                        fill: '#9CA3AF',
+                        fill: 'var(--chart-axis)',
                         fontSize: '12px'
                       } 
                     }}
                   />
                   <YAxis 
-                    stroke="#9CA3AF"
+                    stroke="var(--chart-axis)"
 				    fontSize={12}
 				    domain={autoScaleQScores ? ['dataMin - 10', 'dataMax + 10'] : [0, 'dataMax + 5']}
 				    allowDataOverflow={true}
@@ -1066,17 +1066,17 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                       position: 'insideLeft', 
                       style: { 
                         textAnchor: 'middle', 
-                        fill: '#9CA3AF',
+                        fill: 'var(--chart-axis)',
                         fontSize: '12px'
                       } 
                     }}
                   />
                   <Tooltip 
                     contentStyle={{ 
-                      backgroundColor: '#1F2937', 
-                      border: '1px solid #374151',
+                      backgroundColor: 'var(--chart-tooltip-bg)', 
+                      border: '1px solid var(--chart-tooltip-border)',
                       borderRadius: '8px',
-                      color: '#F3F4F6',
+                      color: 'var(--text-primary)',
                       fontSize: '14px',
                       padding: '12px'
                     }}
@@ -1106,17 +1106,17 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                   <Line 
                     type="monotone" 
                     dataKey="qpoints" 
-                    stroke="#8B5CF6" 
+                    stroke="var(--chart-qpoints)" 
                     strokeWidth={2}
                     dot={{ 
-                      fill: '#8B5CF6', 
+                      fill: 'var(--chart-qpoints)', 
                       strokeWidth: 2, 
                       r: 4,
                       style: { cursor: 'pointer' }
                     }}
                     activeDot={{ 
                       r: 8, 
-                      stroke: '#8B5CF6', 
+                      stroke: 'var(--chart-qpoints)', 
                       strokeWidth: 3, 
                       fill: '#ffffff',
                       style: { cursor: 'pointer' }
@@ -1128,17 +1128,17 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                     <Line 
                       type="monotone" 
                       dataKey="qYouth" 
-                      stroke="#06B6D4" 
+                      stroke="var(--chart-qyouth)" 
                       strokeWidth={2}
                       dot={{ 
-                        fill: '#06B6D4', 
+                        fill: 'var(--chart-qyouth)', 
                         strokeWidth: 2, 
                         r: 4,
                         style: { cursor: 'pointer' }
                       }}
                       activeDot={{ 
                         r: 8, 
-                        stroke: '#06B6D4', 
+                        stroke: 'var(--chart-qyouth)', 
                         strokeWidth: 3, 
                         fill: '#ffffff',
                         style: { cursor: 'pointer' }
@@ -1153,8 +1153,8 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 						dataKey="timestamp" 
 						height={20}
 						y={500 - 20}
-						stroke="#6B7280"
-						fill="#374151"
+						stroke="var(--text-disabled)"
+						fill="var(--chart-grid)"
 						fillOpacity={0.6}
 						tickFormatter={(timestamp) => {
 						  const date = new Date(timestamp);
@@ -1167,17 +1167,17 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                     <Line 
                       type="monotone" 
                       dataKey="qMasters" 
-                      stroke="#F97316" 
+                      stroke="var(--chart-qmasters)" 
                       strokeWidth={2}
                       dot={{ 
-                        fill: '#F97316', 
+                        fill: 'var(--chart-qmasters)', 
                         strokeWidth: 2, 
                         r: 4,
                         style: { cursor: 'pointer' }
                       }}
                       activeDot={{ 
                         r: 8, 
-                        stroke: '#F97316', 
+                        stroke: 'var(--chart-qmasters)', 
                         strokeWidth: 3, 
                         fill: '#ffffff',
                         style: { cursor: 'pointer' }
@@ -1193,49 +1193,49 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-semibold text-gray-300">Best Snatch</h3>
-              <Weight className="h-5 w-5 text-blue-400" />
-            </div>
-            <div className="text-2xl font-bold text-white">
-              {personalBests.best_snatch > 0 ? `${personalBests.best_snatch}kg` : 'N/A'}
-            </div>
-          </div>
-          
-          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-semibold text-gray-300">Best C&J</h3>
-              <Weight className="h-5 w-5 text-green-400" />
-            </div>
-            <div className="text-2xl font-bold text-white">
-              {personalBests.best_cj > 0 ? `${personalBests.best_cj}kg` : 'N/A'}
-            </div>
-          </div>
-          
-          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-semibold text-gray-300">Best Total</h3>
-              <Trophy className="h-5 w-5 text-yellow-400" />
-            </div>
-            <div className="text-2xl font-bold text-white">
-              {personalBests.best_total > 0 ? `${personalBests.best_total}kg` : 'N/A'}
-            </div>
-          </div>
-          
-          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-semibold text-gray-300">Best Q-Points</h3>
-              <TrendingUp className="h-5 w-5 text-purple-400" />
-            </div>
-            <div className="text-2xl font-bold text-white">
-              {personalBests.best_qpoints > 0 ? personalBests.best_qpoints.toFixed(1) : 'N/A'}
-            </div>
-          </div>
-        </div>
+			<div className="card-secondary">
+			  <div className="flex items-center justify-between mb-2">
+				<h3 className="text-label">Best Snatch</h3>
+				<Weight className="h-5 w-5" style={{ color: 'var(--chart-snatch)' }} />
+			  </div>
+			  <div className="text-2xl text-heading">
+				{personalBests.best_snatch > 0 ? `${personalBests.best_snatch}kg` : 'N/A'}
+			  </div>
+			</div>
+		  
+		  <div className="card-secondary">
+			<div className="flex items-center justify-between mb-2">
+			  <h3 className="text-label">Best C&J</h3>
+			  <Weight className="h-5 w-5" style={{ color: 'var(--chart-cleanjerk)' }} />
+			</div>
+			<div className="text-2xl text-heading">
+			  {personalBests.best_cj > 0 ? `${personalBests.best_cj}kg` : 'N/A'}
+			</div>
+		  </div>
+		  
+		  <div className="card-secondary">
+			<div className="flex items-center justify-between mb-2">
+			  <h3 className="text-label">Best Total</h3>
+			  <Trophy className="h-5 w-5" style={{ color: 'var(--chart-total)' }} />
+			</div>
+			<div className="text-2xl text-heading">
+			  {personalBests.best_total > 0 ? `${personalBests.best_total}kg` : 'N/A'}
+			</div>
+		  </div>
+		  
+		  <div className="card-secondary">
+			<div className="flex items-center justify-between mb-2">
+			  <h3 className="text-label">Best Q-Points</h3>
+			  <TrendingUp className="h-5 w-5" style={{ color: 'var(--chart-qpoints)' }} />
+			</div>
+			<div className="text-2xl text-heading">
+			  {personalBests.best_qpoints > 0 ? personalBests.best_qpoints.toFixed(1) : 'N/A'}
+			</div>
+		  </div>
+		</div>
 
 		{/* Competition Results */}
-		<div className="bg-gray-800 rounded-2xl border border-gray-700 results-table">
+		<div className="card-results results-table">
 		  <div className="p-6 border-b border-gray-700">
 			<div className="flex justify-between items-center">
 			  <h2 className="text-xl font-bold text-white flex items-center">
@@ -1245,13 +1245,13 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 			  <div className="flex space-x-2">
 			    <button
 				  onClick={() => setShowAllColumns(!showAllColumns)}
-				  className="px-3 py-1 rounded text-xs transition-colors bg-gray-600 text-gray-300 hover:bg-gray-500"
+				  className="btn-tertiary"
 			    >
 				  {showAllColumns ? 'Compact View' : 'Show All Details'}
 			    </button>
 				<button
 				  onClick={() => exportTableToCSV(results, athlete.athlete_name, showAllColumns)}
-				  className="px-3 py-1 rounded text-xs transition-colors bg-gray-600 text-gray-300 hover:bg-gray-500"
+				  className="btn-tertiary"
 				>
 				  Export CSV
 				</button>
@@ -1313,45 +1313,45 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 						  const bestQScore = getBestQScore(result);
 						  
 						  return (
-							<tr key={index} className="bg-gray-800 border-b border-gray-700 hover:bg-gray-750">
-							  {showAllColumns ? (
-								// Original 18 columns
-								<>
-								  <td className="px-2 py-3 whitespace-nowrap">{new Date(result.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
-								  <td className="px-2 py-3 max-w-20 truncate" title={result.meet_name}>{result.meet_name}</td>
-								  <td className="px-2 py-3 whitespace-nowrap">{result.wso || '-'}</td>
-								  <td className="px-2 py-3 whitespace-nowrap">{result.club_name || '-'}</td>
-								  <td className="px-2 py-3 whitespace-nowrap">{result.age_category || '-'}</td>
-								  <td className="px-2 py-3 whitespace-nowrap">{result.weight_class || '-'}</td>
-								  <td className="px-2 py-3 whitespace-nowrap text-pink-400">{result.body_weight_kg ? `${result.body_weight_kg}kg` : '-'}</td>
-								  <td className="px-2 py-3 whitespace-nowrap">{result.competition_age || '-'}</td>
-								  <td className="px-2 py-3 whitespace-nowrap">{result.snatch_lift_1 || '-'}</td>
-								  <td className="px-2 py-3 whitespace-nowrap">{result.snatch_lift_2 || '-'}</td>
-								  <td className="px-2 py-3 whitespace-nowrap">{result.snatch_lift_3 || '-'}</td>
-								  <td className="px-2 py-3 whitespace-nowrap font-semibold text-blue-400">{result.best_snatch ? `${result.best_snatch}kg` : '-'}</td>
-								  <td className="px-2 py-3 whitespace-nowrap">{result.cj_lift_1 || '-'}</td>
-								  <td className="px-2 py-3 whitespace-nowrap">{result.cj_lift_2 || '-'}</td>
-								  <td className="px-2 py-3 whitespace-nowrap">{result.cj_lift_3 || '-'}</td>
-								  <td className="px-2 py-3 whitespace-nowrap font-semibold text-green-400">{result.best_cj ? `${result.best_cj}kg` : '-'}</td>
-								  <td className="px-2 py-3 whitespace-nowrap font-bold text-yellow-400">{result.total ? `${result.total}kg` : '-'}</td>
-								  <td className="px-2 py-3 whitespace-nowrap text-cyan-400">{result.q_youth || '-'}</td>
-								  <td className="px-2 py-3 whitespace-nowrap text-violet-400">{result.qpoints || '-'}</td>
-								  <td className="px-2 py-3 whitespace-nowrap text-orange-400">{result.q_masters || '-'}</td>
-								</>
-							  ) : (
-								// Compact 8 columns
-								<>
-								  <td className="px-2 py-3 whitespace-nowrap">{new Date(result.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
-								  <td className="px-2 py-3 max-w-xs truncate" title={result.meet_name}>{result.meet_name}</td>
-								  <td className="px-2 py-3 whitespace-nowrap">{result.weight_class || '-'}</td>
-								  <td className="px-2 py-3 whitespace-nowrap font-semibold text-blue-400">{result.best_snatch ? `${result.best_snatch}kg` : '-'}</td>
-								  <td className="px-2 py-3 whitespace-nowrap font-semibold text-green-400">{result.best_cj ? `${result.best_cj}kg` : '-'}</td>
-								  <td className="px-2 py-3 whitespace-nowrap font-bold text-yellow-400">{result.total ? `${result.total}kg` : '-'}</td>
-								  <td className={`px-2 py-3 whitespace-nowrap ${bestQScore.color}`}>{bestQScore.value || '-'}</td>
-								</>
-							  )}
-							</tr>
-						  );
+							  <tr key={index} className="bg-gray-800 border-b border-gray-700 hover:bg-gray-750">
+								{showAllColumns ? (
+								  // Original 18 columns
+								  <>
+									<td className="px-2 py-3 whitespace-nowrap">{new Date(result.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
+									<td className="px-2 py-3 max-w-20 truncate" title={result.meet_name}>{result.meet_name}</td>
+									<td className="px-2 py-3 whitespace-nowrap">{result.wso || '-'}</td>
+									<td className="px-2 py-3 whitespace-nowrap">{result.club_name || '-'}</td>
+									<td className="px-2 py-3 whitespace-nowrap">{result.age_category || '-'}</td>
+									<td className="px-2 py-3 whitespace-nowrap">{result.weight_class || '-'}</td>
+									<td className="px-2 py-3 whitespace-nowrap" style={{ color: 'var(--chart-bodyweight)' }}>{result.body_weight_kg ? `${result.body_weight_kg}kg` : '-'}</td>
+									<td className="px-2 py-3 whitespace-nowrap">{result.competition_age || '-'}</td>
+									<td className="px-2 py-3 whitespace-nowrap">{result.snatch_lift_1 || '-'}</td>
+									<td className="px-2 py-3 whitespace-nowrap">{result.snatch_lift_2 || '-'}</td>
+									<td className="px-2 py-3 whitespace-nowrap">{result.snatch_lift_3 || '-'}</td>
+									<td className="px-2 py-3 whitespace-nowrap font-semibold" style={{ color: 'var(--chart-snatch)' }}>{result.best_snatch ? `${result.best_snatch}kg` : '-'}</td>
+									<td className="px-2 py-3 whitespace-nowrap">{result.cj_lift_1 || '-'}</td>
+									<td className="px-2 py-3 whitespace-nowrap">{result.cj_lift_2 || '-'}</td>
+									<td className="px-2 py-3 whitespace-nowrap">{result.cj_lift_3 || '-'}</td>
+									<td className="px-2 py-3 whitespace-nowrap font-semibold" style={{ color: 'var(--chart-cleanjerk)' }}>{result.best_cj ? `${result.best_cj}kg` : '-'}</td>
+									<td className="px-2 py-3 whitespace-nowrap font-bold" style={{ color: 'var(--chart-total)' }}>{result.total ? `${result.total}kg` : '-'}</td>
+									<td className="px-2 py-3 whitespace-nowrap" style={{ color: 'var(--chart-qyouth)' }}>{result.q_youth || '-'}</td>
+									<td className="px-2 py-3 whitespace-nowrap" style={{ color: 'var(--chart-qpoints)' }}>{result.qpoints || '-'}</td>
+									<td className="px-2 py-3 whitespace-nowrap" style={{ color: 'var(--chart-qmasters)' }}>{result.q_masters || '-'}</td>
+								  </>
+								) : (
+								  // Compact 8 columns
+								  <>
+									<td className="px-2 py-3 whitespace-nowrap">{new Date(result.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
+									<td className="px-2 py-3 max-w-xs truncate" title={result.meet_name}>{result.meet_name}</td>
+									<td className="px-2 py-3 whitespace-nowrap">{result.weight_class || '-'}</td>
+									<td className="px-2 py-3 whitespace-nowrap font-semibold" style={{ color: 'var(--chart-snatch)' }}>{result.best_snatch ? `${result.best_snatch}kg` : '-'}</td>
+									<td className="px-2 py-3 whitespace-nowrap font-semibold" style={{ color: 'var(--chart-cleanjerk)' }}>{result.best_cj ? `${result.best_cj}kg` : '-'}</td>
+									<td className="px-2 py-3 whitespace-nowrap font-bold" style={{ color: 'var(--chart-total)' }}>{result.total ? `${result.total}kg` : '-'}</td>
+									<td className={`px-2 py-3 whitespace-nowrap ${bestQScore.color}`}>{bestQScore.value || '-'}</td>
+								  </>
+								)}
+							  </tr>
+							);
 						})}
 					</tbody>
 				  </table>

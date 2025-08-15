@@ -3,19 +3,219 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Comfortable Dark Theme (Default) */
+  /* Based on your existing gray-900/gray-800 palette */
+  
+  /* Background System - Warm, comfortable grays */
+  --bg-primary: #111827;      /* gray-900 - main app background */
+  --bg-secondary: #1f2937;    /* gray-800 - card backgrounds */
+  --bg-tertiary: #374151;     /* gray-700 - interactive elements */
+  --bg-surface: #4b5563;      /* gray-600 - elevated surfaces */
+  --bg-hover: #6b7280;        /* gray-500 - hover states */
+  
+  /* Background Overlays */
+  --bg-header: rgba(31, 41, 55, 0.8);     /* gray-800 with transparency */
+  --bg-section: rgba(31, 41, 55, 0.5);    /* gray-800 lighter */
+  --bg-backdrop: rgba(17, 24, 39, 0.8);   /* gray-900 backdrop */
+  
+  /* Text Hierarchy - Softer than pure white */
+  --text-primary: #f9fafb;    /* gray-50 - headlines, emphasis */
+  --text-secondary: #e5e7eb;  /* gray-200 - body text, navigation */
+  --text-tertiary: #d1d5db;   /* gray-300 - labels, secondary info */
+  --text-muted: #9ca3af;      /* gray-400 - placeholders, subtle text */
+  --text-disabled: #6b7280;   /* gray-500 - disabled states */
+  
+  /* Border System */
+  --border-primary: #4b5563;  /* gray-600 - main borders */
+  --border-secondary: #374151;/* gray-700 - subtle borders */
+  --border-focus: #3b82f6;    /* blue-500 - focus indicators */
+  --border-hover: #6b7280;    /* gray-500 - hover borders */
+  
+  /* Interactive Colors - Comfortable, not harsh */
+  --accent-primary: #3b82f6;       /* blue-500 - primary actions */
+  --accent-primary-hover: #2563eb; /* blue-600 - primary hover */
+  --accent-secondary: #6366f1;     /* indigo-500 - secondary actions */
+  --accent-secondary-hover: #4f46e5; /* indigo-600 - secondary hover */
+  
+  /* Data Visualization - WCAG compliant but comfortable */
+  --chart-snatch: #60a5fa;      /* blue-400 - softer than pure blue */
+  --chart-cleanjerk: #34d399;   /* emerald-400 - easier on eyes */
+  --chart-total: #fbbf24;       /* amber-400 - warm yellow */
+  --chart-bodyweight: #f472b6;  /* pink-400 - pleasant pink */
+  --chart-qpoints: #a78bfa;     /* violet-400 - soft purple */
+  --chart-qyouth: #22d3ee;      /* cyan-400 - bright but not harsh */
+  --chart-qmasters: #fb923c;    /* orange-400 - warm orange */
+  --chart-failed: #f87171;      /* red-400 - clear but not alarming */
+  
+  /* Semantic Colors */
+  --color-success: #10b981;     /* emerald-500 - good lifts */
+  --color-warning: #f59e0b;     /* amber-500 - caution */
+  --color-error: #ef4444;       /* red-500 - failed lifts */
+  --color-info: #3b82f6;        /* blue-500 - information */
+  
+  /* Chart Interaction States */
+  --chart-grid: #374151;        /* gray-700 - subtle grid lines */
+  --chart-axis: #9ca3af;        /* gray-400 - axis labels */
+  --chart-tooltip-bg: #1f2937;  /* gray-800 - tooltip background */
+  --chart-tooltip-border: #4b5563; /* gray-600 - tooltip border */
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* Legacy support for existing CSS custom properties */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Component Utility Classes */
+@layer components {
+  /* Background Utilities */
+  .bg-app-primary { background-color: var(--bg-primary); }
+  .bg-app-secondary { background-color: var(--bg-secondary); }
+  .bg-app-tertiary { background-color: var(--bg-tertiary); }
+  .bg-app-surface { background-color: var(--bg-surface); }
+  
+  /* Text Utilities */
+  .text-app-primary { color: var(--text-primary); }
+  .text-app-secondary { color: var(--text-secondary); }
+  .text-app-tertiary { color: var(--text-tertiary); }
+  .text-app-muted { color: var(--text-muted); }
+  
+  /* Border Utilities */
+  .border-app-primary { border-color: var(--border-primary); }
+  .border-app-secondary { border-color: var(--border-secondary); }
+  
+  /* Interactive Utilities */
+  .bg-accent-primary { background-color: var(--accent-primary); }
+  .bg-accent-primary-hover:hover { background-color: var(--accent-primary-hover); }
+  
+  /* Common Component Patterns */
+  .card-primary {
+    background-color: var(--bg-secondary);
+    border-radius: 1rem;
+    padding: 2rem;
+    border: 1px solid var(--border-primary);
+  }
+  
+  .card-secondary {
+    background-color: var(--bg-secondary);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    border: 1px solid var(--border-primary);
+  }
+  
+  .btn-primary {
+    background-color: var(--accent-primary);
+    color: var(--text-primary);
+    padding: 0.5rem 1.5rem;
+    border-radius: 0.5rem;
+    transition: background-color 0.2s ease;
+  }
+  
+  .btn-primary:hover {
+    background-color: var(--accent-primary-hover);
+  }
+  
+  .btn-secondary {
+    background-color: var(--bg-tertiary);
+    color: var(--text-secondary);
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    transition: background-color 0.2s ease;
+  }
+  
+  .btn-secondary:hover {
+    background-color: var(--bg-surface);
+  }
+  
+  .input-primary {
+    width: 100%;
+    padding-left: 3rem;
+    padding-right: 4rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    font-size: 1.125rem;
+    background-color: var(--bg-tertiary);
+    border: 2px solid var(--border-secondary);
+    color: var(--text-primary);
+    border-radius: 0.75rem;
+    transition: all 0.2s ease;
+  }
+  
+  .input-primary::placeholder {
+    color: var(--text-muted);
+  }
+  
+  .input-primary:focus {
+    outline: none;
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+  }
+  
+  /* App-specific gradient backgrounds */
+  .bg-app-gradient {
+    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+  }
+  
+  .bg-header-blur {
+    background-color: var(--bg-header);
+    backdrop-filter: blur(8px);
+  }
+  
+  /* Additional Card Variants */
+  .card-large {
+    background-color: var(--bg-secondary);
+    border-radius: 1rem;
+    padding: 2rem;
+    border: 1px solid var(--border-secondary);
+  }
+  
+  .card-results {
+    background-color: var(--bg-secondary);
+    border-radius: 1rem;
+    border: 1px solid var(--border-secondary);
+  }
+  
+  /* Text Utility Variants */
+  .text-heading {
+    color: var(--text-primary);
+    font-weight: 700;
+  }
+  
+  .text-label {
+    color: var(--text-tertiary);
+    font-weight: 600;
+  }
+  
+  /* Background/Surface Patterns */
+  .bg-interactive {
+    background-color: var(--bg-tertiary);
+  }
+  
+  .bg-interactive:hover {
+    background-color: var(--bg-surface);
+  }
+  
+  /* Additional Button Variants */
+  .btn-tertiary {
+    background-color: var(--bg-surface);
+    color: var(--text-secondary);
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    transition: background-color 0.2s ease;
+  }
+  
+  .btn-tertiary:hover {
+    background-color: var(--bg-hover);
+  }
+  
+  /* Chart Container */
+  .chart-container {
+    background-color: var(--bg-secondary);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    border: 1px solid var(--border-secondary);
+  }
 }
