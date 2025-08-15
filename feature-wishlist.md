@@ -33,7 +33,7 @@
 
 #### WSO / Barbell Club page features
 
-- TreeMap showing colorful sections representing WSOs and various sized blocks within representing barbell clubs. I think this one might actually be too tricky...
+- [TreeMap](https://recharts.org/en-US/examples/CustomContentTreemap) showing colorful sections representing WSOs and various sized blocks within representing barbell clubs. I think this one might actually be too tricky...
 
 
 #### Home page / General features
