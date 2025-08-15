@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Search, TrendingUp, Trophy, Users, Calendar, Database, ArrowRight, User, X } from 'lucide-react';
+import { Search, TrendingUp, Trophy, Users, Calendar, Database, Filter, ArrowRight, Github, Heart, X, User } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useRouter } from 'next/navigation';
 import type { Metadata } from 'next';
@@ -235,25 +235,39 @@ export default function WeightliftingLandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <Database className="h-6 w-6" />
-                <span className="font-bold">WeightliftingDB</span>
-              </div>
-              <p className="text-gray-400 text-sm">
-                Open source project, MIT License. Data sourced from official competition results.
-              </p>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400">
-            2025 WeightliftingDB. Built with ❤️ for the weightlifting community.
-          </div>
-        </div>
-      </footer>
+	  {/* Footer */}
+		<footer className="bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8">
+		  <div className="max-w-6xl mx-auto">
+			<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+			  <div>
+				<div className="flex items-center space-x-2 mb-4">
+				  <Database className="h-6 w-6" />
+				  <span className="font-bold">WeightliftingDB</span>
+				</div>
+				<p className="text-gray-400 text-sm">
+				  Open source project, MIT License. Data sourced from official competition results.
+				</p>
+			  </div>
+			  <div className="flex justify-end items-end">
+				<a 
+				  href="https://github.com/PhillipBost/weightlifting-frontend"
+				  target="_blank"
+				  rel="noopener noreferrer"
+				  className="inline-flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
+				  title="View source code on GitHub"
+				>
+				  <Github className="h-4 w-4" />
+				  <span className="text-sm">GitHub</span>
+				</a>
+			  </div>
+			</div>
+			<div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400">
+			  <span className="inline-flex items-center gap-1">
+				2025 WeightliftingDB. Built with <Heart className="h-4 w-4 text-blue-400" fill="currentColor" /> for the weightlifting community.
+			  </span>
+			</div>
+		  </div>
+		</footer>
     </div>
   );
 }
