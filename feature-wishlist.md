@@ -45,6 +45,7 @@
 
 
 #### Rankings page
+
 - Year by year rankings for all relavent divisions determined by total
   - Current year would begin at Jan 1 and be as up to date as possible
   - Rolling 11-to-12 month calendar would be as up to date as possible
@@ -63,9 +64,10 @@
 
 
 #### Tiered user access / roles
+
 - Better-Auth
+
 
 #### Known issues / bugs
 
 - Result tables on athlete pages give the correct number of results above the table, but at the bottom it usually tells you a different number if there are more than 20 meets.
-- Address the database bug(?) where some athletes have older barbell club / WSO affiliations linked to their profile 🚧 **fix is underway and will populate over time as database is updated** 🚧
