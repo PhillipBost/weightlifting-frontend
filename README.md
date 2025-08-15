@@ -1,7 +1,6 @@
 # WeightliftingDB Frontend
-mobile friendly web application for exploring USA Weightlifting competition results and athlete performance data.
-
-https://weightlifting-db.vercel.app/
+Mobile-friendly web application for exploring USA Weightlifting competition results and athlete performance data.
+Project is currently deployed here: https://weightlifting-db.vercel.app/
 
 ## Features
 - Search athletes by name or membership number
@@ -9,6 +8,7 @@ https://weightlifting-db.vercel.app/
 - Detailed competition result breakdowns
 - Q-score tracking and analysis
 - [Future feature wishlist](https://github.com/PhillipBost/weightlifting-frontend/blob/main/feature-wishlist.md)
+- Associated database / back-end GitHub repository can be found here: https://github.com/PhillipBost/weightlifting-database
 
 ## Tech stack
 |Purpose|Tool|
