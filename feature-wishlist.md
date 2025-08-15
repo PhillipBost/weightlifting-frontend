@@ -41,7 +41,6 @@
 - Provide link to github
 - About page & link to about page
 - Consider possible user interface accessibility issues & address
-- Possibility of toggling dark mode / light mode
 - Figure out a way to offset recurring hosting costs--possibly including athlete names within search bar alongside former olympians
 
 
