@@ -1,4 +1,4 @@
-| Date              | Description                          |
+| Date that update was applied to live site            | Description                          |
 | ----------------- | ---------------------------------- |
 | 8-15-2025         | Created Light & High-Contrast themes |
 | 8-14-2025         | Added GitHub link to home page and reformatted footer. |
