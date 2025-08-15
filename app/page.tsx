@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Search, TrendingUp, Trophy, Users, Calendar, Weight, Database, Filter, ArrowRight, Github, Heart, X, User } from 'lucide-react';
+import { Search, TrendingUp, Trophy, Users, Calendar, CalendarDays, MapPinned, Weight, Dumbbell, Database, Filter, ArrowRight, Github, Heart, X, User } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useRouter } from 'next/navigation';
 import type { Metadata } from 'next';
@@ -37,6 +37,16 @@ export default function WeightliftingLandingPage() {
   const [showResults, setShowResults] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+
+  const getSearchIcon = (resultType: string) => {
+    switch(resultType) {
+      case 'athlete': return User;
+      case 'meet': return CalendarDays;      // for meet/competition results
+      case 'wso': return MapPinned;         // for WSO/regional results  
+      case 'club': return Dumbbell;         // for barbell club results
+      default: return User;
+    }
+  };
 
   // Debounced search function
   const debouncedSearch = useCallback(
@@ -202,7 +212,9 @@ export default function WeightliftingLandingPage() {
                         onClick={() => handleResultSelect(result)}
                         className="w-full px-4 py-3 text-left bg-interactive transition-colors flex items-center space-x-3"
                       >
-                        <User className="h-5 w-5 text-app-muted" />
+                        {React.createElement(getSearchIcon(result.type || 'athlete'), { 
+						  className: "h-5 w-5 text-app-muted" 
+						})}
                         <div className="flex-1">
                           <div className="text-app-primary font-medium">{result.athlete_name}</div>
                           <div className="text-sm text-app-tertiary">
@@ -218,7 +230,7 @@ export default function WeightliftingLandingPage() {
                   </div>
                 ) : searchQuery.length >= 2 ? (
                   <div className="p-4 text-center text-app-muted">
-                    No athletes found for "{searchQuery}"
+                    No results found for "{searchQuery}"
                   </div>
                 ) : null}
               </div>
