@@ -5,4 +5,4 @@
 | 8-11-2025         |Table compact/expanded button with csv export to match WSO & Club columns added to expanded results table|
 | 8-10-2025         | made a proper README.md |
 | 8-9-2025          | Added vercel analytics functionality & changelog & feature wishlist|
-| 8-8-2025          | Went live on vercel hosted site   |
+| <span style="white-space: nowrap;">8-8-2025</span>          | Went live on vercel hosted site   |
