@@ -37,6 +37,26 @@ export default function WeightliftingLandingPage() {
   const [showResults, setShowResults] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  
+  const [placeholderName, setPlaceholderName] = useState('');
+
+  const athleteNames = [
+  'Caine Wilkes',
+  'Jourdan Delacruz',
+  'Wes Kitts',
+  'Hampton Morris',
+  'Mary Theisen-Lappen',
+  'Olivia Reeves',
+  'Sarah Robles',
+  'Martha Rogers',
+  'Harrison Maurus',
+  'Katherine Vibert',
+  'Clarence Cummings',
+  'Jenny Arthur',
+  'Kendrick Farris',
+  'Holley Mangold',
+  'Christopher Yandle'
+  ];
 
   const getSearchIcon = (resultType: string) => {
     switch(resultType) {
@@ -84,6 +104,11 @@ export default function WeightliftingLandingPage() {
   useEffect(() => {
     debouncedSearch(searchQuery);
   }, [searchQuery, debouncedSearch]);
+
+  useEffect(() => {
+    const randomName = athleteNames[Math.floor(Math.random() * athleteNames.length)];
+    setPlaceholderName(randomName);
+  }, []);
 
   // Handle search form submission (currently just lifters)
   const handleSearch = (e: React.FormEvent) => {
@@ -172,7 +197,7 @@ export default function WeightliftingLandingPage() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search athletes... (e.g., Caine Wilkes)"
+                placeholder={`Search athletes... (e.g., ${placeholderName})`}
                 className="input-primary"
               />
               
