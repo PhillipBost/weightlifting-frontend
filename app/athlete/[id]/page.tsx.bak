@@ -8,6 +8,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import Papa from 'papaparse';
+import { ThemeSwitcher } from '../../components/ThemeSwitcher';
 
 const getBestQScore = (result: any) => {
   const qYouth = result.q_youth || 0;
@@ -15,30 +16,29 @@ const getBestQScore = (result: any) => {
   const qMasters = result.q_masters || 0;  
 
   if (qPoints >= qYouth && qPoints >= qMasters && qPoints > 0) {
-    return { value: qPoints, type: 'qpoints', color: 'text-violet-400' };
+    return { value: qPoints, type: 'qpoints', style: { color: 'var(--chart-qpoints)' } };
   }
   if (qYouth >= qMasters && qYouth > 0) {
-    return { value: qYouth, type: 'qyouth', color: 'text-cyan-400' };
+    return { value: qYouth, type: 'qyouth', style: { color: 'var(--chart-qyouth)' } };
   }
   if (qMasters > 0) {
-    return { value: qMasters, type: 'qmasters', color: 'text-orange-400' };
+    return { value: qMasters, type: 'qmasters', style: { color: 'var(--chart-qmasters)' } };
   }
 
-  return { value: null, type: 'none', color: 'text-violet-400' };
+  return { value: null, type: 'none', style: { color: 'var(--chart-qpoints)' } };
 };
 
-// Improved export functions with better quality and sizing
+// Improved export functions
 const exportChartToPDF = async (chartRef: React.RefObject<HTMLDivElement>, filename: string) => {
   if (!chartRef.current) return;
   
   try {
-    // Get the actual dimensions of the chart
     const element = chartRef.current;
     const rect = element.getBoundingClientRect();
     
     const canvas = await html2canvas(element, {
-	  backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--bg-secondary').trim(),
-      scale: 1, // Use scale 1 to avoid blurriness
+      backgroundColor: '#1f2937', // Use a fixed color for exports
+      scale: 1,
       useCORS: true,
       allowTaint: true,
       width: rect.width,
@@ -47,32 +47,25 @@ const exportChartToPDF = async (chartRef: React.RefObject<HTMLDivElement>, filen
       scrollY: 0,
       windowWidth: window.innerWidth,
       windowHeight: window.innerHeight,
-      // Capture the full element
       x: 0,
       y: 0,
     });
     
-    const imgData = canvas.toDataURL('image/png', 1.0); // Maximum quality
-    
-    // Calculate proper PDF dimensions
+    const imgData = canvas.toDataURL('image/png', 1.0);
     const imgWidth = canvas.width;
     const imgHeight = canvas.height;
     
-    // Use A4 landscape with proper scaling
     const pdf = new jsPDF({
       orientation: 'landscape',
       unit: 'mm',
       format: 'a3' 
     });
     
-    // Add image with padding
     pdf.addImage(imgData, 'PNG', 20, 20, imgWidth, imgHeight);
     pdf.save(filename);
   } catch (error: any) {
-	console.error('Full error details:', error);
-	console.error('Error message:', error.message);
-	console.error('Error stack:', error.stack);
-	alert(`Failed to export CSV: ${error.message}`);
+    console.error('Full error details:', error);
+    alert(`Failed to export PDF: ${error.message}`);
   }
 };
 
@@ -81,15 +74,12 @@ const exportTableToPDF = async (tableRef: React.RefObject<HTMLDivElement>, filen
   
   try {
     const element = tableRef.current;
-    
-    // Get the table element specifically
     const table = element.querySelector('table');
     if (!table) {
       alert('No table found to export');
       return;
     }
     
-    // Temporarily style the table for better PDF capture
     const originalStyles = {
       width: table.style.width,
       fontSize: table.style.fontSize,
@@ -97,22 +87,19 @@ const exportTableToPDF = async (tableRef: React.RefObject<HTMLDivElement>, filen
       transformOrigin: table.style.transformOrigin
     };
     
-    // Calculate scale to fit table width in viewport
     const tableWidth = table.scrollWidth;
-    const viewportWidth = window.innerWidth - 100; // Leave some margin
+    const viewportWidth = window.innerWidth - 100;
     const scale = Math.min(1, viewportWidth / tableWidth);
     
-    // Apply temporary styles
     table.style.transform = `scale(${scale})`;
     table.style.transformOrigin = 'top left';
     table.style.width = `${tableWidth}px`;
-    table.style.fontSize = '10px'; // Smaller font for better fit
+    table.style.fontSize = '10px';
     
-    // Wait for layout to settle
     await new Promise(resolve => setTimeout(resolve, 100));
     
     const canvas = await html2canvas(element, {
-	  backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--bg-secondary').trim(),
+      backgroundColor: '#1f2937', // Use fixed color for exports
       scale: 1,
       useCORS: true,
       allowTaint: true,
@@ -125,30 +112,21 @@ const exportTableToPDF = async (tableRef: React.RefObject<HTMLDivElement>, filen
     });
     
     // Restore original styles
-    table.style.width = originalStyles.width;
-    table.style.fontSize = originalStyles.fontSize;
-    table.style.transform = originalStyles.transform;
-    table.style.transformOrigin = originalStyles.transformOrigin;
+    Object.assign(table.style, originalStyles);
     
     const imgData = canvas.toDataURL('image/png', 1.0);
-    
-    // Calculate dimensions
     const imgWidth = canvas.width;
     const imgHeight = canvas.height;
     
-    // Create PDF sized to content
     const pdf = new jsPDF({
       orientation: 'landscape',
       unit: 'px',
-      format: [imgWidth + 40, imgHeight + 80] // Extra space for title
+      format: [imgWidth + 40, imgHeight + 80]
     });
     
-    // Add title
     pdf.setFontSize(16);
     pdf.setTextColor(0, 0, 0);
     pdf.text(`${athleteName} - Competition Results`, 20, 40);
-    
-    // Add image below title
     pdf.addImage(imgData, 'PNG', 20, 60, imgWidth, imgHeight);
     pdf.save(filename);
   } catch (error) {
@@ -158,22 +136,14 @@ const exportTableToPDF = async (tableRef: React.RefObject<HTMLDivElement>, filen
 };
 
 const exportTableToCSV = (results: any[], athleteName: string, showAllColumns: boolean) => {
-  console.log('=== CSV Export Debug ===');
-  console.log('showAllColumns:', showAllColumns);
-  console.log('results length:', results.length);
-  console.log('athleteName:', athleteName);
-  
   try {
     const csvData = results.map(result => {
-      console.log('Processing result:', result.date, result.meet_name);
-      
       if (showAllColumns) {
-        // Full 18-column export (your existing logic)
         return {
           'Date': new Date(result.date).toLocaleDateString('en-US'),
           'Meet': result.meet_name || '',
-		  'WSO': result.wso || '',
-		  'Club': result.club_name || '',
+          'WSO': result.wso || '',
+          'Club': result.club_name || '',
           'Age Category': result.age_category || '',
           'Weight Class': result.weight_class || '',
           'Body Weight (kg)': result.body_weight_kg || '',
@@ -192,9 +162,7 @@ const exportTableToCSV = (results: any[], athleteName: string, showAllColumns: b
           'Q-Masters': result.q_masters || ''
         };
       } else {
-        console.log('About to call getBestQScore...');
         const bestQScore = getBestQScore(result);
-        console.log('getBestQScore returned:', bestQScore);
         return {
           'Date': new Date(result.date).toLocaleDateString('en-US'),
           'Meet': result.meet_name || '',
@@ -237,7 +205,7 @@ const LiftAttempts = ({ lift1, lift2, lift3, best, type }: {
   
   return (
     <div className="space-y-1">
-      <div className="text-sm font-medium text-gray-300">{type}</div>
+      <div className="text-sm font-medium text-app-tertiary">{type}</div>
       <div className="flex space-x-2">
         {attempts.map((attempt, index) => {
           const value = parseInt(attempt || '0');
@@ -250,12 +218,12 @@ const LiftAttempts = ({ lift1, lift2, lift3, best, type }: {
               key={index}
               className={`px-2 py-1 rounded text-xs font-mono ${
                 isBest 
-                  ? 'bg-green-600 text-white' 
+                  ? 'bg-green-600 text-app-primary' 
                   : isGood 
-                    ? 'bg-gray-600 text-white'
+                    ? 'bg-app-surface text-app-primary'
                     : value < 0
                       ? 'bg-red-900 text-red-300'
-                      : 'bg-gray-800 text-gray-500'
+                      : 'bg-app-tertiary text-app-muted'
               }`}
             >
               {value === 0 
@@ -268,7 +236,7 @@ const LiftAttempts = ({ lift1, lift2, lift3, best, type }: {
           );
         })}
       </div>
-      <div className="text-lg font-bold text-white">
+      <div className="text-lg font-bold text-app-primary">
         Best: {best && parseInt(best) > 0 ? `${best}kg` : '-'}
       </div>
     </div>
@@ -289,18 +257,15 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: {
     const start = Math.max(1, currentPage - delta);
     const end = Math.min(totalPages, currentPage + delta);
 
-    // Always show first page
     if (start > 1) {
       pages.push(1);
       if (start > 2) pages.push('...');
     }
 
-    // Show pages around current
     for (let i = start; i <= end; i++) {
       pages.push(i);
     }
 
-    // Always show last page
     if (end < totalPages) {
       if (end < totalPages - 1) pages.push('...');
       pages.push(totalPages);
@@ -311,7 +276,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: {
 
   return (
     <div className="flex items-center justify-between mt-6">
-      <div className="text-sm text-gray-400">
+      <div className="text-sm text-app-muted">
         Showing {Math.min((currentPage - 1) * 20 + 1, totalPages * 20)} to {Math.min(currentPage * 20, totalPages * 20)} of {totalPages * 20} results
       </div>
       
@@ -319,7 +284,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: {
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="flex items-center px-3 py-2 text-sm font-medium text-gray-300 bg-gray-700 border border-gray-600 rounded-lg hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center px-3 py-2 text-sm font-medium text-app-secondary bg-app-tertiary border border-app-secondary rounded-lg hover:bg-app-surface disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <ChevronLeft className="h-4 w-4 mr-1" />
           Previous
@@ -333,10 +298,10 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: {
               disabled={page === '...'}
               className={`px-3 py-2 text-sm font-medium rounded-lg ${
                 page === currentPage
-                  ? 'bg-blue-600 text-white border border-blue-600'
+                  ? 'bg-accent-primary text-app-primary border border-accent-primary'
                   : page === '...'
-                    ? 'text-gray-500 cursor-default'
-                    : 'text-gray-300 bg-gray-700 border border-gray-600 hover:bg-gray-600'
+                    ? 'text-app-muted cursor-default'
+                    : 'text-app-secondary bg-app-tertiary border border-app-secondary hover:bg-app-surface'
               }`}
             >
               {page}
@@ -347,7 +312,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: {
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="flex items-center px-3 py-2 text-sm font-medium text-gray-300 bg-gray-700 border border-gray-600 rounded-lg hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center px-3 py-2 text-sm font-medium text-app-secondary bg-app-tertiary border border-app-secondary rounded-lg hover:bg-app-surface disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Next
           <ChevronRight className="h-4 w-4 ml-1" />
@@ -388,7 +353,6 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    // Optionally scroll to top of results
     document.querySelector('.results-table')?.scrollIntoView({ behavior: 'smooth' });
   };
 
@@ -401,12 +365,10 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
         setLoading(true);
         setError(null);
 
-        // Try to find athlete by membership number first (if it's a number)
         let athleteData = null;
         let athleteError = null;
 
         if (!isNaN(Number(resolvedParams.id))) {
-          // resolvedParams.id is a number, search by membership_number
           const result = await supabase
             .from('lifters')
             .select('*')
@@ -417,9 +379,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
           athleteError = result.error;
         } 
         
-        // If not found by membership number or resolvedParams.id is not a number, try by name
         if (!athleteData) {
-          // Convert URL slug back to name format (e.g., "john-doe" -> "John Doe")
           const nameFromSlug = resolvedParams.id
             .split('-')
             .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
@@ -439,7 +399,6 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
           throw new Error('Athlete not found');
         }
 
-        // Fetch athlete's competition results using lifter_id
         const { data: resultsData, error: resultsError } = await supabase
           .from('meet_results')
           .select('*')
@@ -461,7 +420,6 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
     fetchAthleteData();
   }, [resolvedParams.id]);
 
-  // Reset to page 1 when results change
   useEffect(() => {
     setCurrentPage(1);
   }, [results]);
@@ -474,47 +432,39 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
     best_qpoints: Math.max(...results.map(r => r.qpoints || 0).filter(v => v > 0))
   } : { best_snatch: 0, best_cj: 0, best_total: 0, best_qpoints: 0 };
   
-  // Get most recent WSO and club info from results
   const getRecentInfo = () => {
-    // Sort results by date descending (most recent first)
     const sortedResults = [...results].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  
-    // Find most recent non-null/non-empty WSO
     const recentWso = sortedResults.find(r => r.wso && typeof r.wso === 'string' && r.wso.trim() !== '')?.wso || athlete.wso;
-  
-    // Find most recent non-null/non-empty club
     const recentClub = sortedResults.find(r => r.club_name && typeof r.club_name === 'string' && r.club_name.trim() !== '')?.club_name || athlete.club_name;
-  
     return { wso: recentWso, club: recentClub };
   };
 
-  // Only calculate recent info if we have athlete and results data
   const recentInfo = athlete && results.length > 0 ? getRecentInfo() : { wso: null, club: null };
 
-  // Prepare chart data - sort by date and format for charts
+  // Prepare chart data
   const chartData = results
     .filter(r => r.date && (r.best_snatch || r.best_cj || r.total || r.qpoints || r.q_youth || r.q_masters))
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .map(r => {
-		const baseData: any = {
-		  date: r.date,
-		  meet: r.meet_name || 'Unknown',
-		  snatch: parseInt(r.best_snatch || '0') || null,
-		  cleanJerk: parseInt(r.best_cj || '0') || null,
-		  total: parseInt(r.total || '0') || null,
-		  bodyweight: parseFloat(r.body_weight_kg || '0') || null,
-		  qpoints: r.qpoints || null,
-		  qYouth: r.q_youth || null,
-		  qMasters: r.q_masters || null,
-		  shortDate: new Date(r.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
-		  competitionAge: r.competition_age || null,
-		  dateWithAge: r.competition_age 
-			? `${new Date(r.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} (${r.competition_age})`
-			: new Date(r.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
-		  timestamp: new Date(r.date).getTime()
-		};
+      const baseData: any = {
+        date: r.date,
+        meet: r.meet_name || 'Unknown',
+        snatch: parseInt(r.best_snatch || '0') || null,
+        cleanJerk: parseInt(r.best_cj || '0') || null,
+        total: parseInt(r.total || '0') || null,
+        bodyweight: parseFloat(r.body_weight_kg || '0') || null,
+        qpoints: r.qpoints || null,
+        qYouth: r.q_youth || null,
+        qMasters: r.q_masters || null,
+        shortDate: new Date(r.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+        competitionAge: r.competition_age || null,
+        dateWithAge: r.competition_age 
+          ? `${new Date(r.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} (${r.competition_age})`
+          : new Date(r.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+        timestamp: new Date(r.date).getTime()
+      };
 
-      // Add snatch attempts
+      // Add attempts data for tooltip
       const snatchAttempts = [r.snatch_lift_1, r.snatch_lift_2, r.snatch_lift_3];
       snatchAttempts.forEach((attempt, index) => {
         if (attempt && attempt !== '0') {
@@ -528,7 +478,6 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
         }
       });
 
-      // Add clean & jerk attempts
       const cjAttempts = [r.cj_lift_1, r.cj_lift_2, r.cj_lift_3];
       cjAttempts.forEach((attempt, index) => {
         if (attempt && attempt !== '0') {
@@ -547,10 +496,10 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-slate-800 flex items-center justify-center">
+      <div className="min-h-screen bg-app-gradient flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-400 mx-auto mb-4"></div>
-          <p className="text-lg text-gray-300">Loading athlete data...</p>
+          <p className="text-lg text-app-secondary">Loading athlete data...</p>
         </div>
       </div>
     );
@@ -558,13 +507,13 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 
   if (error || !athlete) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-slate-800 flex items-center justify-center">
+      <div className="min-h-screen bg-app-gradient flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-4">Error Loading Athlete</h1>
-          <p className="text-gray-300 mb-4">{error || 'Athlete not found'}</p>
+          <h1 className="text-2xl font-bold text-app-primary mb-4">Error Loading Athlete</h1>
+          <p className="text-app-secondary mb-4">{error || 'Athlete not found'}</p>
           <button 
             onClick={() => window.history.back()}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
+            className="bg-accent-primary hover:bg-accent-primary-hover text-app-primary px-6 py-2 rounded-lg transition-colors"
           >
             Go Back
           </button>
@@ -574,30 +523,31 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-slate-800">
+    <div className="min-h-screen bg-app-gradient">
       {/* Header */}
-      <header className="bg-gray-800/80 backdrop-blur-sm border-b border-gray-700 sticky top-0 z-50">
+      <header className="bg-header-blur border-b border-app-secondary">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
-				<button 
-				  onClick={() => window.location.href = '/'}
-				  className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
-				>
-				  <ArrowLeft className="h-5 w-5" />
-				  <span>Back to Search</span>
-				</button>
+              <button
+                onClick={() => router.push('/')}
+                className="flex items-center space-x-2 text-app-secondary hover:text-accent-primary transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span>Back to Search</span>
+              </button>
             </div>
             <div className="flex items-center space-x-4">
-				  {athlete && athlete.internal_id && (
-					<button
-					  onClick={() => window.open(`https://usaweightlifting.sport80.com/public/rankings/member/${athlete.internal_id}`, '_blank')}
-					  className="flex items-center space-x-2 text-gray-300 hover:text-blue-400 transition-colors"
-					>
-					  <ExternalLink className="h-4 w-4" />
-					  <span>External Profile</span>
-					</button>
-				  )}
+              <ThemeSwitcher />
+              {athlete && athlete.internal_id && (
+                <button
+                  onClick={() => window.open(`https://usaweightlifting.sport80.com/public/rankings/member/${athlete.internal_id}`, '_blank')}
+                  className="flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  <span>External Profile</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -608,39 +558,39 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
         <div className="card-primary mb-8">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between">
             <div className="flex items-start space-x-6">
-              <div className="bg-gray-700 rounded-full p-4">
-                <User className="h-12 w-12 text-gray-300" />
+              <div className="bg-app-tertiary rounded-full p-4">
+                <User className="h-12 w-12 text-app-secondary" />
               </div>
               <div>
                 <div className="flex flex-col">
-				  <h1 className="text-3xl font-bold text-white mb-2">{athlete.athlete_name}</h1>
-				  <div className="flex flex-wrap gap-4 text-sm text-gray-300">
-					{athlete.membership_number && (
-					  <div className="flex items-center space-x-1">
-						<span>USAW Membership #{athlete.membership_number}</span>
-					  </div>
-					)}
-					{athlete.gender && (
-					  <div className="flex items-center space-x-1">
-						<span>{athlete.gender === 'M' ? 'Male' : 'Female'}</span>
-					  </div>
-					)}
-				  </div>
-				  <div className="flex flex-wrap gap-4 text-sm text-gray-300 mt-2">
-					{recentInfo.wso && (
-					  <div className="flex items-center space-x-1">
-						<MapPin className="h-4 w-4" />
-						<span>WSO: {recentInfo.wso}</span>
-					  </div>
-					)}
-					{recentInfo.club && (
-					  <div className="flex items-center space-x-1">
-						<Dumbbell className="h-4 w-4" />
-						<span>Barbell Club: {recentInfo.club}</span>
-					  </div>
-					)}
-				  </div>
-				</div>
+                  <h1 className="text-3xl font-bold text-app-primary mb-2">{athlete.athlete_name}</h1>
+                  <div className="flex flex-wrap gap-4 text-sm text-app-secondary">
+                    {athlete.membership_number && (
+                      <div className="flex items-center space-x-1">
+                        <span>USAW Membership #{athlete.membership_number}</span>
+                      </div>
+                    )}
+                    {athlete.gender && (
+                      <div className="flex items-center space-x-1">
+                        <span>{athlete.gender === 'M' ? 'Male' : 'Female'}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-4 text-sm text-app-secondary mt-2">
+                    {recentInfo.wso && (
+                      <div className="flex items-center space-x-1">
+                        <MapPin className="h-4 w-4" />
+                        <span>WSO: {recentInfo.wso}</span>
+                      </div>
+                    )}
+                    {recentInfo.club && (
+                      <div className="flex items-center space-x-1">
+                        <Dumbbell className="h-4 w-4" />
+                        <span>Barbell Club: {recentInfo.club}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -649,35 +599,35 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
         {/* Performance Charts */}
         {chartData.length > 1 && (
           <div className="space-y-8 mb-8">
-            {/* Progress Over Time Chart - Full Width */}
+            {/* Progress Over Time Chart */}
             <div className="chart-container" ref={performanceChartRef}>
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-white flex items-center">
+                <h3 className="text-lg font-semibold text-app-primary flex items-center">
                   <TrendingUp className="h-5 w-5 mr-2" />
                   {athlete.athlete_name} Performance Progress
                 </h3>
                 <div className="flex space-x-2">
-					<button 
-					  onClick={() => setAutoScalePerformance(!autoScalePerformance)}
-					  className={`px-3 py-1 rounded text-xs transition-colors ${
-						autoScalePerformance 
-						  ? 'bg-gray-600 text-gray-300 hover:bg-gray-500' 
-						  : 'bg-blue-600 text-white'
-					  }`}
-					>
-					  {autoScalePerformance ? 'Fixed Scale' : 'Auto Scale'}
-					</button>
-					<button
-					  onClick={() => setShowPerformanceBrush(!showPerformanceBrush)}
-					  className={`px-3 py-1 rounded text-xs transition-colors ${
-						showPerformanceBrush 
-						  ? 'bg-blue-600 text-white' 
-						  : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
-					  }`}
-					>
-					  {showPerformanceBrush ? 'Hide Zoom' : 'Show Zoom'}
-					</button>
-				</div>
+                  <button 
+                    onClick={() => setAutoScalePerformance(!autoScalePerformance)}
+                    className={`btn-secondary ${
+                      autoScalePerformance 
+                        ? 'bg-app-surface text-app-secondary hover:bg-app-hover' 
+                        : 'bg-accent-primary text-app-primary'
+                    }`}
+                  >
+                    {autoScalePerformance ? 'Fixed Scale' : 'Auto Scale'}
+                  </button>
+                  <button
+                    onClick={() => setShowPerformanceBrush(!showPerformanceBrush)}
+                    className={`btn-secondary ${
+                      showPerformanceBrush 
+                        ? 'bg-accent-primary text-app-primary' 
+                        : 'bg-app-surface text-app-secondary hover:bg-app-hover'
+                    }`}
+                  >
+                    {showPerformanceBrush ? 'Hide Zoom' : 'Show Zoom'}
+                  </button>
+                </div>
               </div>
               <ResponsiveContainer width="100%" height={500}>
                 <LineChart 
@@ -697,7 +647,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                       const year = date.getFullYear().toString().slice(-2);
                       return `Jan '${year}`;
                     }}
-					padding={{ left: 10, right: 10 }}
+                    padding={{ left: 10, right: 10 }}
                     ticks={(() => {
                       if (chartData.length === 0) return [];
                       const minYear = new Date(Math.min(...chartData.map(d => d.timestamp))).getFullYear();
@@ -721,19 +671,19 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                     }}
                   />
                   <YAxis 
-					  stroke="var(--chart-axis)"
-					  fontSize={12}
-					  domain={autoScalePerformance ? ['dataMin - 10', 'dataMax + 10'] : [0, 'dataMax + 5']}
-					  allowDataOverflow={true}
-					  label={{ 
-					  value: 'Weight (kg)', 
-					  angle: -90, 
-					  position: 'insideLeft', 
-					  style: { 
-						textAnchor: 'middle', 
-						fill: 'var(--chart-axis)',
-						fontSize: '12px'
-					  } 
+                    stroke="var(--chart-axis)"
+                    fontSize={12}
+                    domain={autoScalePerformance ? ['dataMin - 10', 'dataMax + 10'] : [0, 'dataMax + 5']}
+                    allowDataOverflow={true}
+                    label={{ 
+                      value: 'Weight (kg)', 
+                      angle: -90, 
+                      position: 'insideLeft', 
+                      style: { 
+                        textAnchor: 'middle', 
+                        fill: 'var(--chart-axis)',
+                        fontSize: '12px'
+                      } 
                     }}
                   />
                   <Tooltip 
@@ -750,8 +700,8 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                         const data = payload[0].payload;
                         
                         return (
-                          <div className="bg-gray-800 border border-gray-600 rounded-lg p-3">
-                            <p className="text-white font-medium mb-2">{`${data.meet} - ${data.dateWithAge}`}</p>
+                          <div className="bg-app-secondary border border-app-primary rounded-lg p-3">
+                            <p className="text-app-primary font-medium mb-2">{`${data.meet} - ${data.dateWithAge}`}</p>
                             
                             <p style={{ color: 'var(--chart-cleanjerk)' }}>
                               Clean & Jerk: {data.cleanJerk ? `${data.cleanJerk}kg` : '-'}
@@ -830,21 +780,21 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                     connectNulls={false}
                   />
                   {showPerformanceBrush && (
-					  <Brush 
-						key="performance-brush"
-						dataKey="timestamp" 
-						height={20}
-						y={500 - 20}
-						stroke="var(--text-disabled)"
-						fill="var(--chart-grid)"
-						fillOpacity={0.6}
-						tickFormatter={(timestamp) => {
-						  const date = new Date(timestamp);
-						  const year = date.getFullYear().toString().slice(-0);
-						  return year;
-						}}
-					  />
-					)}
+                    <Brush 
+                      key="performance-brush"
+                      dataKey="timestamp" 
+                      height={20}
+                      y={500 - 20}
+                      stroke="var(--text-disabled)"
+                      fill="var(--chart-grid)"
+                      fillOpacity={0.6}
+                      tickFormatter={(timestamp) => {
+                        const date = new Date(timestamp);
+                        const year = date.getFullYear().toString().slice(-0);
+                        return year;
+                      }}
+                    />
+                  )}
                   {[1, 2, 3].map(attemptNum => (
                     <Line
                       key={`snatch-good-${attemptNum}`}
@@ -984,35 +934,35 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
               </ResponsiveContainer>
             </div>
 
-            {/* Q-Points Chart - Full Width */}
+            {/* Q-Points Chart */}
             <div className="chart-container" ref={qScoresChartRef}>
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-white flex items-center">
+                <h3 className="text-lg font-semibold text-app-primary flex items-center">
                   <BarChart3 className="h-5 w-5 mr-2" />
                   {athlete.athlete_name} Q-Scores Over Time
                 </h3>
                 <div className="flex space-x-2">
-				  <button 
-					  onClick={() => setAutoScaleQScores(!autoScaleQScores)}
-					  className={`px-3 py-1 rounded text-xs transition-colors ${
-						autoScaleQScores 
-						  ? 'bg-gray-600 text-gray-300 hover:bg-gray-500' 
-						  : 'bg-blue-600 text-white'
-					  }`}
-					>
-					  {autoScaleQScores ? 'Fixed Scale' : 'Auto Scale'}
-					</button>
-					<button
-					  onClick={() => setShowQScoresBrush(!showQScoresBrush)}
-					  className={`px-3 py-1 rounded text-xs transition-colors ${
-						showQScoresBrush 
-						  ? 'bg-blue-600 text-white' 
-						  : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
-					  }`}
-					>
-					  {showQScoresBrush ? 'Hide Zoom' : 'Show Zoom'}
-					</button>
-				</div>
+                  <button 
+                    onClick={() => setAutoScaleQScores(!autoScaleQScores)}
+                    className={`btn-secondary ${
+                      autoScaleQScores 
+                        ? 'bg-app-surface text-app-secondary hover:bg-app-hover' 
+                        : 'bg-accent-primary text-app-primary'
+                    }`}
+                  >
+                    {autoScaleQScores ? 'Fixed Scale' : 'Auto Scale'}
+                  </button>
+                  <button
+                    onClick={() => setShowQScoresBrush(!showQScoresBrush)}
+                    className={`btn-secondary ${
+                      showQScoresBrush 
+                        ? 'bg-accent-primary text-app-primary' 
+                        : 'bg-app-surface text-app-secondary hover:bg-app-hover'
+                    }`}
+                  >
+                    {showQScoresBrush ? 'Hide Zoom' : 'Show Zoom'}
+                  </button>
+                </div>
               </div>
               <ResponsiveContainer width="100%" height={500}>
                 <LineChart 
@@ -1032,7 +982,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                       const year = date.getFullYear().toString().slice(-2);
                       return `Jan '${year}`;
                     }}
-					padding={{ left: 10, right: 10 }}
+                    padding={{ left: 10, right: 10 }}
                     ticks={(() => {
                       if (chartData.length === 0) return [];
                       const minYear = new Date(Math.min(...chartData.map(d => d.timestamp))).getFullYear();
@@ -1057,9 +1007,9 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                   />
                   <YAxis 
                     stroke="var(--chart-axis)"
-				    fontSize={12}
-				    domain={autoScaleQScores ? ['dataMin - 10', 'dataMax + 10'] : [0, 'dataMax + 5']}
-				    allowDataOverflow={true}
+                    fontSize={12}
+                    domain={autoScaleQScores ? ['dataMin - 10', 'dataMax + 10'] : [0, 'dataMax + 5']}
+                    allowDataOverflow={true}
                     label={{ 
                       value: 'Q-Score', 
                       angle: -90, 
@@ -1081,16 +1031,16 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                       padding: '12px'
                     }}
                     formatter={(value: any, name: string) => {
-					  if (!value && value !== 0) return ['-', name];
-					  if (typeof value === 'number') {
-						if (name === 'qpoints') return [value.toFixed(1), 'Q-Points'];
-						if (name === 'qYouth') return [value.toFixed(1), 'Q-Youth'];
-						if (name === 'qMasters') return [value.toFixed(1), 'Q-Masters'];
-						return [value.toFixed(1), name];
-					  } else {
-						return [String(value), name]; // or some other default behavior
-					  }
-					}}
+                      if (!value && value !== 0) return ['-', name];
+                      if (typeof value === 'number') {
+                        if (name === 'qpoints') return [value.toFixed(1), 'Q-Points'];
+                        if (name === 'qYouth') return [value.toFixed(1), 'Q-Youth'];
+                        if (name === 'qMasters') return [value.toFixed(1), 'Q-Masters'];
+                        return [value.toFixed(1), name];
+                      } else {
+                        return [String(value), name];
+                      }
+                    }}
                     labelFormatter={(label, payload) => {
                       if (payload && payload[0] && payload[0].payload) {
                         const data = payload[0].payload;
@@ -1148,21 +1098,21 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                     />
                   )}
                   {showQScoresBrush && (
-					  <Brush 
-						key="q-scores-brush"
-						dataKey="timestamp" 
-						height={20}
-						y={500 - 20}
-						stroke="var(--text-disabled)"
-						fill="var(--chart-grid)"
-						fillOpacity={0.6}
-						tickFormatter={(timestamp) => {
-						  const date = new Date(timestamp);
-						  const year = date.getFullYear().toString().slice(-0);
-						  return year;
-						}}
-					  />
-					)}
+                    <Brush 
+                      key="q-scores-brush"
+                      dataKey="timestamp" 
+                      height={20}
+                      y={500 - 20}
+                      stroke="var(--text-disabled)"
+                      fill="var(--chart-grid)"
+                      fillOpacity={0.6}
+                      tickFormatter={(timestamp) => {
+                        const date = new Date(timestamp);
+                        const year = date.getFullYear().toString().slice(-0);
+                        return year;
+                      }}
+                    />
+                  )}
                   {chartData.some(d => d.qMasters) && (
                     <Line 
                       type="monotone" 
@@ -1192,180 +1142,177 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
           </div>
         )}
 
+        {/* Personal Bests Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-			<div className="card-secondary">
-			  <div className="flex items-center justify-between mb-2">
-				<h3 className="text-label">Best Snatch</h3>
-				<Weight className="h-5 w-5" style={{ color: 'var(--chart-snatch)' }} />
-			  </div>
-			  <div className="text-2xl text-heading">
-				{personalBests.best_snatch > 0 ? `${personalBests.best_snatch}kg` : 'N/A'}
-			  </div>
-			</div>
-		  
-		  <div className="card-secondary">
-			<div className="flex items-center justify-between mb-2">
-			  <h3 className="text-label">Best C&J</h3>
-			  <Weight className="h-5 w-5" style={{ color: 'var(--chart-cleanjerk)' }} />
-			</div>
-			<div className="text-2xl text-heading">
-			  {personalBests.best_cj > 0 ? `${personalBests.best_cj}kg` : 'N/A'}
-			</div>
-		  </div>
-		  
-		  <div className="card-secondary">
-			<div className="flex items-center justify-between mb-2">
-			  <h3 className="text-label">Best Total</h3>
-			  <Trophy className="h-5 w-5" style={{ color: 'var(--chart-total)' }} />
-			</div>
-			<div className="text-2xl text-heading">
-			  {personalBests.best_total > 0 ? `${personalBests.best_total}kg` : 'N/A'}
-			</div>
-		  </div>
-		  
-		  <div className="card-secondary">
-			<div className="flex items-center justify-between mb-2">
-			  <h3 className="text-label">Best Q-Points</h3>
-			  <TrendingUp className="h-5 w-5" style={{ color: 'var(--chart-qpoints)' }} />
-			</div>
-			<div className="text-2xl text-heading">
-			  {personalBests.best_qpoints > 0 ? personalBests.best_qpoints.toFixed(1) : 'N/A'}
-			</div>
-		  </div>
-		</div>
+          <div className="card-secondary">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-label">Best Snatch</h3>
+              <Weight className="h-5 w-5" style={{ color: 'var(--chart-snatch)' }} />
+            </div>
+            <div className="text-2xl text-heading">
+              {personalBests.best_snatch > 0 ? `${personalBests.best_snatch}kg` : 'N/A'}
+            </div>
+          </div>
+        
+          <div className="card-secondary">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-label">Best C&J</h3>
+              <Weight className="h-5 w-5" style={{ color: 'var(--chart-cleanjerk)' }} />
+            </div>
+            <div className="text-2xl text-heading">
+              {personalBests.best_cj > 0 ? `${personalBests.best_cj}kg` : 'N/A'}
+            </div>
+          </div>
+        
+          <div className="card-secondary">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-label">Best Total</h3>
+              <Trophy className="h-5 w-5" style={{ color: 'var(--chart-total)' }} />
+            </div>
+            <div className="text-2xl text-heading">
+              {personalBests.best_total > 0 ? `${personalBests.best_total}kg` : 'N/A'}
+            </div>
+          </div>
+        
+          <div className="card-secondary">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-label">Best Q-Points</h3>
+              <TrendingUp className="h-5 w-5" style={{ color: 'var(--chart-qpoints)' }} />
+            </div>
+            <div className="text-2xl text-heading">
+              {personalBests.best_qpoints > 0 ? personalBests.best_qpoints.toFixed(1) : 'N/A'}
+            </div>
+          </div>
+        </div>
 
-		{/* Competition Results */}
-		<div className="card-results results-table">
-		  <div className="p-6 border-b border-gray-700">
-			<div className="flex justify-between items-center">
-			  <h2 className="text-xl font-bold text-white flex items-center">
-				<Calendar className="h-5 w-5 mr-2" />
-				{athlete.athlete_name} Competition Results ({results.length} total)
-			  </h2>
-			  <div className="flex space-x-2">
-			    <button
-				  onClick={() => setShowAllColumns(!showAllColumns)}
-				  className="btn-tertiary"
-			    >
-				  {showAllColumns ? 'Compact View' : 'Show All Details'}
-			    </button>
-				<button
-				  onClick={() => exportTableToCSV(results, athlete.athlete_name, showAllColumns)}
-				  className="px-3 py-1 rounded text-xs transition-colors bg-gray-600 text-gray-300 hover:bg-gray-500"
-				>
-				  Export CSV
-				</button>
-			  </div>
-			</div>
-		  </div>
-		  
-		  <div className="p-6" ref={resultsTableRef}>
-			{results.length === 0 ? (
-			  <div className="text-center py-8">
-				<p className="text-gray-400">No competition results found for this athlete.</p>
-			  </div>
-			) : (
-			  <>
-				<div className="overflow-x-auto">
-				  <table className="w-full text-xs text-left text-gray-300">
-					<thead className="text-xs text-gray-400 uppercase bg-gray-700">
-					  <tr>
-						{showAllColumns ? (
-						  // Original 18 columns
-						  <>
-							<th scope="col" className="px-2 py-3">Date</th>
-							<th scope="col" className="px-2 py-3">Meet</th>
-							<th scope="col" className="px-2 py-3">WSO</th>
-							<th scope="col" className="px-2 py-3">Club</th>
-							<th scope="col" className="px-2 py-3">Age Category</th>
-							<th scope="col" className="px-2 py-3">Weight Class</th>
-							<th scope="col" className="px-2 py-3">Body Weight</th>
-							<th scope="col" className="px-2 py-3">Comp Age</th>
-							<th scope="col" className="px-2 py-3">Sn 1</th>
-							<th scope="col" className="px-2 py-3">Sn 2</th>
-							<th scope="col" className="px-2 py-3">Sn 3</th>
-							<th scope="col" className="px-2 py-3">Best Sn</th>
-							<th scope="col" className="px-2 py-3">CJ 1</th>
-							<th scope="col" className="px-2 py-3">CJ 2</th>
-							<th scope="col" className="px-2 py-3">CJ 3</th>
-							<th scope="col" className="px-2 py-3">Best CJ</th>
-							<th scope="col" className="px-2 py-3">Total</th>
-							<th scope="col" className="px-2 py-3">Q-Youth</th>
-							<th scope="col" className="px-2 py-3">Q-Points</th>
-							<th scope="col" className="px-2 py-3">Q-Masters</th>
-						  </>
-						) : (
-						  // Compact 8 columns
-						  <>
-							<th scope="col" className="px-2 py-3">Date</th>
-							<th scope="col" className="px-2 py-3">Meet</th>
-							<th scope="col" className="px-2 py-3">Weight Class</th>
-							<th scope="col" className="px-2 py-3">Best Sn</th>
-							<th scope="col" className="px-2 py-3">Best CJ</th>
-							<th scope="col" className="px-2 py-3">Total</th>
-							<th scope="col" className="px-2 py-3">Best Q-Score</th>
-						  </>
-						)}
-					  </tr>
-					</thead>
-					<tbody className="text-xs">
-						{displayResults.map((result, index) => {
-						  const bestQScore = getBestQScore(result);
-						  
-						  return (
-							  <tr key={index} className="bg-gray-800 border-b border-gray-700 hover:bg-gray-750">
-								{showAllColumns ? (
-								  // Original 18 columns
-								  <>
-									<td className="px-2 py-3 whitespace-nowrap">{new Date(result.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
-									<td className="px-2 py-3 max-w-20 truncate" title={result.meet_name}>{result.meet_name}</td>
-									<td className="px-2 py-3 whitespace-nowrap">{result.wso || '-'}</td>
-									<td className="px-2 py-3 whitespace-nowrap">{result.club_name || '-'}</td>
-									<td className="px-2 py-3 whitespace-nowrap">{result.age_category || '-'}</td>
-									<td className="px-2 py-3 whitespace-nowrap">{result.weight_class || '-'}</td>
-									<td className="px-2 py-3 whitespace-nowrap" style={{ color: 'var(--chart-bodyweight)' }}>{result.body_weight_kg ? `${result.body_weight_kg}kg` : '-'}</td>
-									<td className="px-2 py-3 whitespace-nowrap">{result.competition_age || '-'}</td>
-									<td className="px-2 py-3 whitespace-nowrap">{result.snatch_lift_1 || '-'}</td>
-									<td className="px-2 py-3 whitespace-nowrap">{result.snatch_lift_2 || '-'}</td>
-									<td className="px-2 py-3 whitespace-nowrap">{result.snatch_lift_3 || '-'}</td>
-									<td className="px-2 py-3 whitespace-nowrap font-semibold" style={{ color: 'var(--chart-snatch)' }}>{result.best_snatch ? `${result.best_snatch}kg` : '-'}</td>
-									<td className="px-2 py-3 whitespace-nowrap">{result.cj_lift_1 || '-'}</td>
-									<td className="px-2 py-3 whitespace-nowrap">{result.cj_lift_2 || '-'}</td>
-									<td className="px-2 py-3 whitespace-nowrap">{result.cj_lift_3 || '-'}</td>
-									<td className="px-2 py-3 whitespace-nowrap font-semibold" style={{ color: 'var(--chart-cleanjerk)' }}>{result.best_cj ? `${result.best_cj}kg` : '-'}</td>
-									<td className="px-2 py-3 whitespace-nowrap font-bold" style={{ color: 'var(--chart-total)' }}>{result.total ? `${result.total}kg` : '-'}</td>
-									<td className="px-2 py-3 whitespace-nowrap" style={{ color: 'var(--chart-qyouth)' }}>{result.q_youth || '-'}</td>
-									<td className="px-2 py-3 whitespace-nowrap" style={{ color: 'var(--chart-qpoints)' }}>{result.qpoints || '-'}</td>
-									<td className="px-2 py-3 whitespace-nowrap" style={{ color: 'var(--chart-qmasters)' }}>{result.q_masters || '-'}</td>
-								  </>
-								) : (
-								  // Compact 8 columns
-								  <>
-									<td className="px-2 py-3 whitespace-nowrap">{new Date(result.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
-									<td className="px-2 py-3 max-w-xs truncate" title={result.meet_name}>{result.meet_name}</td>
-									<td className="px-2 py-3 whitespace-nowrap">{result.weight_class || '-'}</td>
-									<td className="px-2 py-3 whitespace-nowrap font-semibold" style={{ color: 'var(--chart-snatch)' }}>{result.best_snatch ? `${result.best_snatch}kg` : '-'}</td>
-									<td className="px-2 py-3 whitespace-nowrap font-semibold" style={{ color: 'var(--chart-cleanjerk)' }}>{result.best_cj ? `${result.best_cj}kg` : '-'}</td>
-									<td className="px-2 py-3 whitespace-nowrap font-bold" style={{ color: 'var(--chart-total)' }}>{result.total ? `${result.total}kg` : '-'}</td>
-									<td className={`px-2 py-3 whitespace-nowrap ${bestQScore.color}`}>{bestQScore.value || '-'}</td>
-								  </>
-								)}
-							  </tr>
-							);
-						})}
-					</tbody>
-				  </table>
-				</div>
-				
-				<Pagination 
-				  currentPage={currentPage}
-				  totalPages={totalPages}
-				  onPageChange={handlePageChange}
-				/>
-			  </>
-			)}
-		  </div>
-		</div>
+        {/* Competition Results */}
+        <div className="card-results results-table">
+          <div className="p-6 border-b border-app-secondary">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-bold text-app-primary flex items-center">
+                <Calendar className="h-5 w-5 mr-2" />
+                {athlete.athlete_name} Competition Results ({results.length} total)
+              </h2>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => setShowAllColumns(!showAllColumns)}
+                  className="btn-tertiary"
+                >
+                  {showAllColumns ? 'Compact View' : 'Show All Details'}
+                </button>
+                <button
+                  onClick={() => exportTableToCSV(results, athlete.athlete_name, showAllColumns)}
+                  className="btn-tertiary"
+                >
+                  Export CSV
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <div className="p-6" ref={resultsTableRef}>
+            {results.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-app-muted">No competition results found for this athlete.</p>
+              </div>
+            ) : (
+              <>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-left text-app-secondary">
+                    <thead className="text-xs text-app-muted uppercase bg-app-tertiary">
+                      <tr>
+                        {showAllColumns ? (
+                          <>
+                            <th scope="col" className="px-2 py-3">Date</th>
+                            <th scope="col" className="px-2 py-3">Meet</th>
+                            <th scope="col" className="px-2 py-3">WSO</th>
+                            <th scope="col" className="px-2 py-3">Club</th>
+                            <th scope="col" className="px-2 py-3">Age Category</th>
+                            <th scope="col" className="px-2 py-3">Weight Class</th>
+                            <th scope="col" className="px-2 py-3">Body Weight</th>
+                            <th scope="col" className="px-2 py-3">Comp Age</th>
+                            <th scope="col" className="px-2 py-3">Sn 1</th>
+                            <th scope="col" className="px-2 py-3">Sn 2</th>
+                            <th scope="col" className="px-2 py-3">Sn 3</th>
+                            <th scope="col" className="px-2 py-3">Best Sn</th>
+                            <th scope="col" className="px-2 py-3">CJ 1</th>
+                            <th scope="col" className="px-2 py-3">CJ 2</th>
+                            <th scope="col" className="px-2 py-3">CJ 3</th>
+                            <th scope="col" className="px-2 py-3">Best CJ</th>
+                            <th scope="col" className="px-2 py-3">Total</th>
+                            <th scope="col" className="px-2 py-3">Q-Youth</th>
+                            <th scope="col" className="px-2 py-3">Q-Points</th>
+                            <th scope="col" className="px-2 py-3">Q-Masters</th>
+                          </>
+                        ) : (
+                          <>
+                            <th scope="col" className="px-2 py-3">Date</th>
+                            <th scope="col" className="px-2 py-3">Meet</th>
+                            <th scope="col" className="px-2 py-3">Weight Class</th>
+                            <th scope="col" className="px-2 py-3">Best Sn</th>
+                            <th scope="col" className="px-2 py-3">Best CJ</th>
+                            <th scope="col" className="px-2 py-3">Total</th>
+                            <th scope="col" className="px-2 py-3">Best Q-Score</th>
+                          </>
+                        )}
+                      </tr>
+                    </thead>
+                    <tbody className="text-xs">
+                      {displayResults.map((result, index) => {
+                        const bestQScore = getBestQScore(result);
+                        
+                        return (
+                          <tr key={index} className="bg-app-secondary border-b border-app-secondary hover:bg-app-tertiary">
+                            {showAllColumns ? (
+                              <>
+                                <td className="px-2 py-3 whitespace-nowrap">{new Date(result.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
+                                <td className="px-2 py-3 max-w-20 truncate" title={result.meet_name}>{result.meet_name}</td>
+                                <td className="px-2 py-3 whitespace-nowrap">{result.wso || '-'}</td>
+                                <td className="px-2 py-3 whitespace-nowrap">{result.club_name || '-'}</td>
+                                <td className="px-2 py-3 whitespace-nowrap">{result.age_category || '-'}</td>
+                                <td className="px-2 py-3 whitespace-nowrap">{result.weight_class || '-'}</td>
+                                <td className="px-2 py-3 whitespace-nowrap" style={{ color: 'var(--chart-bodyweight)' }}>{result.body_weight_kg ? `${result.body_weight_kg}kg` : '-'}</td>
+                                <td className="px-2 py-3 whitespace-nowrap">{result.competition_age || '-'}</td>
+                                <td className="px-2 py-3 whitespace-nowrap">{result.snatch_lift_1 || '-'}</td>
+                                <td className="px-2 py-3 whitespace-nowrap">{result.snatch_lift_2 || '-'}</td>
+                                <td className="px-2 py-3 whitespace-nowrap">{result.snatch_lift_3 || '-'}</td>
+                                <td className="px-2 py-3 whitespace-nowrap font-semibold" style={{ color: 'var(--chart-snatch)' }}>{result.best_snatch ? `${result.best_snatch}kg` : '-'}</td>
+                                <td className="px-2 py-3 whitespace-nowrap">{result.cj_lift_1 || '-'}</td>
+                                <td className="px-2 py-3 whitespace-nowrap">{result.cj_lift_2 || '-'}</td>
+                                <td className="px-2 py-3 whitespace-nowrap">{result.cj_lift_3 || '-'}</td>
+                                <td className="px-2 py-3 whitespace-nowrap font-semibold" style={{ color: 'var(--chart-cleanjerk)' }}>{result.best_cj ? `${result.best_cj}kg` : '-'}</td>
+                                <td className="px-2 py-3 whitespace-nowrap font-bold" style={{ color: 'var(--chart-total)' }}>{result.total ? `${result.total}kg` : '-'}</td>
+                                <td className="px-2 py-3 whitespace-nowrap" style={{ color: 'var(--chart-qyouth)' }}>{result.q_youth || '-'}</td>
+                                <td className="px-2 py-3 whitespace-nowrap" style={{ color: 'var(--chart-qpoints)' }}>{result.qpoints || '-'}</td>
+                                <td className="px-2 py-3 whitespace-nowrap" style={{ color: 'var(--chart-qmasters)' }}>{result.q_masters || '-'}</td>
+                              </>
+                            ) : (
+                              <>
+                                <td className="px-2 py-3 whitespace-nowrap">{new Date(result.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
+                                <td className="px-2 py-3 max-w-xs truncate" title={result.meet_name}>{result.meet_name}</td>
+                                <td className="px-2 py-3 whitespace-nowrap">{result.weight_class || '-'}</td>
+                                <td className="px-2 py-3 whitespace-nowrap font-semibold" style={{ color: 'var(--chart-snatch)' }}>{result.best_snatch ? `${result.best_snatch}kg` : '-'}</td>
+                                <td className="px-2 py-3 whitespace-nowrap font-semibold" style={{ color: 'var(--chart-cleanjerk)' }}>{result.best_cj ? `${result.best_cj}kg` : '-'}</td>
+                                <td className="px-2 py-3 whitespace-nowrap font-bold" style={{ color: 'var(--chart-total)' }}>{result.total ? `${result.total}kg` : '-'}</td>
+                                <td className={`px-2 py-3 whitespace-nowrap ${bestQScore.color}`}>{bestQScore.value || '-'}</td>
+                              </>
+                            )}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                
+                <Pagination 
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                />
+              </>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

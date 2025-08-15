@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Search, TrendingUp, Trophy, Users, Calendar, Database, Filter, ArrowRight, Github, Heart, X } from 'lucide-react';
+import { Search, TrendingUp, Trophy, Users, Calendar, Weight, Database, Filter, ArrowRight, Github, Heart, X, User } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useRouter } from 'next/navigation';
 import type { Metadata } from 'next';
+import { ThemeSwitcher } from './components/ThemeSwitcher';
 
 // Types for our search results
 interface SearchResult {
@@ -118,24 +119,26 @@ export default function WeightliftingLandingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-slate-800">
       {/* Header */}
-      <header className="bg-gray-800/80 backdrop-blur-sm border-b border-gray-700 sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-3">
-              <div className="bg-blue-500 rounded-lg p-2">
-                <Database className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-white">WeightliftingDB</h1>
-                <p className="text-xs text-gray-300">USA Weightlifting Results Database</p>
-              </div>
-            </div>
-            <nav className="hidden md:flex space-x-6">
-              {/* Navigation links removed - no destinations yet */}
-            </nav>
-          </div>
-        </div>
-      </header>
+		<header className="bg-header-blur border-b border-app-secondary">
+		  <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+			<div className="flex justify-between items-center py-6">
+			  <div className="flex items-center space-x-4">
+				<div className="bg-app-tertiary rounded-full p-3">
+				  <Weight className="h-8 w-8 text-app-secondary" />
+				</div>
+				<div>
+				  <h1 className="text-2xl font-bold text-app-primary">WeightliftingDB</h1>
+				  <p className="text-sm text-app-tertiary">USA Weightlifting Results Database</p>
+				</div>
+			  </div>
+			  
+			  {/* Add Theme Switcher */}
+			  <div className="flex items-center space-x-4">
+				<ThemeSwitcher />
+			  </div>
+			</div>
+		  </div>
+		</header>
 
       {/* Hero Section with Search */}
       <section className="py-16 px-4 sm:px-6 lg:px-8">

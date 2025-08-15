@@ -1,0 +1,78 @@
+'use client';
+
+import React, { createContext, useContext, useEffect, useState } from 'react';
+
+type Theme = 'dark' | 'light' | 'high-contrast';
+
+interface ThemeContextType {
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
+  cycleTheme: () => void;
+}
+
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+
+export function useTheme() {
+  const context = useContext(ThemeContext);
+  if (context === undefined) {
+    throw new Error('useTheme must be used within a ThemeProvider');
+  }
+  return context;
+}
+
+interface ThemeProviderProps {
+  children: React.ReactNode;
+}
+
+export function ThemeProvider({ children }: ThemeProviderProps) {
+  const [theme, setThemeState] = useState<Theme>('dark');
+  const [mounted, setMounted] = useState(false);
+
+  // Handle hydration
+  useEffect(() => {
+    setMounted(true);
+    
+    // Get theme from localStorage or default to 'dark'
+    const savedTheme = localStorage.getItem('weightlifting-theme') as Theme;
+    if (savedTheme && ['dark', 'light', 'high-contrast'].includes(savedTheme)) {
+      setThemeState(savedTheme);
+    } else {
+      // Check system preference as fallback
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setThemeState(prefersDark ? 'dark' : 'light');
+    }
+  }, []);
+
+  // Update theme
+  const setTheme = (newTheme: Theme) => {
+    setThemeState(newTheme);
+    localStorage.setItem('weightlifting-theme', newTheme);
+    document.documentElement.setAttribute('data-theme', newTheme);
+  };
+
+  // Cycle through themes (for theme switcher button)
+  const cycleTheme = () => {
+    const themes: Theme[] = ['dark', 'light', 'high-contrast'];
+    const currentIndex = themes.indexOf(theme);
+    const nextIndex = (currentIndex + 1) % themes.length;
+    setTheme(themes[nextIndex]);
+  };
+
+  // Apply theme to document
+  useEffect(() => {
+    if (mounted) {
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+  }, [theme, mounted]);
+
+  // Prevent hydration mismatch
+  if (!mounted) {
+    return null;
+  }
+
+  return (
+    <ThemeContext.Provider value={{ theme, setTheme, cycleTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+}

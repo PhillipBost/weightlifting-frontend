@@ -1,11 +1,13 @@
+/* Replace your current globals.css with this */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  /* Comfortable Dark Theme (Default) */
-  /* Based on your existing gray-900/gray-800 palette */
-  
+/* ===========================================
+   DARK THEME (Default) - Comfortable
+   =========================================== */
+:root,
+:root[data-theme="dark"] {
   /* Background System - Warm, comfortable grays */
   --bg-primary: #111827;      /* gray-900 - main app background */
   --bg-secondary: #1f2937;    /* gray-800 - card backgrounds */
@@ -60,14 +62,139 @@
   --chart-tooltip-border: #4b5563; /* gray-600 - tooltip border */
 }
 
-/* Legacy support for existing CSS custom properties */
+/* ===========================================
+   LIGHT THEME - Polished Professional
+   =========================================== */
+:root[data-theme="light"] {
+  /* Background System - Sophisticated grays with subtle warmth */
+  --bg-primary: #fafafa;       /* warm white - easier on eyes than pure white */
+  --bg-secondary: #ffffff;     /* pure white - card backgrounds for contrast */
+  --bg-tertiary: #f5f5f4;      /* stone-100 - interactive elements */
+  --bg-surface: #e7e5e4;       /* stone-200 - elevated surfaces */
+  --bg-hover: #d6d3d1;         /* stone-300 - hover states */
+  
+  /* Background Overlays */
+  --bg-header: rgba(255, 255, 255, 0.95);  /* white with strong transparency */
+  --bg-section: rgba(255, 255, 255, 0.8);  /* white lighter */
+  --bg-backdrop: rgba(250, 250, 250, 0.9); /* warm white backdrop */
+  
+  /* Text Hierarchy - Rich blacks with good contrast */
+  --text-primary: #0c0a09;     /* stone-950 - headlines, emphasis */
+  --text-secondary: #1c1917;   /* stone-900 - body text, navigation */
+  --text-tertiary: #44403c;    /* stone-700 - labels, secondary info */
+  --text-muted: #78716c;       /* stone-500 - placeholders, subtle text */
+  --text-disabled: #a8a29e;    /* stone-400 - disabled states */
+  
+  /* Border System - Defined but elegant */
+  --border-primary: #d6d3d1;   /* stone-300 - main borders */
+  --border-secondary: #e7e5e4; /* stone-200 - subtle borders */
+  --border-focus: #2563eb;     /* blue-600 - focus indicators */
+  --border-hover: #a8a29e;     /* stone-400 - hover borders */
+  
+  /* Interactive Colors - Rich blues with good contrast */
+  --accent-primary: #2563eb;       /* blue-600 - primary actions */
+  --accent-primary-hover: #1d4ed8; /* blue-700 - primary hover */
+  --accent-secondary: #4338ca;     /* indigo-700 - secondary actions */
+  --accent-secondary-hover: #3730a3; /* indigo-800 - secondary hover */
+  
+  /* Data Visualization - Darker, more saturated colors for better contrast on light background */
+  --chart-snatch: #1d4ed8;      /* blue-700 - brighter blue */
+  --chart-cleanjerk: #059669;   /* emerald-600 - brighter green */
+  --chart-total: #d97706;       /* amber-600 - brighter amber */
+  --chart-bodyweight: #dc2626;  /* red-600 - bright red for better visibility */
+  --chart-qpoints: #7c3aed;     /* violet-600 - brighter purple */
+  --chart-qyouth: #0891b2;      /* cyan-600 - brighter cyan */
+  --chart-qmasters: #ea580c;    /* orange-600 - brighter orange */
+  --chart-failed: #dc2626;      /* red-600 - clear red */
+  
+  /* Semantic Colors - Strong, clear colors */
+  --color-success: #166534;     /* green-800 - good lifts */
+  --color-warning: #b45309;     /* amber-700 - caution */
+  --color-error: #b91c1c;       /* red-700 - failed lifts */
+  --color-info: #1e40af;        /* blue-800 - information */
+  
+  /* Chart Interaction States - High contrast grid */
+  --chart-grid: #a8a29e;        /* stone-400 - very visible grid lines */
+  --chart-axis: #44403c;        /* stone-700 - dark axis labels */
+  --chart-tooltip-bg: #ffffff;  
+  --chart-tooltip-border: #78716c; /* stone-500 - darker border */
+}
+
+/* ===========================================
+   HIGH CONTRAST THEME - Maximum Accessibility
+   =========================================== */
+:root[data-theme="high-contrast"] {
+  /* Background System - Pure blacks and whites */
+  --bg-primary: #000000;       /* pure black - main background */
+  --bg-secondary: #1a1a1a;     /* dark gray - card backgrounds */
+  --bg-tertiary: #333333;      /* medium gray - interactive elements */
+  --bg-surface: #4d4d4d;       /* lighter gray - elevated surfaces */
+  --bg-hover: #666666;         /* hover gray - hover states */
+  
+  /* Background Overlays */
+  --bg-header: rgba(26, 26, 26, 0.95);    /* dark gray with transparency */
+  --bg-section: rgba(26, 26, 26, 0.8);    /* dark gray lighter */
+  --bg-backdrop: rgba(0, 0, 0, 0.9);      /* black backdrop */
+  
+  /* Text Hierarchy - Maximum contrast */
+  --text-primary: #ffffff;     /* pure white - headlines, emphasis */
+  --text-secondary: #e6e6e6;   /* light gray - body text, navigation */
+  --text-tertiary: #cccccc;    /* medium gray - labels, secondary info */
+  --text-muted: #999999;       /* darker gray - placeholders, subtle text */
+  --text-disabled: #666666;    /* dark gray - disabled states */
+  
+  /* Border System - High contrast borders */
+  --border-primary: #666666;   /* medium gray - main borders */
+  --border-secondary: #4d4d4d; /* darker gray - subtle borders */
+  --border-focus: #ffff00;     /* pure yellow - focus indicators */
+  --border-hover: #808080;     /* light gray - hover borders */
+  
+  /* Interactive Colors - High contrast, distinct colors */
+  --accent-primary: #0099ff;       /* bright blue - primary actions */
+  --accent-primary-hover: #0077cc; /* darker blue - primary hover */
+  --accent-secondary: #9966ff;     /* bright purple - secondary actions */
+  --accent-secondary-hover: #7744cc; /* darker purple - secondary hover */
+  
+  /* Data Visualization - Maximum contrast, distinct hues */
+  --chart-snatch: #0099ff;      /* pure bright blue */
+  --chart-cleanjerk: #00ff00;   /* pure bright green */
+  --chart-total: #ffff00;       /* pure yellow */
+  --chart-bodyweight: #ff00ff;  /* pure magenta */
+  --chart-qpoints: #9966ff;     /* bright purple */
+  --chart-qyouth: #00ffff;      /* pure cyan */
+  --chart-qmasters: #ff6600;    /* bright orange */
+  --chart-failed: #ff0000;      /* pure red */
+  
+  /* Semantic Colors - Highly contrasted */
+  --color-success: #00ff00;     /* pure green - good lifts */
+  --color-warning: #ffff00;     /* pure yellow - caution */
+  --color-error: #ff0000;       /* pure red - failed lifts */
+  --color-info: #0099ff;        /* bright blue - information */
+  
+  /* Chart Interaction States */
+  --chart-grid: #333333;        /* dark gray - grid lines */
+  --chart-axis: #cccccc;        /* light gray - axis labels */
+  --chart-tooltip-bg: #1a1a1a;  /* dark gray - tooltip background */
+  --chart-tooltip-border: #666666; /* medium gray - tooltip border */
+  
+  /* Enhanced focus indicators for accessibility */
+  --focus-ring-width: 3px;
+  --focus-ring-color: #ffff00;
+}
+
+/* ===========================================
+   BASE STYLES
+   =========================================== */
 body {
   background: var(--bg-primary);
   color: var(--text-secondary);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Component Utility Classes */
+/* ===========================================
+   COMPONENT UTILITY CLASSES
+   =========================================== */
 @layer components {
   /* Background Utilities */
   .bg-app-primary { background-color: var(--bg-primary); }
@@ -95,6 +222,12 @@ body {
     border-radius: 1rem;
     padding: 2rem;
     border: 1px solid var(--border-primary);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+
+  /* Q-Score color utilities */
+  .qpoints-color { color: var(--chart-qpoints); }
+  .qyouth-color { color: var(--chart-qyouth); }
+  .qmasters-color { color: var(--chart-qmasters); }
   }
   
   .card-secondary {
@@ -102,6 +235,22 @@ body {
     border-radius: 0.75rem;
     padding: 1.5rem;
     border: 1px solid var(--border-primary);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+  
+  .card-large {
+    background-color: var(--bg-secondary);
+    border-radius: 1rem;
+    padding: 2rem;
+    border: 1px solid var(--border-secondary);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+  
+  .card-results {
+    background-color: var(--bg-secondary);
+    border-radius: 1rem;
+    border: 1px solid var(--border-secondary);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
   }
   
   .btn-primary {
@@ -109,7 +258,7 @@ body {
     color: var(--text-primary);
     padding: 0.5rem 1.5rem;
     border-radius: 0.5rem;
-    transition: background-color 0.2s ease;
+    transition: all 0.3s ease;
   }
   
   .btn-primary:hover {
@@ -122,11 +271,24 @@ body {
     padding: 0.25rem 0.75rem;
     border-radius: 0.375rem;
     font-size: 0.75rem;
-    transition: background-color 0.2s ease;
+    transition: all 0.3s ease;
   }
   
   .btn-secondary:hover {
     background-color: var(--bg-surface);
+  }
+  
+  .btn-tertiary {
+    background-color: var(--bg-surface);
+    color: var(--text-secondary);
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-tertiary:hover {
+    background-color: var(--bg-hover);
   }
   
   .input-primary {
@@ -140,7 +302,7 @@ body {
     border: 2px solid var(--border-secondary);
     color: var(--text-primary);
     border-radius: 0.75rem;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
   }
   
   .input-primary::placeholder {
@@ -153,13 +315,50 @@ body {
     box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
   }
   
+  /* Enhanced focus for high contrast theme */
+  :root[data-theme="high-contrast"] .input-primary:focus {
+    box-shadow: 0 0 0 var(--focus-ring-width, 3px) var(--focus-ring-color, #ffff00);
+  }
+  
+  /* Text utility variants */
+  .text-heading {
+    color: var(--text-primary);
+    font-weight: 700;
+  }
+  
+  .text-label {
+    color: var(--text-tertiary);
+    font-weight: 600;
+  }
+  
+  /* Background/Surface patterns */
+  .bg-interactive {
+    background-color: var(--bg-tertiary);
+    transition: background-color 0.3s ease;
+  }
+  
+  .bg-interactive:hover {
+    background-color: var(--bg-surface);
+  }
+  
+  /* Chart container */
+  .chart-container {
+    background-color: var(--bg-secondary);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    border: 1px solid var(--border-secondary);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+  
   /* App-specific gradient backgrounds */
   .bg-app-gradient {
     background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+    transition: background 0.3s ease;
   }
   
   .bg-header-blur {
     background-color: var(--bg-header);
     backdrop-filter: blur(8px);
+    transition: background-color 0.3s ease;
   }
 }

@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Search, TrendingUp, Trophy, Users, Calendar, Database, Filter, ArrowRight, Github, Heart, X, User } from 'lucide-react';
+import { Search, TrendingUp, Trophy, Users, Calendar, Weight, Database, Filter, ArrowRight, Github, Heart, X, User } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useRouter } from 'next/navigation';
 import type { Metadata } from 'next';
+import { ThemeSwitcher } from './components/ThemeSwitcher';
 
 // Types for our search results
 interface SearchResult {
@@ -116,23 +117,25 @@ export default function WeightliftingLandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-slate-800">
+    <div className="min-h-screen bg-app-gradient">
       {/* Header */}
-      <header className="bg-gray-800/80 backdrop-blur-sm border-b border-gray-700 sticky top-0 z-50">
+      <header className="bg-header-blur border-b border-app-secondary">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-3">
-              <div className="bg-blue-500 rounded-lg p-2">
-                <Database className="h-6 w-6 text-white" />
+          <div className="flex justify-between items-center py-6">
+            <div className="flex items-center space-x-4">
+              <div className="bg-app-tertiary rounded-full p-3">
+                <Weight className="h-8 w-8 text-app-secondary" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-white">WeightliftingDB</h1>
-                <p className="text-xs text-gray-300">USA Weightlifting Results Database</p>
+                <h1 className="text-2xl font-bold text-app-primary">WeightliftingDB</h1>
+                <p className="text-sm text-app-tertiary">USA Weightlifting Results Database</p>
               </div>
             </div>
-            <nav className="hidden md:flex space-x-6">
-              {/* Navigation links removed - no destinations yet */}
-            </nav>
+            
+            {/* Add Theme Switcher */}
+            <div className="flex items-center space-x-4">
+              <ThemeSwitcher />
+            </div>
           </div>
         </div>
       </header>
@@ -140,29 +143,27 @@ export default function WeightliftingLandingPage() {
       {/* Hero Section with Search */}
       <section className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6">
+          <h2 className="text-4xl sm:text-5xl font-bold text-app-primary mb-6">
             USA Weightlifting
             <span className="block text-blue-400">Results Database</span>
           </h2>
-          <p className="text-lg text-gray-300 mb-12 max-w-2xl mx-auto">
+          <p className="text-lg text-app-secondary mb-12 max-w-2xl mx-auto">
             Search through thousands of competition results and 
             analyze performance trends from USA Weightlifting athletes.
           </p>
 
           {/* Search Interface */}
           <div className="relative space-y-6">
-            {/* Search Type Tabs - Removed since only lifters available */}
-
             {/* Main Search Bar */}
             <form onSubmit={handleSearch} className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-app-muted" />
               <input
                 ref={searchInputRef}
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search athletes... (e.g., Caine Wilkes)"
-                className="w-full pl-12 pr-16 py-4 text-lg bg-gray-700 border-2 border-gray-600 text-white placeholder-gray-400 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all"
+                className="input-primary"
               />
               
               {/* Clear button */}
@@ -170,7 +171,7 @@ export default function WeightliftingLandingPage() {
                 <button
                   type="button"
                   onClick={clearSearch}
-                  className="absolute right-16 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                  className="absolute right-16 top-1/2 transform -translate-y-1/2 text-app-muted hover:text-app-primary transition-colors"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -178,7 +179,7 @@ export default function WeightliftingLandingPage() {
 
               <button
                 type="submit"
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors flex items-center space-x-2"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-accent-primary hover:bg-accent-primary-hover text-app-primary px-6 py-2 rounded-lg transition-colors flex items-center space-x-2"
               >
                 <span className="hidden sm:inline">Search</span>
                 <ArrowRight className="h-4 w-4" />
@@ -187,9 +188,9 @@ export default function WeightliftingLandingPage() {
 
             {/* Search Results Dropdown */}
             {showResults && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-gray-700 border border-gray-600 rounded-xl shadow-xl z-10 max-h-96 overflow-y-auto">
+              <div className="absolute top-full left-0 right-0 mt-2 bg-app-secondary border border-app-primary rounded-xl shadow-xl z-10 max-h-96 overflow-y-auto">
                 {isSearching ? (
-                  <div className="p-4 text-center text-gray-400">
+                  <div className="p-4 text-center text-app-muted">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400 mx-auto mb-2"></div>
                     Searching...
                   </div>
@@ -199,12 +200,12 @@ export default function WeightliftingLandingPage() {
                       <button
                         key={result.lifter_id}
                         onClick={() => handleResultSelect(result)}
-                        className="w-full px-4 py-3 text-left hover:bg-gray-600 transition-colors flex items-center space-x-3"
+                        className="w-full px-4 py-3 text-left bg-interactive transition-colors flex items-center space-x-3"
                       >
-                        <User className="h-5 w-5 text-gray-400" />
+                        <User className="h-5 w-5 text-app-muted" />
                         <div className="flex-1">
-                          <div className="text-white font-medium">{result.athlete_name}</div>
-                          <div className="text-sm text-gray-400">
+                          <div className="text-app-primary font-medium">{result.athlete_name}</div>
+                          <div className="text-sm text-app-tertiary">
                             {[
                               result.gender,
                               result.club_name,
@@ -216,7 +217,7 @@ export default function WeightliftingLandingPage() {
                     ))}
                   </div>
                 ) : searchQuery.length >= 2 ? (
-                  <div className="p-4 text-center text-gray-400">
+                  <div className="p-4 text-center text-app-muted">
                     No athletes found for "{searchQuery}"
                   </div>
                 ) : null}
@@ -227,7 +228,7 @@ export default function WeightliftingLandingPage() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-12 px-4 sm:px-6 lg:px-8 bg-gray-800/50">
+      <section className="py-12 px-4 sm:px-6 lg:px-8 bg-app-tertiary/50">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {/* Stats content can be added here later */}
@@ -235,39 +236,39 @@ export default function WeightliftingLandingPage() {
         </div>
       </section>
 
-	  {/* Footer */}
-		<footer className="bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8">
-		  <div className="max-w-6xl mx-auto">
-			<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-			  <div>
-				<div className="flex items-center space-x-2 mb-4">
-				  <Database className="h-6 w-6" />
-				  <span className="font-bold">WeightliftingDB</span>
-				</div>
-				<p className="text-gray-400 text-sm">
-				  Open source project, MIT License. Data sourced from official competition results.
-				</p>
-			  </div>
-			  <div className="flex justify-end items-end">
-				<a 
-				  href="https://github.com/PhillipBost/weightlifting-frontend"
-				  target="_blank"
-				  rel="noopener noreferrer"
-				  className="inline-flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
-				  title="View source code on GitHub"
-				>
-				  <Github className="h-4 w-4" />
-				  <span className="text-sm">GitHub</span>
-				</a>
-			  </div>
-			</div>
-			<div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400">
-			  <span className="inline-flex items-center gap-1">
-				2025 WeightliftingDB. Built with <Heart className="h-4 w-4 text-blue-400" fill="currentColor" /> for the weightlifting community.
-			  </span>
-			</div>
-		  </div>
-		</footer>
+      {/* Footer */}
+      <footer className="bg-app-secondary text-app-primary py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+              <div className="flex items-center space-x-2 mb-4">
+                <Database className="h-6 w-6" />
+                <span className="font-bold">WeightliftingDB</span>
+              </div>
+              <p className="text-app-tertiary text-sm">
+                Open source project, MIT License. Data sourced from official competition results.
+              </p>
+            </div>
+            <div className="flex justify-end items-end">
+              <a 
+                href="https://github.com/PhillipBost/weightlifting-frontend"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center space-x-2 text-app-tertiary hover:text-app-primary transition-colors"
+                title="View source code on GitHub"
+              >
+                <Github className="h-4 w-4" />
+                <span className="text-sm">GitHub</span>
+              </a>
+            </div>
+          </div>
+          <div className="border-t border-app-secondary mt-8 pt-8 text-center text-sm text-app-tertiary">
+            <span className="inline-flex items-center gap-1">
+              2025 WeightliftingDB. Built with <Heart className="h-4 w-4 text-blue-400" fill="currentColor" /> for the weightlifting community.
+            </span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
