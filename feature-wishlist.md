@@ -8,7 +8,7 @@
   - Would be nice to have all time radar charts as well as last four meets. Or local vs. all other higher stakes meets to sort of gauge how the athlete performs under pressure
 - Customize Date Range of Athlete Results
 - % Success Rate in Snatch, C&J, and All Attempts
-- YOY % Progress in Total both in tabular and graphically. Floating bar chart could be the move especially if I could also fit in YOY % progress for snatch and C&J on the same chart (overlapping bar charts could create a tricky mess though).
+- YOY % Progress in Total both in tabular and graphically. Floating bar chart could be the move especially if I could also fit in YOY % progress for snatch and C&J on the same chart (overlapping bar charts could create a tricky mess though). This would likely be best handled using the materialized views feature within Supabase.
 - Athlete page result table with links to meet results pages
 - Athlete Page -- Overall Placement at National and International Events
 - Athlete-to-Athlete Comparisons (potentially housed within the athlete page)
@@ -33,7 +33,7 @@
 
 #### WSO / Barbell Club page features
 
-- TreeMap showing colorful sections representing WSOs and various sized blocks within representing barbell clubs. I think this one might actually be too tricky...
+- [TreeMap](https://recharts.org/en-US/examples/CustomContentTreemap) showing colorful sections representing WSOs and various sized blocks within representing barbell clubs. I think this one might actually be too tricky...
 
 
 #### Home page / General features
@@ -45,6 +45,7 @@
 
 
 #### Rankings page
+
 - Year by year rankings for all relavent divisions determined by total
   - Current year would begin at Jan 1 and be as up to date as possible
   - Rolling 11-to-12 month calendar would be as up to date as possible
@@ -63,9 +64,10 @@
 
 
 #### Tiered user access / roles
+
 - Better-Auth
+
 
 #### Known issues / bugs
 
 - Result tables on athlete pages give the correct number of results above the table, but at the bottom it usually tells you a different number if there are more than 20 meets.
-- Address the database bug(?) where some athletes have older barbell club / WSO affiliations linked to their profile 🚧 **fix is underway and will populate over time as database is updated** 🚧
