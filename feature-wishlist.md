@@ -38,10 +38,11 @@
 
 #### Home page / General features
 
-- Provide link to github
 - About page & link to about page
 - Consider possible user interface accessibility issues & address
-- Figure out a way to offset recurring hosting costs--possibly including athlete names within search bar alongside former olympians
+- Figure out a way to offset recurring hosting costs
+  - Possibly including athletes' names within search bar suggestions alongside former Olympians.
+  - Could also utilize something like [React Bits](https://www.reactbits.dev/text-animations/gradient-text) gradient text for athletes who donate. [Openpowerlifting does this](https://www.patreon.com/join/openpowerlifting) with a tiered system using Patreon.
 
 
 #### Rankings page
