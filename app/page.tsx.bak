@@ -13,6 +13,7 @@ interface SearchResult {
   club_name?: string;
   wso?: string;
   membership_number?: string;
+  lifter_id?: string;
 }
 
 // Debounce utility function
