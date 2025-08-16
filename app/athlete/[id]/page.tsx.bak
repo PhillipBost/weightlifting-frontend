@@ -282,7 +282,7 @@ const Pagination = ({ currentPage, totalPages, totalResults, onPageChange }: {
   return (
     <div className="flex items-center justify-between mt-6">
       <div className="text-sm text-app-muted">
-        Showing {Math.min((currentPage - 1) * 20 + 1, totalPages * 20)} to {Math.min(currentPage * 20, totalPages * 20)} of {totalPages * 20} results
+        Showing {startResult} to {endResult} of {totalResults} results
       </div>
       
       <div className="flex items-center space-x-2">
@@ -405,10 +405,13 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
         }
 
         const { data: resultsData, error: resultsError } = await supabase
-          .from('meet_results')
-          .select('*')
-          .eq('lifter_id', athleteData.lifter_id)
-          .order('date', { ascending: false });
+		  .from('meet_results')
+		  .select(`
+			*,
+			meets!inner("Level")
+		  `)
+		  .eq('lifter_id', athleteData.lifter_id)
+		  .order('date', { ascending: false });
 
         if (resultsError) throw resultsError;
 

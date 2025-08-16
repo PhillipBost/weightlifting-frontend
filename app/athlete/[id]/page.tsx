@@ -142,6 +142,7 @@ const exportTableToCSV = (results: any[], athleteName: string, showAllColumns: b
         return {
           'Date': new Date(result.date).toLocaleDateString('en-US'),
           'Meet': result.meet_name || '',
+		  'Level': result.meets?.Level || '',
           'WSO': result.wso || '',
           'Club': result.club_name || '',
           'Age Category': result.age_category || '',
@@ -405,10 +406,13 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
         }
 
         const { data: resultsData, error: resultsError } = await supabase
-          .from('meet_results')
-          .select('*')
-          .eq('lifter_id', athleteData.lifter_id)
-          .order('date', { ascending: false });
+		  .from('meet_results')
+		  .select(`
+			*,
+			meets!inner("Level")
+		  `)
+		  .eq('lifter_id', athleteData.lifter_id)
+		  .order('date', { ascending: false });
 
         if (resultsError) throw resultsError;
 
@@ -1230,6 +1234,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                           <>
                             <th scope="col" className="px-2 py-3">Date</th>
                             <th scope="col" className="px-2 py-3">Meet</th>
+							<th scope="col" className="px-2 py-3">Level</th>
                             <th scope="col" className="px-2 py-3">WSO</th>
                             <th scope="col" className="px-2 py-3">Club</th>
                             <th scope="col" className="px-2 py-3">Age Category</th>
@@ -1272,6 +1277,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                               <>
                                 <td className="px-2 py-3 whitespace-nowrap">{new Date(result.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
                                 <td className="px-2 py-3 max-w-20 truncate" title={result.meet_name}>{result.meet_name}</td>
+								<td className="px-2 py-3 whitespace-nowrap">{result.meets?.Level || '-'}</td>
                                 <td className="px-2 py-3 whitespace-nowrap">{result.wso || '-'}</td>
                                 <td className="px-2 py-3 whitespace-nowrap">{result.club_name || '-'}</td>
                                 <td className="px-2 py-3 whitespace-nowrap">{result.age_category || '-'}</td>
