@@ -71,4 +71,4 @@
 
 #### Known issues / bugs
 
-- Result tables on athlete pages give the correct number of results above the table, but at the bottom it usually tells you a different number if there are more than 20 meets.
+- None at this time :D
