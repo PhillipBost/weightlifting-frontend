@@ -40,7 +40,9 @@
 
 - About page & link to about page
 - Consider possible user interface accessibility issues & address
-- Figure out a way to offset recurring hosting costs--possibly including athlete names within search bar alongside former olympians
+- Figure out a way to offset recurring hosting costs
+  - Possibly including athletes' names within search bar suggestions alongside former Olympians.
+  - Could also utilize something like [React Bits](https://www.reactbits.dev/text-animations/gradient-text) gradient text for athletes who donate. I think openpowerlifting does this.
 
 
 #### Rankings page
