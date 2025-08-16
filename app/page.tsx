@@ -15,6 +15,7 @@ interface SearchResult {
   membership_number?: string;
   lifter_id?: string;
   type?: string;
+  gender?: string;
 }
 
 // Debounce utility function

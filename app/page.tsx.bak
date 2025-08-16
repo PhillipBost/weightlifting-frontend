@@ -14,6 +14,7 @@ interface SearchResult {
   wso?: string;
   membership_number?: string;
   lifter_id?: string;
+  type?: string;
 }
 
 // Debounce utility function
