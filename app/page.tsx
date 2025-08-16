@@ -9,10 +9,7 @@ import { ThemeSwitcher } from './components/ThemeSwitcher';
 
 // Types for our search results
 interface SearchResult {
-  lifter_id: number;
   athlete_name: string;
-  membership_number?: number;
-  gender?: string;
   club_name?: string;
   wso?: string;
 }
@@ -159,7 +156,7 @@ export default function WeightliftingLandingPage() {
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center space-x-4">
               <div className="bg-app-tertiary rounded-full p-3">
-                <Weight className="h-8 w-8 text-app-secondary" />
+                <Database className="h-8 w-8 text-app-secondary" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-app-primary">WeightliftingDB</h1>

@@ -9,10 +9,7 @@ import { ThemeSwitcher } from './components/ThemeSwitcher';
 
 // Types for our search results
 interface SearchResult {
-  lifter_id: number;
   athlete_name: string;
-  membership_number?: number;
-  gender?: string;
   club_name?: string;
   wso?: string;
 }
@@ -54,7 +51,8 @@ export default function WeightliftingLandingPage() {
   'Clarence Cummings',
   'Jenny Arthur',
   'Kendrick Farris',
-  'Holley Mangold'
+  'Holley Mangold',
+  'Christopher Yandle'
   ];
 
   const getSearchIcon = (resultType: string) => {
