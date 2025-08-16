@@ -244,12 +244,17 @@ const LiftAttempts = ({ lift1, lift2, lift3, best, type }: {
 };
 
 // Custom Pagination Component
-const Pagination = ({ currentPage, totalPages, onPageChange }: {
+const Pagination = ({ currentPage, totalPages, totalResults, onPageChange }: {
   currentPage: number;
   totalPages: number;
+  totalResults: number;
   onPageChange: (page: number) => void;
 }) => {
   if (totalPages <= 1) return null;
+  
+  const resultsPerPage = 20;
+  const startResult = (currentPage - 1) * resultsPerPage + 1;
+  const endResult = Math.min(currentPage * resultsPerPage, totalResults);
 
   const getPageNumbers = () => {
     const delta = 2;
@@ -277,7 +282,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: {
   return (
     <div className="flex items-center justify-between mt-6">
       <div className="text-sm text-app-muted">
-        Showing {Math.min((currentPage - 1) * 20 + 1, totalPages * 20)} to {Math.min(currentPage * 20, totalPages * 20)} of {totalPages * 20} results
+        Showing {startResult} to {endResult} of {totalResults} results
       </div>
       
       <div className="flex items-center space-x-2">
@@ -1307,6 +1312,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                 <Pagination 
                   currentPage={currentPage}
                   totalPages={totalPages}
+				  totalResults={results.length}
                   onPageChange={handlePageChange}
                 />
               </>
