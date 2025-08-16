@@ -66,58 +66,58 @@
    LIGHT THEME - Polished Professional
    =========================================== */
 :root[data-theme="light"] {
-  /* Background System - Sophisticated grays with subtle warmth */
-  --bg-primary: #fafafa;       /* warm white - easier on eyes than pure white */
-  --bg-secondary: #ffffff;     /* pure white - card backgrounds for contrast */
-  --bg-tertiary: #f5f5f4;      /* stone-100 - interactive elements */
-  --bg-surface: #e7e5e4;       /* stone-200 - elevated surfaces */
-  --bg-hover: #d6d3d1;         /* stone-300 - hover states */
+  /* Background System - Softer hierarchy with subtle warmth */
+  --bg-primary: #f8fafc;       /* slate-50 - softer than pure white */
+  --bg-secondary: #ffffff;     /* pure white - cards pop against background */
+  --bg-tertiary: #f1f5f9;      /* slate-100 - subtle interactive elements */
+  --bg-surface: #e2e8f0;       /* slate-200 - clear elevation */
+  --bg-hover: #cbd5e1;         /* slate-300 - visible hover states */
   
-  /* Background Overlays */
-  --bg-header: rgba(255, 255, 255, 0.95);  /* white with strong transparency */
-  --bg-section: rgba(255, 255, 255, 0.8);  /* white lighter */
-  --bg-backdrop: rgba(250, 250, 250, 0.9); /* warm white backdrop */
+  /* Background Overlays - More defined layers */
+  --bg-header: rgba(248, 250, 252, 0.95);  /* slate-50 with transparency */
+  --bg-section: rgba(241, 245, 249, 0.8);  /* slate-100 lighter */
+  --bg-backdrop: rgba(248, 250, 252, 0.9); /* slate-50 backdrop */
   
-  /* Text Hierarchy - Rich blacks with good contrast */
-  --text-primary: #0c0a09;     /* stone-950 - headlines, emphasis */
-  --text-secondary: #1c1917;   /* stone-900 - body text, navigation */
-  --text-tertiary: #44403c;    /* stone-700 - labels, secondary info */
-  --text-muted: #78716c;       /* stone-500 - placeholders, subtle text */
-  --text-disabled: #a8a29e;    /* stone-400 - disabled states */
+  /* Text Hierarchy - Warmer, softer blacks */
+  --text-primary: #0f172a;     /* slate-900 - rich but not harsh black */
+  --text-secondary: #334155;   /* slate-700 - readable body text */
+  --text-tertiary: #64748b;    /* slate-500 - secondary info */
+  --text-muted: #94a3b8;       /* slate-400 - subtle text */
+  --text-disabled: #cbd5e1;    /* slate-300 - disabled states */
   
-  /* Border System - Defined but elegant */
-  --border-primary: #d6d3d1;   /* stone-300 - main borders */
-  --border-secondary: #e7e5e4; /* stone-200 - subtle borders */
-  --border-focus: #2563eb;     /* blue-600 - focus indicators */
-  --border-hover: #a8a29e;     /* stone-400 - hover borders */
+  /* Border System - Subtle but defined */
+  --border-primary: #cbd5e1;   /* slate-300 - clear borders */
+  --border-secondary: #e2e8f0; /* slate-200 - subtle borders */
+  --border-focus: #3b82f6;     /* blue-500 - focus indicators */
+  --border-hover: #94a3b8;     /* slate-400 - hover borders */
   
-  /* Interactive Colors - Rich blues with good contrast */
-  --accent-primary: #2563eb;       /* blue-600 - primary actions */
-  --accent-primary-hover: #1d4ed8; /* blue-700 - primary hover */
-  --accent-secondary: #4338ca;     /* indigo-700 - secondary actions */
-  --accent-secondary-hover: #3730a3; /* indigo-800 - secondary hover */
+  /* Interactive Colors - Vibrant but comfortable */
+  --accent-primary: #3b82f6;       /* blue-500 - primary actions */
+  --accent-primary-hover: #2563eb; /* blue-600 - primary hover */
+  --accent-secondary: #6366f1;     /* indigo-500 - secondary actions */
+  --accent-secondary-hover: #4f46e5; /* indigo-600 - secondary hover */
   
-  /* Data Visualization - Darker, more saturated colors for better contrast on light background */
-  --chart-snatch: #1d4ed8;      /* blue-700 - brighter blue */
-  --chart-cleanjerk: #059669;   /* emerald-600 - brighter green */
-  --chart-total: #d97706;       /* amber-600 - brighter amber */
-  --chart-bodyweight: #dc2626;  /* red-600 - bright red for better visibility */
-  --chart-qpoints: #7c3aed;     /* violet-600 - brighter purple */
-  --chart-qyouth: #0891b2;      /* cyan-600 - brighter cyan */
-  --chart-qmasters: #ea580c;    /* orange-600 - brighter orange */
+  /* Data Visualization - Vibrant, high-contrast colors */
+  --chart-snatch: #2563eb;      /* blue-600 - vibrant blue */
+  --chart-cleanjerk: #16a34a;   /* green-600 - vibrant green */
+  --chart-total: #ca8a04;       /* yellow-600 - vibrant yellow */
+  --chart-bodyweight: #e11d48;  /* rose-600 - vibrant pink */
+  --chart-qpoints: #9333ea;     /* violet-600 - vibrant purple */
+  --chart-qyouth: #0284c7;      /* sky-600 - vibrant cyan */
+  --chart-qmasters: #f97316;    /* orange-500 - vibrant orange */
   --chart-failed: #dc2626;      /* red-600 - clear red */
   
-  /* Semantic Colors - Strong, clear colors */
-  --color-success: #166534;     /* green-800 - good lifts */
-  --color-warning: #b45309;     /* amber-700 - caution */
-  --color-error: #b91c1c;       /* red-700 - failed lifts */
-  --color-info: #1e40af;        /* blue-800 - information */
+  /* Semantic Colors - Clear and distinct */
+  --color-success: #16a34a;     /* green-600 - good lifts */
+  --color-warning: #ca8a04;     /* yellow-600 - caution */
+  --color-error: #dc2626;       /* red-600 - failed lifts */
+  --color-info: #3b82f6;        /* blue-500 - information */
   
-  /* Chart Interaction States - High contrast grid */
-  --chart-grid: #a8a29e;        /* stone-400 - very visible grid lines */
-  --chart-axis: #44403c;        /* stone-700 - dark axis labels */
-  --chart-tooltip-bg: #ffffff;  
-  --chart-tooltip-border: #78716c; /* stone-500 - darker border */
+  /* Chart Interaction States - Better visibility */
+  --chart-grid: #cbd5e1;        /* slate-300 - visible grid lines */
+  --chart-axis: #475569;        /* slate-600 - readable axis labels */
+  --chart-tooltip-bg: #ffffff;  /* white - tooltip background */
+  --chart-tooltip-border: #94a3b8; /* slate-400 - visible tooltip border */
 }
 
 /* ===========================================
@@ -171,11 +171,11 @@
   --color-error: #ff0000;       /* pure red - failed lifts */
   --color-info: #0099ff;        /* bright blue - information */
   
-  /* Chart Interaction States */
-  --chart-grid: #333333;        /* dark gray - grid lines */
-  --chart-axis: #cccccc;        /* light gray - axis labels */
+  /* Chart Interaction States - Maximum contrast */
+  --chart-grid: #666666;        /* medium gray - much more visible */
+  --chart-axis: #ffffff;        /* pure white - maximum contrast for axis labels */
   --chart-tooltip-bg: #1a1a1a;  /* dark gray - tooltip background */
-  --chart-tooltip-border: #666666; /* medium gray - tooltip border */
+  --chart-tooltip-border: #999999; /* light gray - highly visible tooltip border */
   
   /* Enhanced focus indicators for accessibility */
   --focus-ring-width: 3px;

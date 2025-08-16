@@ -66,58 +66,58 @@
    LIGHT THEME - Polished Professional
    =========================================== */
 :root[data-theme="light"] {
-  /* Background System - Sophisticated grays with subtle warmth */
-  --bg-primary: #fafafa;       /* warm white - easier on eyes than pure white */
-  --bg-secondary: #ffffff;     /* pure white - card backgrounds for contrast */
-  --bg-tertiary: #f5f5f4;      /* stone-100 - interactive elements */
-  --bg-surface: #e7e5e4;       /* stone-200 - elevated surfaces */
-  --bg-hover: #d6d3d1;         /* stone-300 - hover states */
+  /* Background System - Warmer, less harsh backgrounds */
+  --bg-primary: #f5f5f4;       /* stone-100 - warm, soft background */
+  --bg-secondary: #fafaf9;     /* stone-50 - subtle card background */
+  --bg-tertiary: #e7e5e4;      /* stone-200 - clear interactive elements */
+  --bg-surface: #d6d3d1;       /* stone-300 - defined elevation */
+  --bg-hover: #a8a29e;         /* stone-400 - clear hover states */
   
-  /* Background Overlays */
-  --bg-header: rgba(255, 255, 255, 0.95);  /* white with strong transparency */
-  --bg-section: rgba(255, 255, 255, 0.8);  /* white lighter */
-  --bg-backdrop: rgba(250, 250, 250, 0.9); /* warm white backdrop */
+  /* Background Overlays - Warmer tones */
+  --bg-header: rgba(245, 245, 244, 0.95);  /* stone-100 with transparency */
+  --bg-section: rgba(231, 229, 228, 0.8);  /* stone-200 lighter */
+  --bg-backdrop: rgba(245, 245, 244, 0.9); /* stone-100 backdrop */
   
-  /* Text Hierarchy - Rich blacks with good contrast */
-  --text-primary: #0c0a09;     /* stone-950 - headlines, emphasis */
-  --text-secondary: #1c1917;   /* stone-900 - body text, navigation */
-  --text-tertiary: #44403c;    /* stone-700 - labels, secondary info */
-  --text-muted: #78716c;       /* stone-500 - placeholders, subtle text */
-  --text-disabled: #a8a29e;    /* stone-400 - disabled states */
+  /* Text Hierarchy - Warmer, softer blacks */
+  --text-primary: #0f172a;     /* slate-900 - rich but not harsh black */
+  --text-secondary: #334155;   /* slate-700 - readable body text */
+  --text-tertiary: #64748b;    /* slate-500 - secondary info */
+  --text-muted: #94a3b8;       /* slate-400 - subtle text */
+  --text-disabled: #cbd5e1;    /* slate-300 - disabled states */
   
-  /* Border System - Defined but elegant */
-  --border-primary: #d6d3d1;   /* stone-300 - main borders */
-  --border-secondary: #e7e5e4; /* stone-200 - subtle borders */
-  --border-focus: #2563eb;     /* blue-600 - focus indicators */
-  --border-hover: #a8a29e;     /* stone-400 - hover borders */
+  /* Border System - Warmer, more visible borders */
+  --border-primary: #a8a29e;   /* stone-400 - clear borders */
+  --border-secondary: #d6d3d1; /* stone-300 - subtle borders */
+  --border-focus: #3b82f6;     /* blue-500 - focus indicators */
+  --border-hover: #78716c;     /* stone-500 - darker hover borders */
   
-  /* Interactive Colors - Rich blues with good contrast */
-  --accent-primary: #2563eb;       /* blue-600 - primary actions */
-  --accent-primary-hover: #1d4ed8; /* blue-700 - primary hover */
-  --accent-secondary: #4338ca;     /* indigo-700 - secondary actions */
-  --accent-secondary-hover: #3730a3; /* indigo-800 - secondary hover */
+  /* Interactive Colors - Vibrant but comfortable */
+  --accent-primary: #3b82f6;       /* blue-500 - primary actions */
+  --accent-primary-hover: #2563eb; /* blue-600 - primary hover */
+  --accent-secondary: #6366f1;     /* indigo-500 - secondary actions */
+  --accent-secondary-hover: #4f46e5; /* indigo-600 - secondary hover */
   
-  /* Data Visualization - Darker, more saturated colors for better contrast on light background */
-  --chart-snatch: #1d4ed8;      /* blue-700 - brighter blue */
-  --chart-cleanjerk: #059669;   /* emerald-600 - brighter green */
-  --chart-total: #d97706;       /* amber-600 - brighter amber */
-  --chart-bodyweight: #dc2626;  /* red-600 - bright red for better visibility */
-  --chart-qpoints: #7c3aed;     /* violet-600 - brighter purple */
-  --chart-qyouth: #0891b2;      /* cyan-600 - brighter cyan */
-  --chart-qmasters: #ea580c;    /* orange-600 - brighter orange */
+  /* Data Visualization - Vibrant, high-contrast colors */
+  --chart-snatch: #2563eb;      /* blue-600 - vibrant blue */
+  --chart-cleanjerk: #16a34a;   /* green-600 - vibrant green */
+  --chart-total: #ca8a04;       /* yellow-600 - vibrant yellow */
+  --chart-bodyweight: #e11d48;  /* rose-600 - vibrant pink */
+  --chart-qpoints: #9333ea;     /* violet-600 - vibrant purple */
+  --chart-qyouth: #0284c7;      /* sky-600 - vibrant cyan */
+  --chart-qmasters: #f97316;    /* orange-500 - vibrant orange */
   --chart-failed: #dc2626;      /* red-600 - clear red */
   
-  /* Semantic Colors - Strong, clear colors */
-  --color-success: #166534;     /* green-800 - good lifts */
-  --color-warning: #b45309;     /* amber-700 - caution */
-  --color-error: #b91c1c;       /* red-700 - failed lifts */
-  --color-info: #1e40af;        /* blue-800 - information */
+  /* Semantic Colors - Clear and distinct */
+  --color-success: #16a34a;     /* green-600 - good lifts */
+  --color-warning: #ca8a04;     /* yellow-600 - caution */
+  --color-error: #dc2626;       /* red-600 - failed lifts */
+  --color-info: #3b82f6;        /* blue-500 - information */
   
-  /* Chart Interaction States - High contrast grid */
-  --chart-grid: #a8a29e;        /* stone-400 - very visible grid lines */
-  --chart-axis: #44403c;        /* stone-700 - dark axis labels */
-  --chart-tooltip-bg: #ffffff;  
-  --chart-tooltip-border: #78716c; /* stone-500 - darker border */
+  /* Chart Interaction States - Better visibility with warm tones */
+  --chart-grid: #a8a29e;        /* stone-400 - clearly visible grid lines */
+  --chart-axis: #44403c;        /* stone-700 - readable axis labels */
+  --chart-tooltip-bg: #fafaf9;  /* stone-50 - warm tooltip background */
+  --chart-tooltip-border: #78716c; /* stone-500 - visible tooltip border */
 }
 
 /* ===========================================
