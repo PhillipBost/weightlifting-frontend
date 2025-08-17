@@ -121,68 +121,6 @@
 }
 
 /* ===========================================
-   HIGH CONTRAST THEME - Maximum Accessibility
-   =========================================== */
-:root[data-theme="high-contrast"] {
-  /* Background System - Pure blacks and whites */
-  --bg-primary: #000000;       /* pure black - main background */
-  --bg-secondary: #1a1a1a;     /* dark gray - card backgrounds */
-  --bg-tertiary: #333333;      /* medium gray - interactive elements */
-  --bg-surface: #4d4d4d;       /* lighter gray - elevated surfaces */
-  --bg-hover: #666666;         /* hover gray - hover states */
-  
-  /* Background Overlays */
-  --bg-header: rgba(26, 26, 26, 0.95);    /* dark gray with transparency */
-  --bg-section: rgba(26, 26, 26, 0.8);    /* dark gray lighter */
-  --bg-backdrop: rgba(0, 0, 0, 0.9);      /* black backdrop */
-  
-  /* Text Hierarchy - Maximum contrast */
-  --text-primary: #ffffff;     /* pure white - headlines, emphasis */
-  --text-secondary: #e6e6e6;   /* light gray - body text, navigation */
-  --text-tertiary: #cccccc;    /* medium gray - labels, secondary info */
-  --text-muted: #999999;       /* darker gray - placeholders, subtle text */
-  --text-disabled: #666666;    /* dark gray - disabled states */
-  
-  /* Border System - High contrast borders */
-  --border-primary: #666666;   /* medium gray - main borders */
-  --border-secondary: #4d4d4d; /* darker gray - subtle borders */
-  --border-focus: #ffff00;     /* pure yellow - focus indicators */
-  --border-hover: #808080;     /* light gray - hover borders */
-  
-  /* Interactive Colors - High contrast, distinct colors */
-  --accent-primary: #0099ff;       /* bright blue - primary actions */
-  --accent-primary-hover: #0077cc; /* darker blue - primary hover */
-  --accent-secondary: #9966ff;     /* bright purple - secondary actions */
-  --accent-secondary-hover: #7744cc; /* darker purple - secondary hover */
-  
-  /* Data Visualization - Maximum contrast, distinct hues */
-  --chart-snatch: #0099ff;      /* pure bright blue */
-  --chart-cleanjerk: #00ff00;   /* pure bright green */
-  --chart-total: #ffff00;       /* pure yellow */
-  --chart-bodyweight: #ff00ff;  /* pure magenta */
-  --chart-qpoints: #9966ff;     /* bright purple */
-  --chart-qyouth: #00ffff;      /* pure cyan */
-  --chart-qmasters: #ff6600;    /* bright orange */
-  --chart-failed: #ff0000;      /* pure red */
-  
-  /* Semantic Colors - Highly contrasted */
-  --color-success: #00ff00;     /* pure green - good lifts */
-  --color-warning: #ffff00;     /* pure yellow - caution */
-  --color-error: #ff0000;       /* pure red - failed lifts */
-  --color-info: #0099ff;        /* bright blue - information */
-  
-  /* Chart Interaction States - Maximum contrast */
-  --chart-grid: #666666;        /* medium gray - much more visible */
-  --chart-axis: #ffffff;        /* pure white - maximum contrast for axis labels */
-  --chart-tooltip-bg: #1a1a1a;  /* dark gray - tooltip background */
-  --chart-tooltip-border: #999999; /* light gray - highly visible tooltip border */
-  
-  /* Enhanced focus indicators for accessibility */
-  --focus-ring-width: 3px;
-  --focus-ring-color: #ffff00;
-}
-
-/* ===========================================
    BASE STYLES
    =========================================== */
 body {
@@ -313,11 +251,6 @@ body {
     outline: none;
     border-color: var(--border-focus);
     box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
-  }
-  
-  /* Enhanced focus for high contrast theme */
-  :root[data-theme="high-contrast"] .input-primary:focus {
-    box-shadow: 0 0 0 var(--focus-ring-width, 3px) var(--focus-ring-color, #ffff00);
   }
   
   /* Text utility variants */

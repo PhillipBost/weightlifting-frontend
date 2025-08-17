@@ -66,30 +66,30 @@
    LIGHT THEME - Polished Professional
    =========================================== */
 :root[data-theme="light"] {
-  /* Background System - Warmer, less harsh backgrounds */
-  --bg-primary: #f5f5f4;       /* stone-100 - warm, soft background */
-  --bg-secondary: #fafaf9;     /* stone-50 - subtle card background */
-  --bg-tertiary: #e7e5e4;      /* stone-200 - clear interactive elements */
-  --bg-surface: #d6d3d1;       /* stone-300 - defined elevation */
-  --bg-hover: #a8a29e;         /* stone-400 - clear hover states */
+  /* Background System - Much softer, creamier backgrounds */
+  --bg-primary: #f7f6f3;       /* warm cream - very soft main background */
+  --bg-secondary: #fefefe;     /* barely off-white - gentle card background */
+  --bg-tertiary: #f0efeb;      /* warm light gray - soft interactive elements */
+  --bg-surface: #e8e6e0;       /* soft beige - gentle elevation */
+  --bg-hover: #ddd9d0;         /* warm tan - subtle hover states */
   
-  /* Background Overlays - Warmer tones */
-  --bg-header: rgba(245, 245, 244, 0.95);  /* stone-100 with transparency */
-  --bg-section: rgba(231, 229, 228, 0.8);  /* stone-200 lighter */
-  --bg-backdrop: rgba(245, 245, 244, 0.9); /* stone-100 backdrop */
+  /* Background Overlays - Softer, warmer tones */
+  --bg-header: rgba(247, 246, 243, 0.95);  /* warm cream with transparency */
+  --bg-section: rgba(240, 239, 235, 0.8);  /* warm light gray */
+  --bg-backdrop: rgba(247, 246, 243, 0.9); /* warm cream backdrop */
   
-  /* Text Hierarchy - Warmer, softer blacks */
-  --text-primary: #0f172a;     /* slate-900 - rich but not harsh black */
-  --text-secondary: #334155;   /* slate-700 - readable body text */
-  --text-tertiary: #64748b;    /* slate-500 - secondary info */
-  --text-muted: #94a3b8;       /* slate-400 - subtle text */
-  --text-disabled: #cbd5e1;    /* slate-300 - disabled states */
+  /* Text Hierarchy - Softer, warmer text colors */
+  --text-primary: #2c2925;     /* warm dark brown - softer than black */
+  --text-secondary: #4a453e;   /* warm dark gray - gentle body text */
+  --text-tertiary: #6b645b;    /* warm medium gray - readable secondary info */
+  --text-muted: #8b8680;       /* warm light gray - subtle text */
+  --text-disabled: #b8b2a7;    /* warm tan - disabled states */
   
-  /* Border System - Warmer, more visible borders */
-  --border-primary: #a8a29e;   /* stone-400 - clear borders */
-  --border-secondary: #d6d3d1; /* stone-300 - subtle borders */
+  /* Border System - Softer, warmer borders */
+  --border-primary: #d4cfc4;   /* warm light tan - gentle borders */
+  --border-secondary: #e8e6e0; /* soft beige - very subtle borders */
   --border-focus: #3b82f6;     /* blue-500 - focus indicators */
-  --border-hover: #78716c;     /* stone-500 - darker hover borders */
+  --border-hover: #b8b2a7;     /* warm tan - hover borders */
   
   /* Interactive Colors - Vibrant but comfortable */
   --accent-primary: #3b82f6;       /* blue-500 - primary actions */
@@ -113,11 +113,11 @@
   --color-error: #dc2626;       /* red-600 - failed lifts */
   --color-info: #3b82f6;        /* blue-500 - information */
   
-  /* Chart Interaction States - Better visibility with warm tones */
-  --chart-grid: #a8a29e;        /* stone-400 - clearly visible grid lines */
-  --chart-axis: #44403c;        /* stone-700 - readable axis labels */
-  --chart-tooltip-bg: #fafaf9;  /* stone-50 - warm tooltip background */
-  --chart-tooltip-border: #78716c; /* stone-500 - visible tooltip border */
+  /* Chart Interaction States - Softer visibility */
+  --chart-grid: #d4cfc4;        /* warm light tan - visible but gentle grid lines */
+  --chart-axis: #4a453e;        /* warm dark gray - readable axis labels */
+  --chart-tooltip-bg: #fefefe;  /* barely off-white - gentle tooltip background */
+  --chart-tooltip-border: #b8b2a7; /* warm tan - visible tooltip border */
 }
 
 /* ===========================================

@@ -2,12 +2,12 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-type Theme = 'dark' | 'light' | 'high-contrast';
+type Theme = 'dark' | 'light';
 
 interface ThemeContextType {
   theme: Theme;
   setTheme: (theme: Theme) => void;
-  cycleTheme: () => void;
+  toggleTheme: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -28,11 +28,11 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   const [theme, setThemeState] = useState<Theme>('dark');
   const [mounted, setMounted] = useState(false);
 
-  // Handle hydration - improved version
+  // Handle hydration
   useEffect(() => {
     // Get theme from localStorage or default to 'dark'
     const savedTheme = localStorage.getItem('weightlifting-theme') as Theme;
-    if (savedTheme && ['dark', 'light', 'high-contrast'].includes(savedTheme)) {
+    if (savedTheme && ['dark', 'light'].includes(savedTheme)) {
       setThemeState(savedTheme);
       document.documentElement.setAttribute('data-theme', savedTheme);
     } else {
@@ -52,12 +52,9 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     document.documentElement.setAttribute('data-theme', newTheme);
   };
 
-  // Cycle through themes (for theme switcher button)
-  const cycleTheme = () => {
-    const themes: Theme[] = ['dark', 'light', 'high-contrast'];
-    const currentIndex = themes.indexOf(theme);
-    const nextIndex = (currentIndex + 1) % themes.length;
-    setTheme(themes[nextIndex]);
+  // Toggle between themes
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
   };
 
   // Apply theme to document
@@ -67,9 +64,8 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     }
   }, [theme, mounted]);
 
-  // Return a div with the current theme class to prevent hydration issues
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, cycleTheme }}>
+    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
       <div className={mounted ? '' : 'opacity-0'}>
         {children}
       </div>

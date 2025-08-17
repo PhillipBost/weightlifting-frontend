@@ -28,19 +28,21 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   const [theme, setThemeState] = useState<Theme>('dark');
   const [mounted, setMounted] = useState(false);
 
-  // Handle hydration
+  // Handle hydration - improved version
   useEffect(() => {
-    setMounted(true);
-    
     // Get theme from localStorage or default to 'dark'
     const savedTheme = localStorage.getItem('weightlifting-theme') as Theme;
     if (savedTheme && ['dark', 'light', 'high-contrast'].includes(savedTheme)) {
       setThemeState(savedTheme);
+      document.documentElement.setAttribute('data-theme', savedTheme);
     } else {
       // Check system preference as fallback
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setThemeState(prefersDark ? 'dark' : 'light');
+      const systemTheme = prefersDark ? 'dark' : 'light';
+      setThemeState(systemTheme);
+      document.documentElement.setAttribute('data-theme', systemTheme);
     }
+    setMounted(true);
   }, []);
 
   // Update theme
@@ -65,14 +67,12 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     }
   }, [theme, mounted]);
 
-  // Prevent hydration mismatch
-  if (!mounted) {
-    return null;
-  }
-
+  // Return a div with the current theme class to prevent hydration issues
   return (
     <ThemeContext.Provider value={{ theme, setTheme, cycleTheme }}>
-      {children}
+      <div className={mounted ? '' : 'opacity-0'}>
+        {children}
+      </div>
     </ThemeContext.Provider>
   );
 }

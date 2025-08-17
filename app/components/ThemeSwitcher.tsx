@@ -1,52 +1,52 @@
 'use client';
 
 import React from 'react';
-import { Moon, Sun, Contrast } from 'lucide-react';
+import { Moon, Sun } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 
 export function ThemeSwitcher() {
-  const { theme, setTheme } = useTheme();
-
-  const themes = [
-    { 
-      id: 'dark' as const, 
-      label: 'Dark', 
-      icon: Moon,
-      description: 'Comfortable dark theme'
-    },
-    { 
-      id: 'light' as const, 
-      label: 'Light', 
-      icon: Sun,
-      description: 'Clean light theme'
-    },
-    { 
-      id: 'high-contrast' as const, 
-      label: 'High Contrast', 
-      icon: Contrast,
-      description: 'Maximum accessibility'
-    }
-  ];
+  const { theme, toggleTheme } = useTheme();
 
   return (
-    <div className="flex items-center space-x-1 bg-app-tertiary rounded-lg p-1">
-      {themes.map(({ id, label, icon: Icon, description }) => (
-        <button
-          key={id}
-          onClick={() => setTheme(id)}
+    <button
+      onClick={toggleTheme}
+      className="
+        relative flex items-center justify-center w-12 h-6 
+        bg-app-tertiary rounded-full border border-app-primary
+        transition-all duration-300 ease-in-out
+        hover:bg-app-surface
+        focus:outline-none focus:ring-2 focus:ring-accent-primary focus:ring-offset-2 focus:ring-offset-app-primary
+      "
+      type="button"
+      role="switch"
+      aria-checked={theme === 'light'}
+      title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
+    >
+      {/* Sliding circle */}
+      <span 
+        className={`
+          absolute w-5 h-5 bg-app-primary rounded-full shadow-lg
+          transition-transform duration-300 ease-in-out
+          flex items-center justify-center
+          ${theme === 'light' ? 'translate-x-3' : '-translate-x-3'}
+        `}
+      >
+        {/* Icons */}
+        <Sun 
           className={`
-            flex items-center space-x-2 px-3 py-2 rounded-md text-xs font-medium transition-all
-            ${theme === id 
-              ? 'bg-accent-primary text-app-primary shadow-sm' 
-              : 'text-app-secondary hover:text-app-primary hover:bg-app-surface'
-            }
-          `}
-          title={description}
-        >
-          <Icon className="h-3 w-3" />
-          <span className="hidden sm:inline">{label}</span>
-        </button>
-      ))}
-    </div>
+            h-3 w-3 text-app-secondary absolute
+            transition-opacity duration-300
+            ${theme === 'light' ? 'opacity-100' : 'opacity-0'}
+          `} 
+        />
+        <Moon 
+          className={`
+            h-3 w-3 text-app-secondary absolute
+            transition-opacity duration-300
+            ${theme === 'dark' ? 'opacity-100' : 'opacity-0'}
+          `} 
+        />
+      </span>
+    </button>
   );
 }
