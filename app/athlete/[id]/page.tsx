@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../../lib/supabase';
 import { Trophy, Calendar, Weight, TrendingUp, Medal, User, Building, MapPin, ExternalLink, ArrowLeft, BarChart3, Dumbbell, ChevronLeft, ChevronRight } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, AreaChart, Area, ScatterChart, Scatter, Brush } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, AreaChart, Area, ScatterChart, Scatter, Brush, Legend } from 'recharts';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import Papa from 'papaparse';
@@ -803,7 +803,8 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                       borderRadius: '8px',
                       color: 'var(--text-primary)',
                       fontSize: '14px',
-                      padding: '12px'
+                      padding: '12px',
+					  zIndex: 9999,
                     }}
                     content={({ active, payload, label }) => {
                       if (active && payload && payload.length) {
@@ -813,8 +814,14 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                           <div className="bg-app-secondary border border-app-primary rounded-lg p-3">
                             <p className="text-app-primary font-medium mb-2">{`${data.meet} - ${data.dateWithAge}`}</p>
                             
+                            {data.total && (
+                              <p style={{ color: 'var(--chart-total)' }}>
+                                Total: {data.total}kg
+                              </p>
+                            )}
+							
                             <p style={{ color: 'var(--chart-cleanjerk)' }}>
-                              Clean & Jerk: {data.cleanJerk ? `${data.cleanJerk}kg` : '-'}
+                              Best Clean & Jerk: {data.cleanJerk ? `${data.cleanJerk}kg` : '-'}
                             </p>
                             
                             {[1, 2, 3].map(num => {
@@ -831,7 +838,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                             })}
                             
                             <p style={{ color: 'var(--chart-snatch)' }}>
-                              Snatch: {data.snatch ? `${data.snatch}kg` : '-'}
+                              Best Snatch: {data.snatch ? `${data.snatch}kg` : '-'}
                             </p>
                             
                             {[1, 2, 3].map(num => {
@@ -846,12 +853,6 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                               }
                               return null;
                             })}
-                            
-                            {data.total && (
-                              <p style={{ color: 'var(--chart-total)' }}>
-                                Total: {data.total}kg
-                              </p>
-                            )}
                             
                             {data.bodyweight && (
                               <p style={{ color: 'var(--chart-bodyweight)' }}>
@@ -874,6 +875,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 					strokeWidth={3}
 					dot={false}
 					activeDot={false}
+					legendType="none"
 				  />
 				  <Line 
 					dataKey="snatch" 
@@ -919,12 +921,10 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                       dataKey={`snatchGood${attemptNum}`}
                       stroke="none"
                       dot={{
-                        fill: 'var(--chart-snatch)',
-                        fillOpacity: 0.5,
+                        fill: 'none',
                         stroke: 'var(--chart-snatch)',
-                        strokeOpacity: 0.7,
                         strokeWidth: 1,
-                        r: 3
+                        r: 2.5
                       }}
                       activeDot={false}
 					  connectNulls={false}
@@ -938,12 +938,10 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                       dataKey={`snatchMiss${attemptNum}`}
                       stroke="none"
                       dot={{
-                        fill: 'var(--chart-failed)',
-                        fillOpacity: 0.5,
+                        fill: 'none',
                         stroke: 'var(--chart-failed)',
-                        strokeOpacity: 0.7,
                         strokeWidth: 1,
-                        r: 3
+                        r: 2.5
                       }}
                       activeDot={false}
 					  connectNulls={false}
@@ -985,12 +983,10 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                       dataKey={`cjGood${attemptNum}`}
                       stroke="none"
                       dot={{
-                        fill: 'var(--chart-cleanjerk)',
-                        fillOpacity: 0.5,
+                        fill: 'none',
                         stroke: 'var(--chart-cleanjerk)',
-                        strokeOpacity: 0.7,
                         strokeWidth: 1,
-                        r: 3
+                        r: 2.5
                       }}
                       activeDot={false}
 					  connectNulls={false}
@@ -1004,12 +1000,10 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                       dataKey={`cjMiss${attemptNum}`}
                       stroke="none"
                       dot={{
-                        fill: 'var(--chart-failed)',
-                        fillOpacity: 0.5,
+                        fill: 'none',
                         stroke: 'var(--chart-failed)',
-                        strokeOpacity: 0.7,
                         strokeWidth: 1,
-                        r: 3
+                        r: 2.5
                       }}
                       activeDot={false}
 					  connectNulls={false}
@@ -1104,19 +1098,18 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 			  
 			  <div className="flex flex-wrap justify-center gap-4 mt-2 text-sm">
 				  <div className="flex items-center space-x-2">
-					<div className="w-2 h-2 rounded-full bg-[var(--chart-snatch)] opacity-50 border border-[var(--chart-snatch)]"></div>
+					<div className="w-1.5 h-1.5 rounded-full bg-[var(--chart-snatch)]/50 border border-[var(--chart-snatch)]"></div>
 					<span className="text-app-secondary">Snatch attempts</span>
 				  </div>
 				  <div className="flex items-center space-x-2">
-					<div className="w-2 h-2 rounded-full bg-[var(--chart-cleanjerk)] opacity-50 border border-[var(--chart-cleanjerk)]"></div>
+					<div className="w-1.5 h-1.5 rounded-full bg-[var(--chart-cleanjerk)]/50 border border-[var(--chart-cleanjerk)]"></div>
 					<span className="text-app-secondary">C&J attempts</span>
 				  </div>
 				  <div className="flex items-center space-x-2">
-					<div className="w-2 h-2 rounded-full bg-[var(--chart-failed)] opacity-50 border border-[var(--chart-failed)]"></div>
+					<div className="w-1.5 h-1.5 rounded-full bg-[var(--chart-failed)]/50 border border-[var(--chart-failed)]"></div>
 					<span className="text-app-secondary">Failed attempts</span>
 				  </div>
 			  </div>
-			  
             </div>
 
             {/* Q-Points Chart */}
@@ -1219,14 +1212,22 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                     }}
                   />
                   <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'var(--chart-tooltip-bg)', 
-                      border: '1px solid var(--chart-tooltip-border)',
-                      borderRadius: '8px',
-                      color: 'var(--text-primary)',
-                      fontSize: '14px',
-                      padding: '12px'
-                    }}
+					contentStyle={{ 
+						backgroundColor: 'var(--chart-tooltip-bg)', 
+						border: '1px solid var(--chart-tooltip-border)',
+						borderRadius: '8px',
+						color: 'var(--text-primary)',
+						fontSize: '14px',
+						padding: '12px',
+						boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)', // Add shadow to create separation
+						backdropFilter: 'blur(8px)', // Blur what's behind it
+					}}
+					wrapperStyle={{
+						zIndex: 9999,
+						backgroundColor: 'rgba(0, 0, 0, 0.1)', // Semi-transparent backdrop
+						borderRadius: '12px',
+						padding: '4px' // Padding around the tooltip
+					}}
                     formatter={(value: any, name: string) => {
                       if (!value && value !== 0) return ['-', name];
                       if (typeof value === 'number') {
