@@ -545,7 +545,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
   };
 
   const recentInfo = athlete && results.length > 0 ? getRecentInfo() : { wso: null, club: null };
-
+  
   // Prepare chart data
   const chartData = results
     .filter(r => r.date && (r.best_snatch || r.best_cj || r.total || r.qpoints || r.q_youth || r.q_masters))
@@ -599,6 +599,11 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
       return baseData;
     });
 
+  const legendFlags = useMemo(() => ({
+	hasQYouth: chartData?.some(d => d.qYouth && d.qYouth > 0) || false,
+	hasQMasters: chartData?.some(d => d.qMasters && d.qMasters > 0) || false
+  }), [chartData]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-app-gradient flex items-center justify-center">
@@ -609,6 +614,8 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
       </div>
     );
   }
+  
+  
 
   if (error || !athlete) {
     return (
@@ -1362,19 +1369,25 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                 </LineChart>
               </ResponsiveContainer>
 			  
+			  // Check if any data points have these values
+
 			  <div className="flex flex-wrap justify-center gap-6 mt-4 pt-4 border-t border-app-secondary">
 				  <div className="flex items-center space-x-2">
 					<div className="w-4 h-0.5 bg-[var(--chart-qpoints)]"></div>
 					<span className="text-sm text-app-secondary">Q-Points</span>
 				  </div>
-				  <div className="flex items-center space-x-2">
-					<div className="w-4 h-0.5 bg-[var(--chart-qyouth)]"></div>
-					<span className="text-sm text-app-secondary">Q-Youth</span>
-				  </div>
-				  <div className="flex items-center space-x-2">
-					<div className="w-4 h-0.5 bg-[var(--chart-qmasters)]"></div>
-					<span className="text-sm text-app-secondary">Q-Masters</span>
-				  </div>
+				  {legendFlags.hasQYouth && (
+					<div className="flex items-center space-x-2">
+					  <div className="w-4 h-0.5 bg-[var(--chart-qyouth)]"></div>
+					  <span className="text-sm text-app-secondary">Q-Youth</span>
+					</div>
+				  )}
+				  {legendFlags.hasQMasters && (
+					<div className="flex items-center space-x-2">
+					  <div className="w-4 h-0.5 bg-[var(--chart-qmasters)]"></div>
+					  <span className="text-sm text-app-secondary">Q-Masters</span>
+					</div>
+				  )}
 			  </div>
 			  
             </div>
