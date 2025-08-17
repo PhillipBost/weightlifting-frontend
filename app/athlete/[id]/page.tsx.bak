@@ -1074,6 +1074,49 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                   />
                 </LineChart>
               </ResponsiveContainer>
+			  
+			  <div className="flex flex-wrap justify-center gap-6 mt-4 pt-4 border-t border-app-secondary">
+				  <div className="flex items-center space-x-2">
+					<div className="w-4 h-0.5 bg-[var(--chart-snatch)]"></div>
+					<span className="text-sm text-app-secondary">Snatch</span>
+				  </div>
+				  <div className="flex items-center space-x-2">
+					<div className="w-4 h-0.5 bg-[var(--chart-cleanjerk)]"></div>
+					<span className="text-sm text-app-secondary">Clean & Jerk</span>
+				  </div>
+				  <div className="flex items-center space-x-2">
+					<div className="w-4 h-0.5 bg-[var(--chart-total)]"></div>
+					<span className="text-sm text-app-secondary">Total</span>
+				  </div>
+				  <div className="flex items-center space-x-2">
+					<div className="w-4 h-0.5 bg-[var(--chart-bodyweight)]"></div>
+					<span className="text-sm text-app-secondary">Bodyweight</span>
+				  </div>
+				  <div className="flex items-center space-x-2">
+					<div className="w-3 h-3 rounded-full bg-[var(--chart-snatch)] opacity-100 border border-[var(--chart-stroke)]"></div>
+					<span className="text-sm text-app-secondary">Best Snatch</span>
+				  </div>
+				  <div className="flex items-center space-x-2">
+					<div className="w-3 h-3 rounded-full bg-[var(--chart-cleanjerk)] opacity-100 border border-[var(--chart-stroke)]"></div>
+					<span className="text-sm text-app-secondary">Best C&J</span>
+				  </div>
+			  </div>
+			  
+			  <div className="flex flex-wrap justify-center gap-4 mt-2 text-sm">
+				  <div className="flex items-center space-x-2">
+					<div className="w-2 h-2 rounded-full bg-[var(--chart-snatch)] opacity-50 border border-[var(--chart-snatch)]"></div>
+					<span className="text-app-secondary">Snatch attempts</span>
+				  </div>
+				  <div className="flex items-center space-x-2">
+					<div className="w-2 h-2 rounded-full bg-[var(--chart-cleanjerk)] opacity-50 border border-[var(--chart-cleanjerk)]"></div>
+					<span className="text-app-secondary">C&J attempts</span>
+				  </div>
+				  <div className="flex items-center space-x-2">
+					<div className="w-2 h-2 rounded-full bg-[var(--chart-failed)] opacity-50 border border-[var(--chart-failed)]"></div>
+					<span className="text-app-secondary">Failed attempts</span>
+				  </div>
+			  </div>
+			  
             </div>
 
             {/* Q-Points Chart */}
@@ -1108,15 +1151,14 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
               </div>
 			  
 			  <p className="text-sm text-app-muted mb-4">
-			    <a 
-  href="https://www.teamusa.org/usa-weightlifting/features/2014/september/16/q-points-qa" 
-  target="_blank" 
-  rel="noopener noreferrer"
-  className="underline decoration-1 underline-offset-2"
-  style={{ color: '#3b82f6' }}
->
-  Q-Scores
-</a> normalize performance across age groups and weight classes. Higher scores indicate better performance.
+			    <a
+				  href="https://www.usaweightlifting.org/news/2024/november/19/q-points-q-youth-to-be-used-in-2025-to-determine-best-lifters"
+				  target="_blank" 
+				  rel="noopener noreferrer"
+				  className="text-accent-primary hover:text-accent-primary-hover underline decoration-1 underline-offset-2"
+				>
+				  Q-Scores
+				</a> normalize performance across age groups and weight classes. Higher scores indicate better performance.
 			  </p>
 			  
               <ResponsiveContainer width="100%" height={500}>
@@ -1318,6 +1360,22 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                   )}
                 </LineChart>
               </ResponsiveContainer>
+			  
+			  <div className="flex flex-wrap justify-center gap-6 mt-4 pt-4 border-t border-app-secondary">
+				  <div className="flex items-center space-x-2">
+					<div className="w-4 h-0.5 bg-[var(--chart-qpoints)]"></div>
+					<span className="text-sm text-app-secondary">Q-Points</span>
+				  </div>
+				  <div className="flex items-center space-x-2">
+					<div className="w-4 h-0.5 bg-[var(--chart-qyouth)]"></div>
+					<span className="text-sm text-app-secondary">Q-Youth</span>
+				  </div>
+				  <div className="flex items-center space-x-2">
+					<div className="w-4 h-0.5 bg-[var(--chart-qmasters)]"></div>
+					<span className="text-sm text-app-secondary">Q-Masters</span>
+				  </div>
+			  </div>
+			  
             </div>
           </div>
         )}
