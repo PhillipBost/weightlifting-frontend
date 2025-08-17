@@ -864,21 +864,28 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                     position={{ x: undefined, y: undefined }}
                   />
                   <Line 
-                    type="monotone" 
-                    dataKey="snatch" 
-                    stroke="var(--chart-snatch)" 
-                    strokeWidth={2}
+					dataKey="snatch"
+					stroke="var(--chart-stroke)" 
+					strokeWidth={3}
+					dot={false}
+					activeDot={false}
+				  />
+				  <Line 
+					dataKey="snatch" 
+					stroke="var(--chart-snatch)" 
+					strokeWidth={2}
                     dot={{ 
-                      fill: 'var(--chart-snatch)', 
-                      strokeWidth: 2, 
-                      r: 4,
+                      fill: 'var(--chart-snatch)',
+					  stroke: 'var(--chart-stroke)',
+                      strokeWidth: 1, 
+                      r: 5,
                       style: { cursor: 'pointer' }
                     }}
                     activeDot={{ 
-                      r: 7, 
-                      stroke: 'var(--chart-snatch)', 
-                      strokeWidth: 3, 
-                      fill: '#ffffff',
+                      r: 8, 
+                      stroke: 'var(--chart-stroke)', 
+                      strokeWidth: 2, 
+                      fill: 'var(--chart-snatch)',
                       style: { cursor: 'pointer' }
                     }}
                     name="snatch"
@@ -914,7 +921,8 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                         strokeWidth: 1,
                         r: 3
                       }}
-                      connectNulls={false}
+                      activeDot={false}
+					  connectNulls={false}
                       legendType="none"
                     />
                   ))}
@@ -932,26 +940,34 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                         strokeWidth: 1,
                         r: 3
                       }}
-                      connectNulls={false}
+                      activeDot={false}
+					  connectNulls={false}
                       legendType="none"
                     />
                   ))}
                   <Line 
-                    type="monotone" 
-                    dataKey="cleanJerk" 
-                    stroke="var(--chart-cleanjerk)" 
-                    strokeWidth={2}
-                    dot={{ 
+					dataKey="cleanJerk" 
+					stroke="var(--chart-stroke)" 
+					strokeWidth={3}
+					dot={false}
+					activeDot={false}
+				  />
+                  <Line 
+					dataKey="cleanJerk" 
+					stroke="var(--chart-cleanjerk)" 
+					strokeWidth={2}  
+					dot={{ 
                       fill: 'var(--chart-cleanjerk)', 
-                      strokeWidth: 2, 
-                      r: 4,
+					  stroke: 'var(--chart-stroke)',
+                      strokeWidth: 1, 
+                      r: 5,
                       style: { cursor: 'pointer' }
                     }}
                     activeDot={{ 
-                      r: 7, 
-                      stroke: 'var(--chart-cleanjerk)', 
-                      strokeWidth: 3, 
-                      fill: '#ffffff',
+                      r: 8, 
+                      stroke: 'var(--chart-stroke)', 
+                      strokeWidth: 2, 
+                      fill: 'var(--chart-cleanjerk)',
                       style: { cursor: 'pointer' }
                     }}
                     name="cleanJerk"
@@ -971,7 +987,8 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                         strokeWidth: 1,
                         r: 3
                       }}
-                      connectNulls={false}
+                      activeDot={false}
+					  connectNulls={false}
                       legendType="none"
                     />
                   ))}
@@ -989,47 +1006,62 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                         strokeWidth: 1,
                         r: 3
                       }}
-                      connectNulls={false}
+                      activeDot={false}
+					  connectNulls={false}
                       legendType="none"
                     />
                   ))}
                   <Line 
-                    type="monotone" 
-                    dataKey="total" 
-                    stroke="var(--chart-total)" 
-                    strokeWidth={2}
-                    dot={{ 
+					dataKey="total" 
+					stroke="var(--chart-stroke)" 
+					strokeWidth={3}
+					dot={false}
+					activeDot={false}
+				  />
+                  <Line 
+					dataKey="total" 
+					stroke="var(--chart-total)" 
+					strokeWidth={2}  
+					dot={{ 
                       fill: 'var(--chart-total)', 
-                      strokeWidth: 2, 
-                      r: 4,
+					  stroke: 'var(--chart-stroke)',
+                      strokeWidth: 1, 
+                      r: 5,
                       style: { cursor: 'pointer' }
                     }}
                     activeDot={{ 
-                      r: 7, 
-                      stroke: 'var(--chart-total)', 
-                      strokeWidth: 3, 
-                      fill: '#ffffff',
+                      r: 8, 
+                      stroke: 'var(--chart-stroke)', 
+                      strokeWidth: 2, 
+                      fill: 'var(--chart-total)',
                       style: { cursor: 'pointer' }
                     }}
                     name="total"
                     connectNulls={false}
                   />
                   <Line 
-                    type="monotone" 
-                    dataKey="bodyweight" 
-                    stroke="var(--chart-bodyweight)" 
-                    strokeWidth={2}
-                    dot={{ 
+					dataKey="bodyweight" 
+					stroke="var(--chart-stroke)" 
+					strokeWidth={3}
+					dot={false}
+					activeDot={false}
+				  />
+                  <Line 
+					dataKey="bodyweight" 
+					stroke="var(--chart-bodyweight)" 
+					strokeWidth={2}  
+					dot={{ 
                       fill: 'var(--chart-bodyweight)', 
-                      strokeWidth: 2, 
-                      r: 4,
+					  stroke: 'var(--chart-stroke)',
+                      strokeWidth: 1, 
+                      r: 5,
                       style: { cursor: 'pointer' }
                     }}
                     activeDot={{ 
-                      r: 7, 
-                      stroke: 'var(--chart-bodyweight)', 
-                      strokeWidth: 3, 
-                      fill: '#ffffff',
+                      r: 8, 
+                      stroke: 'var(--chart-stroke)', 
+                      strokeWidth: 2, 
+                      fill: 'var(--chart-bodyweight)',
                       style: { cursor: 'pointer' }
                     }}
                     name="bodyweight"
@@ -1159,48 +1191,64 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                     position={{ x: undefined, y: undefined }}
                   />
                   <Line 
-                    type="monotone" 
-                    dataKey="qpoints" 
-                    stroke="var(--chart-qpoints)" 
-                    strokeWidth={2}
-                    dot={{ 
+					dataKey="qpoints" 
+					stroke="var(--chart-stroke)" 
+					strokeWidth={3}
+					dot={false}
+					activeDot={false}
+				  />
+                  <Line 
+					dataKey="qpoints" 
+					stroke="var(--chart-qpoints)" 
+					strokeWidth={2}  
+					dot={{ 
                       fill: 'var(--chart-qpoints)', 
-                      strokeWidth: 2, 
-                      r: 4,
+					  stroke: 'var(--chart-stroke)',
+                      strokeWidth: 1, 
+                      r: 5,
                       style: { cursor: 'pointer' }
                     }}
                     activeDot={{ 
                       r: 8, 
-                      stroke: 'var(--chart-qpoints)', 
-                      strokeWidth: 3, 
-                      fill: '#ffffff',
+                      stroke: 'var(--chart-stroke)', 
+                      strokeWidth: 2, 
+                      fill: 'var(--chart-qpoints)',
                       style: { cursor: 'pointer' }
                     }}
                     name="qpoints"
                     connectNulls={false}
                   />
                   {chartData.some(d => d.qYouth) && (
-                    <Line 
-                      type="monotone" 
-                      dataKey="qYouth" 
-                      stroke="var(--chart-qyouth)" 
-                      strokeWidth={2}
-                      dot={{ 
-                        fill: 'var(--chart-qyouth)', 
-                        strokeWidth: 2, 
-                        r: 4,
-                        style: { cursor: 'pointer' }
-                      }}
-                      activeDot={{ 
-                        r: 8, 
-                        stroke: 'var(--chart-qyouth)', 
-                        strokeWidth: 3, 
-                        fill: '#ffffff',
-                        style: { cursor: 'pointer' }
-                      }}
-                      name="qYouth"
-                      connectNulls={false}
-                    />
+                    <>
+						<Line 
+							dataKey="qYouth" 
+							stroke="var(--chart-stroke)" 
+							strokeWidth={3}
+							dot={false}
+							activeDot={false}
+						/>
+						<Line 
+							dataKey="qYouth" 
+							stroke="var(--chart-qyouth)" 
+							strokeWidth={2}  
+							dot={{ 
+							  fill: 'var(--chart-qyouth)', 
+							  stroke: 'var(--chart-stroke)',
+							  strokeWidth: 1, 
+							  r: 5,
+							  style: { cursor: 'pointer' }
+							}}
+							activeDot={{ 
+							  r: 8, 
+							  stroke: 'var(--chart-stroke)', 
+							  strokeWidth: 2, 
+							  fill: 'var(--chart-qyouth)',
+							  style: { cursor: 'pointer' }
+							}}
+							name="qYouth"
+							connectNulls={false}
+						/>
+					</>
                   )}
                   {showQScoresBrush && (
                     <Brush 
@@ -1219,27 +1267,36 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                     />
                   )}
                   {chartData.some(d => d.qMasters) && (
-                    <Line 
-                      type="monotone" 
-                      dataKey="qMasters" 
-                      stroke="var(--chart-qmasters)" 
-                      strokeWidth={2}
-                      dot={{ 
-                        fill: 'var(--chart-qmasters)', 
-                        strokeWidth: 2, 
-                        r: 4,
-                        style: { cursor: 'pointer' }
-                      }}
-                      activeDot={{ 
-                        r: 8, 
-                        stroke: 'var(--chart-qmasters)', 
-                        strokeWidth: 3, 
-                        fill: '#ffffff',
-                        style: { cursor: 'pointer' }
-                      }}
-                      name="qMasters"
-                      connectNulls={false}
-                    />
+                    <>
+						<Line 
+							dataKey="qMasters" 
+							stroke="var(--chart-stroke)" 
+							strokeWidth={3}
+							dot={false}
+							activeDot={false}
+						/>
+						<Line 
+							dataKey="qMasters" 
+							stroke="var(--chart-qmasters)" 
+							strokeWidth={2}  
+							dot={{ 
+							  fill: 'var(--chart-qmasters)', 
+							  stroke: 'var(--chart-stroke)',
+							  strokeWidth: 1, 
+							  r: 5,
+							  style: { cursor: 'pointer' }
+							}}
+							activeDot={{ 
+							  r: 8, 
+							  stroke: 'var(--chart-stroke)', 
+							  strokeWidth: 2, 
+							  fill: 'var(--chart-qmasters)',
+							  style: { cursor: 'pointer' }
+							}}
+							name="qMasters"
+							connectNulls={false}
+						/>
+					</>
                   )}
                 </LineChart>
               </ResponsiveContainer>

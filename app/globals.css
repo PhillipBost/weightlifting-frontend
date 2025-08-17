@@ -60,6 +60,7 @@
   --chart-axis: #9ca3af;        /* gray-400 - axis labels */
   --chart-tooltip-bg: #1f2937;  /* gray-800 - tooltip background */
   --chart-tooltip-border: #4b5563; /* gray-600 - tooltip border */
+  --chart-stroke: #ffffff;      /* white stroke for dark theme contrast */
 }
 
 /* ===========================================
@@ -118,6 +119,7 @@
   --chart-axis: #4a453e;        /* warm dark gray - readable axis labels */
   --chart-tooltip-bg: #fefefe;  /* barely off-white - gentle tooltip background */
   --chart-tooltip-border: #b8b2a7; /* warm tan - visible tooltip border */
+  --chart-stroke: #000000;      /* black stroke for light theme contrast */
 }
 
 /* ===========================================
@@ -180,14 +182,14 @@ body {
     background-color: var(--bg-secondary);
     border-radius: 1rem;
     padding: 2rem;
-    border: 1px solid var(--border-primary);
+    border: 1px solid var(--border-secondary);
     transition: background-color 0.3s ease, border-color 0.3s ease;
   }
   
   .card-results {
     background-color: var(--bg-secondary);
     border-radius: 1rem;
-    border: 1px solid var(--border-primary);
+    border: 1px solid var(--border-secondary);
     transition: background-color 0.3s ease, border-color 0.3s ease;
   }
   
@@ -237,7 +239,7 @@ body {
     padding-bottom: 1rem;
     font-size: 1.125rem;
     background-color: var(--bg-tertiary);
-    border: 2px solid var(--border-primary);
+    border: 2px solid var(--border-secondary);
     color: var(--text-primary);
     border-radius: 0.75rem;
     transition: all 0.3s ease;
