@@ -358,6 +358,10 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
   const [autoScaleQScores, setAutoScaleQScores] = useState(true);
   const [showQScoresBrush, setShowQScoresBrush] = useState(false);
   
+  const [showQPoints, setShowQPoints] = useState(true);
+  const [showQYouth, setShowQYouth] = useState(false);
+  const [showQMasters, setShowQMasters] = useState(false);
+  
   // Add sorting state
   const [sortConfig, setSortConfig] = useState<{
     key: string | null;
@@ -603,7 +607,12 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 	hasQYouth: chartData?.some(d => d.qYouth && d.qYouth > 0) || false,
 	hasQMasters: chartData?.some(d => d.qMasters && d.qMasters > 0) || false
   }), [chartData]);
-
+  
+  useEffect(() => {
+    setShowQYouth(legendFlags.hasQYouth);
+    setShowQMasters(legendFlags.hasQMasters);
+  }, [legendFlags.hasQYouth, legendFlags.hasQMasters]);
+  
   if (loading) {
     return (
       <div className="min-h-screen bg-app-gradient flex items-center justify-center">
@@ -1127,6 +1136,49 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                   {athlete.athlete_name} Q-Scores Over Time
                 </h3>
                 <div className="flex space-x-2">
+				 <div className="flex space-x-1 border border-app-secondary rounded-lg p-1">
+				  <button 
+					  onClick={() => setShowQPoints(!showQPoints)}
+					  className={`
+						  px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
+						  ${showQPoints 
+							? 'bg-accent-primary text-app-primary' 
+							: 'bg-app-surface text-app-secondary hover:bg-app-hover'
+					  }`}
+				  >
+					  Q-Points
+				  </button>
+				  {legendFlags.hasQYouth && (
+				    <button 
+						onClick={() => setShowQYouth(!showQYouth)}
+						className={`
+						  px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
+						  ${showQYouth 
+							? 'bg-accent-primary text-app-primary' 
+							: 'bg-app-surface text-app-secondary hover:bg-app-hover'
+						  }
+						`}
+				    >
+						Q-Youth
+				    </button>
+				  )}
+				  {legendFlags.hasQMasters && (
+					<button 
+						onClick={() => setShowQMasters(!showQMasters)}
+						className={`
+						  px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
+						  ${showQMasters 
+							? 'bg-accent-primary text-app-primary' 
+							: 'bg-app-surface text-app-secondary hover:bg-app-hover'
+						  }
+						`}
+					>
+						Q-Masters
+					</button>
+				  )}
+
+                 </div>
+
                   <button 
                     onClick={() => setAutoScaleQScores(!autoScaleQScores)}
                     className={`btn-secondary ${
@@ -1258,48 +1310,33 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                     allowEscapeViewBox={{ x: false, y: true }}
                     position={{ x: undefined, y: undefined }}
                   />
-                  <Line 
-					dataKey="qpoints" 
-					stroke="var(--chart-stroke)" 
-					strokeWidth={3}
-					dot={false}
-					activeDot={false}
-				  />
-                  <Line 
-					dataKey="qpoints" 
-					stroke="var(--chart-qpoints)" 
-					strokeWidth={2.5}  
-					dot={{ 
-                      fill: 'var(--chart-qpoints)', 
-					  stroke: 'var(--chart-stroke)',
-                      strokeWidth: 0.5, 
-                      r: 5,
-                      style: { cursor: 'pointer' }
-                    }}
-                    activeDot={{ 
-                      r: 8, 
-                      stroke: 'var(--chart-stroke)', 
-                      strokeWidth: 2, 
-                      fill: 'var(--chart-qpoints)',
-                      style: { cursor: 'pointer' }
-                    }}
-                    name="qpoints"
-                    connectNulls={false}
-                  />
-                  {chartData.some(d => d.qYouth) && (
-                    <>
-						<Line 
-							dataKey="qYouth" 
-							stroke="var(--chart-stroke)" 
-							strokeWidth={3}
-							dot={false}
-							activeDot={false}
-						/>
-						<Line 
-							dataKey="qYouth" 
-							stroke="var(--chart-qyouth)" 
-							strokeWidth={2.5}  
-							dot={{ 
+                  {showQPoints && (
+					  <>
+						<Line dataKey="qpoints" stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} />
+						<Line dataKey="qpoints" stroke="var(--chart-qpoints)" strokeWidth={2.5} dot={{ 
+						  fill: 'var(--chart-qpoints)', 
+						  stroke: 'var(--chart-stroke)',
+						  strokeWidth: 0.5, 
+						  r: 5,
+						  style: { cursor: 'pointer' }
+						}}
+						activeDot={{ 
+						  r: 8, 
+						  stroke: 'var(--chart-stroke)', 
+						  strokeWidth: 2, 
+						  fill: 'var(--chart-qpoints)',
+						  style: { cursor: 'pointer' }
+						}}
+						name="qpoints"
+						connectNulls={false}
+                        />
+					  </>
+					)}
+
+					{showQYouth && chartData.some(d => d.qYouth) && (
+					  <>
+						<Line dataKey="qYouth" stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} />
+						<Line dataKey="qYouth" stroke="var(--chart-qyouth)" strokeWidth={2.5} dot={{ 
 							  fill: 'var(--chart-qyouth)', 
 							  stroke: 'var(--chart-stroke)',
 							  strokeWidth: 0.5, 
@@ -1316,8 +1353,15 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 							name="qYouth"
 							connectNulls={false}
 						/>
-					</>
-                  )}
+					  </>
+					)}
+
+					{showQMasters && chartData.some(d => d.qMasters) && (
+					  <>
+						<Line dataKey="qMasters" stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} />
+						<Line dataKey="qMasters" stroke="var(--chart-qmasters)" strokeWidth={2.5} /* ...rest of props */ />
+					  </>
+				  )}
                   {showQScoresBrush && (
                     <Brush 
                       key="q-scores-brush"
@@ -1334,7 +1378,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                       }}
                     />
                   )}
-                  {chartData.some(d => d.qMasters) && (
+                  {showQMasters && chartData.some(d => d.qMasters) && (
                     <>
 						<Line 
 							dataKey="qMasters" 
@@ -1369,8 +1413,6 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                 </LineChart>
               </ResponsiveContainer>
 			  
-			  // Check if any data points have these values
-
 			  <div className="flex flex-wrap justify-center gap-6 mt-4 pt-4 border-t border-app-secondary">
 				  <div className="flex items-center space-x-2">
 					<div className="w-4 h-0.5 bg-[var(--chart-qpoints)]"></div>
