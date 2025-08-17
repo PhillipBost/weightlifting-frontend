@@ -328,6 +328,22 @@ const Pagination = ({ currentPage, totalPages, totalResults, onPageChange }: {
   );
 };
 
+// Sort Icon Component
+const SortIcon = ({ column, sortConfig }: { 
+  column: string; 
+  sortConfig: { key: string | null; direction: 'asc' | 'desc' } 
+}) => {
+  if (sortConfig.key !== column) {
+    return <span className="text-app-disabled ml-1">↕</span>;
+  }
+  
+  return (
+    <span className="text-accent-primary ml-1">
+      {sortConfig.direction === 'asc' ? '↑' : '↓'}
+    </span>
+  );
+};
+
 export default function AthletePage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const [selectedTab, setSelectedTab] = useState('overview');
@@ -341,6 +357,13 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
   const [showAllColumns, setShowAllColumns] = useState(false);
   const [autoScaleQScores, setAutoScaleQScores] = useState(true);
   const [showQScoresBrush, setShowQScoresBrush] = useState(false);
+  
+  // Add sorting state
+  const [sortConfig, setSortConfig] = useState<{
+    key: string | null;
+    direction: 'asc' | 'desc';
+  }>({ key: null, direction: 'asc' });
+  
   const resultsPerPage = 20;
 
   // Refs for export functionality
@@ -348,14 +371,87 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
   const qScoresChartRef = useRef<HTMLDivElement>(null);
   const resultsTableRef = useRef<HTMLDivElement>(null);
 
+  // Sorting functions
+  const handleSort = (key: string) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    
+    setSortConfig({ key, direction });
+    setCurrentPage(1); // Reset to first page when sorting
+  };
+
+  const getSortableValue = (result: any, key: string): any => {
+    switch (key) {
+      case 'date':
+        return new Date(result.date).getTime();
+      case 'meet_name':
+        return result.meet_name?.toLowerCase() || '';
+      case 'level':
+        return result.meets?.Level?.toLowerCase() || '';
+      case 'wso':
+        return result.wso?.toLowerCase() || '';
+      case 'club_name':
+        return result.club_name?.toLowerCase() || '';
+      case 'age_category':
+        return result.age_category?.toLowerCase() || '';
+      case 'weight_class':
+        // Handle weight classes like "81", "81+", "87+", etc.
+        const weightMatch = result.weight_class?.match(/(\d+)/);
+        return weightMatch ? parseInt(weightMatch[1]) : 0;
+      case 'body_weight_kg':
+        return parseFloat(result.body_weight_kg) || 0;
+      case 'competition_age':
+        return parseInt(result.competition_age) || 0;
+      case 'best_snatch':
+        return parseInt(result.best_snatch) || 0;
+      case 'best_cj':
+        return parseInt(result.best_cj) || 0;
+      case 'total':
+        return parseInt(result.total) || 0;
+      case 'best_q_score':
+        const bestQScore = getBestQScore(result);
+        return bestQScore.value || 0;
+      case 'q_youth':
+        return parseFloat(result.q_youth) || 0;
+      case 'qpoints':
+        return parseFloat(result.qpoints) || 0;
+      case 'q_masters':
+        return parseFloat(result.q_masters) || 0;
+      default:
+        return '';
+    }
+  };
+
   const { displayResults, totalPages } = useMemo(() => {
+    let sortedResults = [...results];
+    
+    // Apply sorting if a sort config exists
+    if (sortConfig.key) {
+      sortedResults.sort((a, b) => {
+        const aValue = getSortableValue(a, sortConfig.key!);
+        const bValue = getSortableValue(b, sortConfig.key!);
+        
+        if (aValue < bValue) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    
     const startIndex = (currentPage - 1) * resultsPerPage;
     const endIndex = startIndex + resultsPerPage;
+    
     return {
-      displayResults: results.slice(startIndex, endIndex),
-      totalPages: Math.ceil(results.length / resultsPerPage)
+      displayResults: sortedResults.slice(startIndex, endIndex),
+      totalPages: Math.ceil(sortedResults.length / resultsPerPage)
     };
-  }, [currentPage, results, resultsPerPage]);
+  }, [currentPage, results, resultsPerPage, sortConfig]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -1232,37 +1328,191 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                       <tr>
                         {showAllColumns ? (
                           <>
-                            <th scope="col" className="px-2 py-3">Date</th>
-                            <th scope="col" className="px-2 py-3">Meet</th>
-							<th scope="col" className="px-2 py-3">Level</th>
-                            <th scope="col" className="px-2 py-3">WSO</th>
-                            <th scope="col" className="px-2 py-3">Club</th>
-                            <th scope="col" className="px-2 py-3">Age Category</th>
-                            <th scope="col" className="px-2 py-3">Weight Class</th>
-                            <th scope="col" className="px-2 py-3">Body Weight</th>
-                            <th scope="col" className="px-2 py-3">Comp Age</th>
+                            <th 
+                              scope="col" 
+                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                              onClick={() => handleSort('date')}
+                            >
+                              Date
+                              <SortIcon column="date" sortConfig={sortConfig} />
+                            </th>
+                            <th 
+                              scope="col" 
+                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                              onClick={() => handleSort('meet_name')}
+                            >
+                              Meet
+                              <SortIcon column="meet_name" sortConfig={sortConfig} />
+                            </th>
+                            <th 
+                              scope="col" 
+                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                              onClick={() => handleSort('level')}
+                            >
+                              Level
+                              <SortIcon column="level" sortConfig={sortConfig} />
+                            </th>
+                            <th 
+                              scope="col" 
+                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                              onClick={() => handleSort('wso')}
+                            >
+                              WSO
+                              <SortIcon column="wso" sortConfig={sortConfig} />
+                            </th>
+                            <th 
+                              scope="col" 
+                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                              onClick={() => handleSort('club_name')}
+                            >
+                              Club
+                              <SortIcon column="club_name" sortConfig={sortConfig} />
+                            </th>
+                            <th 
+                              scope="col" 
+                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                              onClick={() => handleSort('age_category')}
+                            >
+                              Age Category
+                              <SortIcon column="age_category" sortConfig={sortConfig} />
+                            </th>
+                            <th 
+                              scope="col" 
+                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                              onClick={() => handleSort('weight_class')}
+                            >
+                              Weight Class
+                              <SortIcon column="weight_class" sortConfig={sortConfig} />
+                            </th>
+                            <th 
+                              scope="col" 
+                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                              onClick={() => handleSort('body_weight_kg')}
+                            >
+                              Body Weight
+                              <SortIcon column="body_weight_kg" sortConfig={sortConfig} />
+                            </th>
+                            <th 
+                              scope="col" 
+                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                              onClick={() => handleSort('competition_age')}
+                            >
+                              Comp Age
+                              <SortIcon column="competition_age" sortConfig={sortConfig} />
+                            </th>
                             <th scope="col" className="px-2 py-3">Sn 1</th>
                             <th scope="col" className="px-2 py-3">Sn 2</th>
                             <th scope="col" className="px-2 py-3">Sn 3</th>
-                            <th scope="col" className="px-2 py-3">Best Sn</th>
+                            <th 
+                              scope="col" 
+                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                              onClick={() => handleSort('best_snatch')}
+                            >
+                              Best Sn
+                              <SortIcon column="best_snatch" sortConfig={sortConfig} />
+                            </th>
                             <th scope="col" className="px-2 py-3">CJ 1</th>
                             <th scope="col" className="px-2 py-3">CJ 2</th>
                             <th scope="col" className="px-2 py-3">CJ 3</th>
-                            <th scope="col" className="px-2 py-3">Best CJ</th>
-                            <th scope="col" className="px-2 py-3">Total</th>
-                            <th scope="col" className="px-2 py-3">Q-Youth</th>
-                            <th scope="col" className="px-2 py-3">Q-Points</th>
-                            <th scope="col" className="px-2 py-3">Q-Masters</th>
+                            <th 
+                              scope="col" 
+                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                              onClick={() => handleSort('best_cj')}
+                            >
+                              Best CJ
+                              <SortIcon column="best_cj" sortConfig={sortConfig} />
+                            </th>
+                            <th 
+                              scope="col" 
+                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                              onClick={() => handleSort('total')}
+                            >
+                              Total
+                              <SortIcon column="total" sortConfig={sortConfig} />
+                            </th>
+                            <th 
+                              scope="col" 
+                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                              onClick={() => handleSort('q_youth')}
+                            >
+                              Q-Youth
+                              <SortIcon column="q_youth" sortConfig={sortConfig} />
+                            </th>
+                            <th 
+                              scope="col" 
+                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                              onClick={() => handleSort('qpoints')}
+                            >
+                              Q-Points
+                              <SortIcon column="qpoints" sortConfig={sortConfig} />
+                            </th>
+                            <th 
+                              scope="col" 
+                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                              onClick={() => handleSort('q_masters')}
+                            >
+                              Q-Masters
+                              <SortIcon column="q_masters" sortConfig={sortConfig} />
+                            </th>
                           </>
                         ) : (
                           <>
-                            <th scope="col" className="px-2 py-3">Date</th>
-                            <th scope="col" className="px-2 py-3">Meet</th>
-                            <th scope="col" className="px-2 py-3">Weight Class</th>
-                            <th scope="col" className="px-2 py-3">Best Sn</th>
-                            <th scope="col" className="px-2 py-3">Best CJ</th>
-                            <th scope="col" className="px-2 py-3">Total</th>
-                            <th scope="col" className="px-2 py-3">Best Q-Score</th>
+                            <th 
+                              scope="col" 
+                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                              onClick={() => handleSort('date')}
+                            >
+                              Date
+                              <SortIcon column="date" sortConfig={sortConfig} />
+                            </th>
+                            <th 
+                              scope="col" 
+                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                              onClick={() => handleSort('meet_name')}
+                            >
+                              Meet
+                              <SortIcon column="meet_name" sortConfig={sortConfig} />
+                            </th>
+                            <th 
+                              scope="col" 
+                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                              onClick={() => handleSort('weight_class')}
+                            >
+                              Weight Class
+                              <SortIcon column="weight_class" sortConfig={sortConfig} />
+                            </th>
+                            <th 
+                              scope="col" 
+                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                              onClick={() => handleSort('best_snatch')}
+                            >
+                              Best Sn
+                              <SortIcon column="best_snatch" sortConfig={sortConfig} />
+                            </th>
+                            <th 
+                              scope="col" 
+                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                              onClick={() => handleSort('best_cj')}
+                            >
+                              Best CJ
+                              <SortIcon column="best_cj" sortConfig={sortConfig} />
+                            </th>
+                            <th 
+                              scope="col" 
+                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                              onClick={() => handleSort('total')}
+                            >
+                              Total
+                              <SortIcon column="total" sortConfig={sortConfig} />
+                            </th>
+                            <th 
+                              scope="col" 
+                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                              onClick={() => handleSort('best_q_score')}
+                            >
+                              Best Q-Score
+                              <SortIcon column="best_q_score" sortConfig={sortConfig} />
+                            </th>
                           </>
                         )}
                       </tr>
