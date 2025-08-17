@@ -180,14 +180,14 @@ body {
     background-color: var(--bg-secondary);
     border-radius: 1rem;
     padding: 2rem;
-    border: 1px solid var(--border-secondary);
+    border: 1px solid var(--border-primary);
     transition: background-color 0.3s ease, border-color 0.3s ease;
   }
   
   .card-results {
     background-color: var(--bg-secondary);
     border-radius: 1rem;
-    border: 1px solid var(--border-secondary);
+    border: 1px solid var(--border-primary);
     transition: background-color 0.3s ease, border-color 0.3s ease;
   }
   
@@ -237,7 +237,7 @@ body {
     padding-bottom: 1rem;
     font-size: 1.125rem;
     background-color: var(--bg-tertiary);
-    border: 2px solid var(--border-secondary);
+    border: 2px solid var(--border-primary);
     color: var(--text-primary);
     border-radius: 0.75rem;
     transition: all 0.3s ease;
@@ -279,7 +279,7 @@ body {
     background-color: var(--bg-secondary);
     border-radius: 1rem;
     padding: 1.5rem;
-    border: 1px solid var(--border-secondary);
+    border: 1px solid var(--border-primary);
     transition: background-color 0.3s ease, border-color 0.3s ease;
   }
   
