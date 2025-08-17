@@ -873,11 +873,11 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 				  <Line 
 					dataKey="snatch" 
 					stroke="var(--chart-snatch)" 
-					strokeWidth={2}
+					strokeWidth={2.5}
                     dot={{ 
                       fill: 'var(--chart-snatch)',
 					  stroke: 'var(--chart-stroke)',
-                      strokeWidth: 1, 
+                      strokeWidth: 0.5, 
                       r: 5,
                       style: { cursor: 'pointer' }
                     }}
@@ -955,11 +955,11 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                   <Line 
 					dataKey="cleanJerk" 
 					stroke="var(--chart-cleanjerk)" 
-					strokeWidth={2}  
+					strokeWidth={2.5}  
 					dot={{ 
                       fill: 'var(--chart-cleanjerk)', 
 					  stroke: 'var(--chart-stroke)',
-                      strokeWidth: 1, 
+                      strokeWidth: 0.5, 
                       r: 5,
                       style: { cursor: 'pointer' }
                     }}
@@ -1021,11 +1021,11 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                   <Line 
 					dataKey="total" 
 					stroke="var(--chart-total)" 
-					strokeWidth={2}  
+					strokeWidth={2.5}  
 					dot={{ 
                       fill: 'var(--chart-total)', 
 					  stroke: 'var(--chart-stroke)',
-                      strokeWidth: 1, 
+                      strokeWidth: 0.5, 
                       r: 5,
                       style: { cursor: 'pointer' }
                     }}
@@ -1049,11 +1049,11 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                   <Line 
 					dataKey="bodyweight" 
 					stroke="var(--chart-bodyweight)" 
-					strokeWidth={2}  
+					strokeWidth={2.5}  
 					dot={{ 
                       fill: 'var(--chart-bodyweight)', 
 					  stroke: 'var(--chart-stroke)',
-                      strokeWidth: 1, 
+                      strokeWidth: 0.5, 
                       r: 5,
                       style: { cursor: 'pointer' }
                     }}
@@ -1200,11 +1200,11 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                   <Line 
 					dataKey="qpoints" 
 					stroke="var(--chart-qpoints)" 
-					strokeWidth={2}  
+					strokeWidth={2.5}  
 					dot={{ 
                       fill: 'var(--chart-qpoints)', 
 					  stroke: 'var(--chart-stroke)',
-                      strokeWidth: 1, 
+                      strokeWidth: 0.5, 
                       r: 5,
                       style: { cursor: 'pointer' }
                     }}
@@ -1230,11 +1230,11 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 						<Line 
 							dataKey="qYouth" 
 							stroke="var(--chart-qyouth)" 
-							strokeWidth={2}  
+							strokeWidth={2.5}  
 							dot={{ 
 							  fill: 'var(--chart-qyouth)', 
 							  stroke: 'var(--chart-stroke)',
-							  strokeWidth: 1, 
+							  strokeWidth: 0.5, 
 							  r: 5,
 							  style: { cursor: 'pointer' }
 							}}
@@ -1278,11 +1278,11 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 						<Line 
 							dataKey="qMasters" 
 							stroke="var(--chart-qmasters)" 
-							strokeWidth={2}  
+							strokeWidth={2.5}  
 							dot={{ 
 							  fill: 'var(--chart-qmasters)', 
 							  stroke: 'var(--chart-stroke)',
-							  strokeWidth: 1, 
+							  strokeWidth: 0.5, 
 							  r: 5,
 							  style: { cursor: 'pointer' }
 							}}
