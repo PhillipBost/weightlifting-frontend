@@ -1,6 +1,6 @@
 | Date of update | Description |
 | -------------- | ----------- |
-| 8-17-2025      | Removed high-contrast theme and minimized the theme switching to a small button |
+| 8-17-2025      | - Removed high-contrast theme and minimized the theme switching to a small button <br> - Made all card borders consistent |
 | 8-16-2025      | - Fixed nightly division scraper to now update WSO and barbell club info <br> - Fixed issue where result tables on athlete pages gave the correct number of results above the table, but at the bottom it told you a different number (in intervals of 20) if there were more than 20 meets. <br> - Added Level (local, national, international, etc.) to expanded meet results section within athlete page. <br> - Made light theme a little less harsh on the eyes. <br> - Made athlete results tables sortable |
 | 8-15-2025      | - Created Light & High-Contrast themes <br> - Fixed search to include most recent WSO & barbell club information <br> - Added former Olympians (etc) to suggested search |
 | 8-14-2025      | Added GitHub link to home page and reformatted footer. |
