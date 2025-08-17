@@ -734,6 +734,11 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                   </button>
                 </div>
               </div>
+			  
+			  <p className="text-sm text-app-muted mb-4">
+				Lifting performance over time.
+			  </p>
+			  
               <ResponsiveContainer width="100%" height={500}>
                 <LineChart 
                   data={chartData} 
@@ -1101,6 +1106,18 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                   </button>
                 </div>
               </div>
+			  
+			  <p className="text-sm text-app-muted mb-4">
+			    <a
+				  href="https://www.usaweightlifting.org/news/2024/november/19/q-points-q-youth-to-be-used-in-2025-to-determine-best-lifters"
+				  target="_blank" 
+				  rel="noopener noreferrer"
+				  className="text-accent-primary hover:text-accent-primary-hover underline decoration-1 underline-offset-2"
+				>
+				  Q-Scores
+				</a> normalize performance across age groups and weight classes. Higher scores indicate better performance.
+			  </p>
+			  
               <ResponsiveContainer width="100%" height={500}>
                 <LineChart 
                   data={chartData} 
