@@ -735,14 +735,14 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
           <div className="space-y-8 mb-8">
             {/* Progress Over Time Chart */}
 			<div className="chart-container" ref={performanceChartRef}>
-				<div className="flex justify-between items-center mb-4">
+				<div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-4">
 				  <h3 className="text-lg font-semibold text-app-primary flex items-center">
 					<TrendingUp className="h-5 w-5 mr-2" />
 					{athlete.athlete_name} Performance Progress
 				  </h3>
-				  <div className="flex items-center space-x-4">
+				  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
 					{/* Performance toggles in their own bordered group */}
-					<div className="flex space-x-1 border border-app-secondary rounded-lg p-1">
+					<div className="flex gap-1 border border-app-secondary rounded-lg p-1 w-fit">
 					  <button 
 						onClick={() => setShowSnatch(!showSnatch)}
 						className={`
@@ -806,6 +806,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 					</div>
 					
 					{/* Chart controls in their own separate group */}
+					<div className="flex gap-2">
 					<div className="flex space-x-2">
 					<div className="flex space-x-1 border-app-secondary rounded-lg p-1">
 					  <button 
@@ -832,6 +833,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 					  >
 						Zoom
 					  </button>
+					</div>
 					</div>
 					</div>
 				  </div>
@@ -1261,13 +1263,14 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 
             {/* Q-Points Chart */}
             <div className="chart-container" ref={qScoresChartRef}>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-app-primary flex items-center">
-                  <BarChart3 className="h-5 w-5 mr-2" />
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-4">
+				<h3 className="text-lg font-semibold text-app-primary flex items-center">
+				  <BarChart3 className="h-5 w-5 mr-2" />
                   {athlete.athlete_name} Q-Scores Over Time
                 </h3>
-                <div className="flex space-x-2">
-				 <div className="flex space-x-1 border border-app-secondary rounded-lg p-1">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+				 {/* Q-score toggles */}
+				 <div className="flex gap-1 border border-app-secondary rounded-lg p-1 w-fit">
 				  <button 
 					  onClick={() => setShowQPoints(!showQPoints)}
 					  className={`
@@ -1309,7 +1312,8 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 				  )}
 
                  </div>
-				 <div className="flex space-x-2">
+				 {/* Chart controls */}
+				 <div className="flex gap-2">
 				 <div className="flex space-x-1 border-app-secondary rounded-lg p-1">
 				  <button 
 					  onClick={() => setAutoScaleQScores(!autoScaleQScores)}
