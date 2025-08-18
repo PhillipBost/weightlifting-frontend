@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../../lib/supabase';
 import { Trophy, Calendar, Weight, TrendingUp, Medal, User, Building, MapPin, ExternalLink, ArrowLeft, BarChart3, Dumbbell, ChevronLeft, ChevronRight } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, AreaChart, Area, ScatterChart, Scatter, Brush, Legend } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, AreaChart, Area, ScatterChart, Scatter, Brush, ReferenceLine } from 'recharts';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import Papa from 'papaparse';
@@ -317,14 +317,16 @@ const Pagination = ({ currentPage, totalPages, totalResults, onPageChange }: {
           ))}
         </div>
 
-        <button
-          onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-          className="flex items-center px-3 py-2 text-sm font-medium text-app-secondary bg-app-tertiary border border-app-secondary rounded-lg hover:bg-app-surface disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Next
-          <ChevronRight className="h-4 w-4 ml-1" />
-        </button>
+		{currentPage < totalPages && (
+		  <button
+			onClick={() => onPageChange(currentPage + 1)}
+			disabled={currentPage === totalPages}
+			className="flex items-center px-3 py-2 text-sm font-medium text-app-secondary bg-app-tertiary border border-app-secondary rounded-lg hover:bg-app-surface disabled:opacity-50 disabled:cursor-not-allowed"
+		  >
+			Next
+			<ChevronRight className="h-4 w-4 ml-1" />
+		  </button>
+		)}
       </div>
     </div>
   );
@@ -359,16 +361,16 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
   const [showAllColumns, setShowAllColumns] = useState(false);
   const [autoScaleQScores, setAutoScaleQScores] = useState(true);
   const [showQScoresBrush, setShowQScoresBrush] = useState(false);
-  
   const [showSnatch, setShowSnatch] = useState(true);
   const [showCleanJerk, setShowCleanJerk] = useState(true);
   const [showAttempts, setShowAttempts] = useState(true);
   const [showTotal, setShowTotal] = useState(true);
   const [showBodyweight, setShowBodyweight] = useState(true);
-  
   const [showQPoints, setShowQPoints] = useState(true);
   const [showQYouth, setShowQYouth] = useState(false);
   const [showQMasters, setShowQMasters] = useState(false);
+  const [performanceMouseX, setPerformanceMouseX] = useState<number | null>(null);
+  const [qScoresMouseX, setQScoresMouseX] = useState<number | null>(null);
   
   // Add sorting state
   const [sortConfig, setSortConfig] = useState<{
@@ -840,10 +842,25 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 			  </p>
 			  
               <ResponsiveContainer width="100%" height={500}>
-                <LineChart 
-                  data={chartData} 
-                  margin={{ top: 20, right: 50, left: 20, bottom: 20 }}
-                >
+			    <LineChart 
+				  data={chartData} 
+				  margin={{ top: 20, right: 50, left: 20, bottom: 20 }}
+				  onMouseMove={(e) => {
+				    if (e && e.activeLabel) {
+					  setPerformanceMouseX(e.activeLabel);
+				    }
+				  }}
+				  onMouseLeave={() => setPerformanceMouseX(null)}
+			    >
+				  {performanceMouseX && (
+				    <ReferenceLine 
+					  x={performanceMouseX} 
+					  stroke="var(--text-muted)" 
+					  strokeWidth={1}
+					  strokeDasharray="2 2"
+					  strokeOpacity={0.6}
+				    />
+				  )}
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" />
                   <XAxis 
                     type="number"
@@ -1336,10 +1353,25 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 			  </p>
 			  
               <ResponsiveContainer width="100%" height={500}>
-                <LineChart 
-                  data={chartData} 
-                  margin={{ top: 20, right: 50, left: 20, bottom: 20 }}
-                >
+			    <LineChart 
+				  data={chartData} 
+				  margin={{ top: 20, right: 50, left: 20, bottom: 20 }}
+				  onMouseMove={(e) => {
+				    if (e && e.activeLabel) {
+					  setQScoresMouseX(e.activeLabel);
+				    }
+				  }}
+				  onMouseLeave={() => setQScoresMouseX(null)}
+			    >
+				  {mouseX && (
+				    <ReferenceLine 
+					  x={mouseX} 
+					  stroke="var(--text-muted)" 
+					  strokeWidth={1}
+					  strokeDasharray="2 2"
+					  strokeOpacity={0.6}
+				    />
+				  )}
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" />
                   <XAxis 
                     type="number"
