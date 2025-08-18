@@ -360,6 +360,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
   
   const [showSnatch, setShowSnatch] = useState(true);
   const [showCleanJerk, setShowCleanJerk] = useState(true);
+  const [showAttempts, setShowAttempts] = useState(true);
   const [showTotal, setShowTotal] = useState(true);
   const [showBodyweight, setShowBodyweight] = useState(true);
   
@@ -775,6 +776,18 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 						Total
 					  </button>
 					  <button 
+						onClick={() => setShowAttempts(!showAttempts)}
+						className={`
+						  px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
+						  ${showAttempts 
+							? 'bg-accent-primary text-app-primary' 
+							: 'bg-app-surface text-app-secondary hover:bg-app-hover'
+						  }
+						`}
+					  >
+						Attempts
+					  </button>
+					  <button 
 						onClick={() => setShowBodyweight(!showBodyweight)}
 						className={`
 						  px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
@@ -952,6 +965,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                     allowEscapeViewBox={{ x: false, y: true }}
                     position={{ x: undefined, y: undefined }}
                   />
+
                   {showSnatch && (
 				  <>
 				  <Line 
@@ -999,6 +1013,8 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                       }}
                     />
                   )}
+				  {showAttempts && (
+				  <>
                   {[1, 2, 3].map(attemptNum => (
                     <Line
                       key={`snatch-good-${attemptNum}`}
@@ -1035,6 +1051,8 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 				  ))}
 				  </>
 				  )}
+				  </>
+				  )}
 				  
 				  {showCleanJerk && (
 				  <>
@@ -1066,6 +1084,8 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                     name="cleanJerk"
                     connectNulls={false}
                   />
+				  {showAttempts && (
+				  <>
                   {[1, 2, 3].map(attemptNum => (
                     <Line
                       key={`cj-good-${attemptNum}`}
@@ -1099,7 +1119,9 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 					  connectNulls={false}
                       legendType="none"
                     />
-                  ))}
+				  ))}
+				  </>
+				  )}
 				  </>
 				  )}
 				  
@@ -1167,8 +1189,6 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                     name="bodyweight"
                     connectNulls={false}
                   />
-				  </>
-				  )}
 				  
                 </LineChart>
               </ResponsiveContainer>
@@ -1487,38 +1507,6 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                         return year;
                       }}
                     />
-                  )}
-                  {showQMasters && chartData.some(d => d.qMasters) && (
-                    <>
-						<Line 
-							dataKey="qMasters" 
-							stroke="var(--chart-stroke)" 
-							strokeWidth={3}
-							dot={false}
-							activeDot={false}
-						/>
-						<Line 
-							dataKey="qMasters" 
-							stroke="var(--chart-qmasters)" 
-							strokeWidth={2.5}  
-							dot={{ 
-							  fill: 'var(--chart-qmasters)', 
-							  stroke: 'var(--chart-stroke)',
-							  strokeWidth: 0.5, 
-							  r: 5,
-							  style: { cursor: 'pointer' }
-							}}
-							activeDot={{ 
-							  r: 8, 
-							  stroke: 'var(--chart-stroke)', 
-							  strokeWidth: 2, 
-							  fill: 'var(--chart-qmasters)',
-							  style: { cursor: 'pointer' }
-							}}
-							name="qMasters"
-							connectNulls={false}
-						/>
-					</>
                   )}
                 </LineChart>
               </ResponsiveContainer>
