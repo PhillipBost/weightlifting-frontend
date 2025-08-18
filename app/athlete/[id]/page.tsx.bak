@@ -287,14 +287,16 @@ const Pagination = ({ currentPage, totalPages, totalResults, onPageChange }: {
       </div>
       
       <div className="flex items-center space-x-2">
-        <button
-          onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-          className="flex items-center px-3 py-2 text-sm font-medium text-app-secondary bg-app-tertiary border border-app-secondary rounded-lg hover:bg-app-surface disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <ChevronLeft className="h-4 w-4 mr-1" />
-          Previous
-        </button>
+		{currentPage > 1 && (
+		  <button
+			onClick={() => onPageChange(currentPage - 1)}
+			disabled={currentPage === 1}
+			className="flex items-center px-3 py-2 text-sm font-medium text-app-secondary bg-app-tertiary border border-app-secondary rounded-lg hover:bg-app-surface disabled:opacity-50 disabled:cursor-not-allowed"
+		  >
+			<ChevronLeft className="h-4 w-4 mr-1" />
+			Previous
+		  </button>
+		)}
 
         <div className="flex space-x-1">
           {getPageNumbers().map((page, index) => (
@@ -1000,6 +1002,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                     connectNulls={false}
                   />
 				  {showAttempts && (
+				  <>
                   {[1, 2, 3].map(attemptNum => (
                     <Line
                       key={`snatch-good-${attemptNum}`}
@@ -1034,6 +1037,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                       legendType="none"
                     />
 				  ))}
+				  </>
 				  )}
 				  </>
 				  )}
