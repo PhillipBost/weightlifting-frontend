@@ -1363,9 +1363,9 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 				  }}
 				  onMouseLeave={() => setQScoresMouseX(null)}
 			    >
-				  {mouseX && (
+				  {qScoresMouseX && (
 				    <ReferenceLine 
-					  x={mouseX} 
+					  x={qScoresMouseX} 
 					  stroke="var(--text-muted)" 
 					  strokeWidth={1}
 					  strokeDasharray="2 2"

@@ -847,7 +847,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 				  margin={{ top: 20, right: 50, left: 20, bottom: 20 }}
 				  onMouseMove={(e) => {
 				    if (e && e.activeLabel) {
-					  setPerformanceMouseX(e.activeLabel);
+					  setPerformanceMouseX(Number(e.activeLabel));
 				    }
 				  }}
 				  onMouseLeave={() => setPerformanceMouseX(null)}
@@ -1358,7 +1358,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 				  margin={{ top: 20, right: 50, left: 20, bottom: 20 }}
 				  onMouseMove={(e) => {
 				    if (e && e.activeLabel) {
-					  setQScoresMouseX(e.activeLabel);
+					  setQScoresMouseX(Number(e.activeLabel));
 				    }
 				  }}
 				  onMouseLeave={() => setQScoresMouseX(null)}
