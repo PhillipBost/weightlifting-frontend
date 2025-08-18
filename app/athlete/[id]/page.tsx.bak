@@ -808,24 +808,24 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 						className={`
 						  px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
 						  ${autoScalePerformance 
-							? 'bg-app-surface text-app-secondary hover:bg-app-hover' 
-							: 'bg-accent-primary text-app-primary'
+						  ? 'bg-accent-primary text-app-primary'           // Blue when ON
+						  : 'bg-app-surface text-app-secondary hover:bg-app-hover'  // Gray when OFF
 						  }
 						`}
 					  >
-						{autoScalePerformance ? 'Fixed Scale' : 'Auto Scale'}
+						Auto Scale
 					  </button>
 					  <button
 						onClick={() => setShowPerformanceBrush(!showPerformanceBrush)}
 						className={`
 						  px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
 						  ${showPerformanceBrush 
-							? 'bg-accent-primary text-app-primary' 
-							: 'bg-app-surface text-app-secondary hover:bg-app-hover'
+						  ? 'bg-accent-primary text-app-primary'           // Blue when ON
+						  : 'bg-app-surface text-app-secondary hover:bg-app-hover'  // Gray when OFF
 						  }
 						`}
 					  >
-						{showPerformanceBrush ? 'Hide Zoom' : 'Show Zoom'}
+						Zoom
 					  </button>
 					</div>
 				  </div>
@@ -1189,7 +1189,8 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                     name="bodyweight"
                     connectNulls={false}
                   />
-				  
+				  </>
+				  )}
                 </LineChart>
               </ResponsiveContainer>
 			  
@@ -1286,27 +1287,35 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 				  )}
 
                  </div>
+				 <div className="flex space-x-2">
+				 <div className="flex space-x-1 border-app-secondary rounded-lg p-1">
+				  <button 
+					  onClick={() => setAutoScaleQScores(!autoScaleQScores)}
+					  className={`
+						px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
+						${autoScaleQScores 
+						  ? 'bg-accent-primary text-app-primary'           // Blue when ON
+						  : 'bg-app-surface text-app-secondary hover:bg-app-hover'  // Gray when OFF
+						}
+					  `}
+				  >
+					  Auto Scale
+				  </button>
 
-                  <button 
-                    onClick={() => setAutoScaleQScores(!autoScaleQScores)}
-                    className={`btn-secondary ${
-                      autoScaleQScores 
-                        ? 'bg-app-surface text-app-secondary hover:bg-app-hover' 
-                        : 'bg-accent-primary text-app-primary'
-                    }`}
-                  >
-                    {autoScaleQScores ? 'Fixed Scale' : 'Auto Scale'}
+				  <button 
+					  onClick={() => setShowQScoresBrush(!showQScoresBrush)}
+					  className={`
+						px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
+						${showQScoresBrush
+						  ? 'bg-accent-primary text-app-primary'           // Blue when ON
+						  : 'bg-app-surface text-app-secondary hover:bg-app-hover'  // Gray when OFF
+						}
+					  `}
+				  >
+					  Zoom
                   </button>
-                  <button
-                    onClick={() => setShowQScoresBrush(!showQScoresBrush)}
-                    className={`btn-secondary ${
-                      showQScoresBrush 
-                        ? 'bg-accent-primary text-app-primary' 
-                        : 'bg-app-surface text-app-secondary hover:bg-app-hover'
-                    }`}
-                  >
-                    {showQScoresBrush ? 'Hide Zoom' : 'Show Zoom'}
-                  </button>
+				 </div>
+				 </div>
                 </div>
               </div>
 			  
