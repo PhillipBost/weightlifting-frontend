@@ -570,6 +570,9 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
         qpoints: r.qpoints || null,
         qYouth: r.q_youth || null,
         qMasters: r.q_masters || null,
+		qpointsBackground: r.qpoints || null,
+        qYouthBackground: r.q_youth || null,
+        qMastersBackground: r.q_masters || null,
         shortDate: new Date(r.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
         competitionAge: r.competition_age || null,
         dateWithAge: r.competition_age 
@@ -1211,6 +1214,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 					<span className="text-app-secondary">Failed attempts</span>
 				  </div>
 			  </div>
+			</div>
 
             {/* Q-Points Chart */}
             <div className="chart-container" ref={qScoresChartRef}>
@@ -1396,7 +1400,9 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                   />
                   {showQPoints && (
 					  <>
-						<Line dataKey="qpoints" stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} />
+						<Line 
+						  dataKey="qpointsBackground"
+						  stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} legendType="none" hide={true} />
 						<Line dataKey="qpoints" stroke="var(--chart-qpoints)" strokeWidth={2.5} dot={{ 
 						  fill: 'var(--chart-qpoints)', 
 						  stroke: 'var(--chart-stroke)',
@@ -1419,7 +1425,9 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 
 					{showQYouth && chartData.some(d => d.qYouth) && (
 					  <>
-						<Line dataKey="qYouth" stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} />
+						<Line 
+						  dataKey="qYouthBackground"
+						  stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} legendType="none" hide={true} />
 						<Line dataKey="qYouth" stroke="var(--chart-qyouth)" strokeWidth={2.5} dot={{ 
 							  fill: 'var(--chart-qyouth)', 
 							  stroke: 'var(--chart-stroke)',
@@ -1442,10 +1450,28 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 
 					{showQMasters && chartData.some(d => d.qMasters) && (
 					  <>
-						<Line dataKey="qMasters" stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} />
-						<Line dataKey="qMasters" stroke="var(--chart-qmasters)" strokeWidth={2.5} /* ...rest of props */ />
+						<Line 
+						  dataKey="qMastersBackground"
+						  stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} legendType="none" hide={true} />
+						<Line dataKey="qMasters" stroke="var(--chart-qmasters)" strokeWidth={2.5} dot={{ 
+							  fill: 'var(--chart-qmasters)', 
+							  stroke: 'var(--chart-stroke)',
+							  strokeWidth: 0.5, 
+							  r: 5,
+							  style: { cursor: 'pointer' }
+							}}
+							activeDot={{ 
+							  r: 8, 
+							  stroke: 'var(--chart-stroke)', 
+							  strokeWidth: 2, 
+							  fill: 'var(--chart-qmasters)',
+							  style: { cursor: 'pointer' }
+							}}
+							name="qMasters"
+							connectNulls={false}
+						/>
 					  </>
-				  )}
+				    )}
                   {showQScoresBrush && (
                     <Brush 
                       key="q-scores-brush"

@@ -570,6 +570,9 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
         qpoints: r.qpoints || null,
         qYouth: r.q_youth || null,
         qMasters: r.q_masters || null,
+		qpointsBackground: r.qpoints || null,
+        qYouthBackground: r.q_youth || null,
+        qMastersBackground: r.q_masters || null,
         shortDate: new Date(r.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
         competitionAge: r.competition_age || null,
         dateWithAge: r.competition_age 
@@ -1397,7 +1400,9 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                   />
                   {showQPoints && (
 					  <>
-						<Line dataKey="qpoints" stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} />
+						<Line 
+						  dataKey="qpointsBackground"
+						  stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} legendType="none" hide={true} />
 						<Line dataKey="qpoints" stroke="var(--chart-qpoints)" strokeWidth={2.5} dot={{ 
 						  fill: 'var(--chart-qpoints)', 
 						  stroke: 'var(--chart-stroke)',
@@ -1420,7 +1425,9 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 
 					{showQYouth && chartData.some(d => d.qYouth) && (
 					  <>
-						<Line dataKey="qYouth" stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} />
+						<Line 
+						  dataKey="qYouthBackground"
+						  stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} legendType="none" hide={true} />
 						<Line dataKey="qYouth" stroke="var(--chart-qyouth)" strokeWidth={2.5} dot={{ 
 							  fill: 'var(--chart-qyouth)', 
 							  stroke: 'var(--chart-stroke)',
@@ -1443,40 +1450,10 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 
 					{showQMasters && chartData.some(d => d.qMasters) && (
 					  <>
-						<Line dataKey="qMasters" stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} />
-						<Line dataKey="qMasters" stroke="var(--chart-qmasters)" strokeWidth={2.5} /* ...rest of props */ />
-					  </>
-				  )}
-                  {showQScoresBrush && (
-                    <Brush 
-                      key="q-scores-brush"
-                      dataKey="timestamp" 
-                      height={20}
-                      y={500 - 20}
-                      stroke="var(--text-disabled)"
-                      fill="var(--chart-grid)"
-                      fillOpacity={0.6}
-                      tickFormatter={(timestamp) => {
-                        const date = new Date(timestamp);
-                        const year = date.getFullYear().toString().slice(-0);
-                        return year;
-                      }}
-                    />
-                  )}
-                  {showQMasters && chartData.some(d => d.qMasters) && (
-                    <>
 						<Line 
-							dataKey="qMasters" 
-							stroke="var(--chart-stroke)" 
-							strokeWidth={3}
-							dot={false}
-							activeDot={false}
-						/>
-						<Line 
-							dataKey="qMasters" 
-							stroke="var(--chart-qmasters)" 
-							strokeWidth={2.5}  
-							dot={{ 
+						  dataKey="qMastersBackground"
+						  stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} legendType="none" hide={true} />
+						<Line dataKey="qMasters" stroke="var(--chart-qmasters)" strokeWidth={2.5} dot={{ 
 							  fill: 'var(--chart-qmasters)', 
 							  stroke: 'var(--chart-stroke)',
 							  strokeWidth: 0.5, 
@@ -1493,7 +1470,23 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 							name="qMasters"
 							connectNulls={false}
 						/>
-					</>
+					  </>
+				    )}
+                  {showQScoresBrush && (
+                    <Brush 
+                      key="q-scores-brush"
+                      dataKey="timestamp" 
+                      height={20}
+                      y={500 - 20}
+                      stroke="var(--text-disabled)"
+                      fill="var(--chart-grid)"
+                      fillOpacity={0.6}
+                      tickFormatter={(timestamp) => {
+                        const date = new Date(timestamp);
+                        const year = date.getFullYear().toString().slice(-0);
+                        return year;
+                      }}
+                    />
                   )}
                 </LineChart>
               </ResponsiveContainer>
