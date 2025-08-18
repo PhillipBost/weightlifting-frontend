@@ -803,6 +803,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 					
 					{/* Chart controls in their own separate group */}
 					<div className="flex space-x-2">
+					<div className="flex space-x-1 border-app-secondary rounded-lg p-1">
 					  <button 
 						onClick={() => setAutoScalePerformance(!autoScalePerformance)}
 						className={`
@@ -827,6 +828,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 					  >
 						Zoom
 					  </button>
+					</div>
 					</div>
 				  </div>
 				</div>
@@ -997,24 +999,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                     name="snatch"
                     connectNulls={false}
                   />
-                  {showPerformanceBrush && (
-                    <Brush 
-                      key="performance-brush"
-                      dataKey="timestamp" 
-                      height={20}
-                      y={500 - 20}
-                      stroke="var(--text-disabled)"
-                      fill="var(--chart-grid)"
-                      fillOpacity={0.6}
-                      tickFormatter={(timestamp) => {
-                        const date = new Date(timestamp);
-                        const year = date.getFullYear().toString().slice(-0);
-                        return year;
-                      }}
-                    />
-                  )}
 				  {showAttempts && (
-				  <>
                   {[1, 2, 3].map(attemptNum => (
                     <Line
                       key={`snatch-good-${attemptNum}`}
@@ -1049,10 +1034,26 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                       legendType="none"
                     />
 				  ))}
-				  </>
 				  )}
 				  </>
 				  )}
+				  
+                  {showPerformanceBrush && (
+                    <Brush 
+                      key="performance-brush"
+                      dataKey="timestamp" 
+                      height={20}
+                      y={500 - 20}
+                      stroke="var(--text-disabled)"
+                      fill="var(--chart-grid)"
+                      fillOpacity={0.6}
+                      tickFormatter={(timestamp) => {
+                        const date = new Date(timestamp);
+                        const year = date.getFullYear().toString().slice(-0);
+                        return year;
+                      }}
+                    />
+                  )}
 				  
 				  {showCleanJerk && (
 				  <>

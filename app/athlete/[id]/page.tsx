@@ -999,22 +999,6 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                     name="snatch"
                     connectNulls={false}
                   />
-                  {showPerformanceBrush && (
-                    <Brush 
-                      key="performance-brush"
-                      dataKey="timestamp" 
-                      height={20}
-                      y={500 - 20}
-                      stroke="var(--text-disabled)"
-                      fill="var(--chart-grid)"
-                      fillOpacity={0.6}
-                      tickFormatter={(timestamp) => {
-                        const date = new Date(timestamp);
-                        const year = date.getFullYear().toString().slice(-0);
-                        return year;
-                      }}
-                    />
-                  )}
 				  {showAttempts && (
 				  <>
                   {[1, 2, 3].map(attemptNum => (
@@ -1055,6 +1039,23 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 				  )}
 				  </>
 				  )}
+				  
+                  {showPerformanceBrush && (
+                    <Brush 
+                      key="performance-brush"
+                      dataKey="timestamp" 
+                      height={20}
+                      y={500 - 20}
+                      stroke="var(--text-disabled)"
+                      fill="var(--chart-grid)"
+                      fillOpacity={0.6}
+                      tickFormatter={(timestamp) => {
+                        const date = new Date(timestamp);
+                        const year = date.getFullYear().toString().slice(-0);
+                        return year;
+                      }}
+                    />
+                  )}
 				  
 				  {showCleanJerk && (
 				  <>
