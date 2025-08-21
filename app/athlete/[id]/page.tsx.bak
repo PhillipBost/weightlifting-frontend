@@ -673,15 +673,50 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
             </div>
             <div className="flex items-center space-x-4">
               <ThemeSwitcher />
-              {athlete && athlete.internal_id && (
-                <button
-                  onClick={() => window.open(`https://usaweightlifting.sport80.com/public/rankings/member/${athlete.internal_id}`, '_blank')}
-                  className="flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  <span>External Profile</span>
-                </button>
-              )}
+              {(athlete?.internal_id || athlete?.internal_id_2) && (
+				  <div className="flex items-center space-x-2">
+					{/* Single profile case */}
+					{(athlete.internal_id && !athlete.internal_id_2) && (
+					  <button
+						onClick={() => window.open(`https://usaweightlifting.sport80.com/public/rankings/member/${athlete.internal_id}`, '_blank')}
+						className="flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors"
+					  >
+						<ExternalLink className="h-4 w-4" />
+						<span>External Profile</span>
+					  </button>
+					)}
+					{(!athlete.internal_id && athlete.internal_id_2) && (
+					  <button
+						onClick={() => window.open(`https://usaweightlifting.sport80.com/public/rankings/member/${athlete.internal_id_2}`, '_blank')}
+						className="flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors"
+					  >
+						<ExternalLink className="h-4 w-4" />
+						<span>External Profile</span>
+					  </button>
+					)}
+					
+					{/* Dual profile case - compact */}
+					{(athlete.internal_id && athlete.internal_id_2) && (
+					  <div className="flex items-center space-x-1">
+						<span className="text-app-tertiary text-sm">External Profiles:</span>
+						<button
+						  onClick={() => window.open(`https://usaweightlifting.sport80.com/public/rankings/member/${athlete.internal_id}`, '_blank')}
+						  className="flex items-center space-x-1 text-app-tertiary hover:text-accent-primary transition-colors px-2 py-1 rounded"
+						>
+						  <ExternalLink className="h-3 w-3" />
+						  <span>1</span>
+						</button>
+						<button
+						  onClick={() => window.open(`https://usaweightlifting.sport80.com/public/rankings/member/${athlete.internal_id_2}`, '_blank')}
+						  className="flex items-center space-x-1 text-app-tertiary hover:text-accent-primary transition-colors px-2 py-1 rounded"
+						>
+						  <ExternalLink className="h-3 w-3" />
+						  <span>2</span>
+						</button>
+					  </div>
+					)}
+				  </div>
+			  )}
             </div>
           </div>
         </div>
@@ -742,7 +777,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 				  </h3>
 				  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
 					{/* Performance toggles in their own bordered group */}
-					<div className="flex flex-wrap gap-1 border border-app-secondary rounded-lg p-1">
+					<div className="flex gap-1 border border-app-secondary rounded-lg p-1 w-fit">
 					  <button 
 						onClick={() => setShowSnatch(!showSnatch)}
 						className={`
