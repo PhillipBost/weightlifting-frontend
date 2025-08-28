@@ -496,8 +496,10 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
         } 
         
         if (!athleteData) {
-          const nameFromSlug = resolvedParams.id
-            .split('-')
+          // Handle both hyphenated (wilson-fleming) and space-separated (wilson%20fleming) names
+          const nameFromSlug = decodeURIComponent(resolvedParams.id)
+            .replace(/-/g, ' ') // Convert hyphens to spaces
+            .split(' ')
             .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
             .join(' ');
 
