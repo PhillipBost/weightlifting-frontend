@@ -355,6 +355,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [duplicateAthletes, setDuplicateAthletes] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [autoScalePerformance, setAutoScalePerformance] = useState(true);
   const [showPerformanceBrush, setShowPerformanceBrush] = useState(false);
@@ -508,14 +509,12 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
           let result = await supabase
             .from('lifters')
             .select('*')
-            .ilike('athlete_name', formattedName1)
-            .single();
+            .ilike('athlete_name', formattedName1);
           
-          athleteData = result.data;
-          athleteError = result.error;
+          let matchingAthletes = result.data || [];
           
           // If not found and no spaces in original, try converting hyphens to spaces
-          if (!athleteData && !decodedName.includes(' ')) {
+          if (matchingAthletes.length === 0 && !decodedName.includes(' ')) {
             const formattedName2 = decodedName
               .replace(/-/g, ' ')
               .split(' ')
@@ -525,11 +524,20 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
             result = await supabase
               .from('lifters')
               .select('*')
-              .ilike('athlete_name', formattedName2)
-              .single();
+              .ilike('athlete_name', formattedName2);
             
-            athleteData = result.data;
-            athleteError = result.error;
+            matchingAthletes = result.data || [];
+          }
+          
+          // Handle results: single match, multiple matches, or no matches
+          if (matchingAthletes.length === 1) {
+            athleteData = matchingAthletes[0];
+            athleteError = null;
+          } else if (matchingAthletes.length > 1) {
+            setDuplicateAthletes(matchingAthletes);
+            return; // Exit early to show disambiguation
+          } else {
+            athleteError = { message: 'Athlete not found' };
           }
         }
 
@@ -659,7 +667,75 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
     );
   }
   
-  
+  // Show disambiguation page if multiple athletes found
+  if (duplicateAthletes.length > 1) {
+    const searchName = decodeURIComponent(resolvedParams.id).replace(/-/g, ' ');
+    
+    return (
+      <div className="min-h-screen bg-app-gradient">
+        <header className="bg-header-blur border-b border-app-secondary">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center py-4">
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => router.push('/')}
+                  className="flex items-center space-x-2 text-app-secondary hover:text-accent-primary transition-colors"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  <span>Back to Search</span>
+                </button>
+              </div>
+              <div className="flex items-center space-x-4">
+                <ThemeSwitcher />
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="card-primary mb-8">
+            <h1 className="text-2xl font-bold text-app-primary mb-4">
+              Multiple athletes found for "{searchName}"
+            </h1>
+            <p className="text-app-secondary mb-6">
+              Please select the athlete you're looking for:
+            </p>
+            
+            <div className="space-y-4">
+              {duplicateAthletes.map((athlete, index) => (
+                <button
+                  key={index}
+                  onClick={() => router.push(`/athlete/${athlete.membership_number}`)}
+                  className="w-full text-left p-4 bg-app-tertiary hover:bg-app-surface border border-app-secondary rounded-lg transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold text-app-primary">{athlete.athlete_name}</h3>
+                      <div className="flex flex-wrap gap-4 text-sm text-app-secondary mt-1">
+                        {athlete.membership_number && (
+                          <span>USAW #{athlete.membership_number}</span>
+                        )}
+                        {athlete.gender && (
+                          <span>{athlete.gender === 'M' ? 'Male' : 'Female'}</span>
+                        )}
+                        {athlete.wso && (
+                          <span>WSO: {athlete.wso}</span>
+                        )}
+                        {athlete.club_name && (
+                          <span>Club: {athlete.club_name}</span>
+                        )}
+                      </div>
+                    </div>
+                    <ExternalLink className="h-4 w-4 text-app-muted" />
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (error || !athlete) {
     return (
