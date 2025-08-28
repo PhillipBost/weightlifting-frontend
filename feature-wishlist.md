@@ -71,4 +71,8 @@
 
 #### Known issues / bugs
 
-- None at this time :D
+- The source material does have the same athlete name with different USAW membership IDs (e.g., Paul Smith). Since the membership ID information is not reported in the athlete's page, but rather the search results leading to the athlete's page, duplicate names will be difficult but not impossible to delineate. The solution I've outlined is to...
+  - Create a comprehensive list of what I've labeled "internal IDs" which correspond to the USAW URL for a given athlete. [This is completed already in a json file and will be added to daily]
+  - Read from the internal ID json file to write to / update the database. When duplicate names are discovered, notate the json file with the second (or more) internal IDs.
+  - Reverse engineer the source material's athlete search URLs which uses base 64 to describe the date range and which of the 778 divisions is selected.
+  - Perform targeted search of any athletes with duplicate names using the base64 URL as a shortcut to finding each USAW search result from single athletes suspected of being two athletes.
