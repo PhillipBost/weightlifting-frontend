@@ -496,21 +496,41 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
         } 
         
         if (!athleteData) {
-          // Handle both hyphenated (wilson-fleming) and space-separated (wilson%20fleming) names
-          const nameFromSlug = decodeURIComponent(resolvedParams.id)
-            .replace(/-/g, ' ') // Convert hyphens to spaces
-            .split(' ')
+          // Handle both hyphenated and space-separated names in URLs
+          let decodedName = decodeURIComponent(resolvedParams.id);
+          
+          // First, try searching with the decoded name as-is (preserves legitimate hyphens)
+          const formattedName1 = decodedName
+            .split(/\s+/) // Split on spaces only
             .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
             .join(' ');
 
-          const result = await supabase
+          let result = await supabase
             .from('lifters')
             .select('*')
-            .ilike('athlete_name', nameFromSlug)
+            .ilike('athlete_name', formattedName1)
             .single();
           
           athleteData = result.data;
           athleteError = result.error;
+          
+          // If not found and no spaces in original, try converting hyphens to spaces
+          if (!athleteData && !decodedName.includes(' ')) {
+            const formattedName2 = decodedName
+              .replace(/-/g, ' ')
+              .split(' ')
+              .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+              .join(' ');
+
+            result = await supabase
+              .from('lifters')
+              .select('*')
+              .ilike('athlete_name', formattedName2)
+              .single();
+            
+            athleteData = result.data;
+            athleteError = result.error;
+          }
         }
 
         if (athleteError || !athleteData) {
