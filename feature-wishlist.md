@@ -12,7 +12,12 @@
 - Athlete page result table with links to meet results pages
 - Athlete Page -- Overall Placement at National and International Events
 - Athlete-to-Athlete Comparisons (potentially housed within the athlete page)
-- [Banded chart](https://recharts.org/en-US/examples/BandedChart) for athletes (particularly youth) which have their current q-score data and then extrapolates out based on average YOY% percentage change and an upper band representing highest YOY% ever achieved and lower band representing... I'm not sure... lowest YOY% ever acheived (within reason)? Just have the lower band match the higher band but in the opposite direction? 
+- [Banded chart](https://recharts.org/en-US/examples/BandedChart) for athletes (particularly youth) which have their current q-score data and then extrapolates out based on average YOY% percentage change and an upper band representing highest YOY% ever achieved and lower band representing... I'm not sure... lowest YOY% ever acheived (within reason)? Just have the lower band match the higher band but in the opposite direction?
+- Sankey graph showing snatch / c&j make rates with nodes representing attempt number.
+  - Bracketed on both sides by 100% stacked area bar charts. Left side would represent overall opening make rate (snatch + clean & jerk combined). Right side would represent percentage of time the athlete posts a total.
+  - Sankey would branch to show make rate vs miss rate for snatch #1. Then out of all times athlete made snatch #1 the next branch would show their make / miss rate. This would really only pop for athletes with a long competition history.
+  - Could be colored the same as the graphs for aesthetic consistency.
+  - Would be nice to be able to toggle through time periods somehowe so we could see how the athlete's tendencies changed from when they were competing as a junior vs. senior vs. master, etc. Recharts doesn't have a slide handle OR sankey graph capabilities built in so I may have to use a different library.
 
 
 #### Meet Results Page Features
