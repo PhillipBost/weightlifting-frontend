@@ -1,7 +1,7 @@
 ##### Grouped by type, then listed roughly in order of priority but also ease of implementation because I want to do the easy things first
 
 
-#### Athlete Page Feature
+#### Athlete Page Features
 
 - Athlete cards
 - [Radar Chart](https://recharts.org/en-US/examples/SimpleRadarChart) showing make rate percentage for snatch 1, snatch 2, snatch 3, etc. Possibly have a separate radar chart showing bomb-out likelihood (displayed inversely), overall snatch success rate, overall c&j success rate, overall success rate percentage
@@ -71,7 +71,7 @@
 
 #### Tiered user access / roles
 
-- Better-Auth
+- Better-Auth seems like the way to go
 
 
 #### Known issues / bugs
