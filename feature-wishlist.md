@@ -71,6 +71,7 @@
 
 #### Known issues / bugs
 
+- I don't like how the athlete page.tsx graph zoom (brush element) is behaving on desktop. When I drag, it wants to revert to fully expanded zoom. It may be that the bottom part of the element is overlapping with the graph border and that's causing issues.
 - The source material does have the same athlete name with different USAW membership IDs (e.g., Paul Smith). Since the membership ID information is not reported in the athlete's page, but rather the search results leading to the athlete's page, duplicate names will be difficult but not impossible to delineate. The solution I've outlined is to...
   - Create a comprehensive list of what I've labeled "internal IDs" which correspond to the USAW URL for a given athlete. [This is completed already in a json file and will be added to daily]
   - Read from the internal ID json file to write to / update the database. When duplicate names are discovered, notate the json file with the second (or more) internal IDs.
