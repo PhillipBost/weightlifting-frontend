@@ -534,7 +534,28 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
             athleteData = matchingAthletes[0];
             athleteError = null;
           } else if (matchingAthletes.length > 1) {
-            setDuplicateAthletes(matchingAthletes);
+            // For multiple matches, get recent club info for each athlete
+            const athletesWithRecentInfo = await Promise.all(
+              matchingAthletes.map(async (athlete) => {
+                const { data: recentResults } = await supabase
+                  .from('meet_results')
+                  .select('wso, club_name, date')
+                  .eq('lifter_id', athlete.lifter_id)
+                  .order('date', { ascending: false })
+                  .limit(10);
+
+                const recentWso = recentResults?.find(r => r.wso && r.wso.trim() !== '')?.wso || athlete.wso;
+                const recentClub = recentResults?.find(r => r.club_name && r.club_name.trim() !== '')?.club_name || athlete.club_name;
+
+                return {
+                  ...athlete,
+                  recent_wso: recentWso,
+                  recent_club_name: recentClub
+                };
+              })
+            );
+            
+            setDuplicateAthletes(athletesWithRecentInfo);
             return; // Exit early to show disambiguation
           } else {
             athleteError = { message: 'Athlete not found' };
@@ -718,11 +739,11 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                         {athlete.gender && (
                           <span>{athlete.gender === 'M' ? 'Male' : 'Female'}</span>
                         )}
-                        {athlete.wso && (
-                          <span>WSO: {athlete.wso}</span>
+                        {athlete.recent_wso && (
+                          <span>WSO: {athlete.recent_wso}</span>
                         )}
-                        {athlete.club_name && (
-                          <span>Club: {athlete.club_name}</span>
+                        {athlete.recent_club_name && (
+                          <span>Club: {athlete.recent_club_name}</span>
                         )}
                       </div>
                     </div>
