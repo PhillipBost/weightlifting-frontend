@@ -967,13 +967,13 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 				  data={chartData} 
 				  margin={{ top: 20, right: 50, left: 20, bottom: 20 }}
 				  onMouseMove={(e) => {
-				    if (e && e.activeLabel) {
+				    if (e && e.activeLabel && !showPerformanceBrush) {
 					  setPerformanceMouseX(Number(e.activeLabel));
 				    }
 				  }}
 				  onMouseLeave={() => setPerformanceMouseX(null)}
 			    >
-				  {performanceMouseX && (
+				  {performanceMouseX && !showPerformanceBrush && (
 				    <ReferenceLine 
 					  x={performanceMouseX} 
 					  stroke="var(--text-muted)" 
@@ -1034,10 +1034,11 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                       } 
                     }}
                   />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'var(--chart-tooltip-bg)', 
-                      border: '1px solid var(--chart-tooltip-border)',
+                  {!showPerformanceBrush && (
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'var(--chart-tooltip-bg)', 
+                        border: '1px solid var(--chart-tooltip-border)',
                       borderRadius: '8px',
                       color: 'var(--text-primary)',
                       fontSize: '14px',
@@ -1107,6 +1108,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                     allowEscapeViewBox={{ x: false, y: true }}
                     position={{ x: undefined, y: undefined }}
                   />
+                  )}
 
                   {showSnatch && (
 				  <>
@@ -1480,13 +1482,13 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 				  data={chartData} 
 				  margin={{ top: 20, right: 50, left: 20, bottom: 20 }}
 				  onMouseMove={(e) => {
-				    if (e && e.activeLabel) {
+				    if (e && e.activeLabel && !showQScoresBrush) {
 					  setQScoresMouseX(Number(e.activeLabel));
 				    }
 				  }}
 				  onMouseLeave={() => setQScoresMouseX(null)}
 			    >
-				  {qScoresMouseX && (
+				  {qScoresMouseX && !showQScoresBrush && (
 				    <ReferenceLine 
 					  x={qScoresMouseX} 
 					  stroke="var(--text-muted)" 
@@ -1547,8 +1549,9 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                       } 
                     }}
                   />
-                  <Tooltip 
-					contentStyle={{ 
+                  {!showQScoresBrush && (
+                    <Tooltip 
+					  contentStyle={{ 
 						backgroundColor: 'var(--chart-tooltip-bg)', 
 						border: '1px solid var(--chart-tooltip-border)',
 						borderRadius: '8px',
@@ -1587,6 +1590,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                     allowEscapeViewBox={{ x: false, y: true }}
                     position={{ x: undefined, y: undefined }}
                   />
+                  )}
                   {showQPoints && (
 					  <>
 						<Line 
