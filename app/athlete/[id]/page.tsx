@@ -488,7 +488,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
         if (!isNaN(Number(resolvedParams.id))) {
           const result = await supabase
             .from('lifters')
-            .select('*')
+            .select('lifter_id, athlete_name, membership_number, created_at, updated_at, internal_id, internal_id_2, internal_id_3, internal_id_4, internal_id_5, internal_id_6, internal_id_7, internal_id_8')
             .eq('membership_number', parseInt(resolvedParams.id))
             .single();
           
@@ -508,7 +508,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 
           let result = await supabase
             .from('lifters')
-            .select('*')
+            .select('lifter_id, athlete_name, membership_number, created_at, updated_at, internal_id, internal_id_2, internal_id_3, internal_id_4, internal_id_5, internal_id_6, internal_id_7, internal_id_8')
             .ilike('athlete_name', formattedName1);
           
           let matchingAthletes = result.data || [];
@@ -523,7 +523,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 
             result = await supabase
               .from('lifters')
-              .select('*')
+              .select('lifter_id, athlete_name, membership_number, created_at, updated_at, internal_id, internal_id_2, internal_id_3, internal_id_4, internal_id_5, internal_id_6, internal_id_7, internal_id_8')
               .ilike('athlete_name', formattedName2);
             
             matchingAthletes = result.data || [];
@@ -544,8 +544,8 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                   .order('date', { ascending: false })
                   .limit(10);
 
-                const recentWso = recentResults?.find(r => r.wso && r.wso.trim() !== '')?.wso || athlete.wso;
-                const recentClub = recentResults?.find(r => r.club_name && r.club_name.trim() !== '')?.club_name || athlete.club_name;
+                const recentWso = recentResults?.find(r => r.wso && r.wso.trim() !== '')?.wso;
+                const recentClub = recentResults?.find(r => r.club_name && r.club_name.trim() !== '')?.club_name;
 
                 return {
                   ...athlete,
@@ -604,8 +604,8 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
   
   const getRecentInfo = () => {
     const sortedResults = [...results].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    const recentWso = sortedResults.find(r => r.wso && typeof r.wso === 'string' && r.wso.trim() !== '')?.wso || athlete.wso;
-    const recentClub = sortedResults.find(r => r.club_name && typeof r.club_name === 'string' && r.club_name.trim() !== '')?.club_name || athlete.club_name;
+    const recentWso = sortedResults.find(r => r.wso && typeof r.wso === 'string' && r.wso.trim() !== '')?.wso;
+    const recentClub = sortedResults.find(r => r.club_name && typeof r.club_name === 'string' && r.club_name.trim() !== '')?.club_name;
     return { wso: recentWso, club: recentClub };
   };
 
@@ -1986,7 +1986,15 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                             {showAllColumns ? (
                               <>
                                 <td className="px-2 py-3 whitespace-nowrap">{new Date(result.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
-                                <td className="px-2 py-3 max-w-20 truncate" title={result.meet_name}>{result.meet_name}</td>
+                                <td className="px-2 py-3 max-w-20">
+                                  <button
+                                    onClick={() => router.push(`/meet/${result.meet_id}`)}
+                                    className="text-accent-primary hover:text-accent-primary-hover transition-colors truncate max-w-full block text-left"
+                                    title={result.meet_name}
+                                  >
+                                    {result.meet_name}
+                                  </button>
+                                </td>
 								<td className="px-2 py-3 whitespace-nowrap">{result.meets?.Level || '-'}</td>
                                 <td className="px-2 py-3 whitespace-nowrap">{result.wso || '-'}</td>
                                 <td className="px-2 py-3 whitespace-nowrap">{result.club_name || '-'}</td>
@@ -2010,7 +2018,15 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                             ) : (
                               <>
                                 <td className="px-2 py-3 whitespace-nowrap">{new Date(result.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
-                                <td className="px-2 py-3 max-w-xs truncate" title={result.meet_name}>{result.meet_name}</td>
+                                <td className="px-2 py-3 max-w-xs">
+                                  <button
+                                    onClick={() => router.push(`/meet/${result.meet_id}`)}
+                                    className="text-accent-primary hover:text-accent-primary-hover transition-colors truncate max-w-full block text-left"
+                                    title={result.meet_name}
+                                  >
+                                    {result.meet_name}
+                                  </button>
+                                </td>
                                 <td className="px-2 py-3 whitespace-nowrap">{result.weight_class || '-'}</td>
                                 <td className="px-2 py-3 whitespace-nowrap font-semibold" style={{ color: 'var(--chart-snatch)' }}>{result.best_snatch ? `${result.best_snatch}kg` : '-'}</td>
                                 <td className="px-2 py-3 whitespace-nowrap font-semibold" style={{ color: 'var(--chart-cleanjerk)' }}>{result.best_cj ? `${result.best_cj}kg` : '-'}</td>
