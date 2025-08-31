@@ -485,25 +485,41 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
     
     // Identify parents and children
     Object.keys(orderedGroups).forEach(divisionKey => {
-      const results = orderedGroups[divisionKey];
-      const hasChildrenMarked = results.some(result => result.isDuplicateForAge);
-      
-      if (hasChildrenMarked) {
-        // This is a child division
-        // Find its parent (should be an Open division with same weight class)
-        const weightClass = getWeightClassFromDivision(divisionKey);
-        const parentKey = Object.keys(orderedGroups).find(key => 
-          key.includes('Open') && getWeightClassFromDivision(key) === weightClass
-        );
+      try {
+        const results = orderedGroups[divisionKey];
+        const hasChildrenMarked = results && results.some && results.some(result => result && result.isDuplicateForAge);
         
-        if (parentKey) {
-          if (!childDivisions[parentKey]) {
-            childDivisions[parentKey] = [];
+        console.log(`DIVISION ANALYSIS: ${divisionKey} - hasChildrenMarked: ${hasChildrenMarked}`);
+        
+        if (hasChildrenMarked) {
+          // This is a child division
+          // Find its parent (should be an Open division with same weight class AND gender)
+          const weightClass = getWeightClassFromDivision(divisionKey);
+          const isFemaleChild = divisionKey.toLowerCase().includes("women's");
+          const parentKey = Object.keys(orderedGroups).find(key => {
+            const isOpen = key.includes('Open');
+            const sameWeightClass = getWeightClassFromDivision(key) === weightClass;
+            const isFemaleParent = key.toLowerCase().includes("women's");
+            const sameGender = isFemaleChild === isFemaleParent;
+            return isOpen && sameWeightClass && sameGender;
+          });
+          
+          console.log(`${divisionKey} -> CHILD (weightClass: ${weightClass}) -> looking for Open parent: ${parentKey}`);
+          
+          if (parentKey) {
+            if (!childDivisions[parentKey]) {
+              childDivisions[parentKey] = [];
+            }
+            childDivisions[parentKey].push(divisionKey);
           }
-          childDivisions[parentKey].push(divisionKey);
+        } else {
+          // This is a parent division
+          console.log(`${divisionKey} -> PARENT`);
+          parentDivisions.push(divisionKey);
         }
-      } else {
-        // This is a parent division
+      } catch (error) {
+        console.error(`Error processing division ${divisionKey}:`, error);
+        // Default to parent if there's an error
         parentDivisions.push(divisionKey);
       }
     });
