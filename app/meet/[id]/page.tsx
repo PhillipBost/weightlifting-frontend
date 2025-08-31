@@ -28,7 +28,9 @@ interface MeetResult {
   club_name: string;
   lifters: {
     membership_number: string;
-  };
+  } | {
+    membership_number: string;
+  }[];
   isDuplicateForAge?: boolean; // Flag for age-appropriate grouping
   ageAppropriateDivisionName?: string; // Name of the age-appropriate division
 }
@@ -722,8 +724,12 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
 
   const getAthleteUrl = (result: MeetResult) => {
     // First choice: membership number if available
-    if (result.lifters?.membership_number) {
-      return `/athlete/${result.lifters.membership_number}`;
+    const membershipNumber = Array.isArray(result.lifters) 
+      ? result.lifters[0]?.membership_number 
+      : result.lifters?.membership_number;
+    
+    if (membershipNumber) {
+      return `/athlete/${membershipNumber}`;
     }
     // Fallback: athlete name formatted for URL
     const nameForUrl = result.lifter_name.toLowerCase().replace(/\s+/g, '-');
@@ -1001,8 +1007,17 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                                   </button>
                                   <div className="text-xs text-app-muted">
                                     {result.competition_age && `Age ${result.competition_age}`}
-                                    {result.lifters?.membership_number && result.competition_age && " • "}
-                                    {result.lifters?.membership_number && `#${result.lifters.membership_number}`}
+                                    {(() => {
+                                      const membershipNumber = Array.isArray(result.lifters) 
+                                        ? result.lifters[0]?.membership_number 
+                                        : result.lifters?.membership_number;
+                                      return (
+                                        <>
+                                          {membershipNumber && result.competition_age && " • "}
+                                          {membershipNumber && `#${membershipNumber}`}
+                                        </>
+                                      );
+                                    })()}
                                   </div>
                                 </td>
                                 <td className="px-2 py-1 whitespace-nowrap text-sm text-app-secondary">
