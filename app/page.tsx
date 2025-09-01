@@ -9,13 +9,18 @@ import { ThemeSwitcher } from './components/ThemeSwitcher';
 
 // Types for our search results
 interface SearchResult {
-  athlete_name: string;
+  athlete_name?: string;
   club_name?: string;
   wso?: string;
   membership_number?: string;
   lifter_id?: string;
   type?: string;
   gender?: string;
+  // Meet fields
+  meet_name?: string;
+  date?: string;
+  level?: string;
+  meet_id?: string;
 }
 
 // Debounce utility function
@@ -32,14 +37,20 @@ function debounce<T extends (...args: any[]) => any>(
 
 export default function WeightliftingLandingPage() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [meetSearchQuery, setMeetSearchQuery] = useState('');
   const [searchType, setSearchType] = useState('lifters');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [meetSearchResults, setMeetSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isMeetSearching, setIsMeetSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [showMeetResults, setShowMeetResults] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const meetSearchInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   
   const [placeholderName, setPlaceholderName] = useState('');
+  const [placeholderMeet, setPlaceholderMeet] = useState('');
 
   const athleteNames = [
   'Caine Wilkes',
@@ -57,6 +68,18 @@ export default function WeightliftingLandingPage() {
   'Kendrick Farris',
   'Holley Mangold',
   'Christopher Yandle'
+  ];
+
+  const meetNames = [
+    // TODO: Fill in with actual meet names
+    'National Championships',
+	'International',
+	'2017',
+    'American Open',
+    'University Championships',
+    'Youth Championships',
+    'Masters National Championships',
+    'Queen City Classic'
   ];
 
   const getSearchIcon = (resultType: string) => {
@@ -130,8 +153,8 @@ export default function WeightliftingLandingPage() {
         // Step 3: Sort results to prioritize exact matches, then alphabetically
         const queryLower = query.toLowerCase();
         searchResults.sort((a, b) => {
-          const aNameLower = a.athlete_name.toLowerCase();
-          const bNameLower = b.athlete_name.toLowerCase();
+          const aNameLower = a.athlete_name!.toLowerCase();
+          const bNameLower = b.athlete_name!.toLowerCase();
           
           // Check if either is an exact match
           const aExact = aNameLower === queryLower;
@@ -158,15 +181,219 @@ export default function WeightliftingLandingPage() {
     []
   );
 
-  // Handle search input changes (only for lifters now)
+  // Simple fuzzy search helper
+  const fuzzySearchTerms = (query: string) => {
+    const terms = [query];
+    const cleaned = query.toLowerCase().trim();
+    
+    // Add variations for common typos and abbreviations
+    const variations: Record<string, string[]> = {
+      'national': ['nationals', 'natl', 'nats'],
+      'nationals': ['national', 'natl', 'nats'],
+      'championship': ['championships', 'champ', 'champs'],
+      'championships': ['championship', 'champ', 'champs'],
+      'american': ['america', 'amer'],
+      'open': ['opn'],
+      'university': ['univ', 'college'],
+      'youth': ['jr', 'junior'],
+      'masters': ['master', 'mstr'],
+      'classic': ['classik', 'clasic'],
+      'international': ['intl', 'int'],
+      // Common colloquial terms people use
+      'youth nationals': ['youth national championships', 'youth championships', 'youth national'],
+      'youth national': ['youth nationals', 'youth national championships', 'youth championships'],
+      'masters nationals': ['masters national championships', 'masters championships', 'masters national'],
+      'masters national': ['masters nationals', 'masters national championships', 'masters championships'],
+      'university nationals': ['university national championships', 'university championships', 'university national'],
+      'university national': ['university nationals', 'university national championships', 'university championships'],
+      'junior nationals': ['junior national championships', 'junior championships', 'junior national'],
+      'junior national': ['junior nationals', 'junior national championships', 'junior championships'],
+      // And the reverse - if they search for the full name, also find the short version
+      'youth national championships': ['youth nationals', 'youth national', 'youth championships'],
+      'masters national championships': ['masters nationals', 'masters national', 'masters championships'],
+      'university national championships': ['university nationals', 'university national', 'university championships'],
+      'junior national championships': ['junior nationals', 'junior national', 'junior championships']
+    };
+    
+    // Add variations if any key words match
+    Object.entries(variations).forEach(([key, alts]) => {
+      // Use word boundary matching for more precise matching
+      const keyRegex = new RegExp(`\\b${key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+      if (keyRegex.test(cleaned)) {
+        alts.forEach(alt => {
+          terms.push(query.replace(keyRegex, alt));
+        });
+      }
+    });
+
+    // Debug logging for development
+    if (query.toLowerCase().includes('masters')) {
+      console.log('Fuzzy search debug for:', query);
+      console.log('Generated terms:', terms);
+    }
+    
+    return [...new Set(terms)]; // Remove duplicates
+  };
+
+  // Debounced meet search function
+  const debouncedMeetSearch = useCallback(
+    debounce(async (query: string) => {
+      if (!query.trim() || query.length < 2) {
+        setMeetSearchResults([]);
+        setShowMeetResults(false);
+        return;
+      }
+
+      setIsMeetSearching(true);
+      try {
+        const searchTerms = fuzzySearchTerms(query);
+        const allResults: any[] = [];
+        
+        // For multi-word searches, we want to find meets that contain ALL words
+        const queryWords = query.toLowerCase().trim().split(/\s+/);
+        const isMultiWordSearch = queryWords.length > 1;
+        
+        if (isMultiWordSearch) {
+          // Multi-word search: build a query that requires all words to be present
+          let supabaseQuery = supabase
+            .from('meets')
+            .select('meet_id, Meet, Date, Level');
+          
+          // Add each word as a separate ilike condition (AND logic)
+          queryWords.forEach(word => {
+            supabaseQuery = supabaseQuery.ilike('Meet', `%${word}%`);
+          });
+          
+          const { data: exactMatches, error: exactError } = await supabaseQuery
+            .order('Date', { ascending: false })
+            .limit(30);
+            
+          if (!exactError && exactMatches) {
+            allResults.push(...exactMatches);
+          }
+          
+          // Also try with fuzzy variations of the full query
+          for (const term of searchTerms.slice(0, 2)) {
+            const termWords = term.toLowerCase().trim().split(/\s+/);
+            if (termWords.length > 1) {
+              let fuzzyQuery = supabase
+                .from('meets')
+                .select('meet_id, Meet, Date, Level');
+              
+              termWords.forEach(word => {
+                fuzzyQuery = fuzzyQuery.ilike('Meet', `%${word}%`);
+              });
+              
+              const { data: fuzzyMatches, error: fuzzyError } = await fuzzyQuery
+                .order('Date', { ascending: false })
+                .limit(20);
+                
+              if (!fuzzyError && fuzzyMatches) {
+                allResults.push(...fuzzyMatches);
+              }
+            }
+          }
+        } else {
+          // Single word search: use the original fuzzy search approach
+          for (const term of searchTerms.slice(0, 3)) {
+            const { data: meets, error: meetsError } = await supabase
+              .from('meets')
+              .select('meet_id, Meet, Date, Level')
+              .ilike('Meet', `%${term}%`)
+              .order('Date', { ascending: false })
+              .limit(20);
+
+            if (!meetsError && meets) {
+              allResults.push(...meets);
+            }
+          }
+        }
+
+        if (allResults.length === 0) {
+          setMeetSearchResults([]);
+          setShowMeetResults(true);
+          return;
+        }
+
+        // Remove duplicates and sort by date
+        const uniqueMeets = Array.from(
+          new Map(allResults.map(meet => [meet.meet_id, meet])).values()
+        ).sort((a, b) => new Date(b.Date).getTime() - new Date(a.Date).getTime());
+
+        const meetResults = uniqueMeets.slice(0, 50).map(meet => ({
+          meet_id: meet.meet_id,
+          meet_name: meet.Meet,
+          date: meet.Date,
+          level: meet.Level,
+          type: 'meet'
+        }));
+
+        setMeetSearchResults(meetResults);
+        setShowMeetResults(true);
+      } catch (err) {
+        console.error('Unexpected meet search error:', err);
+        setMeetSearchResults([]);
+      } finally {
+        setIsMeetSearching(false);
+      }
+    }, 300),
+    []
+  );
+
+  // Handle search input changes
   useEffect(() => {
+    if (searchQuery) {
+      // Clear meet search when athlete search is active
+      setMeetSearchQuery('');
+      setMeetSearchResults([]);
+      setShowMeetResults(false);
+    }
     debouncedSearch(searchQuery);
   }, [searchQuery, debouncedSearch]);
 
   useEffect(() => {
+    if (meetSearchQuery) {
+      // Clear athlete search when meet search is active
+      setSearchQuery('');
+      setSearchResults([]);
+      setShowResults(false);
+    }
+    debouncedMeetSearch(meetSearchQuery);
+  }, [meetSearchQuery, debouncedMeetSearch]);
+
+  useEffect(() => {
     const randomName = athleteNames[Math.floor(Math.random() * athleteNames.length)];
     setPlaceholderName(randomName);
+    
+    const randomMeet = meetNames[Math.floor(Math.random() * meetNames.length)];
+    setPlaceholderMeet(randomMeet);
   }, []);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      
+      // Don't close if clicking on a search result button or its children
+      const isClickingOnResult = target.closest('button[data-search-result]');
+      if (isClickingOnResult) {
+        return;
+      }
+      
+      // Close athlete search dropdown if clicking outside
+      if (showResults && searchInputRef.current && !searchInputRef.current.closest('.relative')?.contains(target)) {
+        setShowResults(false);
+      }
+      
+      // Close meet search dropdown if clicking outside
+      if (showMeetResults && meetSearchInputRef.current && !meetSearchInputRef.current.closest('.relative')?.contains(target)) {
+        setShowMeetResults(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showResults, showMeetResults]);
 
   // Handle search form submission (currently just lifters)
   const handleSearch = (e: React.FormEvent) => {
@@ -176,7 +403,7 @@ export default function WeightliftingLandingPage() {
 
   // Handle result selection
   const handleResultSelect = (result: SearchResult) => {
-    setSearchQuery(result.athlete_name);
+    setSearchQuery(result.athlete_name!);
     setShowResults(false);
     
     // Navigate to athlete page - prefer membership number, fallback to name slug
@@ -186,7 +413,7 @@ export default function WeightliftingLandingPage() {
       athleteId = result.membership_number.toString();
     } else {
       // Convert name to URL slug (e.g., "John Doe" -> "john-doe")
-      athleteId = result.athlete_name
+      athleteId = result.athlete_name!
         .toLowerCase()
         .replace(/[^\w\s-]/g, '') // Remove special characters
         .replace(/\s+/g, '-')     // Replace spaces with hyphens
@@ -194,6 +421,13 @@ export default function WeightliftingLandingPage() {
     }
     
     router.push(`/athlete/${athleteId}`);
+  };
+
+  // Handle meet result selection
+  const handleMeetResultSelect = (result: SearchResult) => {
+    setMeetSearchQuery(result.meet_name!);
+    setShowMeetResults(false);
+    router.push(`/meet/${result.meet_id}`);
   };
 
   // Handle popular search clicks (for future implementation)
@@ -207,6 +441,13 @@ export default function WeightliftingLandingPage() {
     setSearchResults([]);
     setShowResults(false);
     searchInputRef.current?.focus();
+  };
+
+  const clearMeetSearch = () => {
+    setMeetSearchQuery('');
+    setMeetSearchResults([]);
+    setShowMeetResults(false);
+    meetSearchInputRef.current?.focus();
   };
 
   return (
@@ -247,80 +488,168 @@ export default function WeightliftingLandingPage() {
 
           {/* Search Interface */}
           <div className="relative space-y-6">
-            {/* Main Search Bar */}
-            <form onSubmit={handleSearch} className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-app-muted" />
-              <input
-                ref={searchInputRef}
-                type="text"
-                id="athlete-search"
-                name="search"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={`Search athletes... (e.g., ${placeholderName})`}
-                className="input-primary"
-                autoComplete="off"
-              />
-              
-              {/* Clear button */}
-              {searchQuery && (
+            {/* Athlete Search Bar */}
+            <div className="relative">
+              <form onSubmit={handleSearch} className="relative">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-app-muted" />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  id="athlete-search"
+                  name="search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => {
+                    setShowMeetResults(false);
+                  }}
+                  placeholder={`Search athletes... (e.g., ${placeholderName})`}
+                  className="input-primary"
+                  autoComplete="off"
+                />
+                
+                {/* Clear button */}
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={clearSearch}
+                    className="absolute right-16 top-1/2 transform -translate-y-1/2 text-app-muted hover:text-app-primary transition-colors"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+
                 <button
-                  type="button"
-                  onClick={clearSearch}
-                  className="absolute right-16 top-1/2 transform -translate-y-1/2 text-app-muted hover:text-app-primary transition-colors"
+                  type="submit"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-accent-primary hover:bg-accent-primary-hover text-app-primary px-6 py-2 rounded-lg transition-colors flex items-center space-x-2"
                 >
-                  <X className="h-4 w-4" />
+                  <span className="hidden sm:inline">Search</span>
+                  <ArrowRight className="h-4 w-4" />
                 </button>
-              )}
+              </form>
 
-              <button
-                type="submit"
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-accent-primary hover:bg-accent-primary-hover text-app-primary px-6 py-2 rounded-lg transition-colors flex items-center space-x-2"
-              >
-                <span className="hidden sm:inline">Search</span>
-                <ArrowRight className="h-4 w-4" />
-              </button>
-            </form>
-
-            {/* Search Results Dropdown */}
-            {showResults && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-app-secondary border border-app-primary rounded-xl shadow-xl z-10 max-h-96 overflow-y-auto">
-                {isSearching ? (
-                  <div className="p-4 text-center text-app-muted">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400 mx-auto mb-2"></div>
-                    Searching...
-                  </div>
-                ) : searchResults.length > 0 ? (
-                  <div className="py-2">
-                        {searchResults.map((result) => (
-                      <button
-                        key={result.lifter_id}
-                        onClick={() => handleResultSelect(result)}
-                        className="w-full px-4 py-3 text-left bg-interactive transition-colors flex items-center space-x-3"
-                      >
-                        {React.createElement(getSearchIcon(result.type || 'athlete'), { 
-						  className: "h-5 w-5 text-app-muted" 
-						})}
-                        <div className="flex-1">
-                          <div className="text-app-primary font-medium">{result.athlete_name}</div>
-                          <div className="text-sm text-app-tertiary">
-                            {[
-                              result.gender,
-                              result.club_name,
-                              result.membership_number ? `#${result.membership_number}` : null
-                            ].filter(Boolean).join(' • ')}
+              {/* Athlete Search Results Dropdown */}
+              {showResults && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-app-secondary border border-app-primary rounded-xl shadow-xl z-20 max-h-96 overflow-y-auto">
+                  {isSearching ? (
+                    <div className="p-4 text-center text-app-muted">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400 mx-auto mb-2"></div>
+                      Searching...
+                    </div>
+                  ) : searchResults.length > 0 ? (
+                    <div className="py-2">
+                          {searchResults.map((result) => (
+                        <button
+                          key={result.lifter_id}
+                          onClick={() => handleResultSelect(result)}
+                          data-search-result="athlete"
+                          className="w-full px-4 py-3 text-left bg-interactive transition-colors flex items-center space-x-3"
+                        >
+                          {React.createElement(getSearchIcon(result.type || 'athlete'), { 
+                      className: "h-5 w-5 text-app-muted" 
+                      })}
+                          <div className="flex-1">
+                            <div className="text-app-primary font-medium">{result.athlete_name}</div>
+                            <div className="text-sm text-app-tertiary">
+                              {[
+                                result.gender,
+                                result.club_name,
+                                result.membership_number ? `#${result.membership_number}` : null
+                              ].filter(Boolean).join(' • ')}
+                            </div>
                           </div>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                ) : searchQuery.length >= 2 ? (
-                  <div className="p-4 text-center text-app-muted">
-                    No results found for "{searchQuery}"
-                  </div>
-                ) : null}
-              </div>
-            )}
+                        </button>
+                      ))}
+                    </div>
+                  ) : searchQuery.length >= 2 ? (
+                    <div className="p-4 text-center text-app-muted">
+                      No results found for "{searchQuery}"
+                    </div>
+                  ) : null}
+                </div>
+              )}
+            </div>
+
+            {/* Meet Search Bar */}
+            <div className="relative">
+              <form onSubmit={(e) => e.preventDefault()} className="relative">
+                <CalendarDays className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-app-muted" />
+                <input
+                  ref={meetSearchInputRef}
+                  type="text"
+                  id="meet-search"
+                  name="meetSearch"
+                  value={meetSearchQuery}
+                  onChange={(e) => setMeetSearchQuery(e.target.value)}
+                  onFocus={() => {
+                    setShowResults(false);
+                  }}
+                  placeholder={`Search meets... (e.g., ${placeholderMeet})`}
+                  className="input-primary"
+                  autoComplete="off"
+                />
+                
+                {/* Clear button */}
+                {meetSearchQuery && (
+                  <button
+                    type="button"
+                    onClick={clearMeetSearch}
+                    className="absolute right-16 top-1/2 transform -translate-y-1/2 text-app-muted hover:text-app-primary transition-colors"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+
+                <button
+                  type="submit"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-accent-primary hover:bg-accent-primary-hover text-app-primary px-6 py-2 rounded-lg transition-colors flex items-center space-x-2"
+                >
+                  <span className="hidden sm:inline">Search</span>
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </form>
+
+              {/* Meet Search Results Dropdown */}
+              {showMeetResults && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-app-secondary border border-app-primary rounded-xl shadow-xl z-20 max-h-96 overflow-y-auto">
+                  {isMeetSearching ? (
+                    <div className="p-4 text-center text-app-muted">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400 mx-auto mb-2"></div>
+                      Searching...
+                    </div>
+                  ) : meetSearchResults.length > 0 ? (
+                    <div className="py-2">
+                      {meetSearchResults.map((result) => (
+                        <button
+                          key={result.meet_id}
+                          onClick={() => handleMeetResultSelect(result)}
+                          data-search-result="meet"
+                          className="w-full px-4 py-3 text-left bg-interactive transition-colors flex items-center space-x-3"
+                        >
+                          <CalendarDays className="h-5 w-5 text-app-muted" />
+                          <div className="flex-1">
+                            <div className="text-app-primary font-medium">{result.meet_name}</div>
+                            <div className="text-sm text-app-tertiary">
+                              {[
+                                result.date ? new Date(result.date).toLocaleDateString('en-US', { 
+                                  year: 'numeric', 
+                                  month: 'short', 
+                                  day: 'numeric' 
+                                }) : null,
+                                result.level
+                              ].filter(Boolean).join(' • ')}
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : meetSearchQuery.length >= 2 ? (
+                    <div className="p-4 text-center text-app-muted">
+                      No results found for "{meetSearchQuery}"
+                    </div>
+                  ) : null}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </section>
