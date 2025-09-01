@@ -107,13 +107,25 @@ export default function WeightliftingLandingPage() {
         const allResults: any[] = [];
         
         // Search with each term variation
-        for (const term of searchTerms.slice(0, 4)) { // Limit to 4 variations to avoid too many queries
+        for (const term of searchTerms.slice(0, 6)) { // Increase to 6 variations
           const { data: lifters, error: liftersError } = await supabase
             .from('lifters')
             .select('lifter_id, athlete_name, membership_number')
             .ilike('athlete_name', `%${term}%`)
             .order('athlete_name')
             .limit(50);
+
+          // Debug logging for Kate Nye specifically
+          if (query.toLowerCase().includes('kate') && query.toLowerCase().includes('nye')) {
+            console.log(`Searching for term: "${term}"`);
+            console.log(`Results count: ${lifters?.length || 0}`);
+            if (lifters && lifters.length > 0) {
+              console.log('Found athletes:', lifters.map(l => l.athlete_name));
+            }
+            if (liftersError) {
+              console.log('Query error:', liftersError);
+            }
+          }
 
           if (!liftersError && lifters) {
             allResults.push(...lifters);
@@ -456,15 +468,58 @@ export default function WeightliftingLandingPage() {
       'wes': ['wesley']
     };
     
-    // Add name variations
-    Object.entries(nameVariations).forEach(([key, alts]) => {
-      const keyRegex = new RegExp(`\\b${key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
-      if (keyRegex.test(cleaned)) {
-        alts.forEach(alt => {
-          terms.push(query.replace(keyRegex, alt));
+    // Athletes who competed under different names (former names, married names, etc.)
+    // Check this BEFORE individual name variations to avoid conflicts
+    const athleteNameChanges: Record<string, string[]> = {
+      'kate nye': ['katherine vibert'],
+      'katherine vibert': ['kate nye'],
+      // Add more athlete name changes here as needed
+    };
+
+    // Check for full name matches (exact athlete name changes)
+    Object.entries(athleteNameChanges).forEach(([formerName, currentNames]) => {
+      const formerNameLower = formerName.toLowerCase();
+      if (cleaned === formerNameLower) {
+        currentNames.forEach(currentName => {
+          terms.push(currentName);
         });
       }
     });
+
+    // Only apply individual name variations if we haven't found a specific athlete name change
+    const hasSpecificNameMatch = Object.keys(athleteNameChanges).some(
+      key => cleaned === key.toLowerCase()
+    );
+
+    if (!hasSpecificNameMatch) {
+      // Add name variations for individual words
+      Object.entries(nameVariations).forEach(([key, alts]) => {
+        const keyRegex = new RegExp(`\\b${key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+        if (keyRegex.test(cleaned)) {
+          alts.forEach(alt => {
+            terms.push(query.replace(keyRegex, alt));
+          });
+        }
+      });
+    }
+
+    // Debug logging for name changes
+    if (cleaned.includes('kate') && cleaned.includes('nye')) {
+      console.log('Kate Nye search debug:');
+      console.log('Query:', query);
+      console.log('Cleaned:', cleaned);
+      console.log('All terms:', terms);
+    }
+    
+    // Also try partial matches for name changes (in case the exact name format is different)
+    if (cleaned.includes('kate') && cleaned.includes('nye')) {
+      // Add various combinations for Katherine Vibert specifically
+      terms.push('vibert');
+      terms.push('katherine vibert'); 
+      terms.push('kate vibert');
+      terms.push('vibert, katherine');
+      terms.push('vibert, kate');
+    }
     
     return [...new Set(terms)]; // Remove duplicates
   };
