@@ -92,7 +92,7 @@ export default function WeightliftingLandingPage() {
     }
   };
 
-  // Debounced search function using same logic as disambiguation page
+  // Debounced search function with fuzzy search for athlete names
   const debouncedSearch = useCallback(
     debounce(async (query: string) => {
       if (!query.trim() || query.length < 2) {
@@ -103,30 +103,37 @@ export default function WeightliftingLandingPage() {
 
       setIsSearching(true);
       try {
+        const searchTerms = generateAthleteSearchTerms(query);
+        const allResults: any[] = [];
         
-        // Step 1: Search lifters table for athlete names (like disambiguation page)
-        const { data: lifters, error: liftersError } = await supabase
-          .from('lifters')
-          .select('lifter_id, athlete_name, membership_number')
-          .ilike('athlete_name', `%${query}%`)
-          .order('athlete_name')
-          .limit(100);
+        // Search with each term variation
+        for (const term of searchTerms.slice(0, 4)) { // Limit to 4 variations to avoid too many queries
+          const { data: lifters, error: liftersError } = await supabase
+            .from('lifters')
+            .select('lifter_id, athlete_name, membership_number')
+            .ilike('athlete_name', `%${term}%`)
+            .order('athlete_name')
+            .limit(50);
 
-        if (liftersError) {
-          console.error('Search error:', liftersError);
-          console.error('Error details:', JSON.stringify(liftersError, null, 2));
-          return;
+          if (!liftersError && lifters) {
+            allResults.push(...lifters);
+          }
         }
 
-        if (!lifters || lifters.length === 0) {
+        if (allResults.length === 0) {
           setSearchResults([]);
           setShowResults(true);
           return;
         }
 
+        // Remove duplicates by lifter_id
+        const uniqueLifters = Array.from(
+          new Map(allResults.map(lifter => [lifter.lifter_id, lifter])).values()
+        );
+
         // Step 2: Get recent meet results for WSO/club info for each lifter
         const searchResults = await Promise.all(
-          lifters.map(async (lifter) => {
+          uniqueLifters.map(async (lifter) => {
             const { data: recentResults } = await supabase
               .from('meet_results')
               .select('wso, club_name, gender, date')
@@ -169,7 +176,7 @@ export default function WeightliftingLandingPage() {
         });
 
         
-        setSearchResults(searchResults || []);
+        setSearchResults(searchResults.slice(0, 100) || []); // Limit to 100 results
         setShowResults(true);
       } catch (err) {
         console.error('Unexpected search error:', err);
@@ -181,7 +188,7 @@ export default function WeightliftingLandingPage() {
     []
   );
 
-  // Simple fuzzy search helper
+  // Simple fuzzy search helper for meets
   const fuzzySearchTerms = (query: string) => {
     const terms = [query];
     const cleaned = query.toLowerCase().trim();
@@ -231,6 +238,224 @@ export default function WeightliftingLandingPage() {
       console.log('Fuzzy search debug for:', query);
       console.log('Generated terms:', terms);
     }
+    
+    return [...new Set(terms)]; // Remove duplicates
+  };
+
+  // Generate fuzzy search terms for athlete names
+  const generateAthleteSearchTerms = (query: string) => {
+    const terms = [query];
+    const cleaned = query.toLowerCase().trim();
+    
+    // Handle common typos in names
+    let fuzzyQuery = cleaned;
+    
+    // Remove extra letters (e.g., "Philllip" -> "Philip")
+    fuzzyQuery = fuzzyQuery.replace(/([a-z])\1{2,}/g, '$1$1'); // Reduce 3+ repeated letters to 2
+    fuzzyQuery = fuzzyQuery.replace(/([a-z])\1{1,}/g, '$1'); // Then reduce 2+ to single
+    
+    // Add the cleaned version if it's different
+    if (fuzzyQuery !== cleaned) {
+      terms.push(query.replace(new RegExp(cleaned.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), fuzzyQuery));
+    }
+    
+    // Common name variations
+    const nameVariations: Record<string, string[]> = {
+      // Philip variations
+      'philip': ['phillip', 'filip', 'phil'],
+      'phillip': ['philip', 'filip', 'phil'],
+      'filip': ['philip', 'phillip', 'phil'],
+      'phil': ['philip', 'phillip', 'filip'],
+      
+      // Catherine variations
+      'catherine': ['katherine', 'kathryn', 'cathy', 'kate', 'katie', 'cat'],
+      'katherine': ['catherine', 'kathryn', 'kathy', 'kate', 'katie', 'kat'],
+      'kathryn': ['catherine', 'katherine', 'kathy', 'kate', 'katie'],
+      'cathy': ['catherine', 'kathy', 'kate'],
+      'kathy': ['katherine', 'kathryn', 'cathy', 'kate'],
+      'kate': ['katherine', 'kathryn', 'catherine', 'katie', 'cathy'],
+      'katie': ['katherine', 'kathryn', 'catherine', 'kate'],
+      
+      // John variations
+      'john': ['jon', 'johnny', 'johnathan', 'jonathan', 'jack'],
+      'jon': ['john', 'johnny', 'johnathan', 'jonathan'],
+      'johnny': ['john', 'jon'],
+      'johnathan': ['john', 'jon', 'jonathan'],
+      'jonathan': ['john', 'jon', 'johnathan'],
+      'jack': ['john', 'jackson'],
+      
+      // Michael variations
+      'michael': ['mike', 'mick', 'mickey', 'mikey'],
+      'mike': ['michael', 'mick'],
+      'mick': ['michael', 'mike'],
+      'mickey': ['michael', 'mike'],
+      'mikey': ['michael', 'mike'],
+      
+      // William variations
+      'william': ['bill', 'will', 'billy', 'willy', 'willie'],
+      'bill': ['william', 'billy'],
+      'will': ['william', 'willy', 'willie'],
+      'billy': ['william', 'bill'],
+      'willy': ['william', 'will', 'willie'],
+      'willie': ['william', 'will', 'willy'],
+      
+      // Robert variations
+      'robert': ['rob', 'bob', 'robbie', 'bobby', 'bert'],
+      'rob': ['robert', 'robbie'],
+      'bob': ['robert', 'bobby'],
+      'robbie': ['robert', 'rob'],
+      'bobby': ['robert', 'bob'],
+      'bert': ['robert', 'albert'],
+      
+      // Richard variations
+      'richard': ['rick', 'dick', 'rich', 'richie', 'ricky'],
+      'rick': ['richard', 'ricky'],
+      'dick': ['richard'],
+      'rich': ['richard', 'richie'],
+      'richie': ['richard', 'rich'],
+      'ricky': ['richard', 'rick'],
+      
+      // Christopher variations
+      'christopher': ['chris', 'christy', 'christie'],
+      'chris': ['christopher', 'christian', 'christine'],
+      'christy': ['christopher', 'christie'],
+      'christie': ['christopher', 'christy'],
+      
+      // Nicholas variations
+      'nicholas': ['nick', 'nicky', 'nicolas'],
+      'nick': ['nicholas', 'nicky'],
+      'nicky': ['nicholas', 'nick'],
+      'nicolas': ['nicholas', 'nick'],
+      
+      // Anthony variations
+      'anthony': ['tony', 'anton'],
+      'tony': ['anthony', 'antonio'],
+      'anton': ['anthony', 'antonio'],
+      'antonio': ['anthony', 'tony', 'anton'],
+      
+      // Matthew variations
+      'matthew': ['matt', 'matty'],
+      'matt': ['matthew', 'matty'],
+      'matty': ['matthew', 'matt'],
+      
+      // Andrew variations
+      'andrew': ['andy', 'drew'],
+      'andy': ['andrew', 'anderson'],
+      'drew': ['andrew'],
+      
+      // Daniel variations
+      'daniel': ['dan', 'danny', 'dane'],
+      'dan': ['daniel', 'danny'],
+      'danny': ['daniel', 'dan'],
+      'dane': ['daniel'],
+      
+      // David variations
+      'david': ['dave', 'davey', 'davy'],
+      'dave': ['david', 'davey'],
+      'davey': ['david', 'dave', 'davy'],
+      'davy': ['david', 'davey'],
+      
+      // Elizabeth variations
+      'elizabeth': ['liz', 'beth', 'betsy', 'betty', 'eliza', 'lisa'],
+      'liz': ['elizabeth', 'lisa'],
+      'beth': ['elizabeth', 'bethany'],
+      'betsy': ['elizabeth', 'betty'],
+      'betty': ['elizabeth', 'betsy'],
+      'eliza': ['elizabeth'],
+      'lisa': ['elizabeth', 'liz'],
+      
+      // Jennifer variations
+      'jennifer': ['jen', 'jenny', 'jenn'],
+      'jen': ['jennifer', 'jenny'],
+      'jenny': ['jennifer', 'jen'],
+      'jenn': ['jennifer', 'jen'],
+      
+      // Jessica variations
+      'jessica': ['jess', 'jessie'],
+      'jess': ['jessica', 'jessie'],
+      'jessie': ['jessica', 'jess'],
+      
+      // James variations
+      'james': ['jim', 'jimmy', 'jamie'],
+      'jim': ['james', 'jimmy'],
+      'jimmy': ['james', 'jim'],
+      'jamie': ['james'],
+      
+      // Joseph variations
+      'joseph': ['joe', 'joey', 'jos'],
+      'joe': ['joseph', 'joey'],
+      'joey': ['joseph', 'joe'],
+      'jos': ['joseph'],
+      
+      // Thomas variations
+      'thomas': ['tom', 'tommy', 'thom'],
+      'tom': ['thomas', 'tommy'],
+      'tommy': ['thomas', 'tom'],
+      'thom': ['thomas'],
+      
+      // Charles variations
+      'charles': ['charlie', 'chuck', 'chas'],
+      'charlie': ['charles', 'charlotte'],
+      'chuck': ['charles'],
+      'chas': ['charles'],
+      
+      // Patricia variations
+      'patricia': ['pat', 'patty', 'trish', 'patsy'],
+      'pat': ['patricia', 'patrick', 'patty'],
+      'patty': ['patricia', 'pat'],
+      'trish': ['patricia'],
+      'patsy': ['patricia'],
+      
+      // Patrick variations
+      'patrick': ['pat', 'paddy', 'rick'],
+      'paddy': ['patrick'],
+      
+      // Additional common names
+      'alexander': ['alex', 'xander', 'sandy'],
+      'alex': ['alexander', 'alexandra', 'alexis'],
+      'xander': ['alexander'],
+      'sandy': ['alexander', 'sandra'],
+      
+      'benjamin': ['ben', 'benny', 'benji'],
+      'ben': ['benjamin', 'benny'],
+      'benny': ['benjamin', 'ben'],
+      'benji': ['benjamin'],
+      
+      'gregory': ['greg', 'gregg'],
+      'greg': ['gregory', 'gregg'],
+      'gregg': ['gregory', 'greg'],
+      
+      'joshua': ['josh'],
+      'josh': ['joshua'],
+      
+      'steven': ['steve', 'stevie'],
+      'stephen': ['steve', 'stevie'],
+      'steve': ['steven', 'stephen', 'stevie'],
+      'stevie': ['steven', 'stephen', 'steve'],
+      
+      'timothy': ['tim', 'timmy'],
+      'tim': ['timothy', 'timmy'],
+      'timmy': ['timothy', 'tim'],
+      
+      'edward': ['ed', 'eddie', 'ted'],
+      'ed': ['edward', 'eddie'],
+      'eddie': ['edward', 'ed'],
+      'ted': ['edward', 'theodore'],
+      
+      'ronald': ['ron', 'ronnie'],
+      'ron': ['ronald', 'ronnie'],
+      'ronnie': ['ronald', 'ron']
+    };
+    
+    // Add name variations
+    Object.entries(nameVariations).forEach(([key, alts]) => {
+      const keyRegex = new RegExp(`\\b${key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+      if (keyRegex.test(cleaned)) {
+        alts.forEach(alt => {
+          terms.push(query.replace(keyRegex, alt));
+        });
+      }
+    });
     
     return [...new Set(terms)]; // Remove duplicates
   };
