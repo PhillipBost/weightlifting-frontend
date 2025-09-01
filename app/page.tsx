@@ -69,7 +69,7 @@ export default function WeightliftingLandingPage() {
     }
   };
 
-  // Debounced search function
+  // Debounced search function using same logic as disambiguation page
   const debouncedSearch = useCallback(
     debounce(async (query: string) => {
       if (!query.trim() || query.length < 2) {
@@ -80,16 +80,73 @@ export default function WeightliftingLandingPage() {
 
       setIsSearching(true);
       try {
-        const { data, error } = await supabase
-          .rpc('search_athletes', { search_term: query });
+        
+        // Step 1: Search lifters table for athlete names (like disambiguation page)
+        const { data: lifters, error: liftersError } = await supabase
+          .from('lifters')
+          .select('lifter_id, athlete_name, membership_number')
+          .ilike('athlete_name', `%${query}%`)
+          .order('athlete_name')
+          .limit(100);
 
-        if (error) {
-          console.error('Search error:', error);
-          console.error('Error details:', JSON.stringify(error, null, 2));
+        if (liftersError) {
+          console.error('Search error:', liftersError);
+          console.error('Error details:', JSON.stringify(liftersError, null, 2));
           return;
         }
 
-        setSearchResults(data || []);
+        if (!lifters || lifters.length === 0) {
+          setSearchResults([]);
+          setShowResults(true);
+          return;
+        }
+
+        // Step 2: Get recent meet results for WSO/club info for each lifter
+        const searchResults = await Promise.all(
+          lifters.map(async (lifter) => {
+            const { data: recentResults } = await supabase
+              .from('meet_results')
+              .select('wso, club_name, gender, date')
+              .eq('lifter_id', lifter.lifter_id)
+              .order('date', { ascending: false })
+              .limit(10);
+
+            const recentWso = recentResults?.find(r => r.wso && r.wso.trim() !== '')?.wso;
+            const recentClub = recentResults?.find(r => r.club_name && r.club_name.trim() !== '')?.club_name;
+            const recentGender = recentResults?.find(r => r.gender && r.gender.trim() !== '')?.gender;
+
+            return {
+              lifter_id: lifter.lifter_id,
+              athlete_name: lifter.athlete_name,
+              membership_number: lifter.membership_number,
+              wso: recentWso,
+              club_name: recentClub,
+              gender: recentGender,
+              type: 'athlete'
+            };
+          })
+        );
+
+        // Step 3: Sort results to prioritize exact matches, then alphabetically
+        const queryLower = query.toLowerCase();
+        searchResults.sort((a, b) => {
+          const aNameLower = a.athlete_name.toLowerCase();
+          const bNameLower = b.athlete_name.toLowerCase();
+          
+          // Check if either is an exact match
+          const aExact = aNameLower === queryLower;
+          const bExact = bNameLower === queryLower;
+          
+          // Exact matches come first
+          if (aExact && !bExact) return -1;
+          if (bExact && !aExact) return 1;
+          
+          // If both exact or both partial, sort alphabetically
+          return aNameLower.localeCompare(bNameLower);
+        });
+
+        
+        setSearchResults(searchResults || []);
         setShowResults(true);
       } catch (err) {
         console.error('Unexpected search error:', err);
@@ -196,10 +253,13 @@ export default function WeightliftingLandingPage() {
               <input
                 ref={searchInputRef}
                 type="text"
+                id="athlete-search"
+                name="search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={`Search athletes... (e.g., ${placeholderName})`}
                 className="input-primary"
+                autoComplete="off"
               />
               
               {/* Clear button */}
@@ -232,7 +292,7 @@ export default function WeightliftingLandingPage() {
                   </div>
                 ) : searchResults.length > 0 ? (
                   <div className="py-2">
-                    {searchResults.map((result) => (
+                        {searchResults.map((result) => (
                       <button
                         key={result.lifter_id}
                         onClick={() => handleResultSelect(result)}
