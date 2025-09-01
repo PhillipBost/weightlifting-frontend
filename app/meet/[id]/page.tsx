@@ -87,11 +87,11 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
       try {
         setLoading(true);
         
-        // First, fetch meet information
+        // First, fetch meet information (convert string ID to integer)
         const { data: meetData, error: meetError } = await supabase
           .from('meets')
           .select('Meet, Date, Level')
-          .eq('meet_id', resolvedParams.id)
+          .eq('meet_id', parseInt(resolvedParams.id))
           .single();
 
         if (meetError) {
@@ -100,10 +100,48 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
           return;
         }
 
+        // Try a simpler query first
+        const { data: locationData, error: locationError } = await supabase
+          .from('meet_locations')
+          .select('*')
+          .eq('meet_id', parseInt(resolvedParams.id));
+
+        // Debug logging for meet 6187
+        if (resolvedParams.id === '6187') {
+          console.log('Meet data for 6187:', meetData);
+          console.log('Searching for meet_id:', parseInt(resolvedParams.id), 'type:', typeof parseInt(resolvedParams.id));
+          console.log('Location query error:', locationError);
+          console.log('Location data array:', locationData);
+          console.log('Location data length:', locationData?.length);
+        }
+
+        // Build location string from available data
+        let locationStr = 'Location TBD';
+        if (locationData && locationData.length > 0 && !locationError) {
+          const loc = locationData[0]; // Take the first location record
+          console.log('Processing location data:', loc); // Debug all meets
+          
+          // Prefer location_text if available, then build from components
+          if (loc.location_text) {
+            locationStr = loc.location_text;
+          } else if (loc.geocode_display_name) {
+            locationStr = loc.geocode_display_name;
+          } else if (loc.city && loc.state) {
+            locationStr = `${loc.city}, ${loc.state}`;
+            if (loc.street_address) {
+              locationStr = `${loc.street_address}, ${locationStr}`;
+            }
+          } else if (loc.raw_address) {
+            locationStr = loc.raw_address;
+          }
+        } else {
+          console.log('No location data found or query error:', locationError);
+        }
+
         setMeet({
           meet_name: meetData.Meet,
           date: meetData.Date,
-          location: 'Location TBD', // No location in current schema
+          location: locationStr,
           level: meetData.Level || 'Local'
         });
 
@@ -132,7 +170,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
             club_name,
             lifters!inner(membership_number)
           `)
-          .eq('meet_id', resolvedParams.id);
+          .eq('meet_id', parseInt(resolvedParams.id));
 
         if (resultsError) {
           console.error('Results fetch error:', resultsError);
@@ -931,57 +969,79 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                     
                     {!isDivisionCollapsed && (
                       <div className="overflow-x-auto">
-                        <table className="min-w-full">
+                        <table className="border-separate" style={{borderSpacing: 0, width: 'auto'}}>
                           <thead>
                             <tr className="border-b-2 border-gray-400 dark:border-gray-500">
                               <th 
                                 onClick={() => handleSort(division, 'place')}
                                 className="px-2 py-1 text-left text-xs font-medium text-app-muted uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                                style={{width: '60px'}}
                               >
-                                Place
-                                <SortIcon column="place" sortConfig={sortConfig} division={division} />
+                                <div className="flex items-center justify-start space-x-1">
+                                  <span>Place</span>
+                                  <SortIcon column="place" sortConfig={sortConfig} division={division} />
+                                </div>
                               </th>
                               <th 
                                 onClick={() => handleSort(division, 'lifter_name')}
                                 className="px-2 py-1 text-left text-xs font-medium text-app-muted uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                                style={{minWidth: '200px'}}
                               >
-                                Athlete
-                                <SortIcon column="lifter_name" sortConfig={sortConfig} division={division} />
+                                <div className="flex items-center justify-start space-x-1">
+                                  <span>Athlete</span>
+                                  <SortIcon column="lifter_name" sortConfig={sortConfig} division={division} />
+                                </div>
                               </th>
                               <th 
                                 onClick={() => handleSort(division, 'club_name')}
                                 className="px-2 py-1 text-left text-xs font-medium text-app-muted uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                                style={{minWidth: '120px'}}
                               >
-                                Club
-                                <SortIcon column="club_name" sortConfig={sortConfig} division={division} />
+                                <div className="flex items-center justify-start space-x-1">
+                                  <span>Club</span>
+                                  <SortIcon column="club_name" sortConfig={sortConfig} division={division} />
+                                </div>
                               </th>
+                              <th className="w-full"></th>
                               <th 
                                 onClick={() => handleSort(division, 'best_snatch')}
-                                className="px-2 py-1 text-left text-xs font-medium text-app-muted uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                                className="px-2 py-1 text-right text-xs font-medium text-app-muted uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                                style={{width: '80px'}}
                               >
-                                Snatch
-                                <SortIcon column="best_snatch" sortConfig={sortConfig} division={division} />
+                                <div className="flex items-center justify-end space-x-1">
+                                  <span>Snatch</span>
+                                  <SortIcon column="best_snatch" sortConfig={sortConfig} division={division} />
+                                </div>
                               </th>
                               <th 
                                 onClick={() => handleSort(division, 'best_cj')}
-                                className="px-2 py-1 text-left text-xs font-medium text-app-muted uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                                className="px-2 py-1 text-right text-xs font-medium text-app-muted uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                                style={{width: '80px'}}
                               >
-                                C&J
-                                <SortIcon column="best_cj" sortConfig={sortConfig} division={division} />
+                                <div className="flex items-center justify-end space-x-1">
+                                  <span>C&J</span>
+                                  <SortIcon column="best_cj" sortConfig={sortConfig} division={division} />
+                                </div>
                               </th>
                               <th 
                                 onClick={() => handleSort(division, 'total')}
-                                className="px-2 py-1 text-left text-xs font-medium text-app-muted uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                                className="px-2 py-1 text-right text-xs font-medium text-app-muted uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                                style={{width: '80px'}}
                               >
-                                Total
-                                <SortIcon column="total" sortConfig={sortConfig} division={division} />
+                                <div className="flex items-center justify-end space-x-1">
+                                  <span>Total</span>
+                                  <SortIcon column="total" sortConfig={sortConfig} division={division} />
+                                </div>
                               </th>
                               <th 
                                 onClick={() => handleSort(division, 'body_weight_kg')}
-                                className="px-2 py-1 text-left text-xs font-medium text-app-muted uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                                className="px-2 py-1 text-right text-xs font-medium text-app-muted uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                                style={{width: '100px'}}
                               >
-                                Bodyweight
-                                <SortIcon column="body_weight_kg" sortConfig={sortConfig} division={division} />
+                                <div className="flex items-center justify-end space-x-1">
+                                  <span>Bodyweight</span>
+                                  <SortIcon column="body_weight_kg" sortConfig={sortConfig} division={division} />
+                                </div>
                               </th>
                             </tr>
                           </thead>
@@ -1024,7 +1084,8 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                                   <div className="text-sm">{result.club_name || '-'}</div>
                                   <div className="text-xs text-app-muted">{result.wso}</div>
                                 </td>
-                                <td className="px-2 py-1 whitespace-nowrap text-sm" style={{ color: 'var(--chart-snatch)' }}>
+                                <td></td>
+                                <td className="px-2 py-1 whitespace-nowrap text-sm text-left" style={{ color: 'var(--chart-snatch)' }}>
                                   <div className="font-medium">{result.best_snatch ? `${result.best_snatch}kg` : '-'}</div>
                                   <div className="text-xs text-app-muted">
                                     {[result.snatch_lift_1, result.snatch_lift_2, result.snatch_lift_3]
@@ -1040,7 +1101,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                                       })}
                                   </div>
                                 </td>
-                                <td className="px-2 py-1 whitespace-nowrap text-sm" style={{ color: 'var(--chart-cleanjerk)' }}>
+                                <td className="px-2 py-1 whitespace-nowrap text-sm text-left" style={{ color: 'var(--chart-cleanjerk)' }}>
                                   <div className="font-medium">{result.best_cj ? `${result.best_cj}kg` : '-'}</div>
                                   <div className="text-xs text-app-muted">
                                     {[result.cj_lift_1, result.cj_lift_2, result.cj_lift_3]
@@ -1056,10 +1117,10 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                                       })}
                                   </div>
                                 </td>
-                                <td className="px-2 py-1 whitespace-nowrap text-sm font-bold" style={{ color: 'var(--chart-total)' }}>
+                                <td className="px-2 py-1 whitespace-nowrap text-sm font-bold text-left" style={{ color: 'var(--chart-total)' }}>
                                   {result.total ? `${result.total}kg` : '-'}
                                 </td>
-                                <td className="px-2 py-1 whitespace-nowrap text-sm text-app-secondary">
+                                <td className="px-2 py-1 whitespace-nowrap text-sm text-app-secondary text-left">
                                   {result.body_weight_kg ? `${result.body_weight_kg}kg` : '-'}
                                 </td>
                               </tr>
