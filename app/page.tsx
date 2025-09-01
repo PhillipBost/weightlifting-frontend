@@ -444,7 +444,16 @@ export default function WeightliftingLandingPage() {
       
       'ronald': ['ron', 'ronnie'],
       'ron': ['ronald', 'ronnie'],
-      'ronnie': ['ronald', 'ron']
+      'ronnie': ['ronald', 'ron'],
+      
+      'harley': ['harv'],
+      'harv': ['harley'],
+      
+      'martha': ['mattie'],
+      'mattie': ['martha'],
+      
+      'wesley': ['wes'],
+      'wes': ['wesley']
     };
     
     // Add name variations
