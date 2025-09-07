@@ -536,11 +536,21 @@ export function AthleteCard({ athleteName, results }: AthleteCardProps) {
     }).length > 0;
     
     // Check for young achiever (≤20 with strong recent YOY)
-    const latestAge = results.length > 0 ? results[0].competition_age || 0 : 0;
-    const isYoungAchiever = latestAge <= 20 && recentYoyTrend > 5;
+    // Find the first valid competition_age from any result to avoid defaulting to 0
+    const getValidAge = (): number | null => {
+      for (const result of results) {
+        if (result.competition_age && result.competition_age > 0) {
+          return result.competition_age;
+        }
+      }
+      return null;
+    };
+    
+    const validAge = getValidAge();
+    const isYoungAchiever = validAge !== null && validAge <= 20 && recentYoyTrend > 5;
 
     // Additional fun categories
-    const isLateBloomer = results.length > 0 && latestAge >= 25 && recentYoyTrend > 8;
+    const isLateBloomer = validAge !== null && validAge >= 25 && recentYoyTrend > 8;
     const isSteadyEddie = consistencyMetrics.score >= 85 && yearsActive >= 3;
     const isGlassCannon = bestQScore > 0 && consistencyMetrics.score <= 60 && recentYoyTrend < -5;
     const isIronWill = clutchPerformance >= 75 && (bounceBackRates.snatch + bounceBackRates.cleanJerk) / 2 >= 75;
