@@ -9,6 +9,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import Papa from 'papaparse';
 import { ThemeSwitcher } from '../../components/ThemeSwitcher';
+import { AthleteCard } from '../../components/AthleteCard';
 
 const getBestQScore = (result: any) => {
   const qYouth = result.q_youth || 0;
@@ -1705,6 +1706,11 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 			  
             </div>
           </div>
+        )}
+
+        {/* Athlete Performance Profile Card */}
+        {results.length > 0 && (
+          <AthleteCard athleteName={athlete.athlete_name} results={results} />
         )}
 
         {/* Personal Bests Cards */}
