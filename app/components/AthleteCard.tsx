@@ -548,8 +548,8 @@ export function AthleteCard({ athleteName, results }: AthleteCardProps) {
 
     // Additional fun categories
     const isLateBloomer = validAge !== null && validAge >= 25 && recentYoyTrend > 8;
-    const isSteadyEddie = consistencyMetrics.score >= 85 && yearsActive >= 3;
-    const isGlassCannon = bestQScore > 0 && consistencyMetrics.score <= 60 && recentYoyTrend < -5;
+    const isSteadyEddie = (consistencyMetrics.detrended?.score || consistencyMetrics.traditional.score) >= 85 && yearsActive >= 3;
+    const isGlassCannon = bestQScore > 0 && (consistencyMetrics.detrended?.score || consistencyMetrics.traditional.score) <= 60 && recentYoyTrend < -5;
     const isIronWill = clutchPerformance >= 75 && (bounceBackRates.snatch + bounceBackRates.cleanJerk) / 2 >= 75;
     const isTechnicalWizard = overallSuccessRate >= 90;
 
