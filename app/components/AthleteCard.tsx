@@ -4,6 +4,7 @@ import React, { useMemo } from 'react';
 import { TrendingUp, Target, Zap, KeyRound, Brain, Percent, Activity, Lightbulb, Crosshair, Scale, TrendingDown, ArrowRight, CheckCircle, AlertCircle, XCircle, Flame, Shield } from 'lucide-react';
 import { MetricTooltip } from './MetricTooltip';
 import { usePopulationStats } from '../hooks/usePopulationStats';
+import { calculateEnhancedConsistency } from '../../lib/trendAnalysis';
 
 interface AttemptData {
   lift1?: string | null;
@@ -61,18 +62,6 @@ const calculateSuccessRate = (attempts: (string | null | undefined)[]): number =
   return (successful.length / validAttempts.length) * 100;
 };
 
-const calculateConsistencyMetrics = (values: number[]): { score: number; coefficientOfVariation: number } => {
-  if (values.length < 2) return { score: 100, coefficientOfVariation: 0 };
-  
-  const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
-  const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
-  const standardDeviation = Math.sqrt(variance);
-  
-  const coefficientOfVariation = (standardDeviation / mean) * 100;
-  const score = Math.max(0, 100 - coefficientOfVariation);
-  
-  return { score: Math.round(score), coefficientOfVariation: Math.round(coefficientOfVariation * 10) / 10 };
-};
 
 const calculateClutchPerformance = (results: CompetitionResult[]): number => {
   let clutchSituations = 0;
@@ -359,7 +348,15 @@ export function AthleteCard({ athleteName, results }: AthleteCardProps) {
     const cjSuccessRate = calculateSuccessRate(cjAttempts);
     const overallSuccessRate = calculateSuccessRate([...snatchAttempts, ...cjAttempts]);
     
-    const consistencyMetrics = calculateConsistencyMetrics(totals);
+    // Prepare data for enhanced consistency calculation
+    const competitionData = results
+      .filter(result => result.total && parseAttempt(result.total))
+      .map(result => ({
+        date: result.date,
+        total: parseAttempt(result.total)!
+      }));
+    
+    const consistencyMetrics = calculateEnhancedConsistency(totals, competitionData);
     const clutchPerformance = calculateClutchPerformance(results);
     const bounceBackRates = calculateBounceBackRate(results);
     const attemptJumps = calculateAttemptJumps(results);
@@ -561,8 +558,12 @@ export function AthleteCard({ athleteName, results }: AthleteCardProps) {
       snatchSuccessRate: Math.round(snatchSuccessRate),
       cjSuccessRate: Math.round(cjSuccessRate),
       detailedSuccessRates,
-      consistencyScore: consistencyMetrics.score,
-      coefficientOfVariation: consistencyMetrics.coefficientOfVariation,
+      consistencyScore: consistencyMetrics.detrended?.score || consistencyMetrics.traditional.score,
+      traditionalConsistencyScore: consistencyMetrics.traditional.score,
+      coefficientOfVariation: consistencyMetrics.detrended?.coefficientOfVariation || consistencyMetrics.traditional.coefficientOfVariation,
+      trendDescription: consistencyMetrics.detrended?.trendDescription,
+      trendType: consistencyMetrics.detrended?.trendType,
+      hasDetrended: !!consistencyMetrics.detrended,
       clutchPerformance: Math.round(clutchPerformance),
       bounceBackRates: {
         snatch: Math.round(bounceBackRates.snatch),
@@ -774,8 +775,8 @@ export function AthleteCard({ athleteName, results }: AthleteCardProps) {
             <div className="flex items-center justify-between mb-3">
               <MetricTooltip
                 title="Mental Game"
-                description="Measures psychological aspects of competitive performance including consistency, high-pressure situations, and recovery from misses."
-                methodology="Performance Consistency Score is inverse of coefficient of variation. Clutch Performance measures success when final chance to avoid bombing out (3rd attempts after missing first two). Bounce-back measures recovery rate on follow-up attempts after a previous miss."
+                description="Measures psychological aspects of competitive performance including trend-adjusted consistency, high-pressure situations, and recovery from misses."
+                methodology="Performance Consistency Score uses detrended analysis to separate systematic improvement/decline from random variation. Clutch Performance measures success when final chance to avoid bombing out (3rd attempts after missing first two). Bounce-back measures recovery rate on follow-up attempts after a previous miss."
               >
                 <h3 className="text-sm font-medium text-app-secondary flex items-center">
                   <Brain className="h-4 w-4 mr-1" />
@@ -802,10 +803,15 @@ export function AthleteCard({ athleteName, results }: AthleteCardProps) {
               <div className="flex justify-between items-start min-w-0 gap-4">
                 <MetricTooltip
                   title="Performance Consistency Score"
-                  description="How consistent an athlete's performance is across competitions. Higher scores indicate more predictable, stable results."
-                  methodology="Calculated as 100 - (coefficient of variation). Higher scores = lower variability. For example, 85% means very consistent performance."
+                  description="How consistent an athlete's performance is across competitions. Uses advanced detrended analysis to separate systematic improvement/decline from random variation, ensuring athletes with steady development get high consistency scores."
+                  methodology={analytics.hasDetrended 
+                    ? "Advanced detrended consistency analysis. First, automatically selects the best-fit trend model (linear, quadratic, exponential, etc.) using statistical criteria. Then calculates residual variance from this trend line and applies coefficient of variation to the residuals. Result: 100 - CV%. Higher scores indicate lower variability around the performance trend."
+                    : "Traditional coefficient of variation analysis. Calculates (standard deviation ÷ mean) × 100, then inverted to consistency score: 100 - CV%. Higher scores indicate lower overall variability."
+                  }
                 >
-                  <span className="text-app-secondary cursor-help flex-shrink-0 break-words">Consistency:</span>
+                  <span className="text-app-secondary cursor-help flex-shrink-0 break-words">
+                    Consistency:
+                  </span>
                 </MetricTooltip>
                 <span className="font-medium text-app-primary text-right max-w-[120px] break-words leading-tight">
                   {analytics.consistencyScore}%{getPercentileText(analytics.consistencyScore, populationStats?.consistencyScore)}
