@@ -744,13 +744,13 @@ export function AthleteCard({ athleteName, results }: AthleteCardProps) {
               <div className="flex justify-between">
                 <span className="text-app-secondary font-medium" style={{ color: 'var(--chart-snatch)' }}>Snatch Overall:</span>
                 <span className="font-medium text-app-primary text-right">
-                  {analytics.snatchSuccessRate}%{getPercentileText(analytics.snatchSuccessRate, populationStats?.successRate)}
+                  {analytics.snatchSuccessRate}%{getPercentileText(analytics.snatchSuccessRate, populationStats?.snatchSuccessRate)}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-app-secondary font-medium" style={{ color: 'var(--chart-cleanjerk)' }}>C&J Overall:</span>
                 <span className="font-medium text-app-primary text-right">
-                  {analytics.cjSuccessRate}%{getPercentileText(analytics.cjSuccessRate, populationStats?.successRate)}
+                  {analytics.cjSuccessRate}%{getPercentileText(analytics.cjSuccessRate, populationStats?.cleanJerkSuccessRate)}
                 </span>
               </div>
               <div className="space-y-1 text-xs pt-2 border-t border-app-secondary">

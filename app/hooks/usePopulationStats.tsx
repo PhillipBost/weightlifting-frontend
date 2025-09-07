@@ -16,6 +16,8 @@ interface PopulationMetric {
 
 interface PopulationStats {
   successRate: PopulationMetric;
+  snatchSuccessRate: PopulationMetric;
+  cleanJerkSuccessRate: PopulationMetric;
   consistencyScore: PopulationMetric;
   clutchPerformance: PopulationMetric;
   bounceBackRate: PopulationMetric;
@@ -136,6 +138,8 @@ export function usePopulationStats(filter?: DemographicFilter) {
 
           setStats({
             successRate: { ...fallbackMetric, mean: 75 },
+            snatchSuccessRate: { ...fallbackMetric, mean: 72 },
+            cleanJerkSuccessRate: { ...fallbackMetric, mean: 78 },
             consistencyScore: { ...fallbackMetric, mean: 75 },
             clutchPerformance: { ...fallbackMetric, mean: 48 },
             bounceBackRate: { ...fallbackMetric, mean: 62 },
@@ -178,6 +182,27 @@ export function usePopulationStats(filter?: DemographicFilter) {
           
           const successRate = validAttempts.length > 0 ? 
             (successfulAttempts.length / validAttempts.length) * 100 : 0;
+
+          // Calculate separate snatch and clean & jerk success rates
+          const snatchAttempts = [result.snatch_lift_1, result.snatch_lift_2, result.snatch_lift_3];
+          const validSnatchAttempts = snatchAttempts.filter(attempt => 
+            attempt && attempt !== '0' && !isNaN(parseInt(attempt))
+          );
+          const successfulSnatchAttempts = validSnatchAttempts.filter(attempt => 
+            parseInt(attempt) > 0
+          );
+          const snatchSuccessRate = validSnatchAttempts.length > 0 ? 
+            (successfulSnatchAttempts.length / validSnatchAttempts.length) * 100 : 0;
+
+          const cjAttempts = [result.cj_lift_1, result.cj_lift_2, result.cj_lift_3];
+          const validCjAttempts = cjAttempts.filter(attempt => 
+            attempt && attempt !== '0' && !isNaN(parseInt(attempt))
+          );
+          const successfulCjAttempts = validCjAttempts.filter(attempt => 
+            parseInt(attempt) > 0
+          );
+          const cleanJerkSuccessRate = validCjAttempts.length > 0 ? 
+            (successfulCjAttempts.length / validCjAttempts.length) * 100 : 0;
 
           // Simple clutch calculation - 3rd attempts after missing first two
           let clutchSituations = 0;
@@ -245,6 +270,8 @@ export function usePopulationStats(filter?: DemographicFilter) {
           return {
             lifter_id: result.lifter_id,
             successRate,
+            snatchSuccessRate,
+            cleanJerkSuccessRate,
             clutchRate,
             bounceBackRate,
             snatchBounceBackRate,
@@ -257,6 +284,8 @@ export function usePopulationStats(filter?: DemographicFilter) {
             return {
               lifter_id: result.lifter_id || `unknown_${index}`,
               successRate: 0,
+              snatchSuccessRate: 0,
+              cleanJerkSuccessRate: 0,
               clutchRate: 0,
               bounceBackRate: 0,
               snatchBounceBackRate: 0,
@@ -308,6 +337,8 @@ export function usePopulationStats(filter?: DemographicFilter) {
         };
 
         const successRates = athleteMetrics.map(m => m.successRate);
+        const snatchSuccessRates = athleteMetrics.map(m => m.snatchSuccessRate);
+        const cleanJerkSuccessRates = athleteMetrics.map(m => m.cleanJerkSuccessRate);
         const clutchRates = athleteMetrics.map(m => m.clutchRate);
         
         // Debug logging for development
@@ -336,6 +367,14 @@ export function usePopulationStats(filter?: DemographicFilter) {
         setStats({
           successRate: {
             ...calculatePercentiles(successRates, false), // Don't include zeros for success rates
+            demographicDescription
+          },
+          snatchSuccessRate: {
+            ...calculatePercentiles(snatchSuccessRates, false), // Don't include zeros for snatch success rates
+            demographicDescription
+          },
+          cleanJerkSuccessRate: {
+            ...calculatePercentiles(cleanJerkSuccessRates, false), // Don't include zeros for clean & jerk success rates
             demographicDescription
           },
           consistencyScore: {
@@ -415,6 +454,8 @@ export function usePopulationStats(filter?: DemographicFilter) {
         
         setStats({
           successRate: { ...fallbackMetric, mean: 76 },
+          snatchSuccessRate: { ...fallbackMetric, mean: 73 },
+          cleanJerkSuccessRate: { ...fallbackMetric, mean: 79 },
           consistencyScore: { ...fallbackMetric, mean: 75 },
           clutchPerformance: { ...fallbackMetric, mean: 47 },
           bounceBackRate: { ...fallbackMetric, mean: 61 },
