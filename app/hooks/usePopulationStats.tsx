@@ -38,6 +38,7 @@ export function usePopulationStats(filter?: DemographicFilter) {
   const [stats, setStats] = useState<PopulationStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryAttempted, setRetryAttempted] = useState(false);
 
   useEffect(() => {
     async function fetchPopulationStats() {
@@ -467,9 +468,9 @@ export function usePopulationStats(filter?: DemographicFilter) {
         
         // Add retry mechanism for failed requests
         const shouldRetry = !err?.code || err.code !== 'PGRST116'; // Don't retry on auth errors
-        if (shouldRetry && !fetchPopulationStats.retryAttempted) {
+        if (shouldRetry && !retryAttempted) {
           console.log('Retrying population stats fetch in 2 seconds...');
-          fetchPopulationStats.retryAttempted = true;
+          setRetryAttempted(true);
           setTimeout(() => {
             fetchPopulationStats();
           }, 2000);
