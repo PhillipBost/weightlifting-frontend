@@ -1,0 +1,537 @@
+# Key Insights Definitions
+
+**CRITICAL: This file documents all Key Insights that appear in athlete profiles. Each insight has specific mathematical criteria that must be preserved exactly as implemented. Do not modify the calculations, thresholds, or criteria without careful consideration.**
+## Key Insights Philosophy
+
+### Core Principle: Uniqueness Over Elite Celebration
+The purpose of Key Insights is to identify **what makes each athlete distinctive and unique**, not to celebrate only elite performers. Every athlete should have meaningful insights that highlight their individual characteristics, patterns, and development.
+
+### Target Philosophy:
+- **Comparative Excellence**: An athlete in the 20th percentile for some categories might be in a high percentile related to Consistency within their peer group.
+- **Strategic Distinctiveness**:  Identify unique patterns in how an athlete approaches competitions. Their strategic decision-making, attempt selection patterns, risk tolerance, tactical choices, etc. Regardless of whether they're elite or developing athletes, every athlete has something unique that can be expressed through Key Insights.
+- **Development Patterns**: Identify improvement trajectories and growth patterns that are noteworthy.
+- **Specializations**: Notable Q-scores (particularly q-youth and q-masters), attempt patterns, and Mental Game strengths specific to each athlete.
+- **Intentional Recency Bias**: When looking at the entire history of an athlete's competition career, more recent trends are more relevant to focus on for Key Insights since it reflects the time period that active athletes and their coaches have direct influence over.
+
+**Goal**: Every athlete profile should reveal something interesting and unique about that individual's weightlifting journey and characteristics. Key Insights should, at minimum, reveal something unique, something positive, and something that can be improved.
+
+
+---
+
+## Table of Contents
+- [Performance-Based Insights](#performance-based-insights)
+- [Pressure Performance Insights](#pressure-performance-insights)  
+- [Recovery Ability Insights](#recovery-ability-insights)
+- [Consistency Insights](#consistency-insights)
+- [Q-Score Performance Insights](#q-score-performance-insights)
+- [Personality Categories](#personality-categories)
+- [Strategic Approach Insights](#strategic-approach-insights)
+- [Trend-Based Insights](#trend-based-insights)
+- [Experience & Development Insights](#experience--development-insights)
+- [Mathematical Foundations](#mathematical-foundations)
+
+---
+
+## Performance-Based Insights
+
+### Elite Attempt Conversion
+**User Description**: "Exceptional technical execution across all attempts. Rarely misses!"  
+**Technical Criteria**: ≥90th percentile overall success rate within demographic group  
+**Mathematical Formula**: `calculatePercentile(overallSuccessRate, populationStats.successRate) >= 90`  
+**Calculation Details**: 
+- `overallSuccessRate = (successful_attempts ÷ total_attempts) × 100`
+- `successful_attempts = count of attempts with positive weight values`
+- Uses true percentile ranking with midpoint method for ties
+**Population Context**: Requires high confidence population data (≥1000 athletes)
+
+### Strong Attempt Conversion  
+**User Description**: "Solid technical execution with high success rates"  
+**Technical Criteria**: ≥75th percentile overall success rate within demographic group  
+**Mathematical Formula**: `calculatePercentile(overallSuccessRate, populationStats.successRate) >= 75`  
+**Population Context**: Based on demographic-filtered population statistics
+
+### Solid Technical Foundation
+**User Description**: "Reliable technical execution showing strong fundamentals"  
+**Technical Criteria**: ≥60th percentile overall success rate within demographic group  
+**Mathematical Formula**: `calculatePercentile(overallSuccessRate, populationStats.successRate) >= 60`  
+  
+
+---
+
+## Pressure Performance Insights
+
+### Elite Under Pressure
+**User Description**: "Exceptional mental toughness in pressure situations. Clutch performer who rarely cracks under pressure."  
+**Technical Criteria**: ≥85th percentile clutch performance AND clutch situations exist  
+**Mathematical Formula**: 
+```
+calculatePercentile(clutchPerformance, populationStats.clutchPerformance) >= 85 
+AND clutchPerformance > 0
+```
+**Clutch Performance Calculation**:
+```javascript
+// Must-make 3rd attempts after missing first two
+const clutchSituations = competitions.filter(comp => {
+  return (snatch_1 <= 0 AND snatch_2 <= 0 AND snatch_3 != 0) OR
+         (cj_1 <= 0 AND cj_2 <= 0 AND cj_3 != 0)
+});
+clutchPerformance = (successful_clutch_attempts ÷ total_clutch_situations) × 100
+```
+**Population Context**: Excludes athletes with zero clutch situations
+
+### Good Under Pressure  
+**User Description**: "Shows composure in high-pressure situations"  
+**Technical Criteria**: ≥65th percentile clutch performance AND clutch situations exist  
+**Mathematical Formula**: 
+```
+calculatePercentile(clutchPerformance, populationStats.clutchPerformance) >= 65 
+AND clutchPerformance > 0
+```
+
+---
+
+## Recovery Ability Insights
+
+### Elite Snatch Recovery
+**User Description**: "Exceptional ability to recover from missed snatch attempts"  
+**Technical Criteria**: ≥90th percentile snatch bounce-back rate AND bounce-back situations exist  
+**Mathematical Formula**: 
+```
+calculatePercentile(snatchBounceBackRate, populationStats.snatchBounceBackRate) >= 90 
+AND snatchBounceBackRate > 0
+```
+**Bounce-Back Calculation**:
+```javascript
+// Success on 2nd attempt after missing 1st
+snatchBounceBackSituations = competitions.filter(comp => 
+  snatch_1 <= 0 AND snatch_2 != 0
+);
+snatchBounceBackRate = (successful_2nd_snatches ÷ bounce_back_situations) × 100
+```
+
+### Good Snatch Recovery
+**User Description**: "Strong ability to bounce back from missed snatch attempts"  
+**Technical Criteria**: ≥70th percentile snatch bounce-back rate AND bounce-back situations exist  
+**Mathematical Formula**: 
+```
+calculatePercentile(snatchBounceBackRate, populationStats.snatchBounceBackRate) >= 70 
+AND snatchBounceBackRate > 0
+```
+
+### Elite C&J Recovery  
+**User Description**: "Exceptional ability to recover from missed clean & jerk attempts"  
+**Technical Criteria**: ≥90th percentile C&J bounce-back rate AND bounce-back situations exist  
+**Mathematical Formula**: 
+```
+calculatePercentile(cjBounceBackRate, populationStats.cleanJerkBounceBackRate) >= 90 
+AND cjBounceBackRate > 0
+```
+
+### Good C&J Recovery
+**User Description**: "Strong ability to bounce back from missed clean & jerk attempts"  
+**Technical Criteria**: ≥70th percentile C&J bounce-back rate AND bounce-back situations exist  
+**Mathematical Formula**: 
+```
+calculatePercentile(cjBounceBackRate, populationStats.cleanJerkBounceBackRate) >= 70 
+AND cjBounceBackRate > 0
+```
+
+---
+
+## Consistency Insights
+
+### Very Consistent Performer
+**User Description**: "Outstanding performance consistency across competitions"  
+**Technical Criteria**: ≥85th percentile consistency score within demographic group  
+**Mathematical Formula**: 
+```
+calculatePercentile(consistencyScore, populationStats.consistencyScore) >= 85
+```
+**Consistency Score Calculation** (3-Year Coefficient of Variation Method):
+```javascript
+// 1. Filter to last 3 years of competitions
+const threeYearsAgo = new Date();
+threeYearsAgo.setFullYear(threeYearsAgo.getFullYear() - 3);
+const recentResults = results.filter(result => new Date(result.date) >= threeYearsAgo);
+
+// 2. Calculate traditional coefficient of variation
+const mean = totals.reduce((sum, val) => sum + val, 0) / totals.length;
+const stdDev = Math.sqrt(variance);
+const cv = (stdDev / mean) × 100;
+const consistencyScore = Math.max(0, 100 - cv);
+```
+**Population Context**: Uses 3-year window for meaningful competitive reliability assessment
+
+### Reliable Performer
+**User Description**: "Consistent performance showing good technical control"  
+**Technical Criteria**: ≥65th percentile consistency score within demographic group  
+**Mathematical Formula**: 
+```
+calculatePercentile(consistencyScore, populationStats.consistencyScore) >= 65
+```
+**Uses Same 3-Year Consistency Calculation**: Follows identical methodology as Very Consistent Performer with different threshold
+
+---
+
+## Q-Score Performance Insights
+
+Q-scores represent comprehensive competitive performance in weightlifting, combining bodyweight, total lifted, age, and gender factors into a standardized measure. Higher Q-scores indicate superior weightlifting performance.
+
+### Elite Q-Score Performance
+**User Description**: "Exceptional competitive performance showing elite-level weightlifting ability"  
+**Technical Criteria**: ≥90th percentile Q-score performance within demographic group AND sample size >500  
+**Mathematical Formula**: `populationStats.qScorePerformance.sampleSize > 500 && calculatePercentile(bestQScore, populationStats.qScorePerformance) >= 90`  
+**Recent Competition Logic**: For athletes with 4+ meets, uses best Q-score from 25% most recent competitions only  
+**Q-Score Context**: Includes recent best Q-score type achieved (Q-points, Q-Youth, or Q-Masters)  
+
+### Strong Q-Score Performance  
+**User Description**: "Above-average competitive performance demonstrating strong weightlifting ability"  
+**Technical Criteria**: ≥75th percentile Q-score performance within demographic group AND sample size >500  
+**Mathematical Formula**: `populationStats.qScorePerformance.sampleSize > 500 && calculatePercentile(bestQScore, populationStats.qScorePerformance) >= 75`  
+**Recent Competition Logic**: For athletes with 4+ meets, uses best Q-score from 25% most recent competitions only  
+
+### Solid Q-Score Performance
+**User Description**: "Reliable competitive performance showing good weightlifting fundamentals"  
+**Technical Criteria**: ≥60th percentile Q-score performance within demographic group AND sample size >500  
+**Mathematical Formula**: `populationStats.qScorePerformance.sampleSize > 500 && calculatePercentile(bestQScore, populationStats.qScorePerformance) >= 60`  
+**Recent Competition Logic**: For athletes with 4+ meets, uses best Q-score from 25% most recent competitions only  
+
+**Technical Details**:
+- **Q-Score Calculation**: For athletes with 4+ meets, uses best Q-score from 25% most recent competitions; otherwise uses career-best
+- **Population Threshold**: Requires >500 athletes in sample (lowered from >1000) for statistical significance
+- **Comparison**: Compares against population distribution for accurate percentile calculation  
+- **Display**: Shows recent best Q-score value and type in methodology tooltip with competition scope note
+- Uses proper demographic filtering for fair comparisons
+
+---
+
+## Personality Categories
+
+
+### Iron Will  
+**User Description**: "Exceptional mental toughness in pressure situations. Clutch performer who rarely cracks under pressure."  
+**Technical Criteria**: High clutch performance with strong bounce-back rates  
+**Mathematical Formula**: 
+```
+clutchPerformance >= 75 
+AND ((snatchBounceBackRate + cjBounceBackRate) ÷ 2) >= 75
+```
+
+### Technical Wizard
+**User Description**: "Outstanding technical execution with exceptional success rates. Rarely misses attempts!"  
+**Technical Criteria**: Elite overall success rate  
+**Mathematical Formula**: `overallSuccessRate >= 90`  
+
+### Steady Eddie
+**User Description**: "Reliable, consistent performer over multiple years. The dependable competitor you can count on."  
+**Technical Criteria**: High consistency with significant experience  
+**Mathematical Formula**: 
+```
+consistencyScore >= 85 
+AND yearsActive >= 3
+```
+**Years Active Calculation**:
+```javascript
+const years = [...new Set(results.map(r => new Date(r.date).getFullYear()))];
+const yearsActive = years.length;
+```
+
+### Masters Achiever
+**User Description**: "Set lifetime personal records as a masters athlete (35+). Shows that age is just a number!"  
+**Technical Criteria**: Lifetime PRs achieved at age 35 or older  
+**Mathematical Formula**: 
+```
+results.some(result => 
+  result.competition_age >= 35 
+  AND (result.best_snatch === maxSnatch OR result.best_cj === maxCj OR result.total === maxTotal)
+)
+```
+
+### Young Achiever  
+**User Description**: "Young athlete (≤20) with strong recent improvement trend. Future star potential!"  
+**Technical Criteria**: Young age with strong recent performance trend  
+**Mathematical Formula**: 
+```
+validAge <= 20 
+AND recentYoyTrend > 5
+```
+**Age Validation**:
+```javascript
+const getValidAge = () => {
+  for (const result of results) {
+    if (result.competition_age && result.competition_age > 0) {
+      return result.competition_age;
+    }
+  }
+  return null;
+};
+```
+
+### Late Bloomer
+**User Description**: "Mature athlete (25+) experiencing strong recent performance growth. Proof that improvement never stops!"  
+**Technical Criteria**: Mature age with exceptional recent improvement  
+**Mathematical Formula**: 
+```
+validAge >= 25 
+AND recentYoyTrend > 8
+```
+
+---
+
+## Strategic Approach Insights
+
+### Big Swing Attempts  
+**User Description**: "Takes large jumps on final attempts, showing aggressive risk-taking for maximum results."  
+**Technical Criteria**: Large percentage-based jumps on final attempts (2nd→3rd)  
+**Mathematical Formula**: 
+```
+analytics.attemptJumps.snatch.avgSecondToThirdPercent >= 5 OR 
+analytics.attemptJumps.cleanJerk.avgSecondToThirdPercent >= 6
+```
+**Jump Calculation**:
+```javascript
+// Only calculate jumps between successful attempts - ACCURATE STRATEGIC ANALYSIS
+if (sn2 && sn3 && sn2 > 0 && sn3 > 0) {
+  const snatchJumpPercent = ((sn3 - sn2) / sn2) * 100;
+}
+if (cj2 && cj3 && cj2 > 0 && cj3 > 0) {
+  const cjJumpPercent = ((cj3 - cj2) / cj2) * 100;
+}
+```
+**Technical Details**:
+- **Fixed**: Now excludes missed attempts (negative values) from jump calculations
+- Only calculates jumps between successful attempts (both attempts must be >0)
+- Provides accurate representation of strategic attempt progressions
+- Fair analysis across all weight classes, genders, and age groups
+- Display shows both absolute and percentage values for context
+
+### Safety-First Approach
+**User Description**: "Conservative opening strategy prioritizes making successful attempts over aggressive positioning."  
+**Technical Criteria**: Very conservative opening attempt percentages  
+**Mathematical Formula**: 
+```
+averageSnatchOpening > 0 AND averageCjOpening > 0 
+AND ((averageSnatchOpening + averageCjOpening) ÷ 2) <= 85
+```
+**Opening Percentage Calculation**:
+```javascript
+// For each competition after the first
+const snatchPercentage = (current_snatch_opener / previous_best_snatch) × 100;
+const cjPercentage = (current_cj_opener / previous_best_cj) × 100;
+// Average across all competitions with previous data
+```
+
+### High Competition Activity
+**User Description**: "Frequently competes showing high engagement with the sport"  
+**Technical Criteria**: ≥80th percentile competition frequency within demographic group  
+**Mathematical Formula**: 
+```
+calculatePercentile(competitionFrequency, populationStats.competitionFrequency) >= 80
+```
+**Competition Frequency Calculation**:
+```javascript
+const competitionFrequency = totalCompetitions / yearsActive;
+```
+
+---
+
+## Trend-Based Insights
+
+### Strong Upward Trajectory
+**User Description**: "Exceptional recent improvement showing strong development"  
+**Technical Criteria**: Very high recent year-over-year improvement  
+**Mathematical Formula**: `recentYoyTrend > 10`  
+**Recent YOY Calculation**:
+```javascript
+// Get yearly best totals, calculate last 2 YOY changes, average them
+const yearlyBests = groupByYear(results);
+const yoyChanges = [];
+for (let i = 1; i < yearlyBests.length; i++) {
+  const change = ((yearlyBests[i].best - yearlyBests[i-1].best) / yearlyBests[i-1].best) × 100;
+  yoyChanges.push(change);
+}
+const recentYoyTrend = yoyChanges.slice(-2).reduce((sum, change) => sum + change, 0) / 2;
+```
+
+### Positive Development Trend  
+**User Description**: "Recent improvement trend showing continued development"  
+**Technical Criteria**: Moderate recent year-over-year improvement  
+**Mathematical Formula**: `recentYoyTrend > 5`  
+**Implementation**: Similar calculation to Strong Upward Trajectory
+
+### Growth Mindset
+**User Description**: "Shows consistent improvement over time. Steady progress is the path to long-term success."  
+**Technical Criteria**: Multi-year improvement streak with moderate recent trend  
+**Mathematical Formula**: 
+```
+improvementStreak >= 2 
+AND recentYoyTrend > 2 
+AND recentYoyTrend <= 8
+```
+**Improvement Streak Calculation**:
+```javascript
+// Count consecutive years with YOY improvement from most recent
+let currentStreak = 0;
+for (let i = yoyChanges.length - 1; i >= 0; i--) {
+  if (yoyChanges[i] > 0) {
+    currentStreak++;
+  } else {
+    break;
+  }
+}
+```
+
+### Comeback Story
+**User Description**: "Recent strong improvement after earlier challenges. Shows resilience and adaptation."  
+**Technical Criteria**: Career decline but strong recent improvement  
+**Mathematical Formula**: 
+```
+performanceTrend < -5 
+AND recentYoyTrend > 8
+```
+**Performance Trend Calculation**:
+```javascript
+// Average of all year-over-year changes across career
+const performanceTrend = yoyChanges.reduce((sum, change) => sum + change, 0) / yoyChanges.length;
+```
+
+---
+
+## Experience & Development Insights
+
+### Veteran Competitor
+**User Description**: "Experienced athlete with extensive competition history."  
+**Technical Criteria**: Extensive experience in both years and competitions  
+**Mathematical Formula**: 
+```
+yearsActive >= 8 
+AND totalCompetitions >= 15
+```
+
+### Experienced Competitor  
+**User Description**: "Well-established athlete with solid competition background."  
+**Technical Criteria**: Solid experience in both years and competitions  
+**Mathematical Formula**: 
+```
+yearsActive >= 4 
+AND totalCompetitions >= 8
+```
+
+### Getting Started
+**User Description**: "Beginning their weightlifting competition journey. Every champion started with their first meet!"  
+**Technical Criteria**: Very new to competition  
+**Mathematical Formula**: 
+```
+totalCompetitions <= 2 
+AND yearsActive <= 1
+```
+
+### Building Foundation
+**User Description**: "Developing technical skills with positive improvement trend. Every elite lifter started here!"  
+**Technical Criteria**: Lower success rate, showing improvement, and newer athlete (<5 competitions)  
+**Mathematical Formula**: 
+```
+calculatePercentile(overallSuccessRate, populationStats.successRate) <= 40 
+AND recentYoyTrend > 0
+AND totalCompetitions < 5
+```
+
+### Bold Strategy
+**User Description**: "Experienced competitor with aggressive attempt selection. Taking calculated risks for maximum results."  
+**Technical Criteria**: Lower success rate, experienced athlete (5+ competitions), aggressive opener strategy  
+**Mathematical Formula**: 
+```
+calculatePercentile(overallSuccessRate, populationStats.successRate) <= 40 
+AND recentYoyTrend > 0
+AND totalCompetitions >= 5
+AND (averageSnatchOpening >= 93 OR averageCjOpening >= 93)
+```
+
+## Lower Percentile Insights
+
+No forced filler content or tier-based analysis needed.
+
+The current insights provide meaningful information across all performance levels through existing percentile-based insights. Additional insights should only be added when genuinely compelling patterns emerge, not to create content for lower-performing athletes.
+
+**Current Approach**: Focus on quality insights that highlight genuine uniqueness rather than participation awards or artificial tier comparisons.
+
+---
+
+## Mathematical Foundations
+
+### Population Percentile Calculation
+**Method**: True percentile ranking using midpoint method for ties
+```javascript
+const calculatePercentile = (value, popStats) => {
+  const worseCount = popStats.distribution.filter(v => v < value).length;
+  const sameCount = popStats.distribution.filter(v => v === value).length;
+  const totalCount = popStats.distribution.length;
+  
+  // Midpoint method: percentile = (worse + same/2) / total * 100
+  const rawPercentile = ((worseCount + sameCount / 2) / totalCount) * 100;
+  
+  // Cap at 99th percentile to prevent misleading 100th+ percentiles
+  return Math.min(99, Math.round(rawPercentile));
+};
+```
+
+### Attempt Parsing Rules
+```javascript
+const parseAttempt = (attempt) => {
+  if (!attempt || attempt === '0') return null;
+  const parsed = parseInt(attempt);
+  return isNaN(parsed) ? null : parsed;
+};
+
+const isSuccessfulAttempt = (attempt) => {
+  const parsed = parseAttempt(attempt);
+  return parsed !== null && parsed > 0; // Positive values = successful lifts
+};
+```
+
+### Enhanced Attempt Jump Calculations
+**Purpose**: Accurate strategic analysis using successful attempts only  
+**Recent Competition Restriction**: For athletes with 4+ meets, calculations use only the 25% most recent competitions to reflect current strategy rather than developmental history.  
+**Calculation Scope**: Entire career for athletes with <4 meets, recent 25% for athletes with 4+ meets.  
+```javascript
+// Enhanced calculateAttemptJumps function - excludes missed attempts for accuracy
+const calculateAttemptJumps = (results) => {
+  // For athletes with 4+ meets, use only 25% most recent competitions
+  const shouldUseRecentOnly = results.length >= 4;
+  const relevantResults = shouldUseRecentOnly 
+    ? results.slice(0, Math.round(results.length * 0.25))
+    : results;
+  
+  results.forEach(result => {
+    // FIXED: Only calculate jumps between successful attempts
+    if (sn2 && sn3 && sn2 > 0 && sn3 > 0) {
+      const absoluteJump = sn3 - sn2;  // No Math.abs() needed - both positive
+      const percentJump = (absoluteJump / sn2) * 100;
+      snatchJumps.second_to_third.push(absoluteJump);
+      snatchJumps.second_to_third_percent.push(percentJump);
+    }
+  });
+  
+  // Return both absolute and percentage averages
+  return {
+    snatch: {
+      avgSecondToThird: Math.round(average(snatchJumps.second_to_third)),
+      avgSecondToThirdPercent: Math.round(average(snatchJumps.second_to_third_percent) * 10) / 10
+    }
+  };
+};
+```
+
+### Data Quality Requirements
+- **Minimum competitions**: Most insights require ≥2 competitions for meaningful analysis
+- **Population confidence**: High confidence requires ≥1000 athletes, moderate ≥100, low <100
+- **Demographic filtering**: Gender, age category, and competition level when available
+- **Temporal requirements**: YOY trends require ≥2 years of data
+
+---
+
+**Source Code References**:
+- **Main Analytics Logic**: `app/components/AthleteCard.tsx`
+- **Trend Analysis**: `lib/trendAnalysis.ts`
+- **Population Statistics**: `app/hooks/usePopulationStats.tsx`
+- **Tooltip Implementation**: `app/components/MetricTooltip.tsx`
