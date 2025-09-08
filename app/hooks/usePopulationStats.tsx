@@ -41,6 +41,11 @@ export function usePopulationStats(filter?: DemographicFilter) {
 
   useEffect(() => {
     async function fetchPopulationStats() {
+      const timeoutId = setTimeout(() => {
+        setError('Population statistics loading timed out. Using fallback data.');
+        setLoading(false);
+      }, 10000); // 10 second timeout
+      
       try {
         setLoading(true);
         setError(null);
@@ -407,45 +412,72 @@ export function usePopulationStats(filter?: DemographicFilter) {
           }
         });
 
+        clearTimeout(timeoutId); // Clear timeout on success
       } catch (err: any) {
-        console.error('Error fetching population stats:', err);
+        clearTimeout(timeoutId); // Clear timeout on error
         
-        // Try multiple ways to extract error information
-        try {
-          console.error('Error JSON:', JSON.stringify(err, null, 2));
-        } catch (jsonErr) {
-          console.error('Cannot stringify error object');
+        // Enhanced error logging and extraction
+        console.error('Error fetching population stats:', err);
+        console.error('Error type:', typeof err);
+        console.error('Error constructor:', err?.constructor?.name);
+        
+        // Extract error details with better handling
+        const errorDetails = {
+          message: err?.message || '',
+          code: err?.code || '',
+          details: err?.details || '',
+          hint: err?.hint || '',
+          name: err?.name || '',
+          stack: err?.stack || ''
+        };
+        
+        console.error('Detailed error info:', errorDetails);
+        
+        // Construct comprehensive error message
+        let errorMessage = 'Population statistics loading failed';
+        
+        if (err?.message && err.message !== '{}') {
+          errorMessage += `: ${err.message}`;
         }
         
-        console.error('Error details:', {
-          type: typeof err,
-          message: err?.message,
-          stack: err?.stack,
-          code: err?.code,
-          name: err?.name,
-          toString: err?.toString?.(),
-          keys: Object.keys(err || {}),
-          values: Object.values(err || {})
-        });
+        if (err?.code) {
+          errorMessage += ` (Code: ${err.code})`;
+        }
         
-        // More robust error message extraction with context
-        let errorMessage = 'Failed to fetch population statistics';
-        if (err?.message) {
-          errorMessage = `Population stats error: ${err.message}`;
-        } else if (err?.code) {
-          errorMessage = `Population stats error (${err.code})`;
-        } else if (typeof err === 'string') {
-          errorMessage = `Population stats error: ${err}`;
-        } else if (err?.toString && typeof err.toString === 'function') {
-          errorMessage = `Population stats error: ${err.toString()}`;
-        } else {
-          errorMessage = `Population stats error: ${JSON.stringify(err) || 'Unknown error'}`;
+        if (err?.details) {
+          errorMessage += ` - ${err.details}`;
+        }
+        
+        if (err?.hint) {
+          errorMessage += ` Hint: ${err.hint}`;
+        }
+        
+        // If still empty error, try alternative approaches
+        if (errorMessage === 'Population statistics loading failed') {
+          if (typeof err === 'string' && err.length > 0) {
+            errorMessage += `: ${err}`;
+          } else if (err?.toString && typeof err.toString === 'function' && err.toString() !== '[object Object]') {
+            errorMessage += `: ${err.toString()}`;
+          } else {
+            errorMessage += ': Network or database connection issue';
+          }
         }
         
         setError(errorMessage);
         
+        // Add retry mechanism for failed requests
+        const shouldRetry = !err?.code || err.code !== 'PGRST116'; // Don't retry on auth errors
+        if (shouldRetry && !fetchPopulationStats.retryAttempted) {
+          console.log('Retrying population stats fetch in 2 seconds...');
+          fetchPopulationStats.retryAttempted = true;
+          setTimeout(() => {
+            fetchPopulationStats();
+          }, 2000);
+          return;
+        }
+        
         // Provide fallback stats on error - no distribution data means no percentile calculations
-        const fallbackDescription = 'all athletes (fallback data)';
+        const fallbackDescription = 'all athletes (fallback data - error occurred)';
         const fallbackMetric = {
           percentile25: 0, percentile50: 0, percentile75: 0, mean: 0,
           sampleSize: 0, distribution: [], confidence: 'low' as const,
@@ -465,6 +497,7 @@ export function usePopulationStats(filter?: DemographicFilter) {
           qScorePerformance: { ...fallbackMetric, mean: 54 }
         });
       } finally {
+        clearTimeout(timeoutId); // Ensure timeout is always cleared
         setLoading(false);
       }
     }

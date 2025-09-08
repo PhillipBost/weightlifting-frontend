@@ -4,7 +4,6 @@ import React, { useMemo } from 'react';
 import { TrendingUp, Target, Zap, KeyRound, Brain, Percent, Activity, Lightbulb, Crosshair, Scale, TrendingDown, ArrowRight, CheckCircle, AlertCircle, XCircle, Flame, Shield } from 'lucide-react';
 import { MetricTooltip } from './MetricTooltip';
 import { usePopulationStats } from '../hooks/usePopulationStats';
-import { calculateEnhancedConsistency } from '../../lib/trendAnalysis';
 
 interface AttemptData {
   lift1?: string | null;
@@ -125,38 +124,76 @@ const calculateBounceBackRate = (results: CompetitionResult[]): { snatch: number
 };
 
 const calculateAttemptJumps = (results: CompetitionResult[]) => {
-  const snatchJumps = { first_to_second: [] as number[], second_to_third: [] as number[], ranges: [] as number[] };
-  const cjJumps = { first_to_second: [] as number[], second_to_third: [] as number[], ranges: [] as number[] };
+  // For athletes with 4+ meets, use only 25% most recent competitions
+  const shouldUseRecentOnly = results.length >= 4;
+  const relevantResults = shouldUseRecentOnly 
+    ? results.slice(0, Math.round(results.length * 0.25))
+    : results;
   
-  results.forEach(result => {
-    // Snatch jumps
+  const snatchJumps = { 
+    first_to_second: [] as number[], 
+    second_to_third: [] as number[], 
+    ranges: [] as number[],
+    first_to_second_percent: [] as number[],
+    second_to_third_percent: [] as number[], 
+    ranges_percent: [] as number[]
+  };
+  const cjJumps = { 
+    first_to_second: [] as number[], 
+    second_to_third: [] as number[], 
+    ranges: [] as number[],
+    first_to_second_percent: [] as number[],
+    second_to_third_percent: [] as number[], 
+    ranges_percent: [] as number[]
+  };
+  
+  relevantResults.forEach(result => {
+    // Snatch jumps - only calculate between successful attempts (positive values)
     const sn1 = parseAttempt(result.snatch_lift_1);
     const sn2 = parseAttempt(result.snatch_lift_2);
     const sn3 = parseAttempt(result.snatch_lift_3);
     
-    if (sn1 && sn2) {
-      snatchJumps.first_to_second.push(Math.abs(sn2) - Math.abs(sn1));
+    if (sn1 && sn2 && sn1 > 0 && sn2 > 0) {
+      const absoluteJump = sn2 - sn1;
+      const percentJump = (absoluteJump / sn1) * 100;
+      snatchJumps.first_to_second.push(absoluteJump);
+      snatchJumps.first_to_second_percent.push(percentJump);
     }
-    if (sn2 && sn3) {
-      snatchJumps.second_to_third.push(Math.abs(sn3) - Math.abs(sn2));
+    if (sn2 && sn3 && sn2 > 0 && sn3 > 0) {
+      const absoluteJump = sn3 - sn2;
+      const percentJump = (absoluteJump / sn2) * 100;
+      snatchJumps.second_to_third.push(absoluteJump);
+      snatchJumps.second_to_third_percent.push(percentJump);
     }
-    if (sn1 && sn3) {
-      snatchJumps.ranges.push(Math.abs(sn3) - Math.abs(sn1));
+    if (sn1 && sn3 && sn1 > 0 && sn3 > 0) {
+      const absoluteJump = sn3 - sn1;
+      const percentJump = (absoluteJump / sn1) * 100;
+      snatchJumps.ranges.push(absoluteJump);
+      snatchJumps.ranges_percent.push(percentJump);
     }
     
-    // Clean & Jerk jumps
+    // Clean & Jerk jumps - only calculate between successful attempts (positive values)
     const cj1 = parseAttempt(result.cj_lift_1);
     const cj2 = parseAttempt(result.cj_lift_2);
     const cj3 = parseAttempt(result.cj_lift_3);
     
-    if (cj1 && cj2) {
-      cjJumps.first_to_second.push(Math.abs(cj2) - Math.abs(cj1));
+    if (cj1 && cj2 && cj1 > 0 && cj2 > 0) {
+      const absoluteJump = cj2 - cj1;
+      const percentJump = (absoluteJump / cj1) * 100;
+      cjJumps.first_to_second.push(absoluteJump);
+      cjJumps.first_to_second_percent.push(percentJump);
     }
-    if (cj2 && cj3) {
-      cjJumps.second_to_third.push(Math.abs(cj3) - Math.abs(cj2));
+    if (cj2 && cj3 && cj2 > 0 && cj3 > 0) {
+      const absoluteJump = cj3 - cj2;
+      const percentJump = (absoluteJump / cj2) * 100;
+      cjJumps.second_to_third.push(absoluteJump);
+      cjJumps.second_to_third_percent.push(percentJump);
     }
-    if (cj1 && cj3) {
-      cjJumps.ranges.push(Math.abs(cj3) - Math.abs(cj1));
+    if (cj1 && cj3 && cj1 > 0 && cj3 > 0) {
+      const absoluteJump = cj3 - cj1;
+      const percentJump = (absoluteJump / cj1) * 100;
+      cjJumps.ranges.push(absoluteJump);
+      cjJumps.ranges_percent.push(percentJump);
     }
   });
   
@@ -166,12 +203,18 @@ const calculateAttemptJumps = (results: CompetitionResult[]) => {
     snatch: {
       avgFirstToSecond: Math.round(average(snatchJumps.first_to_second)),
       avgSecondToThird: Math.round(average(snatchJumps.second_to_third)),
-      avgRange: Math.round(average(snatchJumps.ranges))
+      avgRange: Math.round(average(snatchJumps.ranges)),
+      avgFirstToSecondPercent: Math.round(average(snatchJumps.first_to_second_percent) * 10) / 10,
+      avgSecondToThirdPercent: Math.round(average(snatchJumps.second_to_third_percent) * 10) / 10,
+      avgRangePercent: Math.round(average(snatchJumps.ranges_percent) * 10) / 10
     },
     cleanJerk: {
       avgFirstToSecond: Math.round(average(cjJumps.first_to_second)),
       avgSecondToThird: Math.round(average(cjJumps.second_to_third)),
-      avgRange: Math.round(average(cjJumps.ranges))
+      avgRange: Math.round(average(cjJumps.ranges)),
+      avgFirstToSecondPercent: Math.round(average(cjJumps.first_to_second_percent) * 10) / 10,
+      avgSecondToThirdPercent: Math.round(average(cjJumps.second_to_third_percent) * 10) / 10,
+      avgRangePercent: Math.round(average(cjJumps.ranges_percent) * 10) / 10
     }
   };
 };
@@ -248,10 +291,48 @@ const calculatePerformanceScaling = (results: CompetitionResult[]): { local: num
   };
 };
 
+const calculate3YearConsistency = (results: CompetitionResult[]): {
+  score: number;
+  coefficientOfVariation: number;
+  sampleSize: number;
+} => {
+  // Filter to last 3 years of competitions
+  const threeYearsAgo = new Date();
+  threeYearsAgo.setFullYear(threeYearsAgo.getFullYear() - 3);
+  
+  const recentResults = results.filter(result => {
+    const resultDate = new Date(result.date);
+    return resultDate >= threeYearsAgo;
+  });
+  
+  const totals = recentResults
+    .map(result => parseAttempt(result.total))
+    .filter((total): total is number => total !== null && total > 0);
+  
+  if (totals.length < 2) {
+    return { score: 100, coefficientOfVariation: 0, sampleSize: totals.length };
+  }
+  
+  const mean = totals.reduce((sum, val) => sum + val, 0) / totals.length;
+  const variance = totals.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / totals.length;
+  const standardDeviation = Math.sqrt(variance);
+  const coefficientOfVariation = mean > 0 ? (standardDeviation / mean) * 100 : 0;
+  const consistencyScore = Math.max(0, 100 - coefficientOfVariation);
+  
+  return {
+    score: Math.round(consistencyScore),
+    coefficientOfVariation: Math.round(coefficientOfVariation * 10) / 10,
+    sampleSize: totals.length
+  };
+};
+
 // Skeleton loading component
 function AthleteCardSkeleton() {
+  // Calculate realistic height: header (60px) + 3 rows × 2 cards (120px each = 360px) + spacing/padding (100px) + context (120px)
+  const expectedHeight = 60 + 360 + 100 + 120; // = 640px
+  
   return (
-    <div className="card-primary mb-8 animate-pulse" style={{ minHeight: '650px' }}>
+    <div className="card-primary mb-8 animate-pulse" style={{ minHeight: `${expectedHeight}px` }}>
       <div className="p-6">
         <div className="space-y-6">
           {/* Header skeleton */}
@@ -348,15 +429,7 @@ export function AthleteCard({ athleteName, results }: AthleteCardProps) {
     const cjSuccessRate = calculateSuccessRate(cjAttempts);
     const overallSuccessRate = calculateSuccessRate([...snatchAttempts, ...cjAttempts]);
     
-    // Prepare data for enhanced consistency calculation
-    const competitionData = results
-      .filter(result => result.total && parseAttempt(result.total))
-      .map(result => ({
-        date: result.date,
-        total: parseAttempt(result.total)!
-      }));
-    
-    const consistencyMetrics = calculateEnhancedConsistency(totals, competitionData);
+    const consistencyMetrics = calculate3YearConsistency(results);
     const clutchPerformance = calculateClutchPerformance(results);
     const bounceBackRates = calculateBounceBackRate(results);
     const attemptJumps = calculateAttemptJumps(results);
@@ -438,8 +511,19 @@ export function AthleteCard({ athleteName, results }: AthleteCardProps) {
       }
     }
 
-    // Calculate Q-score metrics
-    const bestQScore = qScores.length > 0 ? Math.max(...qScores) : 0;
+    // Calculate Q-score metrics - use recent competitions for athletes with 4+ meets
+    const shouldUseRecentQScores = results.length >= 4;
+    const recentQScores = shouldUseRecentQScores 
+      ? results.slice(0, Math.round(results.length * 0.25))
+          .reduce((scores: number[], result) => {
+            if (result.qpoints) scores.push(result.qpoints);
+            if (result.q_youth) scores.push(result.q_youth);
+            if (result.q_masters) scores.push(result.q_masters);
+            return scores;
+          }, [])
+      : qScores;
+    
+    const bestQScore = recentQScores.length > 0 ? Math.max(...recentQScores) : 0;
     const averageQScore = qScores.length > 0 ? qScores.reduce((sum, score) => sum + score, 0) / qScores.length : 0;
 
     // Determine which Q-score type produced the best result
@@ -548,8 +632,7 @@ export function AthleteCard({ athleteName, results }: AthleteCardProps) {
 
     // Additional fun categories
     const isLateBloomer = validAge !== null && validAge >= 25 && recentYoyTrend > 8;
-    const isSteadyEddie = (consistencyMetrics.detrended?.score || consistencyMetrics.traditional.score) >= 85 && yearsActive >= 3;
-    const isGlassCannon = bestQScore > 0 && (consistencyMetrics.detrended?.score || consistencyMetrics.traditional.score) <= 60 && recentYoyTrend < -5;
+    const isSteadyEddie = consistencyMetrics.score >= 85 && yearsActive >= 3;
     const isIronWill = clutchPerformance >= 75 && (bounceBackRates.snatch + bounceBackRates.cleanJerk) / 2 >= 75;
     const isTechnicalWizard = overallSuccessRate >= 90;
 
@@ -558,12 +641,9 @@ export function AthleteCard({ athleteName, results }: AthleteCardProps) {
       snatchSuccessRate: Math.round(snatchSuccessRate),
       cjSuccessRate: Math.round(cjSuccessRate),
       detailedSuccessRates,
-      consistencyScore: consistencyMetrics.detrended?.score || consistencyMetrics.traditional.score,
-      traditionalConsistencyScore: consistencyMetrics.traditional.score,
-      coefficientOfVariation: consistencyMetrics.detrended?.coefficientOfVariation || consistencyMetrics.traditional.coefficientOfVariation,
-      trendDescription: consistencyMetrics.detrended?.trendDescription,
-      trendType: consistencyMetrics.detrended?.trendType,
-      hasDetrended: !!consistencyMetrics.detrended,
+      consistencyScore: consistencyMetrics.score,
+      coefficientOfVariation: consistencyMetrics.coefficientOfVariation,
+      consistencySampleSize: consistencyMetrics.sampleSize,
       clutchPerformance: Math.round(clutchPerformance),
       bounceBackRates: {
         snatch: Math.round(bounceBackRates.snatch),
@@ -588,7 +668,6 @@ export function AthleteCard({ athleteName, results }: AthleteCardProps) {
       isYoungAchiever,
       isLateBloomer,
       isSteadyEddie,
-      isGlassCannon,
       isIronWill,
       isTechnicalWizard
     };
@@ -803,11 +882,8 @@ export function AthleteCard({ athleteName, results }: AthleteCardProps) {
               <div className="flex justify-between items-start min-w-0 gap-4">
                 <MetricTooltip
                   title="Performance Consistency Score"
-                  description="How consistent an athlete's performance is across competitions. Uses advanced detrended analysis to separate systematic improvement/decline from random variation, ensuring athletes with steady development get high consistency scores."
-                  methodology={analytics.hasDetrended 
-                    ? "Advanced detrended consistency analysis. First, automatically selects the best-fit trend model (linear, quadratic, exponential, etc.) using statistical criteria. Then calculates residual variance from this trend line and applies coefficient of variation to the residuals. Result: 100 - CV%. Higher scores indicate lower variability around the performance trend."
-                    : "Traditional coefficient of variation analysis. Calculates (standard deviation ÷ mean) × 100, then inverted to consistency score: 100 - CV%. Higher scores indicate lower overall variability."
-                  }
+                  description="How consistent an athlete's performance is across recent competitions. Measures reliability and predictability of results within competitive windows."
+                  methodology={`3-Year Coefficient of Variation analysis. Uses last 3 years of competition data (${analytics.consistencySampleSize} competitions) to calculate (standard deviation ÷ mean) × 100, then inverted to consistency score: 100 - CV%. Higher scores indicate lower variability and more predictable performance.`}
                 >
                   <span className="text-app-secondary cursor-help flex-shrink-0 break-words">
                     Consistency:
@@ -927,48 +1003,48 @@ export function AthleteCard({ athleteName, results }: AthleteCardProps) {
                   <MetricTooltip
                     title="Snatch Jump 1st→2nd Attempt"
                     description="Average weight increase between first and second snatch attempts. Shows how aggressively the athlete progresses in the snatch within a competition."
-                    methodology="Calculated as average of (2nd snatch attempt - 1st snatch attempt) across all competitions"
+                    methodology="Based on 25% most recent competitions for athletes with 4+ meets, entire career otherwise"
                   >
                     <span className="text-app-muted cursor-help" style={{ color: 'var(--chart-snatch)' }}>Snatch Jump 1st→2nd:</span>
                   </MetricTooltip>
                   <span className="font-medium text-app-primary text-right">
-                    {analytics.attemptJumps.snatch.avgFirstToSecond}kg
+                    {analytics.attemptJumps.snatch.avgFirstToSecond}kg ({analytics.attemptJumps.snatch.avgFirstToSecondPercent}%)
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <MetricTooltip
                     title="Snatch Jump 2nd→3rd Attempt"
                     description="Average weight increase between second and third snatch attempts. Shows final attempt aggressiveness and risk tolerance in the snatch."
-                    methodology="Calculated as average of (3rd snatch attempt - 2nd snatch attempt) across all competitions"
+                    methodology="Based on 25% most recent competitions for athletes with 4+ meets, entire career otherwise"
                   >
                     <span className="text-app-muted cursor-help" style={{ color: 'var(--chart-snatch)' }}>Snatch Jump 2nd→3rd:</span>
                   </MetricTooltip>
                   <span className="font-medium text-app-primary text-right">
-                    {analytics.attemptJumps.snatch.avgSecondToThird}kg
+                    {analytics.attemptJumps.snatch.avgSecondToThird}kg ({analytics.attemptJumps.snatch.avgSecondToThirdPercent}%)
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <MetricTooltip
                     title="C&J Jump 1st→2nd Attempt"
                     description="Average weight increase between first and second clean & jerk attempts. Shows how aggressively the athlete progresses in the clean & jerk within a competition."
-                    methodology="Calculated as average of (2nd C&J attempt - 1st C&J attempt) across all competitions"
+                    methodology="Based on 25% most recent competitions for athletes with 4+ meets, entire career otherwise"
                   >
                     <span className="text-app-muted cursor-help" style={{ color: 'var(--chart-cleanjerk)' }}>C&J Jump 1st→2nd:</span>
                   </MetricTooltip>
                   <span className="font-medium text-app-primary text-right">
-                    {analytics.attemptJumps.cleanJerk.avgFirstToSecond}kg
+                    {analytics.attemptJumps.cleanJerk.avgFirstToSecond}kg ({analytics.attemptJumps.cleanJerk.avgFirstToSecondPercent}%)
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <MetricTooltip
                     title="C&J Jump 2nd→3rd Attempt"
                     description="Average weight increase between second and third clean & jerk attempts. Shows final attempt aggressiveness and risk tolerance in the clean & jerk."
-                    methodology="Calculated as average of (3rd C&J attempt - 2nd C&J attempt) across all competitions"
+                    methodology="Based on 25% most recent competitions for athletes with 4+ meets, entire career otherwise"
                   >
                     <span className="text-app-muted cursor-help" style={{ color: 'var(--chart-cleanjerk)' }}>C&J Jump 2nd→3rd:</span>
                   </MetricTooltip>
                   <span className="font-medium text-app-primary text-right">
-                    {analytics.attemptJumps.cleanJerk.avgSecondToThird}kg
+                    {analytics.attemptJumps.cleanJerk.avgSecondToThird}kg ({analytics.attemptJumps.cleanJerk.avgSecondToThirdPercent}%)
                   </span>
                 </div>
               </div>
@@ -1162,6 +1238,42 @@ export function AthleteCard({ athleteName, results }: AthleteCardProps) {
                   );
                 }
                 
+                // Q-Score Performance insights (lowered threshold from >1000 to >500)
+                if (populationStats && populationStats.qScorePerformance.sampleSize > 500 && calculatePercentile(analytics.bestQScore, populationStats.qScorePerformance) >= 90) {
+                  insights.push(
+                    <MetricTooltip
+                      key="elite-qscore"
+                      title="Elite Q-Score Performance"
+                      description="Exceptional competitive performance showing elite-level weightlifting ability. Based on recent performance for experienced athletes."
+                      methodology={`Recent best Q-score: ${analytics.bestQScore} (${analytics.bestQScoreType}) - ${getOrdinal(calculatePercentile(analytics.bestQScore, populationStats.qScorePerformance))} percentile. Uses 25% most recent competitions for athletes with 4+ meets.`}
+                    >
+                      <div className="text-yellow-400 cursor-help">• Elite Q-score performance</div>
+                    </MetricTooltip>
+                  );
+                } else if (populationStats && populationStats.qScorePerformance.sampleSize > 500 && calculatePercentile(analytics.bestQScore, populationStats.qScorePerformance) >= 75) {
+                  insights.push(
+                    <MetricTooltip
+                      key="strong-qscore"
+                      title="Strong Q-Score Performance"
+                      description="Above-average competitive performance demonstrating strong weightlifting ability. Based on recent performance for experienced athletes."
+                      methodology={`Recent best Q-score: ${analytics.bestQScore} (${analytics.bestQScoreType}) - ${getOrdinal(calculatePercentile(analytics.bestQScore, populationStats.qScorePerformance))} percentile. Uses 25% most recent competitions for athletes with 4+ meets.`}
+                    >
+                      <div className="text-green-400 cursor-help">• Strong Q-score performance</div>
+                    </MetricTooltip>
+                  );
+                } else if (populationStats && populationStats.qScorePerformance.sampleSize > 500 && calculatePercentile(analytics.bestQScore, populationStats.qScorePerformance) >= 60) {
+                  insights.push(
+                    <MetricTooltip
+                      key="solid-qscore"
+                      title="Solid Q-Score Performance"
+                      description="Reliable competitive performance showing good weightlifting fundamentals. Based on recent performance for experienced athletes."
+                      methodology={`Recent best Q-score: ${analytics.bestQScore} (${analytics.bestQScoreType}) - ${getOrdinal(calculatePercentile(analytics.bestQScore, populationStats.qScorePerformance))} percentile. Uses 25% most recent competitions for athletes with 4+ meets.`}
+                    >
+                      <div className="text-blue-400 cursor-help">• Solid Q-score performance</div>
+                    </MetricTooltip>
+                  );
+                }
+                
                 // Bounce-back insights with multiple tiers
                 if (populationStats && calculatePercentile(analytics.bounceBackRates.snatch, populationStats.snatchBounceBackRate) >= 90 && analytics.bounceBackRates.snatch > 0) {
                   insights.push(
@@ -1250,39 +1362,45 @@ export function AthleteCard({ athleteName, results }: AthleteCardProps) {
                   );
                 }
                 
-                // Constructive lower-end insights for newer/developing lifters
+                // Constructive lower-end insights split by experience level
                 if (populationStats && calculatePercentile(analytics.overallSuccessRate, populationStats.successRate) <= 40 && analytics.recentYoyTrend > 0) {
-                  insights.push(
-                    <MetricTooltip
-                      key="learning-lifts"
-                      title="Learning the Lifts"
-                      description="Building technical foundation with positive improvement trend. Every elite lifter started here!"
-                      methodology={`Success rate improving despite current ${getOrdinal(calculatePercentile(analytics.overallSuccessRate, populationStats.successRate))} percentile`}
-                    >
-                      <div className="text-cyan-400 cursor-help">• Learning the lifts</div>
-                    </MetricTooltip>
-                  );
-                } else if (populationStats && calculatePercentile(analytics.overallSuccessRate, populationStats.successRate) <= 30 && analytics.totalCompetitions >= 3) {
-                  insights.push(
-                    <MetricTooltip
-                      key="determined-competitor"
-                      title="Determined Competitor"
-                      description="Shows dedication by continuing to compete and improve despite current challenges."
-                      methodology={`${analytics.totalCompetitions} competitions showing commitment to the sport`}
-                    >
-                      <div className="text-green-400 cursor-help">• Determined competitor</div>
-                    </MetricTooltip>
-                  );
+                  // Split based on competition experience and opener strategy
+                  const isExperienced = analytics.totalCompetitions >= 5;
+                  const hasAggressiveOpeners = analytics.averageSnatchOpening >= 93 || analytics.averageCjOpening >= 93;
+                  
+                  if (isExperienced && hasAggressiveOpeners) {
+                    insights.push(
+                      <MetricTooltip
+                        key="bold-strategy"
+                        title="Bold Strategy"
+                        description="Experienced competitor with aggressive attempt selection. Taking calculated risks for maximum results."
+                        methodology={`${analytics.totalCompetitions} competitions with aggressive opener strategy but ${getOrdinal(calculatePercentile(analytics.overallSuccessRate, populationStats.successRate))} percentile success rate`}
+                      >
+                        <div className="text-orange-400 cursor-help">• Bold strategy</div>
+                      </MetricTooltip>
+                    );
+                  } else if (!isExperienced) {
+                    insights.push(
+                      <MetricTooltip
+                        key="building-foundation"
+                        title="Building Foundation"
+                        description="Developing technical skills with positive improvement trend. Every elite lifter started here!"
+                        methodology={`Success rate improving despite current ${getOrdinal(calculatePercentile(analytics.overallSuccessRate, populationStats.successRate))} percentile with ${analytics.totalCompetitions} competitions`}
+                      >
+                        <div className="text-cyan-400 cursor-help">• Building foundation</div>
+                      </MetricTooltip>
+                    );
+                  }
                 }
                 
-                // Big swing attempts (high variance strategy)
-                if (analytics.attemptJumps.snatch.avgSecondToThird >= 8 || analytics.attemptJumps.cleanJerk.avgSecondToThird >= 12) {
+                // Big swing attempts (percentage-based to avoid demographic bias)
+                if (analytics.attemptJumps.snatch.avgSecondToThirdPercent >= 5 || analytics.attemptJumps.cleanJerk.avgSecondToThirdPercent >= 6) {
                   insights.push(
                     <MetricTooltip
                       key="big-swing"
                       title="Big Swing Attempts"
                       description="Takes large jumps on final attempts, showing aggressive risk-taking for maximum results."
-                      methodology={`Large final jumps: Snatch ${analytics.attemptJumps.snatch.avgSecondToThird}kg, C&J ${analytics.attemptJumps.cleanJerk.avgSecondToThird}kg`}
+                      methodology={`Large final jumps: Snatch ${analytics.attemptJumps.snatch.avgSecondToThirdPercent}%, C&J ${analytics.attemptJumps.cleanJerk.avgSecondToThirdPercent}%`}
                     >
                       <div className="text-orange-400 cursor-help">• Big swing attempts</div>
                     </MetricTooltip>
@@ -1424,18 +1542,6 @@ export function AthleteCard({ athleteName, results }: AthleteCardProps) {
                   );
                 }
                 
-                if (analytics.isGlassCannon) {
-                  insights.push(
-                    <MetricTooltip
-                      key="glass-cannon"
-                      title="Glass Cannon"
-                      description="High potential but inconsistent results. When they're on, they're really on!"
-                      methodology="High Q-score potential with low consistency and recent decline"
-                    >
-                      <div className="text-orange-400 cursor-help">• Glass cannon</div>
-                    </MetricTooltip>
-                  );
-                }
                 
                 if (analytics.isIronWill) {
                   insights.push(
