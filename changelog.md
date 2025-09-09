@@ -1,6 +1,6 @@
 | Date of &nbsp; update | Description |
 | ---------------- | ----------- |
-| 9-8-2025         | Added Performance Profile on athlete pages. | 
+| 9-8-2025         | Added Performance Profile on athlete pages. <br> Made q-youth (ages 10-20), q-points (ages 21-30), and q-masters (ages 31+) mutually exclusive categories | 
 | 9-1-2025         | Created search bar for meet results. <br> - Incorporated fuzzy search features <br> Improved fuzzy search for existing athlete search. <br> - Common name shortenings now reference full names, and vice versa (eg, Chris <--> Christopher) <br> - Certain known aliases were applied for specific athletes (eg, Mattie --> Martha)
 | 8-31-2025        | Created meet results pages which contain (unofficial) division rankings and links to athlete pages. Athlete pages also contain links to historical meets within their competition results table. |
 | 8-30-2025 &nbsp; | Fixed chart zoom function on athlete page. Now when zoom is turned on, hover cards (which were causing issues) are disabled. |
