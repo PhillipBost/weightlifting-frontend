@@ -6,6 +6,8 @@ import { supabase } from '../lib/supabase';
 import { useRouter } from 'next/navigation';
 import type { Metadata } from 'next';
 import { ThemeSwitcher } from './components/ThemeSwitcher';
+import { UserMenu } from './components/UserMenu';
+import { LoginModal } from './components/LoginModal';
 
 // Types for our search results
 interface SearchResult {
@@ -45,6 +47,7 @@ export default function WeightliftingLandingPage() {
   const [isMeetSearching, setIsMeetSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [showMeetResults, setShowMeetResults] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const meetSearchInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
@@ -758,6 +761,7 @@ export default function WeightliftingLandingPage() {
             {/* Add Theme Switcher */}
             <div className="flex items-center space-x-4">
               <ThemeSwitcher />
+              <UserMenu onLoginClick={() => setShowLoginModal(true)} />
             </div>
           </div>
         </div>
@@ -985,6 +989,12 @@ export default function WeightliftingLandingPage() {
           </div>
         </div>
       </footer>
+
+      {/* Login Modal */}
+      <LoginModal 
+        isOpen={showLoginModal} 
+        onClose={() => setShowLoginModal(false)} 
+      />
     </div>
   );
 }
