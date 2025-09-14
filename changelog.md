@@ -1,5 +1,6 @@
 | Date of &nbsp; update | Description |
 | ---------------- | ----------- |
+| 9-14-2025        | Added elevation data to meets |
 | 9-13-2025        | Added persistent account creation and login capabilities enabled by Supabase Auth |
 | 9-8-2025         | Added Performance Profile on athlete pages. <br> Made q-youth (ages 10-20), q-points (ages 21-30), and q-masters (ages 31+) mutually exclusive categories | 
 | 9-1-2025         | Created search bar for meet results. <br> - Incorporated fuzzy search features <br> Improved fuzzy search for existing athlete search. <br> - Common name shortenings now reference full names, and vice versa (eg, Chris <--> Christopher) <br> - Certain known aliases were applied for specific athletes (eg, Mattie --> Martha)
