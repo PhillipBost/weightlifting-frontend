@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../../lib/supabase';
-import { ArrowLeft, Calendar, MapPin, Trophy, Users, ExternalLink, ChevronDown, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Trophy, Users, ExternalLink, ChevronDown, ChevronRight, Mountain } from 'lucide-react';
 import { ThemeSwitcher } from '../../components/ThemeSwitcher';
 
 interface MeetResult {
@@ -40,6 +40,7 @@ interface Meet {
   date: string;
   location: string;
   level: string;
+  elevation?: number | null;
 }
 
 const SortIcon = ({ column, sortConfig, division }: { 
@@ -142,7 +143,8 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
           meet_name: meetData.Meet,
           date: meetData.Date,
           location: locationStr,
-          level: meetData.Level || 'Local'
+          level: meetData.Level || 'Local',
+          elevation: locationData && locationData.length > 0 ? locationData[0].elevation_meters : null
         });
 
         // Then fetch all results for this meet - join with lifters table to get membership_number
@@ -905,6 +907,12 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                   <MapPin className="h-4 w-4" />
                   <span>{meet.location}</span>
                 </div>
+                {meet.elevation && (
+                  <div className="flex items-center space-x-2">
+                    <Mountain className="h-4 w-4" />
+                    <span>{meet.elevation.toLocaleString()}m elevation</span>
+                  </div>
+                )}
                 <div className="flex items-center space-x-2">
                   <Trophy className="h-4 w-4" />
                   <span>{meet.level}</span>
