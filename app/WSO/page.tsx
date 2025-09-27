@@ -51,7 +51,7 @@ export default function WSODirectoryPage() {
   const [sortField, setSortField] = useState<keyof WSOEntry>('name')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
 
-  const { mapData: wsoMapData, loading: mapLoading } = useWSOMapData()
+  const { wsoData: wsoMapData, loading: mapLoading } = useWSOMapData()
 
   useEffect(() => {
     async function fetchWSOData() {
