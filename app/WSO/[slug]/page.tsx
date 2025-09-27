@@ -83,7 +83,7 @@ function WSOClubsTable({ slug }: { slug: string }) {
       // Extract city, state for sorting
       const getLocation = (club: any) => {
         const location = club.geocode_display_name || club.address || ''
-        const parts = location.split(',').map(p => p.trim())
+        const parts = location.split(',').map((p: string) => p.trim())
         const city = parts.length >= 2 ? parts[parts.length - 3] || parts[0] : parts[0] || ''
         const state = parts.length >= 2 ? parts[parts.length - 2] : ''
         if (city && state) {
@@ -162,7 +162,7 @@ function WSOClubsTable({ slug }: { slug: string }) {
               let displayLocation = 'Location not available'
 
               if (location) {
-                const parts = location.split(',').map(p => p.trim()).filter(p => p.length > 0)
+                const parts = location.split(',').map((p: string) => p.trim()).filter((p: string) => p.length > 0)
 
                 // Handle different geocode formats
                 if (parts.length >= 2) {
