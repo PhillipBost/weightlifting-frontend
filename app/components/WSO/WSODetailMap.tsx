@@ -59,8 +59,10 @@ interface MeetLocation {
   latitude?: number
   longitude?: number
   venue?: string
+  address?: string
   city?: string
   state?: string
+  uses_fallback_coordinates?: boolean
 }
 
 interface WSODetailMapProps {

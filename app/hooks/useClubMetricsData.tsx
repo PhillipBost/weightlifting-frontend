@@ -18,6 +18,14 @@ interface ClubTimeSeries {
   unique_lifters_12mo: number
 }
 
+interface ClubRollingMetric {
+  club_name: string
+  snapshot_month: string
+  active_members_12mo: number
+  total_competitions_12mo: number
+  unique_lifters_12mo: number
+}
+
 interface TopClub {
   club_name: string
   active_members_12mo: number
@@ -141,7 +149,9 @@ export function useClubTimeSeries(clubName?: string, startDate?: string) {
         setData(prev => ({ ...prev, loading: true, error: null }))
 
         const params = new URLSearchParams()
-        params.append('club_name', clubName)
+        if (clubName) {
+          params.append('club_name', clubName)
+        }
         if (startDate) params.append('start_date', startDate)
 
         const response = await fetch(`/api/club-metrics/time-series?${params}`)

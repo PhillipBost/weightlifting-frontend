@@ -15,6 +15,7 @@ interface ClubSeries {
 
 interface HistoricalDataResponse {
   success: boolean
+  error?: string
   data: {
     months: string[]
     clubs: string[]

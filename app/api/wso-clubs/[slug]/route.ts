@@ -135,7 +135,7 @@ console.log('Clubs query result (before geographic filtering):', {
 
     if (clubsError) {
       console.error('Clubs query error:', clubsError)
-      return NextResponse.json({ error: clubsError.message }, { status: 500 })
+      return NextResponse.json({ error: (clubsError as any).message || 'Database error' }, { status: 500 })
     }
 
     // Apply geographic filtering
@@ -172,7 +172,7 @@ console.log('Clubs query result (before geographic filtering):', {
 
     if (clubsError) {
       console.error('Clubs query error:', clubsError)
-      return NextResponse.json({ error: clubsError.message }, { status: 500 })
+      return NextResponse.json({ error: (clubsError as any).message || 'Database error' }, { status: 500 })
     }
 
     // Get WSO information for context
@@ -204,7 +204,7 @@ console.log('Clubs query result (before geographic filtering):', {
     const locations = filteredClubs?.map(club => {
       const displayName = club.geocode_display_name || club.address || ''
       // Try to extract city and state from display name (format varies)
-      const parts = displayName.split(',').map(p => p.trim())
+      const parts = displayName.split(',').map((p: string) => p.trim())
       return {
         city: parts.length >= 2 ? parts[parts.length - 2] : '',
         state: parts.length >= 1 ? parts[parts.length - 1] : ''

@@ -164,7 +164,7 @@ export async function GET(
     // Calculate club stats like the original API
     const locations = filteredClubs?.map(club => {
       const displayName = club.geocode_display_name || club.address || ''
-      const parts = displayName.split(',').map(p => p.trim())
+      const parts = displayName.split(',').map((p: string) => p.trim())
       return {
         city: parts.length >= 2 ? parts[parts.length - 2] : '',
         state: parts.length >= 1 ? parts[parts.length - 1] : ''

@@ -18,6 +18,7 @@ interface ClubSeries {
 
 interface ActiveClubHistoricalResponse {
   success: boolean
+  error?: string
   data: {
     months: string[]
     clubs: string[]

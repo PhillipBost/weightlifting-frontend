@@ -32,7 +32,7 @@ export async function GET() {
     const cutoffDate = twelveMonthsAgo.toISOString().split('T')[0]
 
     // Query for meets in the last 12 months
-    let dynamicMeetCounts = {}
+    let dynamicMeetCounts: Record<string, number> = {}
     try {
       const { data: recentMeetResults, error: meetError } = await supabaseAdmin
         .from('meet_results')
@@ -42,7 +42,7 @@ export async function GET() {
 
       if (!meetError && recentMeetResults) {
         // Group by WSO and count unique meet_ids
-        const meetsByWso = {}
+        const meetsByWso: Record<string, Set<number>> = {}
         recentMeetResults.forEach(result => {
           const wsoName = result.wso?.trim()
           if (!wsoName) return
@@ -56,7 +56,7 @@ export async function GET() {
         })
 
         // Convert to counts
-        dynamicMeetCounts = {}
+        dynamicMeetCounts = {} as Record<string, number>
         Object.keys(meetsByWso).forEach(wsoName => {
           dynamicMeetCounts[wsoName] = meetsByWso[wsoName].size
         })

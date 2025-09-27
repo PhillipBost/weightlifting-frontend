@@ -183,11 +183,11 @@ export async function POST(request: Request) {
 
     if (sortBy === 'recent') {
       // Already sorted by recent activity
-      selectedClubs = activeClubs.slice(0, clubCount).map(c => c.club_name)
+      selectedClubs = activeClubs.slice(0, clubCount).map(c => (c as any).club_name)
     } else {
       // For peak/average, use a simplified approach focusing on recent active clubs
       const topActiveClubs = activeClubs.slice(0, Math.min(clubCount * 2, 50)) // Limit to prevent query issues
-      const clubNames = topActiveClubs.map(c => c.club_name)
+      const clubNames = topActiveClubs.map(c => (c as any).club_name)
 
       try {
         // Query last 2 years of data for peak/average calculations - more efficient
@@ -211,7 +211,7 @@ export async function POST(request: Request) {
         if (historicalError || !historicalData) {
           console.error('Error fetching historical data for sorting:', historicalError)
           // Fall back to recent sorting
-          selectedClubs = activeClubs.slice(0, clubCount).map(c => c.club_name)
+          selectedClubs = activeClubs.slice(0, clubCount).map(c => (c as any).club_name)
         } else {
           // Calculate peak or average for each club
           const clubStats: Record<string, { peak: number; average: number; count: number; total: number }> = {}
@@ -220,8 +220,8 @@ export async function POST(request: Request) {
           topActiveClubs.forEach(club => {
             const currentValue = displayMetric === 'activity' ? (club as any).activity_factor :
                                displayMetric === 'participations' ? (club as any).total_competitions_12mo :
-                               club.active_members_12mo
-            clubStats[club.club_name] = {
+                               (club as any).active_members_12mo
+            clubStats[(club as any).club_name] = {
               peak: currentValue || 0,
               average: currentValue || 0,
               count: 1,
@@ -231,10 +231,10 @@ export async function POST(request: Request) {
 
           // Process historical data
           historicalData.forEach(row => {
-            const stats = clubStats[row.club_name]
+            const stats = clubStats[(row as any).club_name]
             const value = displayMetric === 'activity' ? (row as any).activity_factor :
                          displayMetric === 'participations' ? (row as any).total_competitions_12mo :
-                         row.active_members_12mo
+                         (row as any).active_members_12mo
             if (stats && typeof value === 'number') {
               stats.peak = Math.max(stats.peak, value)
               stats.total += value
@@ -263,7 +263,7 @@ export async function POST(request: Request) {
       } catch (error) {
         console.error('Exception in peak/average calculation:', error)
         // Fall back to recent sorting
-        selectedClubs = activeClubs.slice(0, clubCount).map(c => c.club_name)
+        selectedClubs = activeClubs.slice(0, clubCount).map(c => (c as any).club_name)
       }
     }
 
@@ -311,7 +311,7 @@ export async function POST(request: Request) {
     }
 
     // Get unique months and sort them
-    const uniqueMonths = [...new Set(timeSeriesData.map(row => row.snapshot_month))]
+    const uniqueMonths = [...new Set(timeSeriesData.map(row => (row as any).snapshot_month))]
       .sort()
       .map(date => new Date(date).toISOString().substring(0, 10))
 
@@ -319,14 +319,14 @@ export async function POST(request: Request) {
     const clubDataMap: Record<string, Record<string, number>> = {}
 
     timeSeriesData.forEach(row => {
-      if (!clubDataMap[row.club_name]) {
-        clubDataMap[row.club_name] = {}
+      if (!clubDataMap[(row as any).club_name]) {
+        clubDataMap[(row as any).club_name] = {}
       }
-      const monthKey = new Date(row.snapshot_month).toISOString().substring(0, 10)
+      const monthKey = new Date((row as any).snapshot_month).toISOString().substring(0, 10)
       const value = displayMetric === 'activity' ? (row as any).activity_factor :
                    displayMetric === 'participations' ? (row as any).total_competitions_12mo :
-                   row.active_members_12mo
-      clubDataMap[row.club_name][monthKey] = value || 0
+                   (row as any).active_members_12mo
+      clubDataMap[(row as any).club_name][monthKey] = value || 0
     })
 
     // Create series data for each selected club
