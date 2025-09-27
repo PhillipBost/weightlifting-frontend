@@ -519,6 +519,14 @@ function WSOSummary({ slug }: { slug: string }) {
 
   const { wsoInfo, clubStats } = clubData
 
+  if (!wsoInfo) {
+    return (
+      <div className="card-large">
+        <p className="text-red-500">Error: WSO information not available</p>
+      </div>
+    )
+  }
+
   return (
     <div className="card-large">
       <div className="mb-6">
