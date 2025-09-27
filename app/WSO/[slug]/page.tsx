@@ -672,7 +672,7 @@ export default function WSODetailPage() {
                 </p>
               </div>
 
-              <WSODetailMap wsoSlug={slug} />
+              <WSODetailMap wsoSlug={slug} wsoName={displayName} />
             </div>
 
             {/* Clubs Table */}
