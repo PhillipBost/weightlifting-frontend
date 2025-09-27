@@ -53,7 +53,8 @@ export async function GET(request: Request) {
           total_active_members: 0,
           total_competitions: 0,
           total_unique_lifters: 0,
-          club_count: 0
+          club_count: 0,
+          avg_members_per_club: 0
         }
       }
 
