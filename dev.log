@@ -1,0 +1,12 @@
+
+> weightlifting-frontend@0.1.0 dev
+> next dev
+
+ ⚠ Port 3000 is in use by process 6544, using available port 3001 instead.
+   ▲ Next.js 15.4.5
+   - Local:        http://localhost:3001
+   - Network:      http://192.168.3.101:3001
+   - Environments: .env.local, .env
+
+ ✓ Starting...
+ ✓ Ready in 5.8s

@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { supabase } from '../../../lib/supabase';
-import { ArrowLeft, Calendar, MapPin, Trophy, Users, ExternalLink, ChevronDown, ChevronRight, Mountain } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Trophy, Users, ExternalLink, ChevronDown, ChevronRight, Mountain, Database } from 'lucide-react';
 import { ThemeSwitcher } from '../../components/ThemeSwitcher';
 
 interface MeetResult {
@@ -88,7 +89,16 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
       try {
         setLoading(true);
         
+        // Debug logging for environment and connection
+        console.log('Environment check:', {
+          supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'SET' : 'MISSING',
+          supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'SET' : 'MISSING',
+          meetId: resolvedParams.id,
+          parsedMeetId: parseInt(resolvedParams.id)
+        });
+        
         // First, fetch meet information (convert string ID to integer)
+        console.log('Fetching meet data for ID:', parseInt(resolvedParams.id));
         const { data: meetData, error: meetError } = await supabase
           .from('meets')
           .select('Meet, Date, Level')
@@ -97,11 +107,20 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
 
         if (meetError) {
           console.error('Meet fetch error:', meetError);
-          setError('Meet not found');
+          console.error('Meet error details:', {
+            code: meetError.code,
+            message: meetError.message,
+            details: meetError.details,
+            hint: meetError.hint
+          });
+          setError(`Meet not found: ${meetError.message}`);
           return;
         }
 
+        console.log('Meet data retrieved:', meetData);
+
         // Try a simpler query first
+        console.log('Fetching location data for meet ID:', parseInt(resolvedParams.id));
         const { data: locationData, error: locationError } = await supabase
           .from('meet_locations')
           .select('*')
@@ -137,6 +156,14 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
           }
         } else {
           console.log('No location data found or query error:', locationError);
+          if (locationError) {
+            console.error('Location error details:', {
+              code: locationError.code,
+              message: locationError.message,
+              details: locationError.details,
+              hint: locationError.hint
+            });
+          }
         }
 
         setMeet({
@@ -148,6 +175,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         });
 
         // Then fetch all results for this meet - join with lifters table to get membership_number
+        console.log('Fetching results data for meet ID:', parseInt(resolvedParams.id));
         const { data: resultsData, error: resultsError } = await supabase
           .from('meet_results')
           .select(`
@@ -176,10 +204,20 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
 
         if (resultsError) {
           console.error('Results fetch error:', resultsError);
-          setError('Error loading meet results');
+          console.error('Results error details:', {
+            code: resultsError.code,
+            message: resultsError.message,
+            details: resultsError.details,
+            hint: resultsError.hint
+          });
+          setError(`Error loading meet results: ${resultsError.message}`);
           return;
         }
 
+        console.log('Results data retrieved:', {
+          count: resultsData?.length || 0,
+          sample: resultsData?.slice(0, 2) || []
+        });
         setResults(resultsData || []);
       } catch (err) {
         console.error('Unexpected error:', err);
@@ -861,7 +899,16 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
       <header className="bg-header-blur border-b border-app-secondary">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-6">
+              <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+                <div className="bg-app-tertiary rounded-full p-2">
+                  <Database className="h-6 w-6 text-app-secondary" />
+                </div>
+                <div>
+                  <div className="text-lg font-bold text-app-primary">WeightliftingDB</div>
+                  <div className="text-xs text-app-tertiary">USA Weightlifting Results Database</div>
+                </div>
+              </Link>
               <button
                 onClick={() => router.back()}
                 className="flex items-center space-x-2 text-app-secondary hover:text-accent-primary transition-colors"

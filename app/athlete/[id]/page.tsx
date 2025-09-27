@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { supabase } from '../../../lib/supabase';
-import { Trophy, Calendar, Weight, TrendingUp, Medal, User, Building, MapPin, ExternalLink, ArrowLeft, BarChart3, Dumbbell, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Trophy, Calendar, Weight, TrendingUp, Medal, User, Building, MapPin, ExternalLink, ArrowLeft, BarChart3, Dumbbell, ChevronLeft, ChevronRight, Database } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, AreaChart, Area, ScatterChart, Scatter, Brush, ReferenceLine } from 'recharts';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -782,7 +783,16 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
       <header className="bg-header-blur border-b border-app-secondary">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-6">
+              <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+                <div className="bg-app-tertiary rounded-full p-2">
+                  <Database className="h-6 w-6 text-app-secondary" />
+                </div>
+                <div>
+                  <div className="text-lg font-bold text-app-primary">WeightliftingDB</div>
+                  <div className="text-xs text-app-tertiary">USA Weightlifting Results Database</div>
+                </div>
+              </Link>
               <button
                 onClick={() => router.push('/')}
                 className="flex items-center space-x-2 text-app-secondary hover:text-accent-primary transition-colors"

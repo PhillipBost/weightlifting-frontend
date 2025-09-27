@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Search, TrendingUp, Trophy, Users, Calendar, CalendarDays, MapPinned, Weight, Dumbbell, Database, Filter, ArrowRight, Github, Heart, X, User } from 'lucide-react';
+import { Search, TrendingUp, Trophy, Users, Calendar, CalendarDays, MapPinned, Weight, Dumbbell, Database, Filter, ArrowRight, Github, Heart, X, User, MapPin } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import type { Metadata } from 'next';
 import { ThemeSwitcher } from './components/ThemeSwitcher';
 import { UserMenu } from './components/UserMenu';
@@ -748,7 +749,7 @@ export default function WeightliftingLandingPage() {
       <header className="bg-header-blur border-b border-app-secondary">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
-            <div className="flex items-center space-x-4">
+            <Link href="/" className="flex items-center space-x-4 hover:opacity-80 transition-opacity">
               <div className="bg-app-tertiary rounded-full p-3">
                 <Database className="h-8 w-8 text-app-secondary" />
               </div>
@@ -756,7 +757,7 @@ export default function WeightliftingLandingPage() {
                 <h1 className="text-2xl font-bold text-app-primary">WeightliftingDB</h1>
                 <p className="text-sm text-app-tertiary">USA Weightlifting Results Database</p>
               </div>
-            </div>
+            </Link>
             
             {/* Add Theme Switcher */}
             <div className="flex items-center space-x-4">
@@ -813,7 +814,7 @@ export default function WeightliftingLandingPage() {
 
                 <button
                   type="submit"
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-accent-primary hover:bg-accent-primary-hover text-app-primary px-6 py-2 rounded-lg transition-colors flex items-center space-x-2"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors flex items-center space-x-2"
                 >
                   <span className="hidden sm:inline">Search</span>
                   <ArrowRight className="h-4 w-4" />
@@ -894,7 +895,7 @@ export default function WeightliftingLandingPage() {
 
                 <button
                   type="submit"
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-accent-primary hover:bg-accent-primary-hover text-app-primary px-6 py-2 rounded-lg transition-colors flex items-center space-x-2"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors flex items-center space-x-2"
                 >
                   <span className="hidden sm:inline">Search</span>
                   <ArrowRight className="h-4 w-4" />
@@ -943,6 +944,36 @@ export default function WeightliftingLandingPage() {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Navigation Cards Section */}
+      <section className="py-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* WSO Navigation Card */}
+            <Link href="/WSO" className="group">
+              <div className="bg-app-secondary border border-app-primary rounded-xl p-6 hover:bg-app-hover transition-all duration-200 hover:shadow-lg hover:scale-105">
+                <div className="flex items-center space-x-4">
+                  <div className="bg-blue-500/10 rounded-full p-3 group-hover:bg-blue-500/20 transition-colors">
+                    <MapPin className="h-6 w-6 text-blue-500" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-app-primary group-hover:text-blue-400 transition-colors">
+                      WSO Directory
+                    </h3>
+                    <p className="text-sm text-app-tertiary mt-1">
+                      Explore Weightlifting State Organizations
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center mt-4 text-sm text-blue-500 group-hover:text-blue-400 transition-colors">
+                  <span>View interactive map</span>
+                  <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </div>
+            </Link>
           </div>
         </div>
       </section>
