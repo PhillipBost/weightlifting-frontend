@@ -691,7 +691,7 @@ function MeetMarkersLayer({ meetData, createMeetIcon, theme }: { meetData: any[]
   })
 
   // Generate markers with zoom-dependent offsets for overlapping locations
-  const markers: JSX.Element[] = []
+  const markers: React.ReactElement[] = []
   
   // Calculate zoom-dependent offset distance
   // At zoom 6 (state level): 0.04° (~4km)
