@@ -1004,7 +1004,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                 const isDivisionCollapsed = collapsedSections.has(division);
                 
                 return (
-                  <div key={division} className={`card-primary mb-3 ${isAgeAppropriate ? 'ml-6 border-l-4 border-accent-primary bg-app-tertiary' : ''}`}>
+                  <div key={division} className={`card-primary mb-2 ${isAgeAppropriate ? 'ml-6 border-l-4 border-accent-primary bg-app-tertiary' : ''}`}>
                     <div 
                       onClick={() => toggleSection(division)}
                       className="cursor-pointer hover:bg-app-hover transition-colors"

@@ -54,12 +54,31 @@ function WSOClubsTable({ slug }: { slug: string }) {
     return (
       <div className="card-large">
         <div className="animate-pulse">
-          <div className="h-6 bg-app-tertiary rounded mb-4 w-48"></div>
-          <div className="space-y-3">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-4 bg-app-tertiary rounded"></div>
-            ))}
+          <div className="h-6 bg-app-tertiary rounded mb-2 w-32"></div>
+          <div className="h-4 bg-app-tertiary rounded mb-6 w-64"></div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-app-tertiary">
+                <tr>
+                  {[...Array(3)].map((_, i) => (
+                    <th key={i} className="px-3 py-1.5">
+                      <div className="h-3 bg-app-surface rounded"></div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-app-primary">
+                {[...Array(5)].map((_, i) => (
+                  <tr key={i}>
+                    <td className="px-3 py-1.5"><div className="h-5 bg-app-tertiary rounded w-40"></div></td>
+                    <td className="px-3 py-1.5"><div className="h-5 bg-app-tertiary rounded w-32"></div></td>
+                    <td className="px-3 py-1.5"><div className="h-5 bg-app-tertiary rounded w-16"></div></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
+          <div className="text-center py-8 text-app-muted invisible">No data</div>
         </div>
       </div>
     )
@@ -133,19 +152,19 @@ function WSOClubsTable({ slug }: { slug: string }) {
           <thead className="bg-app-tertiary">
             <tr>
               <th
-                className="px-6 py-3 text-left text-xs font-medium text-app-secondary uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                className="px-3 py-1.5 text-left text-xs font-medium text-app-secondary uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                 onClick={() => handleSort('club_name')}
               >
                 Club Name {sortField === 'club_name' && (sortDirection === 'asc' ? '↑' : '↓')}
               </th>
               <th
-                className="px-6 py-3 text-left text-xs font-medium text-app-secondary uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                className="px-3 py-1.5 text-left text-xs font-medium text-app-secondary uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                 onClick={() => handleSort('location')}
               >
                 Location {sortField === 'location' && (sortDirection === 'asc' ? '↑' : '↓')}
               </th>
               <th
-                className="px-6 py-3 text-left text-xs font-medium text-app-secondary uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                className="px-3 py-1.5 text-left text-xs font-medium text-app-secondary uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                 onClick={() => handleSort('active_lifters_count')}
               >
                 <MetricTooltip
@@ -218,15 +237,15 @@ function WSOClubsTable({ slug }: { slug: string }) {
 
               return (
                 <tr key={`${club.club_name}-${index}`} className="hover:bg-app-hover transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-3 py-1.5 whitespace-nowrap">
                     <div className="text-sm font-medium text-app-primary">{club.club_name}</div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-3 py-1.5">
                     <div className="text-sm text-app-secondary">
                       {displayLocation}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-3 py-1.5 whitespace-nowrap">
                     <div className="text-sm text-app-primary">{club.active_lifters_count || 0}</div>
                   </td>
                 </tr>
@@ -235,13 +254,13 @@ function WSOClubsTable({ slug }: { slug: string }) {
           </tbody>
           <tfoot className="bg-app-tertiary border-t border-app-border">
             <tr>
-              <td className="px-6 py-3">
+              <td className="px-3 py-1.5">
                 <div className="text-sm font-medium text-app-primary">
                   Total: {clubs.length} clubs
                 </div>
               </td>
-              <td className="px-6 py-3"></td>
-              <td className="px-6 py-3">
+              <td className="px-3 py-1.5"></td>
+              <td className="px-3 py-1.5">
                 <MetricTooltip
                   title="Club-Affiliated Active Lifters"
                   description="Count of active lifters affiliated with registered barbell clubs. This number is lower than the total active lifting population for this WSO because not all active members belong to a club."
@@ -367,12 +386,32 @@ function WSORecentMeetsTable({ slug }: { slug: string }) {
     return (
       <div className="card-large">
         <div className="animate-pulse">
-          <div className="h-6 bg-app-tertiary rounded mb-4 w-48"></div>
-          <div className="space-y-3">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-4 bg-app-tertiary rounded"></div>
-            ))}
+          <div className="h-6 bg-app-tertiary rounded mb-2 w-32"></div>
+          <div className="h-4 bg-app-tertiary rounded mb-6 w-64"></div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-app-tertiary">
+                <tr>
+                  {[...Array(4)].map((_, i) => (
+                    <th key={i} className="px-3 py-1.5">
+                      <div className="h-3 bg-app-surface rounded"></div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-app-primary">
+                {[...Array(5)].map((_, i) => (
+                  <tr key={i}>
+                    <td className="px-3 py-1.5"><div className="h-5 bg-app-tertiary rounded w-48"></div></td>
+                    <td className="px-3 py-1.5"><div className="h-5 bg-app-tertiary rounded w-24"></div></td>
+                    <td className="px-3 py-1.5"><div className="h-5 bg-app-tertiary rounded w-32"></div></td>
+                    <td className="px-3 py-1.5"><div className="h-8 bg-blue-600 rounded-lg w-28"></div></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
+          <div className="text-center py-8 text-app-muted invisible">No data</div>
         </div>
       </div>
     )
@@ -422,24 +461,24 @@ function WSORecentMeetsTable({ slug }: { slug: string }) {
             <thead className="bg-app-tertiary">
               <tr>
                 <th
-                  className="px-6 py-3 text-left text-xs font-medium text-app-secondary uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                  className="px-3 py-1.5 text-left text-xs font-medium text-app-secondary uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                   onClick={() => handleSort('meet_name')}
                 >
                   Meet Name {sortField === 'meet_name' && (sortDirection === 'asc' ? '↑' : '↓')}
                 </th>
                 <th
-                  className="px-6 py-3 text-left text-xs font-medium text-app-secondary uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                  className="px-3 py-1.5 text-left text-xs font-medium text-app-secondary uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                   onClick={() => handleSort('date')}
                 >
                   Date {sortField === 'date' && (sortDirection === 'asc' ? '↑' : '↓')}
                 </th>
                 <th
-                  className="px-6 py-3 text-left text-xs font-medium text-app-secondary uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                  className="px-3 py-1.5 text-left text-xs font-medium text-app-secondary uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                   onClick={() => handleSort('location')}
                 >
                   Location {sortField === 'location' && (sortDirection === 'asc' ? '↑' : '↓')}
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-app-secondary uppercase tracking-wider">
+                <th className="px-3 py-1.5 text-left text-xs font-medium text-app-secondary uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -447,10 +486,10 @@ function WSORecentMeetsTable({ slug }: { slug: string }) {
             <tbody className="divide-y divide-app-primary">
               {sortedMeets.map((meet, index) => (
                 <tr key={`${meet.meet_id || meet.meet_name}-${index}`} className="hover:bg-app-hover transition-colors">
-                  <td className="px-6 py-4">
+                  <td className="px-3 py-1.5">
                     <div className="text-sm font-medium text-app-primary">{meet.meet_name}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-3 py-1.5 whitespace-nowrap">
                     <div className="text-sm text-app-secondary">
                       {new Date(meet.date).toLocaleDateString('en-US', {
                         year: 'numeric',
@@ -459,14 +498,14 @@ function WSORecentMeetsTable({ slug }: { slug: string }) {
                       })}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-3 py-1.5 whitespace-nowrap">
                     <div className="text-sm text-app-secondary">{meet.location || 'Location not available'}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-3 py-1.5 whitespace-nowrap">
                     {meet.meet_id ? (
                       <Link
                         href={`/meet/${meet.meet_id}`}
-                        className="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
+                        className="inline-flex items-center px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
                       >
                         View Details
                         <ChevronRight className="ml-1 h-4 w-4" />
@@ -480,14 +519,14 @@ function WSORecentMeetsTable({ slug }: { slug: string }) {
             </tbody>
             <tfoot className="bg-app-tertiary border-t border-app-primary">
               <tr>
-                <td className="px-6 py-3">
+                <td className="px-3 py-1.5">
                   <div className="text-sm font-medium text-app-primary">
                     Total: {sortedMeets.length} recent meets
                   </div>
                 </td>
-                <td className="px-6 py-3"></td>
-                <td className="px-6 py-3"></td>
-                <td className="px-6 py-3"></td>
+                <td className="px-3 py-1.5"></td>
+                <td className="px-3 py-1.5"></td>
+                <td className="px-3 py-1.5"></td>
               </tr>
             </tfoot>
           </table>
