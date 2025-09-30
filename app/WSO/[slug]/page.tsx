@@ -242,9 +242,15 @@ function WSOClubsTable({ slug }: { slug: string }) {
               </td>
               <td className="px-6 py-3"></td>
               <td className="px-6 py-3">
-                <div className="text-sm font-medium text-app-primary">
-                  Total: {totalActiveLifters.toLocaleString()} active lifters
-                </div>
+                <MetricTooltip
+                  title="Club-Affiliated Active Lifters"
+                  description="Count of active lifters affiliated with registered barbell clubs. This number is lower than the total active lifting population for this WSO because not all active members belong to a club."
+                  methodology="Sums active_lifters_count from all clubs within this WSO region with geocoded locations in the past 12 months"
+                >
+                  <div className="text-sm font-medium text-app-primary">
+                    Total: {totalActiveLifters.toLocaleString()} active lifters
+                  </div>
+                </MetricTooltip>
               </td>
             </tr>
           </tfoot>
