@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { getApproximateCoordinates, isValidCoordinates } from '@/lib/geocoding'
 
 // Geographic filtering function
 function pointInGeoJSON(point: [number, number], geojson: any): boolean {
@@ -170,22 +171,42 @@ export async function GET(request: Request) {
     }
 
     // Transform to expected format (already sorted by date desc from query)
-    const finalMeets = filteredMeets.map(meet => ({
-      meet_id: meet.meet_id,
-      meet_name: meet.Meet, // Column name is 'Meet'
-      date: meet.Date, // Column name is 'Date'
-      wso: wsoName, // Use the requested WSO name, not the contaminated field
-      latitude: meet.latitude,
-      longitude: meet.longitude,
-      venue: null, // Not available in meets table
-      city: meet.city,
-      state: meet.state,
-      address: meet.address,
-      location: formatLocation(meet), // Add formatted location like clubs table
-      uses_fallback_coordinates: false
-    }))
+    // Apply fallback geocoding for meets without coordinates
+    const finalMeets = filteredMeets.map(meet => {
+      let latitude = meet.latitude
+      let longitude = meet.longitude
+      let usesFallback = false
 
-    console.log(`Recent meets API: Returning ${finalMeets.length} meets with ${finalMeets.filter(m => m.latitude && m.longitude).length} having coordinates`)
+      // If no coordinates, try to get approximate ones from city/state
+      if (!isValidCoordinates(latitude, longitude)) {
+        const fallbackCoords = getApproximateCoordinates(meet.city, meet.state)
+        if (fallbackCoords) {
+          latitude = fallbackCoords.latitude
+          longitude = fallbackCoords.longitude
+          usesFallback = true
+          console.log(`Applied fallback coordinates for meet "${meet.Meet}" at ${meet.city}, ${meet.state}`)
+        }
+      }
+
+      return {
+        meet_id: meet.meet_id,
+        meet_name: meet.Meet, // Column name is 'Meet'
+        date: meet.Date, // Column name is 'Date'
+        wso: wsoName, // Use the requested WSO name, not the contaminated field
+        latitude: latitude,
+        longitude: longitude,
+        venue: null, // Not available in meets table
+        city: meet.city,
+        state: meet.state,
+        address: meet.address,
+        location: formatLocation(meet), // Add formatted location like clubs table
+        uses_fallback_coordinates: usesFallback
+      }
+    })
+
+    const meetsWithCoords = finalMeets.filter(m => m.latitude && m.longitude).length
+    const meetsWithFallback = finalMeets.filter(m => m.uses_fallback_coordinates).length
+    console.log(`Recent meets API: Returning ${finalMeets.length} meets with ${meetsWithCoords} having coordinates (${meetsWithFallback} using fallback)`)
 
     const response = NextResponse.json(finalMeets)
     response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')

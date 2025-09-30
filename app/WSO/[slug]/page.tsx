@@ -114,6 +114,9 @@ function WSOClubsTable({ slug }: { slug: string }) {
     return 0
   })
 
+  // Calculate total active lifters for footer
+  const totalActiveLifters = clubs.reduce((sum, club) => sum + (club.active_lifters_count || 0), 0)
+
   return (
     <div className="card-large">
       <div className="mb-6">
@@ -232,11 +235,15 @@ function WSOClubsTable({ slug }: { slug: string }) {
           </tbody>
           <tfoot className="bg-app-tertiary border-t border-app-border">
             <tr>
-              <td className="px-6 py-3"></td>
+              <td className="px-6 py-3">
+                <div className="text-sm font-medium text-app-primary">
+                  Total: {clubs.length} clubs
+                </div>
+              </td>
               <td className="px-6 py-3"></td>
               <td className="px-6 py-3">
                 <div className="text-sm font-medium text-app-primary">
-                  Total: {clubs.reduce((sum, club) => sum + (club.active_lifters_count || 0), 0)}
+                  Total: {totalActiveLifters.toLocaleString()} active lifters
                 </div>
               </td>
             </tr>
@@ -467,14 +474,14 @@ function WSORecentMeetsTable({ slug }: { slug: string }) {
             </tbody>
             <tfoot className="bg-app-tertiary border-t border-app-primary">
               <tr>
-                <td className="px-6 py-3"></td>
-                <td className="px-6 py-3"></td>
-                <td className="px-6 py-3"></td>
                 <td className="px-6 py-3">
                   <div className="text-sm font-medium text-app-primary">
-                    Total: {sortedMeets.length}
+                    Total: {sortedMeets.length} recent meets
                   </div>
                 </td>
+                <td className="px-6 py-3"></td>
+                <td className="px-6 py-3"></td>
+                <td className="px-6 py-3"></td>
               </tr>
             </tfoot>
           </table>
@@ -527,72 +534,7 @@ function WSOSummary({ slug }: { slug: string }) {
     )
   }
 
-  return (
-    <div className="card-large">
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold text-app-primary mb-2">
-          {wsoInfo.name} Overview
-        </h2>
-        <p className="text-app-secondary">
-          Summary statistics and information for this weightlifting state organization.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-        <div className="text-center">
-          <MetricTooltip
-            title="Total Clubs"
-            description="Total number of registered barbell clubs in this WSO region"
-            methodology="Counts all clubs with addresses within this WSO's geographic territory"
-          >
-            <div className="text-app-secondary text-sm mb-1">Total Clubs</div>
-            <div className="text-2xl font-bold text-app-primary">
-              {clubStats.totalClubs}
-            </div>
-          </MetricTooltip>
-        </div>
-
-        <div className="text-center">
-          <MetricTooltip
-            title="Active Clubs"
-            description="Clubs with recent competitive activity"
-            methodology="Clubs with at least one active competitive lifter based on recent competition participation"
-          >
-            <div className="text-app-secondary text-sm mb-1">Active Clubs</div>
-            <div className="text-2xl font-bold text-app-primary">
-              {clubStats.activeClubs}
-            </div>
-          </MetricTooltip>
-        </div>
-
-        <div className="text-center">
-          <MetricTooltip
-            title="Est. Population (M)"
-            description="Estimated population for the geographic region covered by this WSO"
-            methodology="Based on US Census data for states/regions within this WSO's geographic territory"
-          >
-            <div className="text-app-secondary text-sm mb-1">Est. Population (M)</div>
-            <div className="text-2xl font-bold text-app-primary">
-              {wsoInfo.estimated_population ? (wsoInfo.estimated_population / 1000000).toFixed(1) : 'N/A'}
-            </div>
-          </MetricTooltip>
-        </div>
-
-        <div className="text-center">
-          <MetricTooltip
-            title="Recent Meets"
-            description="Number of weightlifting competitions within the previous 12 months"
-            methodology="Counts unique competitions held within this WSO's geographic region during the previous 12 months"
-          >
-            <div className="text-app-secondary text-sm mb-1">Recent Meets</div>
-            <div className="text-2xl font-bold text-app-primary">
-              {wsoInfo.recent_meets_count || 0}
-            </div>
-          </MetricTooltip>
-        </div>
-      </div>
-    </div>
-  )
+  return null
 }
 
 // Dynamically import components
@@ -609,6 +551,10 @@ export default function WSODetailPage() {
   const params = useParams()
   const router = useRouter()
   const slug = params.slug as string
+
+  // Fetch WSO data once at top level
+  const { clubData } = useWSOClubData(slug)
+  const recentMeetsCount = clubData?.wsoInfo?.recent_meets_count
 
   // Convert slug back to display name
   const displayName = slug
@@ -650,11 +596,7 @@ export default function WSODetailPage() {
             </div>
           </div>
 
-          <div className="text-center mb-6">
-            <p className="text-lg text-app-secondary">
-              Detailed information about this weightlifting state organization
-            </p>
-          </div>
+
 
           {/* Content Sections */}
           <div className="space-y-6">
@@ -672,7 +614,7 @@ export default function WSODetailPage() {
                 </p>
               </div>
 
-              <WSODetailMap wsoSlug={slug} wsoName={displayName} />
+              <WSODetailMap wsoSlug={slug} wsoName={displayName} recentMeetsCount={recentMeetsCount} />
             </div>
 
             {/* Clubs Table */}

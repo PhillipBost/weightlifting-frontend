@@ -108,16 +108,29 @@ export async function GET(
       'Vercel-CDN-Cache-Control': 'no-cache'
     }
 
-    // No need to fetch WSO boundary data - using wso_geography field directly
+    // Fetch WSO boundary data for geometric filtering
+    const { data: wsoData, error: wsoError } = await supabaseAdmin
+      .from('wso_information')
+      .select('wso_id, name, territory_geojson')
+      .eq('name', wsoName)
+      .single()
 
-    // Query clubs for this WSO using wso_geography field (source of truth)
+    if (wsoError) {
+      console.error('WSO boundary fetch error:', wsoError)
+      return NextResponse.json({ error: 'WSO not found' }, { status: 404 })
+    }
+
+    console.log('WSO boundary data:', { wsoId: wsoData.wso_id, hasGeojson: !!wsoData.territory_geojson })
+
+    // Query ALL clubs (not filtered by wso_geography) to check geometric boundaries
     const { data: clubsData, error: clubsError } = await supabaseAdmin
       .from('clubs')
       .select('club_name, wso_geography, phone, email, address, geocode_display_name, latitude, longitude, active_lifters_count')
-      .eq('wso_geography', wsoName)
+      .not('latitude', 'is', null)
+      .not('longitude', 'is', null)
       .order('club_name')
 
-console.log('Clubs query result (using wso_geography):', {
+    console.log('Clubs query result (all clubs with coordinates):', {
       clubsCount: clubsData?.length || 0,
       error: clubsError?.message,
       sampleClub: clubsData?.[0]
@@ -128,8 +141,32 @@ console.log('Clubs query result (using wso_geography):', {
       return NextResponse.json({ error: (clubsError as any).message || 'Database error' }, { status: 500 })
     }
 
-    // Use clubs directly (already filtered by wso_geography in query)
+    // Apply geometric filtering using point-in-polygon
     let filteredClubs = clubsData || []
+    
+    if (wsoData.territory_geojson) {
+      console.log('Applying geometric filtering for', wsoName)
+      filteredClubs = clubsData?.filter(club => {
+        if (!club.latitude || !club.longitude) {
+          // No coordinates - skip (we already filtered these out in the query)
+          return false
+        }
+        
+        // Check if club is within WSO territory using geometric boundary
+        const isInside = pointInGeoJSON([club.longitude, club.latitude], wsoData.territory_geojson)
+        
+        if (!isInside && club.wso_geography === wsoName) {
+          console.log(`Club "${club.club_name}" claims to be in ${wsoName} but is outside polygon`)
+        }
+        
+        return isInside
+      }) || []
+      
+      console.log('After geometric filtering:', filteredClubs.length, 'clubs remain')
+    } else {
+      console.log('No territory boundary available, using wso_geography field as fallback')
+      filteredClubs = clubsData?.filter(club => club.wso_geography === wsoName) || []
+    }
 
     console.log('Final clubs result:', {
       finalClubsCount: filteredClubs.length,

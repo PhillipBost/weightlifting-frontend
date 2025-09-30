@@ -45,15 +45,27 @@ export function useWSODetailData(): UseWSODetailDataReturn {
   const [meetsLoading, setMeetsLoading] = useState(false)
   const [clubsError, setClubsError] = useState<string | null>(null)
   const [meetsError, setMeetsError] = useState<string | null>(null)
+  const [currentWsoSlug, setCurrentWsoSlug] = useState<string | null>(null)
 
   const loadClubs = useCallback(async (wsoSlug: string) => {
-    if (clubData.length > 0) return // Already loaded
+    // Always reload if WSO changed
+    const needsReset = currentWsoSlug !== wsoSlug
+    
+    if (needsReset) {
+      console.log('WSO changed from', currentWsoSlug, 'to', wsoSlug, '- resetting club data')
+      setClubData([])
+      setCurrentWsoSlug(wsoSlug)
+    } else if (clubData.length > 0) {
+      console.log('Club data already loaded for', wsoSlug)
+      return // Already loaded for this WSO
+    }
 
     setClubsLoading(true)
     setClubsError(null)
 
     try {
       // Use WSO-specific clubs API endpoint
+      console.log('Fetching clubs for', wsoSlug)
       const response = await fetch(`/api/wso-clubs/${encodeURIComponent(wsoSlug)}`)
       if (!response.ok) {
         throw new Error('Failed to fetch club data')
@@ -75,7 +87,7 @@ export function useWSODetailData(): UseWSODetailDataReturn {
             recentMemberCount: club.active_lifters_count || 0
           }))
         
-        console.log('Club data received from WSO API:', transformedClubs.length, 'clubs with coordinates')
+        console.log('Club data received from WSO API for', wsoSlug, ':', transformedClubs.length, 'clubs with coordinates')
         setClubData(transformedClubs)
       } else {
         throw new Error(data.error || 'Failed to fetch club data')
@@ -86,17 +98,26 @@ export function useWSODetailData(): UseWSODetailDataReturn {
     } finally {
       setClubsLoading(false)
     }
-  }, [clubData.length])
+  }, [clubData.length, currentWsoSlug])
 
   const loadMeets = useCallback(async (wsoSlug: string) => {
-    if (meetData.length > 0) return // Already loaded
+    // Always reload if WSO changed
+    const needsReset = currentWsoSlug !== wsoSlug
+    
+    if (needsReset) {
+      console.log('WSO changed from', currentWsoSlug, 'to', wsoSlug, '- resetting meet data')
+      setMeetData([])
+      setCurrentWsoSlug(wsoSlug)
+    } else if (meetData.length > 0) {
+      console.log('Meet data already loaded for', wsoSlug)
+      return // Already loaded for this WSO
+    }
 
     setMeetsLoading(true)
     setMeetsError(null)
 
     try {
-      // DEBUGGING: Disable localStorage caching to get fresh data
-      console.log('Fetching fresh meet data for', wsoSlug, '(caching disabled)')
+      console.log('Fetching fresh meet data for', wsoSlug)
 
       const response = await fetch(`/api/recent-meets?wso=${encodeURIComponent(wsoSlug)}`)
       if (!response.ok) {
@@ -105,15 +126,16 @@ export function useWSODetailData(): UseWSODetailDataReturn {
 
       const data = await response.json()
       if (Array.isArray(data)) {
-        // Filter to only meets with location data
+        // Accept all meets with coordinates (including fallback coordinates)
         const meetsWithLocation = data.filter(meet =>
           meet.latitude && meet.longitude
         )
+        const meetsWithFallback = meetsWithLocation.filter(m => m.uses_fallback_coordinates).length
         console.log('Meet data fetched from API:', data.length, 'total meets')
-        console.log('Meets with location:', meetsWithLocation.length)
+        console.log('Meets with location:', meetsWithLocation.length, `(${meetsWithFallback} using fallback coordinates)`)
+        console.log('Setting meetData state to', meetsWithLocation.length, 'meets for', wsoSlug)
         setMeetData(meetsWithLocation)
-
-        // DEBUGGING: Caching disabled
+        console.log('meetData state updated')
       } else {
         throw new Error(data.error || 'Failed to fetch meet data')
       }
@@ -123,7 +145,7 @@ export function useWSODetailData(): UseWSODetailDataReturn {
     } finally {
       setMeetsLoading(false)
     }
-  }, [meetData.length])
+  }, [meetData.length, currentWsoSlug])
 
   return {
     clubData,

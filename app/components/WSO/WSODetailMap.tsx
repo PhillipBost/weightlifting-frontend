@@ -12,6 +12,25 @@ import { useWSOMapData } from "../../hooks/useWSOMapData"
 import { useWSODetailData } from "../../hooks/useWSODetailData"
 import { useTheme } from "../ThemeProvider"
 
+// Hook to get current zoom level
+function useMapZoom() {
+  const map = useMap()
+  const [zoom, setZoom] = React.useState(map.getZoom())
+
+  React.useEffect(() => {
+    const handleZoom = () => {
+      setZoom(map.getZoom())
+    }
+
+    map.on('zoomend', handleZoom)
+    return () => {
+      map.off('zoomend', handleZoom)
+    }
+  }, [map])
+
+  return zoom
+}
+
 // Component to auto-fit WSO polygon bounds using Leaflet's built-in getBounds()
 function WSOAutoFitter({ geoJsonRef, currentWSO }: { geoJsonRef: React.RefObject<any>, currentWSO: any }) {
   const map = useMap()
@@ -71,6 +90,7 @@ interface WSODetailMapProps {
   className?: string
   center?: [number, number]
   zoom?: number
+  recentMeetsCount?: number
 }
 
 // Simple state borders component using local GeoJSON data
@@ -115,7 +135,8 @@ export default function WSODetailMap({
   wsoName,
   className = "h-[600px] w-full",
   center = [39.8283, -98.5795],
-  zoom = 6
+  zoom = 6,
+  recentMeetsCount
 }: WSODetailMapProps) {
   const { wsoData, loading, error } = useWSOMapData()
   const { theme } = useTheme()
@@ -357,7 +378,7 @@ export default function WSODetailMap({
 
   // Create custom meet marker icon
   const createMeetIcon = () => {
-    const size = 26 // Slightly larger for better visibility
+    const size = 26
     const bgColor = theme === 'dark' ? '#EF4444' : '#DC2626' // Red color
     const iconColor = theme === 'dark' ? '#FFFFFF' : '#FFFFFF'
 
@@ -426,11 +447,6 @@ export default function WSODetailMap({
           />
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
             Show Barbell Clubs
-            {clubData.length > 0 && (
-              <span className="ml-1 text-xs text-gray-500 dark:text-gray-400">
-                ({clubData.length})
-              </span>
-            )}
           </span>
         </label>
         {clubsLoading && (
@@ -457,11 +473,6 @@ export default function WSODetailMap({
             />
             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Show Recent Meets
-              {meetData.length > 0 && (
-                <span className="ml-1 text-xs text-gray-500 dark:text-gray-400">
-                  ({meetData.length})
-                </span>
-              )}
             </span>
           </label>
           {meetsLoading && (
@@ -657,11 +668,99 @@ export default function WSODetailMap({
           </Marker>
         ))}
 
-        {/* Recent Meets Markers Layer */}
-        {showMeets && meetData.length > 0 && meetData.map((meet, index) => (
+        {/* Recent Meets Markers Layer - with zoom-dependent offset for overlapping markers */}
+        {showMeets && meetData.length > 0 && <MeetMarkersLayer meetData={meetData} createMeetIcon={createMeetIcon} theme={theme} />}
+      </MapContainer>
+
+    </div>
+  )
+}
+
+// Component to render meet markers with zoom-dependent offsets
+function MeetMarkersLayer({ meetData, createMeetIcon, theme }: { meetData: any[], createMeetIcon: () => any, theme: 'light' | 'dark' }) {
+  const currentZoom = useMapZoom()
+
+  // Group meets by coordinates to detect overlaps
+  const meetsByCoords = new Map<string, typeof meetData>()
+  meetData.forEach(meet => {
+    const coordKey = `${meet.latitude?.toFixed(4)},${meet.longitude?.toFixed(4)}`
+    if (!meetsByCoords.has(coordKey)) {
+      meetsByCoords.set(coordKey, [])
+    }
+    meetsByCoords.get(coordKey)!.push(meet)
+  })
+
+  // Generate markers with zoom-dependent offsets for overlapping locations
+  const markers: JSX.Element[] = []
+  
+  // Calculate zoom-dependent offset distance
+  // At zoom 6 (state level): 0.04° (~4km)
+  // At zoom 12 (city level): 0.002° (~200m)
+  // Formula: larger offset at low zoom, smaller at high zoom
+  const offsetDistance = 0.08 / Math.pow(2, (currentZoom - 6) / 2)
+  
+  meetsByCoords.forEach((meets) => {
+    if (meets.length === 1) {
+      // Single meet - no offset needed
+      const meet = meets[0]
+      markers.push(
+        <Marker
+          key={`meet-single-${meet.meet_id}-${markers.length}`}
+          position={[meet.latitude!, meet.longitude!]}
+          icon={createMeetIcon()}
+        >
+          <Popup>
+            <div className="bg-app-primary border border-app-secondary rounded-lg p-3 shadow-lg">
+              <h3 className="font-semibold text-base mb-3 text-app-primary">{meet.meet_name}</h3>
+              <div className="space-y-2">
+                <div className="text-sm text-app-secondary"><strong>Date:</strong> {new Date(meet.date).toLocaleDateString()}</div>
+                {meet.venue && (
+                  <div className="text-sm text-app-secondary"><strong>Venue:</strong> {meet.venue}</div>
+                )}
+                {meet.address && (
+                  <div className="text-sm text-app-secondary"><strong>Address:</strong> {meet.address}</div>
+                )}
+                {meet.city && meet.state && (
+                  <div className="text-sm text-app-secondary"><strong>Location:</strong> {meet.city}, {meet.state}</div>
+                )}
+                {meet.uses_fallback_coordinates && (
+                  <div className="pt-2 border-t border-app-secondary text-amber-600 dark:text-amber-400">
+                    <small>⚠️ Approximate location</small>
+                  </div>
+                )}
+              </div>
+              
+              <button 
+                onClick={() => {
+                  if (meet.meet_id) {
+                    window.open(`/meet/${meet.meet_id}`, '_blank')
+                  }
+                }}
+                className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white text-sm font-medium py-2 px-3 rounded-md transition-colors duration-200 flex items-center justify-center mt-3"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+                View Meet Details
+              </button>
+            </div>
+          </Popup>
+        </Marker>
+      )
+    } else {
+      // Multiple meets at same location - apply circular offset pattern
+      const angleStep = (2 * Math.PI) / meets.length
+      meets.forEach((meet, idx) => {
+        const angle = idx * angleStep
+        const latOffset = offsetDistance * Math.cos(angle)
+        const lngOffset = offsetDistance * Math.sin(angle)
+        const offsetLat = meet.latitude! + latOffset
+        const offsetLng = meet.longitude! + lngOffset
+        
+        markers.push(
           <Marker
-            key={`meet-${meet.meet_id || 'no-id'}-${meet.meet_name?.replace(/\s+/g, '-') || 'no-name'}-${meet.date}-${index}`}
-            position={[meet.latitude!, meet.longitude!]}
+            key={`meet-offset-${meet.meet_id}-${markers.length}`}
+            position={[offsetLat, offsetLng]}
             icon={createMeetIcon()}
           >
             <Popup>
@@ -701,9 +800,10 @@ export default function WSODetailMap({
               </div>
             </Popup>
           </Marker>
-        ))}
-      </MapContainer>
+        )
+      })
+    }
+  })
 
-    </div>
-  )
+  return <>{markers}</>
 }
