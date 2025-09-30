@@ -31,27 +31,28 @@ export async function GET() {
     twelveMonthsAgo.setMonth(currentDate.getMonth() - 12)
     const cutoffDate = twelveMonthsAgo.toISOString().split('T')[0]
 
-    // Query for meets in the last 12 months
+    // Query for meets in the last 12 months using wso_geography field
     let dynamicMeetCounts: Record<string, number> = {}
     try {
-      const { data: recentMeetResults, error: meetError } = await supabaseAdmin
-        .from('meet_results')
-        .select('wso, meet_id')
-        .gte('date', cutoffDate)
-        .not('wso', 'is', null)
+      const { data: recentMeets, error: meetError } = await supabaseAdmin
+        .from('meets')
+        .select('wso_geography, meet_id')
+        .gte('Date', cutoffDate)
+        .not('wso_geography', 'is', null)
+        .not('meet_id', 'is', null)
 
-      if (!meetError && recentMeetResults) {
+      if (!meetError && recentMeets) {
         // Group by WSO and count unique meet_ids
         const meetsByWso: Record<string, Set<number>> = {}
-        recentMeetResults.forEach(result => {
-          const wsoName = result.wso?.trim()
+        recentMeets.forEach(meet => {
+          const wsoName = meet.wso_geography?.trim()
           if (!wsoName) return
           
           if (!meetsByWso[wsoName]) {
             meetsByWso[wsoName] = new Set()
           }
-          if (result.meet_id) {
-            meetsByWso[wsoName].add(result.meet_id)
+          if (meet.meet_id) {
+            meetsByWso[wsoName].add(meet.meet_id)
           }
         })
 

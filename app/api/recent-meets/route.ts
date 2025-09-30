@@ -135,14 +135,13 @@ export async function GET(request: Request) {
       .eq('name', wsoName)
       .single()
 
-    // Query all recent meets with coordinates (don't filter by wso_geography as it's contaminated)
+    // Query recent meets using wso_geography field (source of truth)
     const { data: allRecentMeets, error: meetError } = await supabaseAdmin
       .from('meets')
       .select('meet_id, Meet, Date, wso_geography, latitude, longitude, address, city, state')
+      .eq('wso_geography', wsoName)
       .gte('Date', cutoffDate)
       .not('meet_id', 'is', null)
-      .not('latitude', 'is', null)
-      .not('longitude', 'is', null)
       .order('Date', { ascending: false })
 
     if (meetError) {
@@ -151,28 +150,12 @@ export async function GET(request: Request) {
     }
 
     if (!allRecentMeets || allRecentMeets.length === 0) {
-      console.log(`Recent meets API: No recent meets found`)
+      console.log(`Recent meets API: No recent meets found for ${wsoName}`)
       return NextResponse.json([])
     }
 
-    // Apply geographic filtering using WSO boundaries
+    // Use wso_geography field directly (already filtered by query above)
     let filteredMeets = allRecentMeets
-
-    if (wsoData && !wsoError && wsoData.territory_geojson) {
-      console.log(`Applying geographic filtering for ${wsoName}`)
-
-      filteredMeets = allRecentMeets.filter(meet => {
-        if (!meet.latitude || !meet.longitude) return false
-        const isInside = pointInGeoJSON([meet.longitude, meet.latitude], wsoData.territory_geojson)
-        return isInside
-      })
-
-      console.log(`Geographic filtering: ${filteredMeets.length} meets inside ${wsoName} territory (removed ${allRecentMeets.length - filteredMeets.length} meets outside territory)`)
-    } else {
-      console.log(`No territory boundary found for ${wsoName}, falling back to wso_geography field filtering`)
-      // Fallback to contaminated field if no boundary data
-      filteredMeets = allRecentMeets.filter(meet => meet.wso_geography === wsoName)
-    }
 
     console.log(`Recent meets API: Found ${filteredMeets.length} meets for ${wsoName}`)
 
