@@ -238,7 +238,7 @@ function WSOClubsTable({ slug }: { slug: string }) {
               return (
                 <tr key={`${club.club_name}-${index}`} className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors" style={{ borderTopColor: 'var(--border-secondary)' }}>
                   <td className="px-3 py-1.5 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900 dark:text-gray-200">{club.club_name}</div>
+                    <div className="text-sm text-app-secondary">{club.club_name}</div>
                   </td>
                   <td className="px-3 py-1.5">
                     <div className="text-sm text-app-secondary">
@@ -487,7 +487,7 @@ function WSORecentMeetsTable({ slug }: { slug: string }) {
               {sortedMeets.map((meet, index) => (
                 <tr key={`${meet.meet_id || meet.meet_name}-${index}`} className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors" style={{ borderTopColor: 'var(--border-secondary)' }}>
                   <td className="px-3 py-1.5">
-                    <div className="text-sm font-medium text-gray-900 dark:text-gray-200">{meet.meet_name}</div>
+                    <div className="text-sm text-app-secondary">{meet.meet_name}</div>
                   </td>
                   <td className="px-3 py-1.5 whitespace-nowrap">
                     <div className="text-sm text-app-secondary">
