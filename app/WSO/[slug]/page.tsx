@@ -58,7 +58,7 @@ function WSOClubsTable({ slug }: { slug: string }) {
           <div className="h-4 bg-app-tertiary rounded mb-6 w-64"></div>
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-app-tertiary">
+              <thead className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200">
                 <tr>
                   {[...Array(3)].map((_, i) => (
                     <th key={i} className="px-3 py-1.5">
@@ -67,7 +67,7 @@ function WSOClubsTable({ slug }: { slug: string }) {
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-app-primary">
+              <tbody>
                 {[...Array(5)].map((_, i) => (
                   <tr key={i}>
                     <td className="px-3 py-1.5"><div className="h-5 bg-app-tertiary rounded w-40"></div></td>
@@ -149,22 +149,22 @@ function WSOClubsTable({ slug }: { slug: string }) {
 
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-app-tertiary">
+          <thead className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200">
             <tr>
               <th
-                className="px-3 py-1.5 text-left text-xs font-medium text-app-secondary uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                className="px-3 py-1.5 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                 onClick={() => handleSort('club_name')}
               >
                 Club Name {sortField === 'club_name' && (sortDirection === 'asc' ? '↑' : '↓')}
               </th>
               <th
-                className="px-3 py-1.5 text-left text-xs font-medium text-app-secondary uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                className="px-3 py-1.5 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                 onClick={() => handleSort('location')}
               >
                 Location {sortField === 'location' && (sortDirection === 'asc' ? '↑' : '↓')}
               </th>
               <th
-                className="px-3 py-1.5 text-left text-xs font-medium text-app-secondary uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                className="px-3 py-1.5 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                 onClick={() => handleSort('active_lifters_count')}
               >
                 <MetricTooltip
@@ -177,7 +177,7 @@ function WSOClubsTable({ slug }: { slug: string }) {
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-app-primary">
+          <tbody>
             {sortedClubs.map((club, index) => {
               // Improved location parsing for better "City, State" format
               const location = club.geocode_display_name || club.address || ''
@@ -236,9 +236,9 @@ function WSOClubsTable({ slug }: { slug: string }) {
               }
 
               return (
-                <tr key={`${club.club_name}-${index}`} className="hover:bg-app-hover transition-colors">
+                <tr key={`${club.club_name}-${index}`} className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors" style={{ borderTopColor: 'var(--border-secondary)' }}>
                   <td className="px-3 py-1.5 whitespace-nowrap">
-                    <div className="text-sm font-medium text-app-primary">{club.club_name}</div>
+                    <div className="text-sm font-medium text-gray-900 dark:text-gray-200">{club.club_name}</div>
                   </td>
                   <td className="px-3 py-1.5">
                     <div className="text-sm text-app-secondary">
@@ -252,10 +252,10 @@ function WSOClubsTable({ slug }: { slug: string }) {
               )
             })}
           </tbody>
-          <tfoot className="bg-app-tertiary border-t border-app-border">
+          <tfoot className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200 border-t border-app-border">
             <tr>
               <td className="px-3 py-1.5">
-                <div className="text-sm font-medium text-app-primary">
+                <div className="text-sm font-medium text-gray-900 dark:text-gray-200">
                   Total: {clubs.length} clubs
                 </div>
               </td>
@@ -264,9 +264,9 @@ function WSOClubsTable({ slug }: { slug: string }) {
                 <MetricTooltip
                   title="Club-Affiliated Active Lifters"
                   description="Count of active lifters affiliated with registered barbell clubs. This number is lower than the total active lifting population for this WSO because not all active members belong to a club."
-                  methodology="Sums active_lifters_count from all clubs within this WSO region with geocoded locations in the past 12 months"
+                  methodology="Sums the active lifter counts from all clubs within this WSO region that have geocoded locations and competed in the past 12 months"
                 >
-                  <div className="text-sm font-medium text-app-primary">
+                  <div className="text-sm font-medium text-gray-900 dark:text-gray-200">
                     Total: {totalActiveLifters.toLocaleString()} active lifters
                   </div>
                 </MetricTooltip>
@@ -390,7 +390,7 @@ function WSORecentMeetsTable({ slug }: { slug: string }) {
           <div className="h-4 bg-app-tertiary rounded mb-6 w-64"></div>
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-app-tertiary">
+              <thead className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200">
                 <tr>
                   {[...Array(4)].map((_, i) => (
                     <th key={i} className="px-3 py-1.5">
@@ -399,7 +399,7 @@ function WSORecentMeetsTable({ slug }: { slug: string }) {
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-app-primary">
+              <tbody>
                 {[...Array(5)].map((_, i) => (
                   <tr key={i}>
                     <td className="px-3 py-1.5"><div className="h-5 bg-app-tertiary rounded w-48"></div></td>
@@ -458,36 +458,36 @@ function WSORecentMeetsTable({ slug }: { slug: string }) {
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-app-tertiary">
+            <thead className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200">
               <tr>
                 <th
-                  className="px-3 py-1.5 text-left text-xs font-medium text-app-secondary uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                  className="px-3 py-1.5 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                   onClick={() => handleSort('meet_name')}
                 >
                   Meet Name {sortField === 'meet_name' && (sortDirection === 'asc' ? '↑' : '↓')}
                 </th>
                 <th
-                  className="px-3 py-1.5 text-left text-xs font-medium text-app-secondary uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                  className="px-3 py-1.5 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                   onClick={() => handleSort('date')}
                 >
                   Date {sortField === 'date' && (sortDirection === 'asc' ? '↑' : '↓')}
                 </th>
                 <th
-                  className="px-3 py-1.5 text-left text-xs font-medium text-app-secondary uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                  className="px-3 py-1.5 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                   onClick={() => handleSort('location')}
                 >
                   Location {sortField === 'location' && (sortDirection === 'asc' ? '↑' : '↓')}
                 </th>
-                <th className="px-3 py-1.5 text-left text-xs font-medium text-app-secondary uppercase tracking-wider">
+                <th className="px-3 py-1.5 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-app-primary">
+            <tbody>
               {sortedMeets.map((meet, index) => (
-                <tr key={`${meet.meet_id || meet.meet_name}-${index}`} className="hover:bg-app-hover transition-colors">
+                <tr key={`${meet.meet_id || meet.meet_name}-${index}`} className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors" style={{ borderTopColor: 'var(--border-secondary)' }}>
                   <td className="px-3 py-1.5">
-                    <div className="text-sm font-medium text-app-primary">{meet.meet_name}</div>
+                    <div className="text-sm font-medium text-gray-900 dark:text-gray-200">{meet.meet_name}</div>
                   </td>
                   <td className="px-3 py-1.5 whitespace-nowrap">
                     <div className="text-sm text-app-secondary">
@@ -517,10 +517,10 @@ function WSORecentMeetsTable({ slug }: { slug: string }) {
                 </tr>
               ))}
             </tbody>
-            <tfoot className="bg-app-tertiary border-t border-app-primary">
+            <tfoot className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200 border-t border-app-primary">
               <tr>
                 <td className="px-3 py-1.5">
-                  <div className="text-sm font-medium text-app-primary">
+                  <div className="text-sm font-medium text-gray-900 dark:text-gray-200">
                     Total: {sortedMeets.length} recent meets
                   </div>
                 </td>

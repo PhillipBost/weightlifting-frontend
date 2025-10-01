@@ -28,7 +28,7 @@
   --text-disabled: #6b7280;   /* gray-500 - disabled states */
   
   /* Border System */
-  --border-primary: #4b5563;  /* gray-600 - main borders */
+  --border-primary: #374151;  /* gray-700 - main borders */
   --border-secondary: #374151;/* gray-700 - subtle borders */
   --border-focus: #3b82f6;    /* blue-500 - focus indicators */
   --border-hover: #6b7280;    /* gray-500 - hover borders */

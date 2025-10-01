@@ -165,7 +165,7 @@ export default function WSODirectoryPage() {
               <div className="px-6 py-4">
                 <div className="overflow-x-auto">
                   <table className="w-full">
-                    <thead className="bg-app-tertiary">
+                    <thead className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200">
                       <tr>
                         {[...Array(6)].map((_, i) => (
                           <th key={i} className="px-3 py-1.5">
@@ -174,7 +174,7 @@ export default function WSODirectoryPage() {
                         ))}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-app-primary">
+                    <tbody>
                       {[...Array(10)].map((_, i) => (
                         <tr key={i}>
                           <td className="px-3 py-1.5"><div className="h-5 bg-app-tertiary rounded w-32"></div></td>
@@ -251,46 +251,46 @@ export default function WSODirectoryPage() {
           <div className="px-6 py-4">
             <div className="overflow-x-auto">
               <table className="w-full">
-              <thead className="bg-app-tertiary">
+              <thead className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200">
                 <tr>
                   <th
-                    className="px-3 py-1.5 text-left text-xs font-medium text-app-secondary uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                    className="px-3 py-1.5 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                     onClick={() => handleSort('name')}
                   >
                     WSO Name {sortField === 'name' && (sortDirection === 'asc' ? '↑' : '↓')}
                   </th>
                   <th
-                    className="px-3 py-1.5 text-left text-xs font-medium text-app-secondary uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                    className="px-3 py-1.5 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                     onClick={() => handleSort('estimated_population')}
                   >
                     Est Population (M) {sortField === 'estimated_population' && (sortDirection === 'asc' ? '↑' : '↓')}
                   </th>
                   <th
-                    className="px-3 py-1.5 text-left text-xs font-medium text-app-secondary uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                    className="px-3 py-1.5 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                     onClick={() => handleSort('active_lifters_count')}
                   >
                     Active Lifters {sortField === 'active_lifters_count' && (sortDirection === 'asc' ? '↑' : '↓')}
                   </th>
                   <th
-                    className="px-3 py-1.5 text-left text-xs font-medium text-app-secondary uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                    className="px-3 py-1.5 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                     onClick={() => handleSort('recent_meets_count')}
                   >
                     Recent Meets {sortField === 'recent_meets_count' && (sortDirection === 'asc' ? '↑' : '↓')}
                   </th>
                   <th
-                    className="px-3 py-1.5 text-left text-xs font-medium text-app-secondary uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                    className="px-3 py-1.5 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                     onClick={() => handleSort('barbell_clubs_count')}
                   >
                     Clubs {sortField === 'barbell_clubs_count' && (sortDirection === 'asc' ? '↑' : '↓')}
                   </th>
-                  <th className="px-3 py-1.5 text-left text-xs font-medium text-app-secondary uppercase tracking-wider">
+                  <th className="px-3 py-1.5 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">
                     View Details
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-app-primary">
+              <tbody>
                 {sortedData.map((wso) => (
-                  <tr key={wso.wso_id} className="hover:bg-app-hover transition-colors">
+                  <tr key={wso.wso_id} className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors" style={{ borderTopColor: 'var(--border-secondary)' }}>
                     <td className="px-3 py-1.5 whitespace-nowrap">
                       <div className="text-sm font-medium text-app-primary">{wso.name}</div>
                     </td>
@@ -318,21 +318,21 @@ export default function WSODirectoryPage() {
                   </tr>
                 ))}
               </tbody>
-              <tfoot className="bg-app-tertiary border-t border-app-primary">
+              <tfoot className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200 border-t border-app-primary">
                 <tr>
-                  <td className="px-3 py-1.5 text-sm font-medium text-app-primary">
+                  <td className="px-3 py-1.5 text-sm font-medium text-gray-900 dark:text-gray-200">
                     Total ({stats?.totalWSOs || 0} WSOs)
                   </td>
-                  <td className="px-3 py-1.5 text-sm font-medium text-app-primary">
+                  <td className="px-3 py-1.5 text-sm font-medium text-gray-900 dark:text-gray-200">
                     {stats?.totalPopulation ? (stats.totalPopulation / 1000000).toFixed(1) : '0.0'}
                   </td>
-                  <td className="px-3 py-1.5 text-sm font-medium text-app-primary">
+                  <td className="px-3 py-1.5 text-sm font-medium text-gray-900 dark:text-gray-200">
                     {(stats?.totalLifters || 0).toLocaleString()}
                   </td>
-                  <td className="px-3 py-1.5 text-sm font-medium text-app-primary">
+                  <td className="px-3 py-1.5 text-sm font-medium text-gray-900 dark:text-gray-200">
                     {stats?.totalRecentMeets || 0}
                   </td>
-                  <td className="px-3 py-1.5 text-sm font-medium text-app-primary">
+                  <td className="px-3 py-1.5 text-sm font-medium text-gray-900 dark:text-gray-200">
                     {stats?.totalClubs || 0}
                   </td>
                   <td className="px-3 py-1.5"></td>
