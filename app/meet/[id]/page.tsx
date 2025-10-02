@@ -44,15 +44,23 @@ interface Meet {
   elevation?: number | null;
 }
 
-const SortIcon = ({ column, sortConfig, division }: { 
-  column: string; 
+const SortIcon = ({ column, sortConfig, division }: {
+  column: string;
   sortConfig: { division: string; key: keyof MeetResult | 'place'; direction: 'asc' | 'desc' } | null;
   division: string;
 }) => {
-  if (!sortConfig || sortConfig.division !== division || sortConfig.key !== column) {
+  // If no sort is active and this is the "place" column, show it as the default sort (asc)
+  if (!sortConfig || sortConfig.division !== division) {
+    if (column === 'place') {
+      return <span className="text-accent-primary ml-1">↑</span>;
+    }
     return <span className="text-app-disabled ml-1">↕</span>;
   }
-  
+
+  if (sortConfig.key !== column) {
+    return <span className="text-app-disabled ml-1">↕</span>;
+  }
+
   return (
     <span className="text-accent-primary ml-1">
       {sortConfig.direction === 'asc' ? '↑' : '↓'}

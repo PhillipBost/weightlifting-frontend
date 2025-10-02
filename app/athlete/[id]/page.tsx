@@ -1799,132 +1799,132 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
             ) : (
               <>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-xs text-left text-app-secondary">
-                    <thead className="text-xs text-app-muted uppercase bg-app-tertiary">
+                  <table className="w-full text-left">
+                    <thead className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200">
                       <tr>
                         {showAllColumns ? (
                           <>
-                            <th 
-                              scope="col" 
-                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                            <th
+                              scope="col"
+                              className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                               onClick={() => handleSort('date')}
                             >
                               Date
                               <SortIcon column="date" sortConfig={sortConfig} />
                             </th>
-                            <th 
-                              scope="col" 
-                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                            <th
+                              scope="col"
+                              className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                               onClick={() => handleSort('meet_name')}
                             >
                               Meet
                               <SortIcon column="meet_name" sortConfig={sortConfig} />
                             </th>
-                            <th 
-                              scope="col" 
-                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                            <th
+                              scope="col"
+                              className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                               onClick={() => handleSort('level')}
                             >
                               Level
                               <SortIcon column="level" sortConfig={sortConfig} />
                             </th>
-                            <th 
-                              scope="col" 
-                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                            <th
+                              scope="col"
+                              className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                               onClick={() => handleSort('wso')}
                             >
                               WSO
                               <SortIcon column="wso" sortConfig={sortConfig} />
                             </th>
-                            <th 
-                              scope="col" 
-                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                            <th
+                              scope="col"
+                              className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                               onClick={() => handleSort('club_name')}
                             >
                               Club
                               <SortIcon column="club_name" sortConfig={sortConfig} />
                             </th>
-                            <th 
-                              scope="col" 
-                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                            <th
+                              scope="col"
+                              className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                               onClick={() => handleSort('age_category')}
                             >
                               Age Category
                               <SortIcon column="age_category" sortConfig={sortConfig} />
                             </th>
-                            <th 
-                              scope="col" 
-                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                            <th
+                              scope="col"
+                              className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                               onClick={() => handleSort('weight_class')}
                             >
                               Weight Class
                               <SortIcon column="weight_class" sortConfig={sortConfig} />
                             </th>
-                            <th 
-                              scope="col" 
-                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                            <th
+                              scope="col"
+                              className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                               onClick={() => handleSort('body_weight_kg')}
                             >
                               Body Weight
                               <SortIcon column="body_weight_kg" sortConfig={sortConfig} />
                             </th>
-                            <th 
-                              scope="col" 
-                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                            <th
+                              scope="col"
+                              className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                               onClick={() => handleSort('competition_age')}
                             >
                               Comp Age
                               <SortIcon column="competition_age" sortConfig={sortConfig} />
                             </th>
-                            <th scope="col" className="px-2 py-3">Sn 1</th>
-                            <th scope="col" className="px-2 py-3">Sn 2</th>
-                            <th scope="col" className="px-2 py-3">Sn 3</th>
-                            <th 
-                              scope="col" 
-                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                            <th scope="col" className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">Sn 1</th>
+                            <th scope="col" className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">Sn 2</th>
+                            <th scope="col" className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">Sn 3</th>
+                            <th
+                              scope="col"
+                              className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                               onClick={() => handleSort('best_snatch')}
                             >
                               Best Sn
                               <SortIcon column="best_snatch" sortConfig={sortConfig} />
                             </th>
-                            <th scope="col" className="px-2 py-3">CJ 1</th>
-                            <th scope="col" className="px-2 py-3">CJ 2</th>
-                            <th scope="col" className="px-2 py-3">CJ 3</th>
-                            <th 
-                              scope="col" 
-                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                            <th scope="col" className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">CJ 1</th>
+                            <th scope="col" className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">CJ 2</th>
+                            <th scope="col" className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">CJ 3</th>
+                            <th
+                              scope="col"
+                              className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                               onClick={() => handleSort('best_cj')}
                             >
                               Best CJ
                               <SortIcon column="best_cj" sortConfig={sortConfig} />
                             </th>
-                            <th 
-                              scope="col" 
-                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                            <th
+                              scope="col"
+                              className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                               onClick={() => handleSort('total')}
                             >
                               Total
                               <SortIcon column="total" sortConfig={sortConfig} />
                             </th>
-                            <th 
-                              scope="col" 
-                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                            <th
+                              scope="col"
+                              className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                               onClick={() => handleSort('q_youth')}
                             >
                               Q-Youth
                               <SortIcon column="q_youth" sortConfig={sortConfig} />
                             </th>
-                            <th 
-                              scope="col" 
-                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                            <th
+                              scope="col"
+                              className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                               onClick={() => handleSort('qpoints')}
                             >
                               Q-Points
                               <SortIcon column="qpoints" sortConfig={sortConfig} />
                             </th>
-                            <th 
-                              scope="col" 
-                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                            <th
+                              scope="col"
+                              className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                               onClick={() => handleSort('q_masters')}
                             >
                               Q-Masters
@@ -1933,57 +1933,57 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                           </>
                         ) : (
                           <>
-                            <th 
-                              scope="col" 
-                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                            <th
+                              scope="col"
+                              className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                               onClick={() => handleSort('date')}
                             >
                               Date
                               <SortIcon column="date" sortConfig={sortConfig} />
                             </th>
-                            <th 
-                              scope="col" 
-                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                            <th
+                              scope="col"
+                              className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                               onClick={() => handleSort('meet_name')}
                             >
                               Meet
                               <SortIcon column="meet_name" sortConfig={sortConfig} />
                             </th>
-                            <th 
-                              scope="col" 
-                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                            <th
+                              scope="col"
+                              className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                               onClick={() => handleSort('weight_class')}
                             >
                               Weight Class
                               <SortIcon column="weight_class" sortConfig={sortConfig} />
                             </th>
-                            <th 
-                              scope="col" 
-                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                            <th
+                              scope="col"
+                              className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                               onClick={() => handleSort('best_snatch')}
                             >
                               Best Sn
                               <SortIcon column="best_snatch" sortConfig={sortConfig} />
                             </th>
-                            <th 
-                              scope="col" 
-                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                            <th
+                              scope="col"
+                              className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                               onClick={() => handleSort('best_cj')}
                             >
                               Best CJ
                               <SortIcon column="best_cj" sortConfig={sortConfig} />
                             </th>
-                            <th 
-                              scope="col" 
-                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                            <th
+                              scope="col"
+                              className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                               onClick={() => handleSort('total')}
                             >
                               Total
                               <SortIcon column="total" sortConfig={sortConfig} />
                             </th>
-                            <th 
-                              scope="col" 
-                              className="px-2 py-3 cursor-pointer hover:bg-app-surface transition-colors select-none"
+                            <th
+                              scope="col"
+                              className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                               onClick={() => handleSort('best_q_score')}
                             >
                               Best Q-Score
@@ -1993,16 +1993,16 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                         )}
                       </tr>
                     </thead>
-                    <tbody className="text-xs">
+                    <tbody>
                       {displayResults.map((result, index) => {
                         const bestQScore = getBestQScore(result);
-                        
+
                         return (
-                          <tr key={index} className="bg-app-secondary border-b border-app-secondary hover:bg-app-tertiary">
+                          <tr key={index} className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors" style={{ borderTopColor: 'var(--border-secondary)' }}>
                             {showAllColumns ? (
                               <>
-                                <td className="px-2 py-3 whitespace-nowrap">{new Date(result.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
-                                <td className="px-2 py-3 max-w-20">
+                                <td className="px-2 py-1 whitespace-nowrap text-xs">{new Date(result.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
+                                <td className="px-2 py-1 max-w-20 text-xs">
                                   <button
                                     onClick={() => router.push(`/meet/${result.meet_id}`)}
                                     className="text-accent-primary hover:text-accent-primary-hover transition-colors truncate max-w-full block text-left"
@@ -2011,30 +2011,30 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                                     {result.meet_name}
                                   </button>
                                 </td>
-								<td className="px-2 py-3 whitespace-nowrap">{result.meets?.Level || '-'}</td>
-                                <td className="px-2 py-3 whitespace-nowrap">{result.wso || '-'}</td>
-                                <td className="px-2 py-3 whitespace-nowrap">{result.club_name || '-'}</td>
-                                <td className="px-2 py-3 whitespace-nowrap">{result.age_category || '-'}</td>
-                                <td className="px-2 py-3 whitespace-nowrap">{result.weight_class || '-'}</td>
-                                <td className="px-2 py-3 whitespace-nowrap" style={{ color: 'var(--chart-bodyweight)' }}>{result.body_weight_kg ? `${result.body_weight_kg}kg` : '-'}</td>
-                                <td className="px-2 py-3 whitespace-nowrap">{result.competition_age || '-'}</td>
-                                <td className="px-2 py-3 whitespace-nowrap">{result.snatch_lift_1 || '-'}</td>
-                                <td className="px-2 py-3 whitespace-nowrap">{result.snatch_lift_2 || '-'}</td>
-                                <td className="px-2 py-3 whitespace-nowrap">{result.snatch_lift_3 || '-'}</td>
-                                <td className="px-2 py-3 whitespace-nowrap font-semibold" style={{ color: 'var(--chart-snatch)' }}>{result.best_snatch ? `${result.best_snatch}kg` : '-'}</td>
-                                <td className="px-2 py-3 whitespace-nowrap">{result.cj_lift_1 || '-'}</td>
-                                <td className="px-2 py-3 whitespace-nowrap">{result.cj_lift_2 || '-'}</td>
-                                <td className="px-2 py-3 whitespace-nowrap">{result.cj_lift_3 || '-'}</td>
-                                <td className="px-2 py-3 whitespace-nowrap font-semibold" style={{ color: 'var(--chart-cleanjerk)' }}>{result.best_cj ? `${result.best_cj}kg` : '-'}</td>
-                                <td className="px-2 py-3 whitespace-nowrap font-bold" style={{ color: 'var(--chart-total)' }}>{result.total ? `${result.total}kg` : '-'}</td>
-                                <td className="px-2 py-3 whitespace-nowrap" style={{ color: 'var(--chart-qyouth)' }}>{result.q_youth || '-'}</td>
-                                <td className="px-2 py-3 whitespace-nowrap" style={{ color: 'var(--chart-qpoints)' }}>{result.qpoints || '-'}</td>
-                                <td className="px-2 py-3 whitespace-nowrap" style={{ color: 'var(--chart-qmasters)' }}>{result.q_masters || '-'}</td>
+								<td className="px-2 py-1 whitespace-nowrap text-xs">{result.meets?.Level || '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs">{result.wso || '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs">{result.club_name || '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs">{result.age_category || '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs">{result.weight_class || '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-bodyweight)' }}>{result.body_weight_kg ? `${result.body_weight_kg}kg` : '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs">{result.competition_age || '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs">{result.snatch_lift_1 || '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs">{result.snatch_lift_2 || '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs">{result.snatch_lift_3 || '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs font-semibold" style={{ color: 'var(--chart-snatch)' }}>{result.best_snatch ? `${result.best_snatch}kg` : '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs">{result.cj_lift_1 || '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs">{result.cj_lift_2 || '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs">{result.cj_lift_3 || '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs font-semibold" style={{ color: 'var(--chart-cleanjerk)' }}>{result.best_cj ? `${result.best_cj}kg` : '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs font-bold" style={{ color: 'var(--chart-total)' }}>{result.total ? `${result.total}kg` : '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-qyouth)' }}>{result.q_youth || '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-qpoints)' }}>{result.qpoints || '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-qmasters)' }}>{result.q_masters || '-'}</td>
                               </>
                             ) : (
                               <>
-                                <td className="px-2 py-3 whitespace-nowrap">{new Date(result.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
-                                <td className="px-2 py-3 max-w-xs">
+                                <td className="px-2 py-1 whitespace-nowrap text-xs">{new Date(result.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
+                                <td className="px-2 py-1 max-w-xs text-xs">
                                   <button
                                     onClick={() => router.push(`/meet/${result.meet_id}`)}
                                     className="text-accent-primary hover:text-accent-primary-hover transition-colors truncate max-w-full block text-left"
@@ -2043,11 +2043,11 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                                     {result.meet_name}
                                   </button>
                                 </td>
-                                <td className="px-2 py-3 whitespace-nowrap">{result.weight_class || '-'}</td>
-                                <td className="px-2 py-3 whitespace-nowrap font-semibold" style={{ color: 'var(--chart-snatch)' }}>{result.best_snatch ? `${result.best_snatch}kg` : '-'}</td>
-                                <td className="px-2 py-3 whitespace-nowrap font-semibold" style={{ color: 'var(--chart-cleanjerk)' }}>{result.best_cj ? `${result.best_cj}kg` : '-'}</td>
-                                <td className="px-2 py-3 whitespace-nowrap font-bold" style={{ color: 'var(--chart-total)' }}>{result.total ? `${result.total}kg` : '-'}</td>
-                                <td className="px-2 py-3 whitespace-nowrap" style={bestQScore.style}>{bestQScore.value || '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs">{result.weight_class || '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs font-semibold" style={{ color: 'var(--chart-snatch)' }}>{result.best_snatch ? `${result.best_snatch}kg` : '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs font-semibold" style={{ color: 'var(--chart-cleanjerk)' }}>{result.best_cj ? `${result.best_cj}kg` : '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs font-bold" style={{ color: 'var(--chart-total)' }}>{result.total ? `${result.total}kg` : '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs" style={bestQScore.style}>{bestQScore.value || '-'}</td>
                               </>
                             )}
                           </tr>

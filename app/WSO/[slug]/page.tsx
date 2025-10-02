@@ -155,13 +155,13 @@ function WSOClubsTable({ slug }: { slug: string }) {
                 className="px-3 py-1.5 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                 onClick={() => handleSort('club_name')}
               >
-                Club Name {sortField === 'club_name' && (sortDirection === 'asc' ? '↑' : '↓')}
+                Club Name <span className={sortField === 'club_name' ? 'text-accent-primary ml-1' : 'text-app-disabled ml-1'}>{sortField === 'club_name' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}</span>
               </th>
               <th
                 className="px-3 py-1.5 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                 onClick={() => handleSort('location')}
               >
-                Location {sortField === 'location' && (sortDirection === 'asc' ? '↑' : '↓')}
+                Location <span className={sortField === 'location' ? 'text-accent-primary ml-1' : 'text-app-disabled ml-1'}>{sortField === 'location' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}</span>
               </th>
               <th
                 className="px-3 py-1.5 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
@@ -172,7 +172,7 @@ function WSOClubsTable({ slug }: { slug: string }) {
                   description="Number of competitive lifters who have competed within the past 12 months"
                   methodology="Counts unique athletes from each club who have competition results in the past 12 months"
                 >
-                  <span>Active Lifters {sortField === 'active_lifters_count' && (sortDirection === 'asc' ? '↑' : '↓')}</span>
+                  <span>Active Lifters <span className={sortField === 'active_lifters_count' ? 'text-accent-primary ml-1' : 'text-app-disabled ml-1'}>{sortField === 'active_lifters_count' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}</span></span>
                 </MetricTooltip>
               </th>
             </tr>
@@ -464,19 +464,19 @@ function WSORecentMeetsTable({ slug }: { slug: string }) {
                   className="px-3 py-1.5 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                   onClick={() => handleSort('meet_name')}
                 >
-                  Meet Name {sortField === 'meet_name' && (sortDirection === 'asc' ? '↑' : '↓')}
+                  Meet Name <span className={sortField === 'meet_name' ? 'text-accent-primary ml-1' : 'text-app-disabled ml-1'}>{sortField === 'meet_name' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}</span>
                 </th>
                 <th
                   className="px-3 py-1.5 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                   onClick={() => handleSort('date')}
                 >
-                  Date {sortField === 'date' && (sortDirection === 'asc' ? '↑' : '↓')}
+                  Date <span className={sortField === 'date' ? 'text-accent-primary ml-1' : 'text-app-disabled ml-1'}>{sortField === 'date' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}</span>
                 </th>
                 <th
                   className="px-3 py-1.5 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                   onClick={() => handleSort('location')}
                 >
-                  Location {sortField === 'location' && (sortDirection === 'asc' ? '↑' : '↓')}
+                  Location <span className={sortField === 'location' ? 'text-accent-primary ml-1' : 'text-app-disabled ml-1'}>{sortField === 'location' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}</span>
                 </th>
                 <th className="px-3 py-1.5 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">
                   Actions

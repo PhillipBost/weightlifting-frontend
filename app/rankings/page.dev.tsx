@@ -4,20 +4,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { 
-  Trophy, 
-  Filter, 
-  Download, 
-  Printer, 
-  Search, 
+import {
+  Trophy,
+  Filter,
+  Download,
+  Printer,
+  Search,
   Calendar,
   Users,
   Weight,
   TrendingUp,
   X,
-  FileSpreadsheet,
-  ChevronUp,
-  ChevronDown
+  FileSpreadsheet
 } from 'lucide-react';
 
 interface AthleteRanking {
@@ -536,12 +534,12 @@ export default function RankingsPage() {
 
   function getSortIcon(column: string) {
     if (filters.sortBy !== column) {
-      return null; // No icon if not the active sort column
+      return <span className="text-app-disabled ml-1">↕</span>;
     }
-    return filters.sortOrder === 'asc' ? (
-      <ChevronUp className="h-4 w-4" />
-    ) : (
-      <ChevronDown className="h-4 w-4" />
+    return (
+      <span className="text-accent-primary ml-1">
+        {filters.sortOrder === 'asc' ? '↑' : '↓'}
+      </span>
     );
   }
 
@@ -901,11 +899,11 @@ export default function RankingsPage() {
         <div className="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left">
-              <thead className="bg-gray-700">
+              <thead className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200">
                 <tr>
-                  <th className="px-6 py-4 text-gray-300 font-semibold">Rank</th>
-                  <th 
-                    className="px-6 py-4 text-gray-300 font-semibold cursor-pointer hover:bg-gray-600 transition-colors"
+                  <th className="px-6 py-4 text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">Rank</th>
+                  <th
+                    className="px-6 py-4 text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors"
                     onClick={() => handleColumnSort('lifter_name')}
                   >
                     <div className="flex items-center space-x-1">
@@ -913,11 +911,11 @@ export default function RankingsPage() {
                       {getSortIcon('lifter_name')}
                     </div>
                   </th>
-                  <th className="px-6 py-4 text-gray-300 font-semibold">Gender</th>
-                  <th className="px-6 py-4 text-gray-300 font-semibold">Weight Class</th>
-                  <th className="px-6 py-4 text-gray-300 font-semibold">Age Category</th>
-                  <th 
-                    className="px-6 py-4 text-gray-300 font-semibold cursor-pointer hover:bg-gray-600 transition-colors"
+                  <th className="px-6 py-4 text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">Gender</th>
+                  <th className="px-6 py-4 text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">Weight Class</th>
+                  <th className="px-6 py-4 text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">Age Category</th>
+                  <th
+                    className="px-6 py-4 text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors"
                     onClick={() => handleColumnSort('best_snatch')}
                   >
                     <div className="flex items-center space-x-1">
@@ -925,8 +923,8 @@ export default function RankingsPage() {
                       {getSortIcon('best_snatch')}
                     </div>
                   </th>
-                  <th 
-                    className="px-6 py-4 text-gray-300 font-semibold cursor-pointer hover:bg-gray-600 transition-colors"
+                  <th
+                    className="px-6 py-4 text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors"
                     onClick={() => handleColumnSort('best_cj')}
                   >
                     <div className="flex items-center space-x-1">
@@ -934,8 +932,8 @@ export default function RankingsPage() {
                       {getSortIcon('best_cj')}
                     </div>
                   </th>
-                  <th 
-                    className="px-6 py-4 text-gray-300 font-semibold cursor-pointer hover:bg-gray-600 transition-colors"
+                  <th
+                    className="px-6 py-4 text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors"
                     onClick={() => handleColumnSort('best_total')}
                   >
                     <div className="flex items-center space-x-1">
@@ -943,8 +941,8 @@ export default function RankingsPage() {
                       {getSortIcon('best_total')}
                     </div>
                   </th>
-                  <th 
-                    className="px-6 py-4 text-gray-300 font-semibold cursor-pointer hover:bg-gray-600 transition-colors"
+                  <th
+                    className="px-6 py-4 text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors"
                     onClick={() => handleColumnSort('best_qpoints')}
                   >
                     <div className="flex items-center space-x-1">
@@ -952,8 +950,8 @@ export default function RankingsPage() {
                       {getSortIcon('best_qpoints')}
                     </div>
                   </th>
-                  <th 
-                    className="px-6 py-4 text-gray-300 font-semibold cursor-pointer hover:bg-gray-600 transition-colors"
+                  <th
+                    className="px-6 py-4 text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors"
                     onClick={() => handleColumnSort('competition_count')}
                   >
                     <div className="flex items-center space-x-1">

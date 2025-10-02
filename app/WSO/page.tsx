@@ -257,31 +257,31 @@ export default function WSODirectoryPage() {
                     className="px-3 py-1.5 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                     onClick={() => handleSort('name')}
                   >
-                    WSO Name {sortField === 'name' && (sortDirection === 'asc' ? '↑' : '↓')}
+                    WSO Name <span className={sortField === 'name' ? 'text-accent-primary ml-1' : 'text-app-disabled ml-1'}>{sortField === 'name' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}</span>
                   </th>
                   <th
                     className="px-3 py-1.5 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                     onClick={() => handleSort('estimated_population')}
                   >
-                    Est Population (M) {sortField === 'estimated_population' && (sortDirection === 'asc' ? '↑' : '↓')}
+                    Est Population (M) <span className={sortField === 'estimated_population' ? 'text-accent-primary ml-1' : 'text-app-disabled ml-1'}>{sortField === 'estimated_population' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}</span>
                   </th>
                   <th
                     className="px-3 py-1.5 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                     onClick={() => handleSort('active_lifters_count')}
                   >
-                    Active Lifters {sortField === 'active_lifters_count' && (sortDirection === 'asc' ? '↑' : '↓')}
+                    Active Lifters <span className={sortField === 'active_lifters_count' ? 'text-accent-primary ml-1' : 'text-app-disabled ml-1'}>{sortField === 'active_lifters_count' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}</span>
                   </th>
                   <th
                     className="px-3 py-1.5 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                     onClick={() => handleSort('recent_meets_count')}
                   >
-                    Recent Meets {sortField === 'recent_meets_count' && (sortDirection === 'asc' ? '↑' : '↓')}
+                    Recent Meets <span className={sortField === 'recent_meets_count' ? 'text-accent-primary ml-1' : 'text-app-disabled ml-1'}>{sortField === 'recent_meets_count' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}</span>
                   </th>
                   <th
                     className="px-3 py-1.5 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                     onClick={() => handleSort('barbell_clubs_count')}
                   >
-                    Clubs {sortField === 'barbell_clubs_count' && (sortDirection === 'asc' ? '↑' : '↓')}
+                    Clubs <span className={sortField === 'barbell_clubs_count' ? 'text-accent-primary ml-1' : 'text-app-disabled ml-1'}>{sortField === 'barbell_clubs_count' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}</span>
                   </th>
                   <th className="px-3 py-1.5 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">
                     View Details
