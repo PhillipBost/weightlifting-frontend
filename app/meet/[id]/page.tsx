@@ -1025,11 +1025,11 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                     {!isDivisionCollapsed && (
                       <div className="overflow-x-auto">
                         <table className="border-separate" style={{borderSpacing: 0, width: 'auto'}}>
-                          <thead>
+                          <thead className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200">
                             <tr className="border-b-2 border-gray-400 dark:border-gray-500">
-                              <th 
+                              <th
                                 onClick={() => handleSort(division, 'place')}
-                                className="px-2 py-1 text-left text-xs font-medium text-app-muted uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                                className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                                 style={{width: '60px'}}
                               >
                                 <div className="flex items-center justify-start space-x-1">
@@ -1037,9 +1037,9 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                                   <SortIcon column="place" sortConfig={sortConfig} division={division} />
                                 </div>
                               </th>
-                              <th 
+                              <th
                                 onClick={() => handleSort(division, 'lifter_name')}
-                                className="px-2 py-1 text-left text-xs font-medium text-app-muted uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                                className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                                 style={{minWidth: '200px'}}
                               >
                                 <div className="flex items-center justify-start space-x-1">
@@ -1047,9 +1047,9 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                                   <SortIcon column="lifter_name" sortConfig={sortConfig} division={division} />
                                 </div>
                               </th>
-                              <th 
+                              <th
                                 onClick={() => handleSort(division, 'club_name')}
-                                className="px-2 py-1 text-left text-xs font-medium text-app-muted uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                                className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                                 style={{minWidth: '120px'}}
                               >
                                 <div className="flex items-center justify-start space-x-1">
@@ -1058,9 +1058,9 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                                 </div>
                               </th>
                               <th className="w-full"></th>
-                              <th 
+                              <th
                                 onClick={() => handleSort(division, 'best_snatch')}
-                                className="px-2 py-1 text-right text-xs font-medium text-app-muted uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                                className="px-2 py-1 text-right text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                                 style={{width: '80px'}}
                               >
                                 <div className="flex items-center justify-end space-x-1">
@@ -1068,9 +1068,9 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                                   <SortIcon column="best_snatch" sortConfig={sortConfig} division={division} />
                                 </div>
                               </th>
-                              <th 
+                              <th
                                 onClick={() => handleSort(division, 'best_cj')}
-                                className="px-2 py-1 text-right text-xs font-medium text-app-muted uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                                className="px-2 py-1 text-right text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                                 style={{width: '80px'}}
                               >
                                 <div className="flex items-center justify-end space-x-1">
@@ -1078,9 +1078,9 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                                   <SortIcon column="best_cj" sortConfig={sortConfig} division={division} />
                                 </div>
                               </th>
-                              <th 
+                              <th
                                 onClick={() => handleSort(division, 'total')}
-                                className="px-2 py-1 text-right text-xs font-medium text-app-muted uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                                className="px-2 py-1 text-right text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                                 style={{width: '80px'}}
                               >
                                 <div className="flex items-center justify-end space-x-1">
@@ -1088,9 +1088,9 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                                   <SortIcon column="total" sortConfig={sortConfig} division={division} />
                                 </div>
                               </th>
-                              <th 
+                              <th
                                 onClick={() => handleSort(division, 'body_weight_kg')}
-                                className="px-2 py-1 text-right text-xs font-medium text-app-muted uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                                className="px-2 py-1 text-right text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                                 style={{width: '100px'}}
                               >
                                 <div className="flex items-center justify-end space-x-1">
@@ -1103,12 +1103,10 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                           <tbody>
                             {getSortedResults(divisionResults, division).map((result, index) => {
                               const originalIndex = divisionResults.indexOf(result);
-                              const displayPlace = sortConfig && sortConfig.division === division && sortConfig.key !== 'place' 
-                                ? originalIndex + 1 
-                                : index + 1;
+                              const displayPlace = originalIndex + 1;
                               
                               return (
-                              <tr key={result.result_id} className="border-b border-gray-200/50 dark:border-gray-700/30 hover:bg-app-tertiary transition-colors group">
+                              <tr key={result.result_id} className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors group" style={{ borderTopColor: 'var(--border-secondary)' }}>
                                 <td className="px-2 py-1 whitespace-nowrap text-sm font-medium text-app-primary">
                                   {displayPlace}
                                 </td>
