@@ -5,9 +5,10 @@ import { useAuth } from './AuthProvider'
 
 interface UserMenuProps {
   onLoginClick?: () => void
+  showOnlyWhenLoggedIn?: boolean
 }
 
-export function UserMenu({ onLoginClick }: UserMenuProps) {
+export function UserMenu({ onLoginClick, showOnlyWhenLoggedIn = false }: UserMenuProps) {
   const { user, logout, isLoading } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -39,12 +40,17 @@ export function UserMenu({ onLoginClick }: UserMenuProps) {
   }
 
   if (isLoading) {
-    return (
+    return showOnlyWhenLoggedIn ? null : (
       <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
     )
   }
 
   if (!user) {
+    // If showOnlyWhenLoggedIn is true, don't render anything for logged out users
+    if (showOnlyWhenLoggedIn) {
+      return null
+    }
+
     return (
       <button
         onClick={onLoginClick}

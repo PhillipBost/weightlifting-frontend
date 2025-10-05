@@ -764,10 +764,10 @@ export default function WeightliftingLandingPage() {
               </div>
             </Link>
             
-            {/* Add Theme Switcher */}
+            {/* Add Theme Switcher and User Menu (only when logged in) */}
             <div className="flex items-center space-x-4">
               <ThemeSwitcher />
-              <UserMenu onLoginClick={() => setShowLoginModal(true)} />
+              <UserMenu onLoginClick={() => setShowLoginModal(true)} showOnlyWhenLoggedIn />
             </div>
           </div>
         </div>
@@ -995,9 +995,11 @@ export default function WeightliftingLandingPage() {
       {/* Footer */}
       <footer className="bg-app-secondary text-app-primary py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
+          {/* Mobile: Centered vertical layout, Desktop: Two columns */}
+          <div className="flex flex-col items-center md:grid md:grid-cols-2 gap-6 md:gap-8 md:items-start">
+            {/* Logo and description */}
+            <div className="text-center md:text-left">
+              <div className="flex items-center justify-center md:justify-start space-x-2 mb-4">
                 <Image
                   src="/logo.png"
                   alt="WeightliftingDB Logo"
@@ -1011,8 +1013,11 @@ export default function WeightliftingLandingPage() {
                 Open source project, MIT License. Data sourced from official competition results.
               </p>
             </div>
-            <div className="flex justify-end items-end">
-              <a 
+
+            {/* User menu and GitHub link */}
+            <div className="flex flex-col items-center md:items-end md:justify-end gap-4">
+              <UserMenu onLoginClick={() => setShowLoginModal(true)} />
+              <a
                 href="https://github.com/PhillipBost/weightlifting-frontend"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -1024,10 +1029,16 @@ export default function WeightliftingLandingPage() {
               </a>
             </div>
           </div>
+
+          {/* Copyright - always centered */}
           <div className="border-t border-app-secondary mt-8 pt-8 text-center text-sm text-app-tertiary">
-            <span className="inline-flex items-center gap-1">
-              2025 WeightliftingDB. Built with <Heart className="h-4 w-4 text-blue-400" fill="currentColor" /> for the weightlifting community.
-            </span>
+            <div className="flex flex-wrap items-center justify-center gap-x-1 gap-y-1">
+              <span className="whitespace-nowrap">2025 WeightliftingDB.</span>
+              <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                Built with <Heart className="h-4 w-4 text-blue-400" fill="currentColor" /> for
+              </span>
+              <span className="whitespace-nowrap">the weightlifting community.</span>
+            </div>
           </div>
         </div>
       </footer>
