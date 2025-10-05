@@ -40,5 +40,7 @@ I would love general feedback and beta-testing notes however you can get them to
 - GitHub free
 - Domain registration n/a yet
 
-## Licence
-Open source / MIT
+## License
+**Code**: MIT License
+
+**Data**: See [DATA_LICENSE.md](DATA_LICENSE.md) for information about data sourcing and usage
