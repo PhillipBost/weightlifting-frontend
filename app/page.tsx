@@ -5,6 +5,7 @@ import { Search, TrendingUp, Trophy, Users, Calendar, CalendarDays, MapPinned, W
 import { supabase } from '../lib/supabase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import type { Metadata } from 'next';
 import { ThemeSwitcher } from './components/ThemeSwitcher';
 import { UserMenu } from './components/UserMenu';
@@ -750,9 +751,13 @@ export default function WeightliftingLandingPage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <Link href="/" className="flex items-center space-x-4 hover:opacity-80 transition-opacity">
-              <div className="bg-app-tertiary rounded-full p-3">
-                <Database className="h-8 w-8 text-app-secondary" />
-              </div>
+              <Image
+                src="/logo.png"
+                alt="WeightliftingDB Logo"
+                width={56}
+                height={56}
+                className="h-14 w-14 object-contain"
+              />
               <div>
                 <h1 className="text-2xl font-bold text-app-primary">WeightliftingDB</h1>
                 <p className="text-sm text-app-tertiary">USA Weightlifting Results Database</p>
@@ -993,7 +998,13 @@ export default function WeightliftingLandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
               <div className="flex items-center space-x-2 mb-4">
-                <Database className="h-6 w-6" />
+                <Image
+                  src="/logo.png"
+                  alt="WeightliftingDB Logo"
+                  width={24}
+                  height={24}
+                  className="h-6 w-6 object-contain"
+                />
                 <span className="font-bold">WeightliftingDB</span>
               </div>
               <p className="text-app-tertiary text-sm">

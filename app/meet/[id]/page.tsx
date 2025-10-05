@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { supabase } from '../../../lib/supabase';
 import { ArrowLeft, Calendar, MapPin, Trophy, Users, ExternalLink, ChevronDown, ChevronRight, Mountain, Database } from 'lucide-react';
 import { ThemeSwitcher } from '../../components/ThemeSwitcher';
@@ -909,9 +910,13 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-6">
               <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-                <div className="bg-app-tertiary rounded-full p-2">
-                  <Database className="h-6 w-6 text-app-secondary" />
-                </div>
+                <Image
+                  src="/logo.png"
+                  alt="WeightliftingDB Logo"
+                  width={40}
+                  height={40}
+                  className="h-10 w-10 object-contain"
+                />
                 <div>
                   <div className="text-lg font-bold text-app-primary">WeightliftingDB</div>
                   <div className="text-xs text-app-tertiary">USA Weightlifting Results Database</div>

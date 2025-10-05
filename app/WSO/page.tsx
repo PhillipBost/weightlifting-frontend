@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { ArrowLeft, MapPin, Users, BarChart3, Activity, TrendingUp, ChevronRight, Database } from 'lucide-react'
 import { ThemeSwitcher } from '../components/ThemeSwitcher'
 import { useWSOMapData } from '../hooks/useWSOMapData'
@@ -214,9 +215,13 @@ export default function WSODirectoryPage() {
         <div className="flex justify-between items-start flex-wrap gap-4 mb-8">
           <div className="flex items-center space-x-4 flex-wrap gap-2">
             <Link href="/" className="flex items-center space-x-4 hover:opacity-80 transition-opacity">
-              <div className="bg-app-tertiary rounded-full p-3">
-                <Database className="h-8 w-8 text-app-secondary" />
-              </div>
+              <Image
+                src="/logo.png"
+                alt="WeightliftingDB Logo"
+                width={56}
+                height={56}
+                className="h-14 w-14 object-contain"
+              />
               <div>
                 <h1 className="text-2xl font-bold text-app-primary">WeightliftingDB</h1>
                 <p className="text-sm text-app-tertiary">USA Weightlifting Results Database</p>
