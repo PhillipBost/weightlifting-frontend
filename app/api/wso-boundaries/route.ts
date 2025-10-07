@@ -7,13 +7,13 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
 const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    // DEBUGGING: Disable all caching to get fresh data
+    // Enable aggressive caching (1 week) since data updates weekly
     const headers = {
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'CDN-Cache-Control': 'no-cache',
-      'Vercel-CDN-Cache-Control': 'no-cache'
+      'Cache-Control': 'public, s-maxage=604800, stale-while-revalidate=86400',
+      'CDN-Cache-Control': 'public, s-maxage=604800',
+      'Vercel-CDN-Cache-Control': 'public, s-maxage=604800'
     }
     
     // Get WSO boundary data with pre-calculated metrics
@@ -68,9 +68,36 @@ export async function GET() {
       console.warn('Could not calculate dynamic meet counts, falling back to pre-calculated:', error)
     }
 
-    // Use pre-calculated data from wso_information table with dynamic meet counts
+    // Fetch clubs data for treemap visualization
+    const { data: clubsData, error: clubsError } = await supabaseAdmin
+      .from('clubs')
+      .select('club_name, wso_geography, latitude, longitude, active_lifters_count')
+      .not('latitude', 'is', null)
+      .not('longitude', 'is', null)
+      .order('club_name')
+
+    if (clubsError) {
+      console.warn('Could not fetch clubs data:', clubsError)
+    }
+
+    // Group clubs by WSO
+    const clubsByWSO = new Map<string, typeof clubsData>()
+    if (clubsData) {
+      clubsData.forEach(club => {
+        const wsoName = club.wso_geography
+        if (wsoName) {
+          if (!clubsByWSO.has(wsoName)) {
+            clubsByWSO.set(wsoName, [])
+          }
+          clubsByWSO.get(wsoName)?.push(club)
+        }
+      })
+    }
+
+    // Use pre-calculated data from wso_information table with dynamic meet counts and clubs
     const enrichedData = wsoData.map(wso => {
       const dynamicMeetCount = dynamicMeetCounts[wso.name] || 0
+      const wsoClubs = clubsByWSO.get(wso.name) || []
 
       return {
         ...wso,
@@ -78,13 +105,21 @@ export async function GET() {
         // Keep original field names for compatibility with frontend
         active_lifters_count: wso.active_lifters_count || 0,
         barbell_clubs_count: wso.barbell_clubs_count || 0,
-        estimated_population: wso.estimated_population || 0
+        estimated_population: wso.estimated_population || 0,
+        // Add clubs data for treemap
+        clubs: wsoClubs.map(club => ({
+          name: club.club_name,
+          size: club.active_lifters_count || 0,
+          latitude: club.latitude,
+          longitude: club.longitude
+        }))
       }
     })
 
     return NextResponse.json(enrichedData, { headers })
   } catch (err) {
-    return NextResponse.json({ error: 'Failed to fetch WSO boundaries' }, { 
+    console.error('API Error:', err)
+    return NextResponse.json({ error: 'Failed to fetch WSO boundaries' }, {
       status: 500,
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate'

@@ -15,6 +15,7 @@
     "@turf/helpers": "^7.2.0",
     "@turf/union": "^7.2.0",
     "@types/chroma-js": "^3.1.1",
+    "@types/d3": "^7.4.3",
     "@types/uuid": "^10.0.0",
     "@vercel/analytics": "^1.5.0",
     "@vercel/speed-insights": "^1.2.0",
@@ -22,6 +23,8 @@
     "buffer": "^6.0.3",
     "chroma-js": "^3.1.2",
     "cowsay": "^1.6.0",
+    "d3": "^7.9.0",
+    "d3-voronoi-treemap": "^1.1.2",
     "dotenv": "^17.2.2",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.1",
@@ -35,6 +38,7 @@
     "react-leaflet": "^5.0.0",
     "react-paginate": "^8.3.0",
     "recharts": "^3.1.2",
+    "swr": "^2.3.6",
     "uuid": "^13.0.0"
   },
   "devDependencies": {

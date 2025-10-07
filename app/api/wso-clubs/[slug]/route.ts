@@ -7,49 +7,6 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
 const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
 
-// Helper function to check if a point is inside a GeoJSON polygon
-function pointInGeoJSON(point: [number, number], geojson: any): boolean {
-  if (!geojson) return false
-
-  const [lng, lat] = point
-
-  // Handle Feature wrapper
-  let geometry = geojson
-  if (geojson.type === 'Feature') {
-    geometry = geojson.geometry
-  }
-
-  if (!geometry || !geometry.coordinates) return false
-
-  // Handle both Polygon and MultiPolygon geometries
-  if (geometry.type === 'Polygon') {
-    return pointInPolygon([lng, lat], geometry.coordinates[0])
-  } else if (geometry.type === 'MultiPolygon') {
-    return geometry.coordinates.some((polygon: any) =>
-      pointInPolygon([lng, lat], polygon[0])
-    )
-  }
-
-  return false
-}
-
-// Ray casting algorithm for point-in-polygon test
-function pointInPolygon(point: [number, number], polygon: number[][]): boolean {
-  const [x, y] = point
-  let inside = false
-  
-  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-    const [xi, yi] = polygon[i]
-    const [xj, yj] = polygon[j]
-    
-    if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) {
-      inside = !inside
-    }
-  }
-  
-  return inside
-}
-
 // Function to convert slug to WSO name
 function slugToWsoName(slug: string): string {
   // Handle special cases first
@@ -101,39 +58,25 @@ export async function GET(
       return NextResponse.json({ error: 'Invalid WSO slug' }, { status: 400 })
     }
 
-    // DEBUGGING: Disable all caching to get fresh data
+    // Enable caching for better performance
     const headers = {
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'CDN-Cache-Control': 'no-cache',
-      'Vercel-CDN-Cache-Control': 'no-cache'
+      'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+      'CDN-Cache-Control': 'public, s-maxage=3600',
+      'Vercel-CDN-Cache-Control': 'public, s-maxage=3600'
     }
 
-    // Fetch WSO boundary data for geometric filtering
-    const { data: wsoData, error: wsoError } = await supabaseAdmin
-      .from('wso_information')
-      .select('wso_id, name, territory_geojson')
-      .eq('name', wsoName)
-      .single()
-
-    if (wsoError) {
-      console.error('WSO boundary fetch error:', wsoError)
-      return NextResponse.json({ error: 'WSO not found' }, { status: 404 })
-    }
-
-    console.log('WSO boundary data:', { wsoId: wsoData.wso_id, hasGeojson: !!wsoData.territory_geojson })
-
-    // Query ALL clubs (not filtered by wso_geography) to check geometric boundaries
+    // Query clubs filtered by wso_geography field (database-assigned WSO)
     const { data: clubsData, error: clubsError } = await supabaseAdmin
       .from('clubs')
       .select('club_name, wso_geography, phone, email, address, geocode_display_name, latitude, longitude, active_lifters_count')
+      .eq('wso_geography', wsoName)
       .not('latitude', 'is', null)
       .not('longitude', 'is', null)
       .order('club_name')
 
-    console.log('Clubs query result (all clubs with coordinates):', {
+    console.log('Clubs query result for', wsoName, ':', {
       clubsCount: clubsData?.length || 0,
-      error: clubsError?.message,
-      sampleClub: clubsData?.[0]
+      error: clubsError?.message
     })
 
     if (clubsError) {
@@ -141,32 +84,7 @@ export async function GET(
       return NextResponse.json({ error: (clubsError as any).message || 'Database error' }, { status: 500 })
     }
 
-    // Apply geometric filtering using point-in-polygon
-    let filteredClubs = clubsData || []
-    
-    if (wsoData.territory_geojson) {
-      console.log('Applying geometric filtering for', wsoName)
-      filteredClubs = clubsData?.filter(club => {
-        if (!club.latitude || !club.longitude) {
-          // No coordinates - skip (we already filtered these out in the query)
-          return false
-        }
-        
-        // Check if club is within WSO territory using geometric boundary
-        const isInside = pointInGeoJSON([club.longitude, club.latitude], wsoData.territory_geojson)
-        
-        if (!isInside && club.wso_geography === wsoName) {
-          console.log(`Club "${club.club_name}" claims to be in ${wsoName} but is outside polygon`)
-        }
-        
-        return isInside
-      }) || []
-      
-      console.log('After geometric filtering:', filteredClubs.length, 'clubs remain')
-    } else {
-      console.log('No territory boundary available, using wso_geography field as fallback')
-      filteredClubs = clubsData?.filter(club => club.wso_geography === wsoName) || []
-    }
+    const filteredClubs = clubsData || []
 
     console.log('Final clubs result:', {
       finalClubsCount: filteredClubs.length,

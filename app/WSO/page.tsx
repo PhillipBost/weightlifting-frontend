@@ -7,6 +7,7 @@ import { ArrowLeft, MapPin, Users, BarChart3, Activity, TrendingUp, ChevronRight
 import { ThemeSwitcher } from '../components/ThemeSwitcher'
 import { useWSOMapData } from '../hooks/useWSOMapData'
 import dynamic from 'next/dynamic'
+import useSWR from 'swr'
 
 // Dynamically import the map component to avoid SSR issues
 const WSOMap = dynamic(() => import('../components/WSO/Map'), {
@@ -14,6 +15,15 @@ const WSOMap = dynamic(() => import('../components/WSO/Map'), {
   loading: () => (
     <div className="h-96 w-full bg-app-tertiary rounded-lg border border-app-primary flex items-center justify-center">
       <div className="text-app-muted">Loading WSO map...</div>
+    </div>
+  ),
+})
+
+const WSOTreemap = dynamic(() => import('../components/WSO/WSOVoronoiTreemap'), {
+  ssr: false,
+  loading: () => (
+    <div className="h-96 w-full bg-app-tertiary rounded-lg border border-app-primary flex items-center justify-center">
+      <div className="text-app-muted">Loading Voronoi treemap...</div>
     </div>
   ),
 })
@@ -44,59 +54,54 @@ interface WSOStats {
   averageActivityFactor: number
 }
 
+// SWR fetcher function
+const fetcher = (url: string) => fetch(url).then(res => {
+  if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`)
+  return res.json()
+})
+
 export default function WSODirectoryPage() {
-  const [wsoData, setWSOData] = useState<WSOEntry[]>([])
   const [stats, setStats] = useState<WSOStats | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [sortField, setSortField] = useState<keyof WSOEntry>('name')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
 
   const { wsoData: wsoMapData, loading: mapLoading } = useWSOMapData()
 
-  useEffect(() => {
-    async function fetchWSOData() {
-      try {
-        setLoading(true)
-        const response = await fetch('/api/wso-boundaries')
-        if (!response.ok) {
-          throw new Error(`Failed to fetch WSO data: ${response.status}`)
-        }
-
-        const data: WSOEntry[] = await response.json()
-        setWSOData(data)
-
-        // Calculate statistics
-        const totalWSOs = data.length
-        const allStates = data.flatMap(wso => wso.states || [])
-        const uniqueStates = new Set(allStates)
-        const totalStates = uniqueStates.size
-        const totalClubs = data.reduce((sum, wso) => sum + (wso.barbell_clubs_count || 0), 0)
-        const totalLifters = data.reduce((sum, wso) => sum + (wso.active_lifters_count || 0), 0)
-        const totalRecentMeets = data.reduce((sum, wso) => sum + (wso.recent_meets_count || 0), 0)
-        const totalPopulation = data.reduce((sum, wso) => sum + (wso.estimated_population || 0), 0)
-        const avgActivity = data.reduce((sum, wso) => sum + (wso.activity_factor || 0), 0) / totalWSOs
-
-        setStats({
-          totalWSOs,
-          totalStates,
-          totalClubs,
-          totalLifters,
-          totalPopulation,
-          totalRecentMeets,
-          averageActivityFactor: Math.round(avgActivity * 100) / 100
-        })
-
-        setLoading(false)
-      } catch (err) {
-        console.error('Error fetching WSO data:', err)
-        setError(err instanceof Error ? err.message : 'Failed to load WSO data')
-        setLoading(false)
-      }
+  // Use SWR for caching and automatic revalidation
+  const { data: wsoData, error, isLoading } = useSWR<WSOEntry[]>(
+    '/api/wso-boundaries',
+    fetcher,
+    {
+      revalidateOnFocus: false, // Don't refetch on window focus
+      revalidateOnReconnect: false, // Don't refetch on reconnect
+      dedupingInterval: 60000, // Dedupe requests within 1 minute
     }
+  )
 
-    fetchWSOData()
-  }, [])
+  // Calculate statistics when data changes
+  useEffect(() => {
+    if (!wsoData) return
+
+    const totalWSOs = wsoData.length
+    const allStates = wsoData.flatMap(wso => wso.states || [])
+    const uniqueStates = new Set(allStates)
+    const totalStates = uniqueStates.size
+    const totalClubs = wsoData.reduce((sum, wso) => sum + (wso.barbell_clubs_count || 0), 0)
+    const totalLifters = wsoData.reduce((sum, wso) => sum + (wso.active_lifters_count || 0), 0)
+    const totalRecentMeets = wsoData.reduce((sum, wso) => sum + (wso.recent_meets_count || 0), 0)
+    const totalPopulation = wsoData.reduce((sum, wso) => sum + (wso.estimated_population || 0), 0)
+    const avgActivity = wsoData.reduce((sum, wso) => sum + (wso.activity_factor || 0), 0) / totalWSOs
+
+    setStats({
+      totalWSOs,
+      totalStates,
+      totalClubs,
+      totalLifters,
+      totalPopulation,
+      totalRecentMeets,
+      averageActivityFactor: Math.round(avgActivity * 100) / 100
+    })
+  }, [wsoData])
 
   const handleSort = (field: keyof WSOEntry) => {
     if (field === sortField) {
@@ -107,7 +112,7 @@ export default function WSODirectoryPage() {
     }
   }
 
-  const sortedData = [...wsoData].sort((a, b) => {
+  const sortedData = wsoData ? [...wsoData].sort((a, b) => {
     const aVal = a[sortField]
     const bVal = b[sortField]
 
@@ -128,7 +133,7 @@ export default function WSODirectoryPage() {
     }
 
     return 0
-  })
+  }) : []
 
   const formatPopulation = (pop: number) => {
     if (pop >= 1000000) {
@@ -153,7 +158,7 @@ export default function WSODirectoryPage() {
     return 'Low'
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-app-gradient">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -202,7 +207,7 @@ export default function WSODirectoryPage() {
       <div className="min-h-screen bg-app-gradient flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-500 text-xl mb-4">Error loading WSO data</div>
-          <div className="text-app-muted">{error}</div>
+          <div className="text-app-muted">{error.message || 'Failed to load WSO data'}</div>
         </div>
       </div>
     )
@@ -242,6 +247,18 @@ export default function WSODirectoryPage() {
             WSO Territory Map
           </h2>
           <WSOMap className="h-[500px] w-full" />
+        </div>
+
+        {/* WSO Treemap Visualization */}
+        <div className="card-large shadow-lg mb-8">
+          <h2 className="text-xl font-semibold text-app-primary mb-4 flex items-center gap-2">
+            <BarChart3 className="h-5 w-5" />
+            WSO Barbell Club Participation
+          </h2>
+          <p className="text-app-secondary mb-4">
+            Voronoi treemap visualization showing relative barbell club participation across WSOs. Cell sizes represent club-associated active lifter counts.
+          </p>
+          <WSOTreemap height={600} wsoData={wsoData} />
         </div>
 
         {/* WSO Directory Table */}

@@ -593,6 +593,15 @@ const WSODetailMap = dynamic(() => import("../../components/WSO/WSODetailMap"), 
   ),
 })
 
+const WSODetailTreemap = dynamic(() => import("../../components/WSO/WSODetailTreemap"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-96 w-full bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center">
+      <div className="text-gray-500 dark:text-gray-400">Loading treemap...</div>
+    </div>
+  ),
+})
+
 export default function WSODetailPage() {
   const params = useParams()
   const router = useRouter()
@@ -665,6 +674,20 @@ export default function WSODetailPage() {
               </div>
 
               <WSODetailMap wsoSlug={slug} wsoName={displayName} recentMeetsCount={recentMeetsCount} />
+            </div>
+
+            {/* Club Participation Treemap */}
+            <div className="card-large">
+              <div className="mb-4">
+                <h2 className="text-xl font-semibold text-app-primary mb-2">
+                  Club Participation Overview
+                </h2>
+                <p className="text-app-secondary">
+                  Visual comparison of active lifter participation across all clubs in this WSO. Box sizes represent active lifter counts.
+                </p>
+              </div>
+
+              <WSODetailTreemap wsoSlug={slug} height={400} />
             </div>
 
             {/* Clubs Table */}
