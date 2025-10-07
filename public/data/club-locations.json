@@ -1,38 +1,10 @@
 [
   {
-    "name": "351 Barbell Club",
-    "address": "351 Victory Road, Winchester, Virginia, United States of America, 22602",
-    "latitude": 36.6878242,
-    "longitude": -76.229921,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Aevitas Weightlifting",
-    "address": "2101 Route 9, Round Lake, New York, United States of America, 12151",
-    "latitude": 42.945886,
-    "longitude": -73.7910182,
-    "recentMemberCount": 2
-  },
-  {
-    "name": "Albany CrossFit Barbell Club",
-    "address": "444 Sand Creek Rd, Albany, New York, United States of America, 12205",
-    "latitude": 42.713825,
-    "longitude": -73.8103136,
-    "recentMemberCount": 1
-  },
-  {
-    "name": "Barbender Academy",
-    "address": "957 Atlantic Ave., Brooklyn, New York, United States of America, 11238",
-    "latitude": 40.6806015,
-    "longitude": -73.9605399,
-    "recentMemberCount": 0
-  },
-  {
     "name": "Brave Barbells N Sprinkles WLC",
     "address": "305 ashville ave suite g, cary, North Carolina, United States of America, 27518",
     "latitude": 35.712563,
     "longitude": -78.721516,
-    "recentMemberCount": 1
+    "recentMemberCount": 2
   },
   {
     "name": "CALIFORNIA STRENGTH",
@@ -49,25 +21,46 @@
     "recentMemberCount": 0
   },
   {
-    "name": "First Coast Weightlifting",
-    "address": "597 Edgewood Ave S, Jacksonville, Florida, United States of America, 32205",
-    "latitude": 30.3162338,
-    "longitude": -81.7221901,
-    "recentMemberCount": 2
+    "name": "351 Barbell Club",
+    "address": "351 Victory Road, Winchester, Virginia, United States of America, 22602",
+    "latitude": 36.6878242,
+    "longitude": -76.229921,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Aevitas Weightlifting",
+    "address": "2101 Route 9, Round Lake, New York, United States of America, 12151",
+    "latitude": 42.945886,
+    "longitude": -73.7910182,
+    "recentMemberCount": 5
+  },
+  {
+    "name": "Albany CrossFit Barbell Club",
+    "address": "444 Sand Creek Rd, Albany, New York, United States of America, 12205",
+    "latitude": 42.713825,
+    "longitude": -73.8103136,
+    "recentMemberCount": 1
+  },
+  {
+    "name": "Barbender Academy",
+    "address": "957 Atlantic Ave., Brooklyn, New York, United States of America, 11238",
+    "latitude": 40.6806015,
+    "longitude": -73.9605399,
+    "recentMemberCount": 1
   },
   {
     "name": "Fourteen Forty Collective",
     "address": "831 Pear Street, Lemoyne, Pennsylvania, United States of America, 17043",
     "latitude": 40.2417396,
     "longitude": -76.8996965,
-    "recentMemberCount": 1
+    "recentMemberCount": 3
   },
   {
     "name": "FRONT RANGE WLC",
     "address": "1338 S Valentia, Unit 175, Denver, Colorado, United States of America, 80247",
     "latitude": 39.6949832,
     "longitude": -104.8801134,
-    "recentMemberCount": 0
+    "recentMemberCount": 2
   },
   {
     "name": "Long Beach Weightlifting",
@@ -77,18 +70,11 @@
     "recentMemberCount": 1
   },
   {
-    "name": "Bridge Performance",
-    "address": "715 N Los Robles Ave, Pasadena, California, United States of America, 91104",
-    "latitude": 34.1581367,
-    "longitude": -118.141625,
-    "recentMemberCount": 0
-  },
-  {
     "name": "Nashville Weightlifting Club",
     "address": "119B Madison Station Blvd, Madison, Tennessee, United States of America, 37115",
     "latitude": 36.2610656,
     "longitude": -86.7154068,
-    "recentMemberCount": 0
+    "recentMemberCount": 2
   },
   {
     "name": "Peak weightlifting",
@@ -98,11 +84,18 @@
     "recentMemberCount": 0
   },
   {
+    "name": "Bridge Performance",
+    "address": "715 N Los Robles Ave, Pasadena, California, United States of America, 91104",
+    "latitude": 34.1581367,
+    "longitude": -118.141625,
+    "recentMemberCount": 1
+  },
+  {
     "name": "Cambridge Strength Weightlifting",
     "address": "1 Broadway, Arlington, Massachusetts, United States of America, 02474",
     "latitude": 42.4077197,
     "longitude": -71.1341472,
-    "recentMemberCount": 0
+    "recentMemberCount": 1
   },
   {
     "name": "CPC Barbell Club",
@@ -112,18 +105,25 @@
     "recentMemberCount": 0
   },
   {
+    "name": "First Coast Weightlifting",
+    "address": "597 Edgewood Ave S, Jacksonville, Florida, United States of America, 32205",
+    "latitude": 30.3162338,
+    "longitude": -81.7221901,
+    "recentMemberCount": 0
+  },
+  {
     "name": "Central Maryland Gold Weightlifting Club",
     "address": "SoldierFit Frederick, 8420 Gas House Pike, Suite Z, Frederick, Maryland, United States of America, 21701",
     "latitude": 39.415779,
     "longitude": -77.4127562,
-    "recentMemberCount": 1
+    "recentMemberCount": 0
   },
   {
     "name": "HEAVY METAL BARBELL",
     "address": "624 Anderson Street, Charlotte, North Carolina, United States of America, 28205",
     "latitude": 35.2489503,
     "longitude": -80.7962459,
-    "recentMemberCount": 2
+    "recentMemberCount": 9
   },
   {
     "name": "RL Strength Club",
@@ -137,7 +137,7 @@
     "address": "800 N Columbia Ave, Seward, Nebraska, United States of America, 68434",
     "latitude": 40.9136406,
     "longitude": -97.0875102,
-    "recentMemberCount": 1
+    "recentMemberCount": 2
   },
   {
     "name": "Shadyside Barbell",
@@ -151,7 +151,7 @@
     "address": "901 N. Union BLVD, Colorado Springs, Colorado, United States of America, 80909",
     "latitude": 38.8451498,
     "longitude": -104.7938139,
-    "recentMemberCount": 4
+    "recentMemberCount": 0
   },
   {
     "name": "FOF Barbell Club",
@@ -172,21 +172,21 @@
     "address": "90 Leavitt St, Salem, Massachusetts, United States of America, 01970",
     "latitude": 42.5149949,
     "longitude": -70.8882116,
-    "recentMemberCount": 0
+    "recentMemberCount": 1
   },
   {
     "name": "HASSLE FREE BBC",
     "address": "16 Kirkwood Court, East Palo Alto, California, United States of America, 94303",
     "latitude": 37.4745249,
     "longitude": -122.1458354,
-    "recentMemberCount": 19
+    "recentMemberCount": 15
   },
   {
     "name": "Alpha Uno Athletics",
     "address": "129 West Arbor Vitae Street, Inglewood, California, United States of America, 90301",
     "latitude": 33.9533731,
     "longitude": -118.3301563,
-    "recentMemberCount": 0
+    "recentMemberCount": 2
   },
   {
     "name": "Badges and Barbells WC",
@@ -207,7 +207,7 @@
     "address": "20 W Haley Spings Rd, Bozeman, Montana, United States of America, 59718",
     "latitude": 45.6843601,
     "longitude": -111.0925294,
-    "recentMemberCount": 0
+    "recentMemberCount": 1
   },
   {
     "name": "970 Barbell",
@@ -221,7 +221,7 @@
     "address": "1256 Queens Way, Fairbanks, Alaska, United States of America, 99701",
     "latitude": 64.8094812,
     "longitude": -147.7325986,
-    "recentMemberCount": 0
+    "recentMemberCount": 2
   },
   {
     "name": "Rail Stop Barbell",
@@ -235,7 +235,7 @@
     "address": "1037 Byers Rd, Miamisburg, Ohio, United States of America, 45342",
     "latitude": 39.6362531,
     "longitude": -84.2346539,
-    "recentMemberCount": 6
+    "recentMemberCount": 3
   },
   {
     "name": "Arthur Leung",
@@ -249,28 +249,28 @@
     "address": "609 Oakland Park Ave, Unit B, Columbus, Ohio, United States of America, 43214",
     "latitude": 40.0487933,
     "longitude": -83.0140544,
-    "recentMemberCount": 1
+    "recentMemberCount": 0
   },
   {
     "name": "3P Weightlifting",
     "address": "5768 Quintette RD, Pace, Florida, United States of America, 32571",
     "latitude": 30.6343286,
     "longitude": -87.151733,
-    "recentMemberCount": 3
+    "recentMemberCount": 2
   },
   {
     "name": "CBA Colts Weightlifting",
     "address": "850 Newman Springs Road, Lincroft, New Jersey, United States of America, 07738",
     "latitude": 40.3365129,
     "longitude": -74.1383584,
-    "recentMemberCount": 0
+    "recentMemberCount": 1
   },
   {
     "name": "BLOOMINGTON-NORMAL BARBELL CLUB",
     "address": "2902 Gill St. Unit A, Bloomington, Illinois, United States of America, 61704",
     "latitude": 40.4723346,
     "longitude": -88.9670094,
-    "recentMemberCount": 1
+    "recentMemberCount": 0
   },
   {
     "name": "SAYRE PARK WLC",
@@ -284,7 +284,7 @@
     "address": "1705 S Main St, Joplin, Missouri, United States of America, 64804",
     "latitude": 37.0729301,
     "longitude": -94.5138828,
-    "recentMemberCount": 2
+    "recentMemberCount": 1
   },
   {
     "name": "SC Weightlifting",
@@ -292,6 +292,76 @@
     "latitude": 45.0055918,
     "longitude": -122.7804264,
     "recentMemberCount": 0
+  },
+  {
+    "name": "The Retirement Home",
+    "address": "1950 Anasazi Court, Colorado Springs, Colorado, United States of America, 80919",
+    "latitude": 38.9302768,
+    "longitude": -104.8624373,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "THE SPORTS PALACE",
+    "address": "387 Grand Avenue, San Francisco, California, United States of America, 94080",
+    "latitude": 37.7525885,
+    "longitude": -122.442348,
+    "recentMemberCount": 2
+  },
+  {
+    "name": "The Weight Room",
+    "address": "9625 E. 150th St, Suite 106, Noblesville, Indiana, United States of America, 46060",
+    "latitude": 40.0337375,
+    "longitude": -85.9858041,
+    "recentMemberCount": 1
+  },
+  {
+    "name": "Fort-Nash WLC WA",
+    "address": "5823 Boulevard Extension Rd SE, Olympia, Washington, United States of America, 98501",
+    "latitude": 47.0077583,
+    "longitude": -122.8741576,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "TOUGH TEMPLE BARBELL CLUB",
+    "address": "12143 Nebel St, North Bethesda, Maryland, United States of America, 20852",
+    "latitude": 39.046682,
+    "longitude": -77.1052097,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Triumph Barbell",
+    "address": "7513 Sussex drive, Florence, Kentucky, United States of America, 41042",
+    "latitude": 38.9847244,
+    "longitude": -84.6330486,
+    "recentMemberCount": 2
+  },
+  {
+    "name": "VAUGHN WEIGHTLIFTING",
+    "address": "502 Sparta Rd., Belton, Texas, United States of America, 76513",
+    "latitude": 31.0832411,
+    "longitude": -97.4673102,
+    "recentMemberCount": 1
+  },
+  {
+    "name": "Warner University",
+    "address": "13895 US Highway 27, Lake Wales, Florida, United States of America, 33859",
+    "latitude": 27.8831471,
+    "longitude": -81.614547,
+    "recentMemberCount": 1
+  },
+  {
+    "name": "McKenna Weightlifting",
+    "address": "407-409 Raritan Avenue, Highland Park Borough, New Jersey, United States of America, 08904",
+    "latitude": 40.4996962,
+    "longitude": -74.4260762,
+    "recentMemberCount": 4
+  },
+  {
+    "name": "Praxis Weightlifting",
+    "address": "SLC, SLC, Utah, United States of America, 84095",
+    "latitude": 40.7900661,
+    "longitude": -111.9798985,
+    "recentMemberCount": 2
   },
   {
     "name": "Resilient Weightlifting",
@@ -315,81 +385,18 @@
     "recentMemberCount": 0
   },
   {
-    "name": "VAUGHN WEIGHTLIFTING",
-    "address": "502 Sparta Rd., Belton, Texas, United States of America, 76513",
-    "latitude": 31.0832411,
-    "longitude": -97.4673102,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Warner University",
-    "address": "13895 US Highway 27, Lake Wales, Florida, United States of America, 33859",
-    "latitude": 27.8831471,
-    "longitude": -81.614547,
-    "recentMemberCount": 2
-  },
-  {
-    "name": "The Retirement Home",
-    "address": "1950 Anasazi Court, Colorado Springs, Colorado, United States of America, 80919",
-    "latitude": 38.9302768,
-    "longitude": -104.8624373,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Fort-Nash WLC WA",
-    "address": "5823 Boulevard Extension Rd SE, Olympia, Washington, United States of America, 98501",
-    "latitude": 47.0077583,
-    "longitude": -122.8741576,
+    "name": "Buff City Barbell",
+    "address": "1 seneca st. Suite 1010, Buffalo, New York, United States of America, 14203",
+    "latitude": 42.8858953,
+    "longitude": -78.8700905,
     "recentMemberCount": 1
   },
   {
-    "name": "McKenna Weightlifting",
-    "address": "407-409 Raritan Avenue, Highland Park Borough, New Jersey, United States of America, 08904",
-    "latitude": 40.4996962,
-    "longitude": -74.4260762,
+    "name": "Grow or Die Barbell",
+    "address": "1800 Lower Roswell Rd, Marietta, Georgia, United States of America, 30067",
+    "latitude": 33.9518662,
+    "longitude": -84.4997095,
     "recentMemberCount": 1
-  },
-  {
-    "name": "Praxis Weightlifting",
-    "address": "SLC, SLC, Utah, United States of America, 84095",
-    "latitude": 40.7900661,
-    "longitude": -111.9798985,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "THE SPORTS PALACE",
-    "address": "387 Grand Avenue, San Francisco, California, United States of America, 94080",
-    "latitude": 37.7525885,
-    "longitude": -122.442348,
-    "recentMemberCount": 1
-  },
-  {
-    "name": "The Weight Room",
-    "address": "9625 E. 150th St, Suite 106, Noblesville, Indiana, United States of America, 46060",
-    "latitude": 40.0337375,
-    "longitude": -85.9858041,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "TOUGH TEMPLE BARBELL CLUB",
-    "address": "12143 Nebel St, North Bethesda, Maryland, United States of America, 20852",
-    "latitude": 39.046682,
-    "longitude": -77.1052097,
-    "recentMemberCount": 3
-  },
-  {
-    "name": "Triumph Barbell",
-    "address": "7513 Sussex drive, Florence, Kentucky, United States of America, 41042",
-    "latitude": 38.9847244,
-    "longitude": -84.6330486,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "True Strength Performance Weightlifting",
-    "address": "2745 Wildflower Dr, Lawrence, Kansas, United States of America, 66047",
-    "latitude": 38.9342614,
-    "longitude": -95.2997003,
-    "recentMemberCount": 4
   },
   {
     "name": "Winnersville Barbell Club",
@@ -399,39 +406,11 @@
     "recentMemberCount": 0
   },
   {
-    "name": "Buff City Barbell",
-    "address": "1 seneca st. Suite 1010, Buffalo, New York, United States of America, 14203",
-    "latitude": 42.8858953,
-    "longitude": -78.8700905,
-    "recentMemberCount": 1
-  },
-  {
-    "name": "Catalyst Masters",
-    "address": "PO Box 1559, Terrebonne, Oregon, United States of America, 97760",
-    "latitude": 44.3658143,
-    "longitude": -121.160581,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Champion Weightlifting",
-    "address": "653 SW 2nd Street, Lee's Summit, Missouri, United States of America, 64063",
-    "latitude": 38.9125083,
-    "longitude": -94.3906629,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Grow or Die Barbell",
-    "address": "1800 Lower Roswell Rd, Marietta, Georgia, United States of America, 30067",
-    "latitude": 33.9518662,
-    "longitude": -84.4997095,
-    "recentMemberCount": 0
-  },
-  {
     "name": "WiscoLift",
     "address": "15801 W Schaefer Ct, New Berlin, Wisconsin, United States of America, 53151",
     "latitude": 42.9403907,
     "longitude": -88.1110035,
-    "recentMemberCount": 0
+    "recentMemberCount": 1
   },
   {
     "name": "Myriad Weightlifting",
@@ -448,10 +427,38 @@
     "recentMemberCount": 0
   },
   {
-    "name": "Rebels Weightlifting Club",
-    "address": "85 Nutmeg Rd S, South Windsor, Connecticut, United States of America, 06074",
-    "latitude": 41.8222981,
-    "longitude": -72.6071065,
+    "name": "Ablaze Barbell",
+    "address": "726 Beal Parkway BLG#3, Fort Walton Beach, Florida, United States of America, 32547",
+    "latitude": 30.446217,
+    "longitude": -86.6312931,
+    "recentMemberCount": 1
+  },
+  {
+    "name": "Born Again Weightlifting",
+    "address": "3197 Hill Rd., ELIZABETHTOWN, Pennsylvania, United States of America, 17022",
+    "latitude": 40.1563004,
+    "longitude": -76.603194,
+    "recentMemberCount": 1
+  },
+  {
+    "name": "Catalyst Masters",
+    "address": "PO Box 1559, Terrebonne, Oregon, United States of America, 97760",
+    "latitude": 44.3658143,
+    "longitude": -121.160581,
+    "recentMemberCount": 1
+  },
+  {
+    "name": "Champion Weightlifting",
+    "address": "653 SW 2nd Street, Lee's Summit, Missouri, United States of America, 64063",
+    "latitude": 38.9125083,
+    "longitude": -94.3906629,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "True Strength Performance Weightlifting",
+    "address": "2745 Wildflower Dr, Lawrence, Kansas, United States of America, 66047",
+    "latitude": 38.9342614,
+    "longitude": -95.2997003,
     "recentMemberCount": 0
   },
   {
@@ -459,7 +466,7 @@
     "address": "528 S Americana Blvd, Boise, Idaho, United States of America, 83702",
     "latitude": 43.6178768,
     "longitude": -116.2160837,
-    "recentMemberCount": 0
+    "recentMemberCount": 2
   },
   {
     "name": "Victory Kid Barbell",
@@ -473,21 +480,7 @@
     "address": "5900 Franklin ave #30, Waco, Texas, United States of America, 76710",
     "latitude": 31.5364296,
     "longitude": -97.1835682,
-    "recentMemberCount": 1
-  },
-  {
-    "name": "Ablaze Barbell",
-    "address": "726 Beal Parkway BLG#3, Fort Walton Beach, Florida, United States of America, 32547",
-    "latitude": 30.446217,
-    "longitude": -86.6312931,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Born Again Weightlifting",
-    "address": "3197 Hill Rd., ELIZABETHTOWN, Pennsylvania, United States of America, 17022",
-    "latitude": 40.1563004,
-    "longitude": -76.603194,
-    "recentMemberCount": 0
+    "recentMemberCount": 3
   },
   {
     "name": "Brightside Barbell",
@@ -504,25 +497,11 @@
     "recentMemberCount": 0
   },
   {
-    "name": "IRON GATORS",
-    "address": "1900 NW 13th Street, Gainesville, Florida, United States of America, 32609",
-    "latitude": 29.6692137,
-    "longitude": -82.3412138,
-    "recentMemberCount": 1
-  },
-  {
-    "name": "KiloDelphia",
-    "address": "3500 Scotts Lane, Suite 215, Philadelphia, Pennsylvania, United States of America, 19129",
-    "latitude": 40.0090598,
-    "longitude": -75.1806203,
-    "recentMemberCount": 1
-  },
-  {
-    "name": "CATALYST ATHLETICS",
-    "address": "PO Box 1559, Terrebonne, Oregon, United States of America, 97760",
-    "latitude": 44.3658143,
-    "longitude": -121.160581,
-    "recentMemberCount": 1
+    "name": "Rebels Weightlifting Club",
+    "address": "85 Nutmeg Rd S, South Windsor, Connecticut, United States of America, 06074",
+    "latitude": 41.8222981,
+    "longitude": -72.6071065,
+    "recentMemberCount": 0
   },
   {
     "name": "Unbreakable Barbell",
@@ -532,25 +511,95 @@
     "recentMemberCount": 0
   },
   {
+    "name": "Wolf Pack Weightlifting",
+    "address": "406 SE Everett Mall Way ste 4-103, Everett, Washington, United States of America, 98208",
+    "latitude": 47.8853761,
+    "longitude": -122.1974447,
+    "recentMemberCount": 4
+  },
+  {
+    "name": "KiloDelphia",
+    "address": "3500 Scotts Lane, Suite 215, Philadelphia, Pennsylvania, United States of America, 19129",
+    "latitude": 40.0090598,
+    "longitude": -75.1806203,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Fortis Vita Barbell Club",
+    "address": "14892 Galapago St, Apt J-106, Westminster, Colorado, United States of America, 80023",
+    "latitude": 39.9707529,
+    "longitude": -105.0202457,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Mars Hill University",
+    "address": "100 Athletic St., Mars Hill, North Carolina, United States of America, 28754",
+    "latitude": 35.8275207,
+    "longitude": -82.5503803,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "SHEYENNE MUSTANGS",
+    "address": "800  40th Ave E, West Fargo, North Dakota, United States of America, 58078",
+    "latitude": 46.8207211,
+    "longitude": -96.8846021,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Sun Devil Weightlifting",
+    "address": "5444 E. Washington St. STE 3, Phoenix, Arizona, United States of America, 85034",
+    "latitude": 33.4349109,
+    "longitude": -112.019178,
+    "recentMemberCount": 1
+  },
+  {
+    "name": "White Rose Barbell Club",
+    "address": "345 West Market Street, York, Pennsylvania, United States of America, 17401",
+    "latitude": 39.9600244,
+    "longitude": -76.7358779,
+    "recentMemberCount": 3
+  },
+  {
+    "name": "Wolfe Strength",
+    "address": "3915 McKinney, Houston, Texas, United States of America, 77023",
+    "latitude": 29.743037,
+    "longitude": -95.3395456,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Built By Becker Weightlifting Club",
+    "address": "41639 Bostonian Place, Aldie, Virginia, United States of America, 20120",
+    "latitude": 36.6878242,
+    "longitude": -76.229921,
+    "recentMemberCount": 4
+  },
+  {
+    "name": "CATALYST ATHLETICS",
+    "address": "PO Box 1559, Terrebonne, Oregon, United States of America, 97760",
+    "latitude": 44.3658143,
+    "longitude": -121.160581,
+    "recentMemberCount": 1
+  },
+  {
     "name": "Heroic Barbell",
     "address": "1509 SW Sunset blvd, Portland, Oregon, United States of America, 97239",
     "latitude": 45.4796757,
     "longitude": -122.6931574,
-    "recentMemberCount": 4
+    "recentMemberCount": 5
   },
   {
     "name": "House of Weightlifting",
     "address": "South Carolina, United States of America",
     "latitude": 33.6874388,
     "longitude": -80.4363743,
-    "recentMemberCount": 0
+    "recentMemberCount": 2
   },
   {
-    "name": "IDAHO WEIGHTLIFTING",
-    "address": "1202 N 24th Street, Boise, Idaho, United States of America, 83702",
-    "latitude": 43.6313455,
-    "longitude": -116.2178672,
-    "recentMemberCount": 1
+    "name": "IRON GATORS",
+    "address": "1900 NW 13th Street, Gainesville, Florida, United States of America, 32609",
+    "latitude": 29.6692137,
+    "longitude": -82.3412138,
+    "recentMemberCount": 0
   },
   {
     "name": "JDI BARBELL",
@@ -567,13 +616,6 @@
     "recentMemberCount": 0
   },
   {
-    "name": "Mars Hill University",
-    "address": "100 Athletic St., Mars Hill, North Carolina, United States of America, 28754",
-    "latitude": 35.8275207,
-    "longitude": -82.5503803,
-    "recentMemberCount": 3
-  },
-  {
     "name": "Mountain Muscle Weightlifting",
     "address": "6258 S Main St, Tetonia, Idaho, United States of America, 83452",
     "latitude": 43.8131892,
@@ -581,102 +623,39 @@
     "recentMemberCount": 0
   },
   {
-    "name": "SHEYENNE MUSTANGS",
-    "address": "800  40th Ave E, West Fargo, North Dakota, United States of America, 58078",
-    "latitude": 46.8207211,
-    "longitude": -96.8846021,
+    "name": "IDAHO WEIGHTLIFTING",
+    "address": "1202 N 24th Street, Boise, Idaho, United States of America, 83702",
+    "latitude": 43.6313455,
+    "longitude": -116.2178672,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Country Strong",
+    "address": "442 Engle Rd., Industry, Pennsylvania, United States of America, 15052",
+    "latitude": 40.678607,
+    "longitude": -80.4432909,
     "recentMemberCount": 1
-  },
-  {
-    "name": "Sun Devil Weightlifting",
-    "address": "5444 E. Washington St. STE 3, Phoenix, Arizona, United States of America, 85034",
-    "latitude": 33.4349109,
-    "longitude": -112.019178,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "White Rose Barbell Club",
-    "address": "345 West Market Street, York, Pennsylvania, United States of America, 17401",
-    "latitude": 39.9600244,
-    "longitude": -76.7358779,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Wolf Pack Weightlifting",
-    "address": "406 SE Everett Mall Way ste 4-103, Everett, Washington, United States of America, 98208",
-    "latitude": 47.8853761,
-    "longitude": -122.1974447,
-    "recentMemberCount": 2
-  },
-  {
-    "name": "Wolfe Strength",
-    "address": "3915 McKinney, Houston, Texas, United States of America, 77023",
-    "latitude": 29.743037,
-    "longitude": -95.3395456,
-    "recentMemberCount": 1
-  },
-  {
-    "name": "Built By Becker Weightlifting Club",
-    "address": "41639 Bostonian Place, Aldie, Virginia, United States of America, 20120",
-    "latitude": 36.6878242,
-    "longitude": -76.229921,
-    "recentMemberCount": 2
-  },
-  {
-    "name": "Fortis Vita Barbell Club",
-    "address": "14892 Galapago St, Apt J-106, Westminster, Colorado, United States of America, 80023",
-    "latitude": 39.9707529,
-    "longitude": -105.0202457,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Bentley Barbell",
-    "address": "561 Bloomfield Ave, Verona, New Jersey, United States of America, 07044",
-    "latitude": 40.8267137,
-    "longitude": -74.2359683,
-    "recentMemberCount": 1
-  },
-  {
-    "name": "Aether Weightlifting",
-    "address": "2061 W 182nd St, Torrance, California, United States of America, 90504",
-    "latitude": 33.865899,
-    "longitude": -118.3152629,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Appalachian Barbell Club",
-    "address": "6135 Jearoldstown Road, Fall Branch, Tennessee, United States of America, 37656",
-    "latitude": 36.3997529,
-    "longitude": -82.6320916,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Aspire Club",
-    "address": "116 Brick Street SE, Bondurant, Iowa, United States of America, 50035",
-    "latitude": 41.6955798,
-    "longitude": -93.4545364,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "ATHLEO BARBELL CLUB",
-    "address": "1906 capital drive, Tyler, Texas, United States of America, 75701",
-    "latitude": 32.2968096,
-    "longitude": -95.3262625,
-    "recentMemberCount": 2
   },
   {
     "name": "BARBARIAN BARBELL CLUB",
     "address": "16832 Saticoy Street, Van Nuys, California, United States of America, 91406",
     "latitude": 34.208464,
     "longitude": -118.4664424,
-    "recentMemberCount": 1
+    "recentMemberCount": 5
+  },
+  {
+    "name": "Bentley Barbell",
+    "address": "561 Bloomfield Ave, Verona, New Jersey, United States of America, 07044",
+    "latitude": 40.8267137,
+    "longitude": -74.2359683,
+    "recentMemberCount": 2
   },
   {
     "name": "Butcher Barbell",
     "address": "1764 Knox Ave., North Augusta, South Carolina, United States of America, 29841",
     "latitude": 33.5162364,
     "longitude": -81.9563836,
-    "recentMemberCount": 2
+    "recentMemberCount": 5
   },
   {
     "name": "Canterbury Weightlifting",
@@ -691,13 +670,6 @@
     "latitude": 36.4996092,
     "longitude": -87.3370903,
     "recentMemberCount": 0
-  },
-  {
-    "name": "Country Strong",
-    "address": "442 Engle Rd., Industry, Pennsylvania, United States of America, 15052",
-    "latitude": 40.678607,
-    "longitude": -80.4432909,
-    "recentMemberCount": 4
   },
   {
     "name": "CrossFit Spur",
@@ -725,7 +697,7 @@
     "address": "748 E Park Ave, Libertyville, Illinois, United States of America, 60048",
     "latitude": 42.2822282,
     "longitude": -87.942753,
-    "recentMemberCount": 2
+    "recentMemberCount": 3
   },
   {
     "name": "Gamut Barbell Club",
@@ -739,7 +711,7 @@
     "address": "4111 Lawndale Dr, Greensboro, North Carolina, United States of America, 27455",
     "latitude": 36.1267033,
     "longitude": -79.8327966,
-    "recentMemberCount": 0
+    "recentMemberCount": 1
   },
   {
     "name": "PBJ Barbell Club",
@@ -767,28 +739,98 @@
     "address": "1525 Half St SW, Washington, District of Columbia, United States of America, 20024",
     "latitude": 38.8712129,
     "longitude": -77.0110682,
-    "recentMemberCount": 1
+    "recentMemberCount": 0
   },
   {
-    "name": "Rose Barbell Club",
-    "address": "17 newstead st, Litchfield, New Hampshire, United States of America, 03052",
-    "latitude": 42.8703266,
-    "longitude": -71.451727,
+    "name": "Aether Weightlifting",
+    "address": "2061 W 182nd St, Torrance, California, United States of America, 90504",
+    "latitude": 33.865899,
+    "longitude": -118.3152629,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Appalachian Barbell Club",
+    "address": "6135 Jearoldstown Road, Fall Branch, Tennessee, United States of America, 37656",
+    "latitude": 36.3997529,
+    "longitude": -82.6320916,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Aspire Club",
+    "address": "116 Brick Street SE, Bondurant, Iowa, United States of America, 50035",
+    "latitude": 41.6955798,
+    "longitude": -93.4545364,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "ATHLEO BARBELL CLUB",
+    "address": "1906 capital drive, Tyler, Texas, United States of America, 75701",
+    "latitude": 32.2968096,
+    "longitude": -95.3262625,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Superfly Barbell Club",
+    "address": "5194 Betonywood Place, Dublin, Ohio, United States of America, 43016",
+    "latitude": 40.0690225,
+    "longitude": -83.1412918,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Rocket City Lifting",
+    "address": "235 Willow Street, Titusville, Florida, United States of America, 32780",
+    "latitude": 28.5582761,
+    "longitude": -80.800064,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "S&M Strength",
+    "address": "267 W 25th St, New York, New York, United States of America, 10001",
+    "latitude": 40.746241,
+    "longitude": -73.9965217,
     "recentMemberCount": 2
   },
   {
-    "name": "Willpower Strength and Conditioning",
-    "address": "820 lincoln avenue, Williamsport, Pennsylvania, United States of America, 17701",
-    "latitude": 41.2560885,
-    "longitude": -76.9887315,
-    "recentMemberCount": 1
+    "name": "University of Michigan Weightlifting",
+    "address": "680 State Cir., Ann Arbor, Michigan, United States of America, 48108",
+    "latitude": 42.234921,
+    "longitude": -83.7423268,
+    "recentMemberCount": 5
+  },
+  {
+    "name": "Westminster Barbell",
+    "address": "61 John Street, Westminster, Maryland, United States of America, 21157",
+    "latitude": 39.5783124,
+    "longitude": -76.9946912,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "1Kilo",
+    "address": "5006 S. Rogers St, Bloomington, Indiana, United States of America, 47404",
+    "latitude": 39.166123,
+    "longitude": -86.5387001,
+    "recentMemberCount": 5
   },
   {
     "name": "RFS Barbell",
     "address": "5410 McIntosh Rd, Sarasota, Florida, United States of America, 34233",
     "latitude": 27.2745916,
     "longitude": -82.4811474,
-    "recentMemberCount": 2
+    "recentMemberCount": 1
+  },
+  {
+    "name": "Rock Steady Barbell",
+    "address": "1620 1st Ave N, Fargo, North Dakota, United States of America, 58102",
+    "latitude": 46.8773302,
+    "longitude": -96.806641,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Rose Barbell Club",
+    "address": "17 newstead st, Litchfield, New Hampshire, United States of America, 03052",
+    "latitude": 42.8703266,
+    "longitude": -71.451727,
+    "recentMemberCount": 0
   },
   {
     "name": "Rx Weightlifting Club",
@@ -796,13 +838,6 @@
     "latitude": 42.3820519,
     "longitude": -71.0887826,
     "recentMemberCount": 1
-  },
-  {
-    "name": "S&M Strength",
-    "address": "267 W 25th St, New York, New York, United States of America, 10001",
-    "latitude": 40.746241,
-    "longitude": -73.9965217,
-    "recentMemberCount": 0
   },
   {
     "name": "SALVATION ARMY LIFTING TEAM",
@@ -819,13 +854,6 @@
     "recentMemberCount": 0
   },
   {
-    "name": "Superfly Barbell Club",
-    "address": "5194 Betonywood Place, Dublin, Ohio, United States of America, 43016",
-    "latitude": 40.0690225,
-    "longitude": -83.1412918,
-    "recentMemberCount": 1
-  },
-  {
     "name": "Superior Barbell",
     "address": "610 Lakeshore Drive, Ishpeming, Michigan, United States of America, 49849",
     "latitude": 46.4931909,
@@ -837,14 +865,7 @@
     "address": "John Wooden Center, 221 Westwood Plaza, Westwood Plaza, Los Angeles, California, United States of America, 90095",
     "latitude": 34.0662909,
     "longitude": -118.4451842,
-    "recentMemberCount": 2
-  },
-  {
-    "name": "University of Michigan Weightlifting",
-    "address": "680 State Cir., Ann Arbor, Michigan, United States of America, 48108",
-    "latitude": 42.234921,
-    "longitude": -83.7423268,
-    "recentMemberCount": 1
+    "recentMemberCount": 3
   },
   {
     "name": "Vice Weightlifting",
@@ -861,52 +882,10 @@
     "recentMemberCount": 0
   },
   {
-    "name": "Westminster Barbell",
-    "address": "61 John Street, Westminster, Maryland, United States of America, 21157",
-    "latitude": 39.5783124,
-    "longitude": -76.9946912,
-    "recentMemberCount": 1
-  },
-  {
-    "name": "1Kilo",
-    "address": "5006 S. Rogers St, Bloomington, Indiana, United States of America, 47404",
-    "latitude": 39.166123,
-    "longitude": -86.5387001,
-    "recentMemberCount": 2
-  },
-  {
-    "name": "Rock Steady Barbell",
-    "address": "1620 1st Ave N, Fargo, North Dakota, United States of America, 58102",
-    "latitude": 46.8773302,
-    "longitude": -96.806641,
-    "recentMemberCount": 1
-  },
-  {
-    "name": "Rocket City Lifting",
-    "address": "235 Willow Street, Titusville, Florida, United States of America, 32780",
-    "latitude": 28.5582761,
-    "longitude": -80.800064,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Sled-Dog Weightlifting",
-    "address": "5s471 Deer Ridge Path, Big Rock, Illinois, United States of America, 60511",
-    "latitude": 41.7584014,
-    "longitude": -88.5543875,
-    "recentMemberCount": 1
-  },
-  {
-    "name": "Team Atlanta",
-    "address": "1874 Piedmont Rd. NE, Suite 420-D, Atlanta, Georgia, United States of America, 30324",
-    "latitude": 33.8154569,
-    "longitude": -84.3595204,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Wilmington Strength",
-    "address": "5424 Oleander Dr #6, Wilmington, North Carolina, United States of America, 28403",
-    "latitude": 34.2221294,
-    "longitude": -77.8836479,
+    "name": "Willpower Strength and Conditioning",
+    "address": "820 lincoln avenue, Williamsport, Pennsylvania, United States of America, 17701",
+    "latitude": 41.2560885,
+    "longitude": -76.9887315,
     "recentMemberCount": 0
   },
   {
@@ -914,7 +893,7 @@
     "address": "8832 Allentown Pike, Fleetwood, Pennsylvania, United States of America, 19522",
     "latitude": 40.4464821,
     "longitude": -75.8239021,
-    "recentMemberCount": 3
+    "recentMemberCount": 4
   },
   {
     "name": "JP Weightlifting",
@@ -924,13 +903,6 @@
     "recentMemberCount": 1
   },
   {
-    "name": "Mighty Oak Athletic",
-    "address": "6424 S. Cass Ave, Westmont, Illinois, United States of America, 60559",
-    "latitude": 41.7717817,
-    "longitude": -87.9745854,
-    "recentMemberCount": 0
-  },
-  {
     "name": "Rain City Weightlifting Club",
     "address": "2227 4th Ave S, Seattle, Washington, United States of America, 98134",
     "latitude": 47.5830728,
@@ -938,39 +910,11 @@
     "recentMemberCount": 0
   },
   {
-    "name": "Rambo Barbell",
-    "address": "23 Desai Ln, Ringgold, Georgia, United States of America, 30736",
-    "latitude": 34.9161537,
-    "longitude": -85.1481652,
+    "name": "Wilmington Strength",
+    "address": "5424 Oleander Dr #6, Wilmington, North Carolina, United States of America, 28403",
+    "latitude": 34.2221294,
+    "longitude": -77.8836479,
     "recentMemberCount": 0
-  },
-  {
-    "name": "Reach Your Potential Training",
-    "address": "1540 West Park Ave, Tinton Falls, New Jersey, United States of America, 07712",
-    "latitude": 40.2575922,
-    "longitude": -74.0887574,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Renaissance Periodization",
-    "address": "855 S. High St., Harrisonburg, Virginia, United States of America, 22801",
-    "latitude": 38.4411557,
-    "longitude": -78.8839139,
-    "recentMemberCount": 1
-  },
-  {
-    "name": "The Strength Tank Weightlifting Club",
-    "address": "7550 Miramar Road, Suite 400, San Diego, California, United States of America, 92126",
-    "latitude": 32.9183341,
-    "longitude": -117.1465131,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Wheelhouse Academy",
-    "address": "2424 4TH AVE S, BIRMINGHAM, Alabama, United States of America, 35233",
-    "latitude": 33.5119563,
-    "longitude": -86.7961654,
-    "recentMemberCount": 1
   },
   {
     "name": "Winston Salem Weightlifting",
@@ -991,21 +935,77 @@
     "address": "2653 Causton Bluff, Savannah, Georgia, United States of America, 31404",
     "latitude": 32.0650681,
     "longitude": -81.0464663,
-    "recentMemberCount": 2
+    "recentMemberCount": 1
+  },
+  {
+    "name": "Mighty Oak Athletic",
+    "address": "6424 S. Cass Ave, Westmont, Illinois, United States of America, 60559",
+    "latitude": 41.7717817,
+    "longitude": -87.9745854,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Rambo Barbell",
+    "address": "23 Desai Ln, Ringgold, Georgia, United States of America, 30736",
+    "latitude": 34.9161537,
+    "longitude": -85.1481652,
+    "recentMemberCount": 1
+  },
+  {
+    "name": "Reach Your Potential Training",
+    "address": "1540 West Park Ave, Tinton Falls, New Jersey, United States of America, 07712",
+    "latitude": 40.2575922,
+    "longitude": -74.0887574,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Sled-Dog Weightlifting",
+    "address": "5s471 Deer Ridge Path, Big Rock, Illinois, United States of America, 60511",
+    "latitude": 41.7584014,
+    "longitude": -88.5543875,
+    "recentMemberCount": 1
+  },
+  {
+    "name": "Team Atlanta",
+    "address": "1874 Piedmont Rd. NE, Suite 420-D, Atlanta, Georgia, United States of America, 30324",
+    "latitude": 33.8154569,
+    "longitude": -84.3595204,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "The Strength Tank Weightlifting Club",
+    "address": "7550 Miramar Road, Suite 400, San Diego, California, United States of America, 92126",
+    "latitude": 32.9183341,
+    "longitude": -117.1465131,
+    "recentMemberCount": 5
+  },
+  {
+    "name": "Wheelhouse Academy",
+    "address": "2424 4TH AVE S, BIRMINGHAM, Alabama, United States of America, 35233",
+    "latitude": 33.5119563,
+    "longitude": -86.7961654,
+    "recentMemberCount": 0
   },
   {
     "name": "Eastside Barbell",
     "address": "871 Shelley St, Springfield, Oregon, United States of America, 97477",
     "latitude": 44.0643346,
     "longitude": -123.0397403,
-    "recentMemberCount": 2
+    "recentMemberCount": 6
   },
   {
     "name": "Queens Barbell",
     "address": "39-63 63rd St., Woodside, New York, United States of America, 11377",
     "latitude": 40.7411493,
     "longitude": -73.9025383,
-    "recentMemberCount": 0
+    "recentMemberCount": 1
+  },
+  {
+    "name": "Renaissance Periodization",
+    "address": "855 S. High St., Harrisonburg, Virginia, United States of America, 22801",
+    "latitude": 38.4411557,
+    "longitude": -78.8839139,
+    "recentMemberCount": 1
   },
   {
     "name": "Big Gratitude Barbell",
@@ -1026,28 +1026,21 @@
     "address": "4915 Leafdale Blvd, Royal Oak, Michigan, United States of America, 48071",
     "latitude": 42.5341854,
     "longitude": -83.1759918,
-    "recentMemberCount": 3
-  },
-  {
-    "name": "Big Pull Barbell",
-    "address": "5 River Rd, Suite 6, WIlton, United States of America, 06897",
-    "latitude": 41.2041659,
-    "longitude": -73.4368535,
-    "recentMemberCount": 0
+    "recentMemberCount": 2
   },
   {
     "name": "Fortified Strength",
     "address": "2411 Old Crow Canyon Rd., Suite O, San Ramon, California, United States of America, 94583",
     "latitude": 37.7591651,
     "longitude": -121.9576755,
-    "recentMemberCount": 11
+    "recentMemberCount": 1
   },
   {
     "name": "Powerhouse Functional Fitness",
     "address": "1021 George Rogers Blvd, Columbia, South Carolina, United States of America, 29201",
     "latitude": 33.9772736,
     "longitude": -81.0164529,
-    "recentMemberCount": 1
+    "recentMemberCount": 0
   },
   {
     "name": "Price Barbell",
@@ -1061,21 +1054,56 @@
     "address": "20277 SE Brewer Terrace, PORTLAND, Oregon, United States of America, 97233",
     "latitude": 45.5134733,
     "longitude": -122.5027018,
-    "recentMemberCount": 1
+    "recentMemberCount": 0
   },
   {
     "name": "Stone Age Barbell Club",
     "address": "10200 S. Kedzie Ave, Evergreen Park, Illinois, United States of America, 60805",
     "latitude": 41.707416,
     "longitude": -87.701497,
-    "recentMemberCount": 1
+    "recentMemberCount": 2
   },
   {
     "name": "West Essex Barbell Club",
     "address": "1376 Pompton Avenue, Cedar Grove, New Jersey, United States of America, 07009",
     "latitude": 40.8765873,
     "longitude": -74.2402413,
-    "recentMemberCount": 2
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Big Pull Barbell",
+    "address": "5 River Rd, Suite 6, WIlton, United States of America, 06897",
+    "latitude": 41.2041659,
+    "longitude": -73.4368535,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "South Georgia Barbell",
+    "address": "105 Rowland Dr, Moultrie, Georgia, United States of America, 31768",
+    "latitude": 31.1798475,
+    "longitude": -83.7656108,
+    "recentMemberCount": 3
+  },
+  {
+    "name": "Annex Weightlifting",
+    "address": "2431 Orange Ave, Signal Hill, California, United States of America, 90755",
+    "latitude": 33.8017291,
+    "longitude": -118.1764243,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "CROSSFIT FORT VANCOUVER BARBELL CLUB",
+    "address": "223 E. Reserve St. #101, Vancouver, Washington, United States of America, 98661",
+    "latitude": 45.6469127,
+    "longitude": -122.6237148,
+    "recentMemberCount": 1
+  },
+  {
+    "name": "DSSC Weightlifting",
+    "address": "1558 B HWY 54 W, Fayetteville, Georgia, United States of America, 30214",
+    "latitude": 33.4482762,
+    "longitude": -84.4804274,
+    "recentMemberCount": 1
   },
   {
     "name": "Engineering Strength",
@@ -1096,7 +1124,7 @@
     "address": "3 Robinson Rd, A5, Bow, New Hampshire, United States of America, 03304",
     "latitude": 43.1449448,
     "longitude": -71.4961928,
-    "recentMemberCount": 2
+    "recentMemberCount": 0
   },
   {
     "name": "Shinshengumi Weightlifting",
@@ -1113,32 +1141,11 @@
     "recentMemberCount": 0
   },
   {
-    "name": "South Georgia Barbell",
-    "address": "105 Rowland Dr, Moultrie, Georgia, United States of America, 31768",
-    "latitude": 31.1798475,
-    "longitude": -83.7656108,
-    "recentMemberCount": 1
-  },
-  {
-    "name": "Annex Weightlifting",
-    "address": "2431 Orange Ave, Signal Hill, California, United States of America, 90755",
-    "latitude": 33.8017291,
-    "longitude": -118.1764243,
+    "name": "Grand Junction Weightlifting Club",
+    "address": "2314 Highway 6 and 50, Grand Junction, Colorado, United States of America, 81505",
+    "latitude": 39.1088236,
+    "longitude": -108.5977727,
     "recentMemberCount": 0
-  },
-  {
-    "name": "CROSSFIT FORT VANCOUVER BARBELL CLUB",
-    "address": "223 E. Reserve St. #101, Vancouver, Washington, United States of America, 98661",
-    "latitude": 45.6469127,
-    "longitude": -122.6237148,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "DSSC Weightlifting",
-    "address": "1558 B HWY 54 W, Fayetteville, Georgia, United States of America, 30214",
-    "latitude": 33.4482762,
-    "longitude": -84.4804274,
-    "recentMemberCount": 2
   },
   {
     "name": "Kairos Barbell Club",
@@ -1162,45 +1169,52 @@
     "recentMemberCount": 0
   },
   {
-    "name": "REDZONE WEIGHTLIFTING CLUB",
-    "address": "3 Simm Lane - Unit 3A, Newtown, Connecticut, United States of America, 06470",
-    "latitude": 41.3713257,
-    "longitude": -71.9701177,
-    "recentMemberCount": 1
+    "name": "Spoon Barbell Club",
+    "address": "537 E. Polk Street, Richardson, Texas, United States of America, 75081",
+    "latitude": 32.947442,
+    "longitude": -96.7210693,
+    "recentMemberCount": 5
   },
   {
     "name": "ST. CROIX BARBELL CLUB",
     "address": "2801 Harvey Street, Hudson, Wisconsin, United States of America, 54016",
     "latitude": 44.9477488,
     "longitude": -92.7121078,
-    "recentMemberCount": 1
+    "recentMemberCount": 0
   },
   {
     "name": "Strength Chamber",
     "address": "171 Aunt Polly Court, Orlando, Florida, United States of America, 32828",
     "latitude": 28.5474967,
     "longitude": -81.1862178,
-    "recentMemberCount": 2
+    "recentMemberCount": 0
   },
   {
     "name": "Team Florida St. Cloud",
     "address": "2000 Bulldog Lane, St. Cloud, Florida, United States of America, 34769",
     "latitude": 28.2407573,
     "longitude": -81.2800386,
-    "recentMemberCount": 1
+    "recentMemberCount": 0
   },
   {
-    "name": "TEAM PENDRAGON",
-    "address": "3900 Greenville Rd, Cortland, Ohio, United States of America, 44410",
-    "latitude": 41.3555623,
-    "longitude": -80.7187533,
+    "name": "ALPHA BARBELL",
+    "address": "2705 Auburn Way N, Auburn, Washington, United States of America, 98002",
+    "latitude": 47.3311905,
+    "longitude": -122.222242,
     "recentMemberCount": 2
   },
   {
-    "name": "Team SAW",
-    "address": "United States of America",
-    "latitude": 39.7837304,
-    "longitude": -100.445882,
+    "name": "CFW WEIGHTLIFTING",
+    "address": "25589 SW Canyon Creek, Suite 100, Wilsonville, Oregon, United States of America, 97070",
+    "latitude": 45.3075647,
+    "longitude": -122.7717453,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "REDZONE WEIGHTLIFTING CLUB",
+    "address": "3 Simm Lane - Unit 3A, Newtown, Connecticut, United States of America, 06470",
+    "latitude": 41.3713257,
+    "longitude": -71.9701177,
     "recentMemberCount": 1
   },
   {
@@ -1211,24 +1225,17 @@
     "recentMemberCount": 0
   },
   {
-    "name": "Spoon Barbell Club",
-    "address": "537 E. Polk Street, Richardson, Texas, United States of America, 75081",
-    "latitude": 32.947442,
-    "longitude": -96.7210693,
-    "recentMemberCount": 1
+    "name": "TEAM PENDRAGON",
+    "address": "3900 Greenville Rd, Cortland, Ohio, United States of America, 44410",
+    "latitude": 41.3555623,
+    "longitude": -80.7187533,
+    "recentMemberCount": 0
   },
   {
-    "name": "ALPHA BARBELL",
-    "address": "2705 Auburn Way N, Auburn, Washington, United States of America, 98002",
-    "latitude": 47.3311905,
-    "longitude": -122.222242,
-    "recentMemberCount": 1
-  },
-  {
-    "name": "CFW WEIGHTLIFTING",
-    "address": "25589 SW Canyon Creek, Suite 100, Wilsonville, Oregon, United States of America, 97070",
-    "latitude": 45.3075647,
-    "longitude": -122.7717453,
+    "name": "Team SAW",
+    "address": "United States of America",
+    "latitude": 39.7837304,
+    "longitude": -100.445882,
     "recentMemberCount": 2
   },
   {
@@ -1239,10 +1246,73 @@
     "recentMemberCount": 0
   },
   {
-    "name": "Grand Junction Weightlifting Club",
-    "address": "2314 Highway 6 and 50, Grand Junction, Colorado, United States of America, 81505",
-    "latitude": 39.1088236,
-    "longitude": -108.5977727,
+    "name": "Fairmont Weightlifting",
+    "address": "900 Johnson St, Fairmont, Minnesota, United States of America, 56031",
+    "latitude": 43.6362261,
+    "longitude": -94.4490072,
+    "recentMemberCount": 2
+  },
+  {
+    "name": "Ferus Barbell",
+    "address": "7446 Lazy Trl, San Antonio, Texas, United States of America, 78250",
+    "latitude": 29.5143435,
+    "longitude": -98.676081,
+    "recentMemberCount": 1
+  },
+  {
+    "name": "Floyd Farms Weightlifting",
+    "address": "656 Airline rd, McDonough, Georgia, United States of America, 30252",
+    "latitude": 33.4610612,
+    "longitude": -84.0994396,
+    "recentMemberCount": 1
+  },
+  {
+    "name": "Sand Dunes Barbell",
+    "address": "316 Old Blue Mountain Road, Building C, Unit A/B, santa rosa beach, Florida, United States of America, 32459",
+    "latitude": 30.3582787,
+    "longitude": -86.2007224,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "SAS WEIGHTLIFTING CLUB",
+    "address": "244 S Tucson Blvd., Tucson, Arizona, United States of America, 85716",
+    "latitude": 32.2196555,
+    "longitude": -110.9357027,
+    "recentMemberCount": 1
+  },
+  {
+    "name": "Standard Strength",
+    "address": "2096 Winchester Blvd, Campbell, California, United States of America, 95008",
+    "latitude": 37.2855102,
+    "longitude": -121.9496287,
+    "recentMemberCount": 2
+  },
+  {
+    "name": "system barbell",
+    "address": "1917 atlantic ave, manasquan, New Jersey, United States of America, 08736",
+    "latitude": 40.1291732,
+    "longitude": -74.056499,
+    "recentMemberCount": 1
+  },
+  {
+    "name": "TEAM HOUSTON",
+    "address": "2102 Victoria Court, League City, Texas, United States of America, 77573",
+    "latitude": 29.4910729,
+    "longitude": -95.1183464,
+    "recentMemberCount": 5
+  },
+  {
+    "name": "Tevis Weightlifting Club",
+    "address": "330 Weaver Road, Suite 100, Florence, Kentucky, United States of America, 41042",
+    "latitude": 38.9896877,
+    "longitude": -84.6726118,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Steadfast Barbell",
+    "address": "228 Gay Street, Plain City, Ohio, United States of America, 43064",
+    "latitude": 40.106774,
+    "longitude": -83.267248,
     "recentMemberCount": 0
   },
   {
@@ -1250,7 +1320,7 @@
     "address": "2310 Mission St, San Francisco, California, United States of America, 94110",
     "latitude": 37.7599931,
     "longitude": -122.41937,
-    "recentMemberCount": 1
+    "recentMemberCount": 2
   },
   {
     "name": "Perkiomen School Weightlifting Club",
@@ -1267,88 +1337,18 @@
     "recentMemberCount": 0
   },
   {
-    "name": "Steadfast Barbell",
-    "address": "228 Gay Street, Plain City, Ohio, United States of America, 43064",
-    "latitude": 40.106774,
-    "longitude": -83.267248,
-    "recentMemberCount": 2
-  },
-  {
     "name": "Stegelmann Performance",
     "address": "7411 Aspect Drive Apt. 115, Granger, Indiana, United States of America, 46530",
     "latitude": 41.7394367,
     "longitude": -86.149787,
-    "recentMemberCount": 0
+    "recentMemberCount": 2
   },
   {
     "name": "Swamp Cabbage Barbell Club",
     "address": "14 QUALITY COURT, COLUMBA, South Carolina, United States of America, 29229",
     "latitude": 34.1466533,
     "longitude": -80.8969883,
-    "recentMemberCount": 2
-  },
-  {
-    "name": "system barbell",
-    "address": "1917 atlantic ave, manasquan, New Jersey, United States of America, 08736",
-    "latitude": 40.1291732,
-    "longitude": -74.056499,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "TEAM HOUSTON",
-    "address": "2102 Victoria Court, League City, Texas, United States of America, 77573",
-    "latitude": 29.4910729,
-    "longitude": -95.1183464,
-    "recentMemberCount": 1
-  },
-  {
-    "name": "Fairmont Weightlifting",
-    "address": "900 Johnson St, Fairmont, Minnesota, United States of America, 56031",
-    "latitude": 43.6362261,
-    "longitude": -94.4490072,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Sand Dunes Barbell",
-    "address": "316 Old Blue Mountain Road, Building C, Unit A/B, santa rosa beach, Florida, United States of America, 32459",
-    "latitude": 30.3582787,
-    "longitude": -86.2007224,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Tevis Weightlifting Club",
-    "address": "330 Weaver Road, Suite 100, Florence, Kentucky, United States of America, 41042",
-    "latitude": 38.9896877,
-    "longitude": -84.6726118,
-    "recentMemberCount": 1
-  },
-  {
-    "name": "Ferus Barbell",
-    "address": "7446 Lazy Trl, San Antonio, Texas, United States of America, 78250",
-    "latitude": 29.5143435,
-    "longitude": -98.676081,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Floyd Farms Weightlifting",
-    "address": "656 Airline rd, McDonough, Georgia, United States of America, 30252",
-    "latitude": 33.4610612,
-    "longitude": -84.0994396,
-    "recentMemberCount": 1
-  },
-  {
-    "name": "SAS WEIGHTLIFTING CLUB",
-    "address": "244 S Tucson Blvd., Tucson, Arizona, United States of America, 85716",
-    "latitude": 32.2196555,
-    "longitude": -110.9357027,
-    "recentMemberCount": 2
-  },
-  {
-    "name": "Standard Strength",
-    "address": "2096 Winchester Blvd, Campbell, California, United States of America, 95008",
-    "latitude": 37.2855102,
-    "longitude": -121.9496287,
-    "recentMemberCount": 4
+    "recentMemberCount": 3
   },
   {
     "name": "Good Fortune Barbell",
@@ -1372,55 +1372,6 @@
     "recentMemberCount": 2
   },
   {
-    "name": "Death Row Barbell",
-    "address": "500 John Wright Dr NW, Huntsville, AL 35805, 2821 Newby Rd SW Suite E, Huntsville, AL 35805, HUNTSVILLE, Alabama, United States of America, 35801",
-    "latitude": 34.7281834,
-    "longitude": -86.5725055,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Echo Weightlifting",
-    "address": "14080 Sullyfield Circle E&F, Chantilly, Virginia, United States of America, 20151",
-    "latitude": 38.8941543,
-    "longitude": -77.4311513,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Exclusive Club Weightlifting",
-    "address": "1400 NW 65th Ave Unit G, Plantation, Florida, United States of America, 33313",
-    "latitude": 26.1495439,
-    "longitude": -80.2251722,
-    "recentMemberCount": 4
-  },
-  {
-    "name": "PORTLAND OREGON WEIGHTLIFTING",
-    "address": "13780 SW Galbreath Drive Building D, Sherwood, Oregon, United States of America, 97140",
-    "latitude": 45.3543284,
-    "longitude": -122.8512881,
-    "recentMemberCount": 2
-  },
-  {
-    "name": "PXM Weightlifting",
-    "address": "5757 N Ridge Ave, Chicago, Illinois, United States of America, 60660",
-    "latitude": 41.986657,
-    "longitude": -87.664847,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "West Virginia Weightlifting",
-    "address": "3119 University Ave - Ste C, Morgantown, West Virginia, United States of America, 26508",
-    "latitude": 39.6335223,
-    "longitude": -79.8983988,
-    "recentMemberCount": 2
-  },
-  {
-    "name": "Why Not? Weightlifting",
-    "address": "465 Washington St, Billings, Montana, United States of America, 59101",
-    "latitude": 45.7613224,
-    "longitude": -108.5096751,
-    "recentMemberCount": 0
-  },
-  {
     "name": "Battery Barbenders",
     "address": "60 New Street, New York, New York, United States of America, 10004",
     "latitude": 40.7056117,
@@ -1432,13 +1383,13 @@
     "address": "7523 Chapel Ave, Fort Worth, Texas, United States of America, 76116",
     "latitude": 32.7215494,
     "longitude": -97.4453623,
-    "recentMemberCount": 9
+    "recentMemberCount": 8
   },
   {
-    "name": "Broadwing Weightlifting",
-    "address": "199 Lynn Haven Dr, Martinsburg, West Virginia, United States of America, 25404",
-    "latitude": 39.4856463,
-    "longitude": -77.9472512,
+    "name": "PXM Weightlifting",
+    "address": "5757 N Ridge Ave, Chicago, Illinois, United States of America, 60660",
+    "latitude": 41.986657,
+    "longitude": -87.664847,
     "recentMemberCount": 0
   },
   {
@@ -1453,63 +1404,84 @@
     "address": "6448 E HWY 290 B-108, Austin, Texas, United States of America, 78723",
     "latitude": 30.299977,
     "longitude": -97.6921414,
-    "recentMemberCount": 2
+    "recentMemberCount": 7
+  },
+  {
+    "name": "Broadwing Weightlifting",
+    "address": "199 Lynn Haven Dr, Martinsburg, West Virginia, United States of America, 25404",
+    "latitude": 39.4856463,
+    "longitude": -77.9472512,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Death Row Barbell",
+    "address": "500 John Wright Dr NW, Huntsville, AL 35805, 2821 Newby Rd SW Suite E, Huntsville, AL 35805, HUNTSVILLE, Alabama, United States of America, 35801",
+    "latitude": 34.7281834,
+    "longitude": -86.5725055,
+    "recentMemberCount": 0
   },
   {
     "name": "Wear The Crown Barbell",
     "address": "3131 thousand oaks, san antonio, Texas, United States of America, 78247",
     "latitude": 29.5734648,
     "longitude": -98.4365943,
+    "recentMemberCount": 1
+  },
+  {
+    "name": "West Virginia Weightlifting",
+    "address": "3119 University Ave - Ste C, Morgantown, West Virginia, United States of America, 26508",
+    "latitude": 39.6335223,
+    "longitude": -79.8983988,
+    "recentMemberCount": 1
+  },
+  {
+    "name": "Why Not? Weightlifting",
+    "address": "465 Washington St, Billings, Montana, United States of America, 59101",
+    "latitude": 45.7613224,
+    "longitude": -108.5096751,
+    "recentMemberCount": 1
+  },
+  {
+    "name": "Echo Weightlifting",
+    "address": "14080 Sullyfield Circle E&F, Chantilly, Virginia, United States of America, 20151",
+    "latitude": 38.8941543,
+    "longitude": -77.4311513,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Exclusive Club Weightlifting",
+    "address": "1400 NW 65th Ave Unit G, Plantation, Florida, United States of America, 33313",
+    "latitude": 26.1495439,
+    "longitude": -80.2251722,
     "recentMemberCount": 2
   },
   {
-    "name": "12 Labours Barbell",
-    "address": "1789 McGuckian St, Annapolis, Maryland, United States of America, 21401",
-    "latitude": 38.978356,
-    "longitude": -76.5209617,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Belmont Barbell Club",
-    "address": "81 McAdenville Road, Belmont, North Carolina, United States of America, 28012",
-    "latitude": 35.2558881,
-    "longitude": -81.0490133,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Bulldog Weightlifting Club",
-    "address": "2030 E. College Way, Olathe, Kansas, United States of America, 66062",
-    "latitude": 38.8743408,
-    "longitude": -94.7845598,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Corvallis Strength",
-    "address": "33821 SE Eastgate Circle, Corvallis, Oregon, United States of America, 97333",
-    "latitude": 44.5645659,
-    "longitude": -123.2620435,
-    "recentMemberCount": 0
+    "name": "PORTLAND OREGON WEIGHTLIFTING",
+    "address": "13780 SW Galbreath Drive Building D, Sherwood, Oregon, United States of America, 97140",
+    "latitude": 45.3543284,
+    "longitude": -122.8512881,
+    "recentMemberCount": 1
   },
   {
     "name": "Cully Strength",
     "address": "5224 NE 42nd Ave, Portland, Oregon, United States of America, 97218",
     "latitude": 45.5608159,
     "longitude": -122.6201286,
-    "recentMemberCount": 1
+    "recentMemberCount": 2
   },
   {
     "name": "Cuppa Joe Weightlifting",
     "address": "115 Old Route 9, Fishkill, New York, United States of America, 12524",
     "latitude": 41.5486428,
     "longitude": -73.9032701,
-    "recentMemberCount": 0
+    "recentMemberCount": 4
   },
   {
     "name": "DRAGON BARBELL",
     "address": "1605 Hart St. Suite 100, Southlake, Texas, United States of America, 76092",
     "latitude": 32.9427428,
     "longitude": -97.1456945,
-    "recentMemberCount": 0
+    "recentMemberCount": 1
   },
   {
     "name": "Evolution Barbell",
@@ -1530,21 +1502,21 @@
     "address": "12112 Anderson Mill Road, Building 2 Suite A, Cedar Park, Texas, United States of America, 78613",
     "latitude": 30.46102,
     "longitude": -97.830176,
-    "recentMemberCount": 3
+    "recentMemberCount": 2
   },
   {
     "name": "Tacoma Strength Weightlifting",
     "address": "2354 Jefferson Ave, Tacoma, Washington, United States of America, 98402",
     "latitude": 47.2400865,
     "longitude": -122.4392022,
-    "recentMemberCount": 1
+    "recentMemberCount": 3
   },
   {
     "name": "TEXAS BARBELL CLUB",
     "address": "6448 E HWY 290 B-108, Austin, Texas, United States of America, 78723",
     "latitude": 30.299977,
     "longitude": -97.6921414,
-    "recentMemberCount": 0
+    "recentMemberCount": 5
   },
   {
     "name": "Vicious Pit Barbell Club",
@@ -1565,21 +1537,21 @@
     "address": "19291 Ward Rd., Caldwell, Idaho, United States of America, 83605",
     "latitude": 43.6513361,
     "longitude": -116.6233224,
-    "recentMemberCount": 1
+    "recentMemberCount": 0
   },
   {
     "name": "WESLEY WEIGHTLIFTERS",
     "address": "5400 King Hill Ave., SAINT JOSEPH, Missouri, United States of America, 64504",
     "latitude": 39.6983383,
     "longitude": -94.8649871,
-    "recentMemberCount": 1
+    "recentMemberCount": 0
   },
   {
     "name": "West Coast Weightlifting",
     "address": "130 Denny Way, El Cajon, California, United States of America, 92020",
     "latitude": 32.7935403,
     "longitude": -116.9721388,
-    "recentMemberCount": 0
+    "recentMemberCount": 3
   },
   {
     "name": "West Georgia Weightlifting",
@@ -1593,7 +1565,7 @@
     "address": "3226 Maybank Hwy, Unit F12, Johns Island, South Carolina, United States of America, 29455",
     "latitude": 32.7031033,
     "longitude": -80.0899043,
-    "recentMemberCount": 1
+    "recentMemberCount": 0
   },
   {
     "name": "WOLF BACK ON TRACK INC.",
@@ -1603,38 +1575,31 @@
     "recentMemberCount": 0
   },
   {
-    "name": "Bruin Barbell",
-    "address": "2131 John Wooden Center, Los Angeles, California, United States of America, 90095",
-    "latitude": 34.067564,
-    "longitude": -118.4438435,
-    "recentMemberCount": 0
+    "name": "12 Labours Barbell",
+    "address": "1789 McGuckian St, Annapolis, Maryland, United States of America, 21401",
+    "latitude": 38.978356,
+    "longitude": -76.5209617,
+    "recentMemberCount": 3
   },
   {
-    "name": "Aztec Weightlifting",
-    "address": "1524 The Paseo, Kansas City, Missouri, United States of America, 64108",
-    "latitude": 39.0942037,
-    "longitude": -94.5652849,
+    "name": "Belmont Barbell Club",
+    "address": "81 McAdenville Road, Belmont, North Carolina, United States of America, 28012",
+    "latitude": 35.2558881,
+    "longitude": -81.0490133,
     "recentMemberCount": 1
   },
   {
-    "name": "CDA Heart and Barbell Club",
-    "address": "301 N 4th St, Coeur d' Alene, Idaho, United States of America, 83814",
-    "latitude": 47.6752659,
-    "longitude": -116.7813634,
+    "name": "Bulldog Weightlifting Club",
+    "address": "2030 E. College Way, Olathe, Kansas, United States of America, 66062",
+    "latitude": 38.8743408,
+    "longitude": -94.7845598,
     "recentMemberCount": 0
   },
   {
-    "name": "DB weightlifting/ Savage strength barbell",
-    "address": "749 new ludlow rd, South Hadley, Massachusetts, United States of America, 01075",
-    "latitude": 42.2156059,
-    "longitude": -72.5561506,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Defy Gravity",
-    "address": "1242 Birchwood dr., Sunnyvale, California, United States of America, 94089",
-    "latitude": 37.4038483,
-    "longitude": -121.992387,
+    "name": "Corvallis Strength",
+    "address": "33821 SE Eastgate Circle, Corvallis, Oregon, United States of America, 97333",
+    "latitude": 44.5645659,
+    "longitude": -123.2620435,
     "recentMemberCount": 0
   },
   {
@@ -1642,6 +1607,13 @@
     "address": "15770 San Andres Dr, Del Mar, California, United States of America, 92014",
     "latitude": 32.9578428,
     "longitude": -117.2525044,
+    "recentMemberCount": 1
+  },
+  {
+    "name": "Defy Gravity",
+    "address": "1242 Birchwood dr., Sunnyvale, California, United States of America, 94089",
+    "latitude": 37.4038483,
+    "longitude": -121.992387,
     "recentMemberCount": 0
   },
   {
@@ -1656,7 +1628,7 @@
     "address": "2050 W Guadalupe Rd, Suite 7, Mesa, Arizona, United States of America, 85202",
     "latitude": 33.3720899,
     "longitude": -111.8766691,
-    "recentMemberCount": 3
+    "recentMemberCount": 1
   },
   {
     "name": "Fondy Weightlifting",
@@ -1712,14 +1684,14 @@
     "address": "855 3rd St SW, STE 2, New Brighton, Minnesota, United States of America, 55112",
     "latitude": 45.0580592,
     "longitude": -93.2014243,
-    "recentMemberCount": 1
+    "recentMemberCount": 3
   },
   {
     "name": "Gratitude Strength",
     "address": "2092 NE Aloclek Dr. Unit 519, Hillsboro, Oregon, United States of America, 97124",
     "latitude": 45.5358597,
     "longitude": -122.9531864,
-    "recentMemberCount": 0
+    "recentMemberCount": 1
   },
   {
     "name": "Parish Barbell Club",
@@ -1733,14 +1705,14 @@
     "address": "1606 Missile Rd, Wichita Falls, Texas, United States of America, 76306",
     "latitude": 33.9828012,
     "longitude": -98.5210022,
-    "recentMemberCount": 0
+    "recentMemberCount": 1
   },
   {
     "name": "Team Juanatas-Bowens",
     "address": "1006 Calloway Dr., Suite A, Bakersfield, California, United States of America, 93312",
     "latitude": 35.4073794,
     "longitude": -119.1195437,
-    "recentMemberCount": 1
+    "recentMemberCount": 3
   },
   {
     "name": "1904 BARBELL",
@@ -1750,45 +1722,31 @@
     "recentMemberCount": 0
   },
   {
-    "name": "EFD Holland Barbell",
-    "address": "716 Chicago Drive, Suite 430, Holland, Michigan, United States of America, 49423",
-    "latitude": 42.7705591,
-    "longitude": -86.1076325,
-    "recentMemberCount": 1
-  },
-  {
-    "name": "Big Bend Strength and Conditioning",
-    "address": "3185 Capital Circle NE, Tallahassee, Florida, United States of America, 32312",
-    "latitude": 30.4943191,
-    "longitude": -84.2448391,
-    "recentMemberCount": 1
-  },
-  {
-    "name": "DC WEIGHTLIFTING CLUB",
-    "address": "1240 Upshur Street NW, Washington, District of Columbia, United States of America, 20011",
-    "latitude": 38.9416108,
-    "longitude": -77.0276951,
-    "recentMemberCount": 1
-  },
-  {
-    "name": "FTF Barbell",
-    "address": "41 Ridgeway Rd, Waverly Hall, Georgia, United States of America, 31831",
-    "latitude": 32.6828592,
-    "longitude": -84.7377094,
+    "name": "Aztec Weightlifting",
+    "address": "1524 The Paseo, Kansas City, Missouri, United States of America, 64108",
+    "latitude": 39.0942037,
+    "longitude": -94.5652849,
     "recentMemberCount": 0
   },
   {
-    "name": "Gaines' Gym",
-    "address": "3808 Tanglewood Dr, Bryan, Texas, United States of America, 77802",
-    "latitude": 30.6455096,
-    "longitude": -96.33872,
-    "recentMemberCount": 1
+    "name": "Bruin Barbell",
+    "address": "2131 John Wooden Center, Los Angeles, California, United States of America, 90095",
+    "latitude": 34.067564,
+    "longitude": -118.4438435,
+    "recentMemberCount": 0
   },
   {
-    "name": "GREAT LAKES WEIGHTLIFTING CLUB",
-    "address": "26001 Miles Rd Ste 3, Warrensville, Ohio, United States of America, 44128",
-    "latitude": 41.4445678,
-    "longitude": -81.5431051,
+    "name": "CDA Heart and Barbell Club",
+    "address": "301 N 4th St, Coeur d' Alene, Idaho, United States of America, 83814",
+    "latitude": 47.6752659,
+    "longitude": -116.7813634,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "DB weightlifting/ Savage strength barbell",
+    "address": "749 new ludlow rd, South Hadley, Massachusetts, United States of America, 01075",
+    "latitude": 42.2156059,
+    "longitude": -72.5561506,
     "recentMemberCount": 0
   },
   {
@@ -1796,7 +1754,21 @@
     "address": "7811 Estate Hill St, Raleigh, North Carolina, United States of America, 27617",
     "latitude": 35.9161136,
     "longitude": -78.7757127,
-    "recentMemberCount": 1
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Gaines' Gym",
+    "address": "3808 Tanglewood Dr, Bryan, Texas, United States of America, 77802",
+    "latitude": 30.6455096,
+    "longitude": -96.33872,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "GREAT LAKES WEIGHTLIFTING CLUB",
+    "address": "26001 Miles Rd Ste 3, Warrensville, Ohio, United States of America, 44128",
+    "latitude": 41.4445678,
+    "longitude": -81.5431051,
+    "recentMemberCount": 0
   },
   {
     "name": "Group III Barbell",
@@ -1810,7 +1782,7 @@
     "address": "69 Brookside Ave Suite 200, Chester, New York, United States of America, 10958",
     "latitude": 41.3855978,
     "longitude": -74.4285752,
-    "recentMemberCount": 1
+    "recentMemberCount": 5
   },
   {
     "name": "GSC Barbell",
@@ -1838,14 +1810,14 @@
     "address": "1610 W 22nd St, Houston, Texas, United States of America, 77008",
     "latitude": 29.805562,
     "longitude": -95.4276552,
-    "recentMemberCount": 3
+    "recentMemberCount": 2
   },
   {
     "name": "Hunger in the Wild",
     "address": "1350 Manufacturing Street Suite 204, Dallas, Texas, United States of America, 75207",
     "latitude": 32.7883805,
     "longitude": -96.820992,
-    "recentMemberCount": 1
+    "recentMemberCount": 3
   },
   {
     "name": "Impetus Barbell",
@@ -1880,7 +1852,7 @@
     "address": "1565 Oakbridge Terrace, Suite C, Powhatan, Virginia, United States of America, 23139",
     "latitude": 36.6878242,
     "longitude": -76.229921,
-    "recentMemberCount": 0
+    "recentMemberCount": 2
   },
   {
     "name": "Tribe Barbell Club",
@@ -1894,42 +1866,35 @@
     "address": "8912 Yellow Brick Rd, Suite B, Rosedale, Maryland, United States of America, 21237",
     "latitude": 39.3400017,
     "longitude": -76.495583,
-    "recentMemberCount": 0
+    "recentMemberCount": 3
   },
   {
-    "name": "Kaizen Barbell",
-    "address": "7318 Remegan Road, Houston, Texas, United States of America, 77033",
-    "latitude": 29.6771191,
-    "longitude": -95.3388722,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "IRON KITCHEN",
-    "address": "1100 Wilson Suite #7, Pinedale, Wyoming, United States of America, 82941",
-    "latitude": 42.8659826,
-    "longitude": -109.8695602,
+    "name": "Big Bend Strength and Conditioning",
+    "address": "3185 Capital Circle NE, Tallahassee, Florida, United States of America, 32312",
+    "latitude": 30.4943191,
+    "longitude": -84.2448391,
     "recentMemberCount": 1
   },
   {
-    "name": "Kaz Barbell Club",
-    "address": "4212 West US Hwy12, Helena, Montana, United States of America, 59601",
-    "latitude": 46.5899345,
-    "longitude": -112.0421437,
-    "recentMemberCount": 1
+    "name": "DC WEIGHTLIFTING CLUB",
+    "address": "1240 Upshur Street NW, Washington, District of Columbia, United States of America, 20011",
+    "latitude": 38.9416108,
+    "longitude": -77.0276951,
+    "recentMemberCount": 2
   },
   {
-    "name": "Kilo Barbell Club",
-    "address": "17437 N 71st dr, Suite 103-105, Glendale, Arizona, United States of America, 85308",
-    "latitude": 33.6597514,
-    "longitude": -112.1805635,
+    "name": "EFD Holland Barbell",
+    "address": "716 Chicago Drive, Suite 430, Holland, Michigan, United States of America, 49423",
+    "latitude": 42.7705591,
+    "longitude": -86.1076325,
     "recentMemberCount": 0
   },
   {
-    "name": "Lakeville South Strength",
-    "address": "21135 Jacquard Ave. S., Lakeville, Minnesota, United States of America, 55044",
-    "latitude": 44.6802791,
-    "longitude": -93.2508774,
-    "recentMemberCount": 8
+    "name": "FTF Barbell",
+    "address": "41 Ridgeway Rd, Waverly Hall, Georgia, United States of America, 31831",
+    "latitude": 32.6828592,
+    "longitude": -84.7377094,
+    "recentMemberCount": 0
   },
   {
     "name": "Lebanon Barbell Club",
@@ -1939,46 +1904,53 @@
     "recentMemberCount": 2
   },
   {
+    "name": "Lakeville South Strength",
+    "address": "21135 Jacquard Ave. S., Lakeville, Minnesota, United States of America, 55044",
+    "latitude": 44.6802791,
+    "longitude": -93.2508774,
+    "recentMemberCount": 2
+  },
+  {
     "name": "LILY WEIGHTLIFTING",
     "address": "3660 Plaza Dr. Suite 1a, Ann Arbor, Michigan, United States of America, 48108",
     "latitude": 42.2372668,
     "longitude": -83.721016,
-    "recentMemberCount": 1
+    "recentMemberCount": 3
   },
   {
     "name": "LINDENWOOD LIONS",
     "address": "209 South Kings Hwy, St. Charles, Missouri, United States of America, 63301",
     "latitude": 38.8172758,
     "longitude": -90.4990417,
-    "recentMemberCount": 3
+    "recentMemberCount": 1
   },
   {
     "name": "Mad Hammer Barbell",
     "address": "5801 W 115th St, Overland Park, Kansas, United States of America, 66211",
     "latitude": 38.9206441,
     "longitude": -94.6519367,
-    "recentMemberCount": 0
+    "recentMemberCount": 1
   },
   {
     "name": "Marin Heavy Athletics",
     "address": "5420 Nave Drive, Suite E, Novato, California, United States of America, 94949",
     "latitude": 38.0670749,
     "longitude": -122.5320623,
-    "recentMemberCount": 3
+    "recentMemberCount": 2
   },
   {
     "name": "Martin Brock",
     "address": "4612 Maverick, Amarillo, Texas, United States of America, 79109",
     "latitude": 35.1594607,
     "longitude": -101.87871,
-    "recentMemberCount": 0
+    "recentMemberCount": 1
   },
   {
     "name": "Maxx Effort Training",
     "address": "1 highlander way, lake wales, Florida, United States of America, 33853",
     "latitude": 27.917734,
     "longitude": -81.578405,
-    "recentMemberCount": 0
+    "recentMemberCount": 2
   },
   {
     "name": "Metamorphosis Barbell Club",
@@ -1999,7 +1971,7 @@
     "address": "319 E. 4th Street, Onaga, Kansas, United States of America, 66521",
     "latitude": 39.490565,
     "longitude": -96.1663722,
-    "recentMemberCount": 1
+    "recentMemberCount": 0
   },
   {
     "name": "MOB Barbell",
@@ -2013,7 +1985,7 @@
     "address": "1010 Dean Street, Brooklyn, New York, United States of America, 11225",
     "latitude": 40.6777241,
     "longitude": -73.9568293,
-    "recentMemberCount": 2
+    "recentMemberCount": 6
   },
   {
     "name": "Nevada Barbell",
@@ -2034,7 +2006,7 @@
     "address": "10821 Williamson Ln, Unit 4, Cockeysville, Maryland, United States of America, 21030",
     "latitude": 39.4794119,
     "longitude": -76.6408977,
-    "recentMemberCount": 1
+    "recentMemberCount": 0
   },
   {
     "name": "Valhalla Weightlifting",
@@ -2048,34 +2020,41 @@
     "address": "110 Cumberland Park Drive #201, St. Augustine, Florida, United States of America, 32092",
     "latitude": 29.9643214,
     "longitude": -81.5071905,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "IRON KITCHEN",
+    "address": "1100 Wilson Suite #7, Pinedale, Wyoming, United States of America, 82941",
+    "latitude": 42.8659826,
+    "longitude": -109.8695602,
     "recentMemberCount": 2
   },
   {
-    "name": "LVL UP WEIGHTLIFTING",
-    "address": "800 N Hill Ave, Deland, Florida, United States of America, 32724",
-    "latitude": 29.0409339,
-    "longitude": -81.2834548,
-    "recentMemberCount": 1
-  },
-  {
-    "name": "DAYWON Barbell",
-    "address": "275 Pfeil Rd, CIBOLO, Texas, United States of America, 78108",
-    "latitude": 29.5608889,
-    "longitude": -98.2322378,
+    "name": "Kaizen Barbell",
+    "address": "7318 Remegan Road, Houston, Texas, United States of America, 77033",
+    "latitude": 29.6771191,
+    "longitude": -95.3388722,
     "recentMemberCount": 0
   },
   {
-    "name": "N. Highland WLC",
-    "address": "1819 N. Highland Drive, Carroll, Iowa, United States of America, 51401",
-    "latitude": 42.0570529,
-    "longitude": -94.8541524,
+    "name": "Kaz Barbell Club",
+    "address": "4212 West US Hwy12, Helena, Montana, United States of America, 59601",
+    "latitude": 46.5899345,
+    "longitude": -112.0421437,
     "recentMemberCount": 0
   },
   {
-    "name": "North Port Weightlifting",
-    "address": "2757 Sycamore Street, North Port, Florida, United States of America, 34289",
-    "latitude": 27.0846654,
-    "longitude": -82.1541645,
+    "name": "Kilo Barbell Club",
+    "address": "17437 N 71st dr, Suite 103-105, Glendale, Arizona, United States of America, 85308",
+    "latitude": 33.6597514,
+    "longitude": -112.1805635,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "NWA Weightlifting",
+    "address": "203 E Natural Way, Farmington, Arkansas, United States of America, 72703",
+    "latitude": 36.1007963,
+    "longitude": -94.1303959,
     "recentMemberCount": 0
   },
   {
@@ -2083,13 +2062,6 @@
     "address": "1400 Division St. S., Northfield, Minnesota, United States of America, 55057",
     "latitude": 44.4447573,
     "longitude": -93.1640585,
-    "recentMemberCount": 5
-  },
-  {
-    "name": "NWA Weightlifting",
-    "address": "203 E Natural Way, Farmington, Arkansas, United States of America, 72703",
-    "latitude": 36.1007963,
-    "longitude": -94.1303959,
     "recentMemberCount": 1
   },
   {
@@ -2118,14 +2090,14 @@
     "address": "22402 44th Ave W, Suite A, Mountlake Terrace, Washington, United States of America, 98043",
     "latitude": 47.7929572,
     "longitude": -122.3056231,
-    "recentMemberCount": 5
+    "recentMemberCount": 3
   },
   {
     "name": "PFP Barbell Club",
     "address": "5500 Butler Street, Pittsburgh, Pennsylvania, United States of America, 15201",
     "latitude": 40.483571,
     "longitude": -79.949737,
-    "recentMemberCount": 2
+    "recentMemberCount": 3
   },
   {
     "name": "Pilchuck Barbell",
@@ -2153,14 +2125,14 @@
     "address": "9133 Andrew Dr, Manassas Park, Virginia, United States of America, 20111",
     "latitude": 38.7593692,
     "longitude": -77.4357685,
-    "recentMemberCount": 0
+    "recentMemberCount": 1
   },
   {
     "name": "PRECISION BARBELL",
     "address": "28710 Canwood St Ste 105-107, Agoura Hills, California, United States of America, 91301",
     "latitude": 34.1449499,
     "longitude": -118.758378,
-    "recentMemberCount": 0
+    "recentMemberCount": 1
   },
   {
     "name": "PREMIER STRENGTH WLC",
@@ -2181,7 +2153,7 @@
     "address": "667 COUNTY ROAD C W, Roseville, Minnesota, United States of America, 55113",
     "latitude": 45.0078658,
     "longitude": -93.1624475,
-    "recentMemberCount": 2
+    "recentMemberCount": 3
   },
   {
     "name": "VERO BEACH WEIGHTLIFTING",
@@ -2195,41 +2167,41 @@
     "address": "7646 Lemhi St. #9, Boise, Idaho, United States of America, 83709",
     "latitude": 43.5839555,
     "longitude": -116.277507,
-    "recentMemberCount": 1
+    "recentMemberCount": 2
   },
   {
-    "name": "Lenka's Lifting Club",
-    "address": "6585 E. 250th St., Elko New Market, Minnesota, United States of America, 55020",
-    "latitude": 44.5735555,
-    "longitude": -93.3446461,
+    "name": "DAYWON Barbell",
+    "address": "275 Pfeil Rd, CIBOLO, Texas, United States of America, 78108",
+    "latitude": 29.5608889,
+    "longitude": -98.2322378,
     "recentMemberCount": 0
   },
   {
-    "name": "ARK Weightlifting",
-    "address": "1500 Lukas Ln,, oviedo, Florida, United States of America, 32765",
-    "latitude": 28.6536604,
-    "longitude": -81.2325552,
+    "name": "LVL UP WEIGHTLIFTING",
+    "address": "800 N Hill Ave, Deland, Florida, United States of America, 32724",
+    "latitude": 29.0409339,
+    "longitude": -81.2834548,
     "recentMemberCount": 0
   },
   {
-    "name": "Barbell Seppuku",
-    "address": "Harrisburg, Pennsylvania, United States of America, 17110",
-    "latitude": 40.2663107,
-    "longitude": -76.8861122,
+    "name": "N. Highland WLC",
+    "address": "1819 N. Highland Drive, Carroll, Iowa, United States of America, 51401",
+    "latitude": 42.0570529,
+    "longitude": -94.8541524,
     "recentMemberCount": 0
   },
   {
-    "name": "Enchanted Strength Weightlifting",
-    "address": "2400 Menaul Blvd NE, Albuquerque, New Mexico, United States of America, 87109",
-    "latitude": 35.109127,
-    "longitude": -106.616752,
+    "name": "North Port Weightlifting",
+    "address": "2757 Sycamore Street, North Port, Florida, United States of America, 34289",
+    "latitude": 27.0846654,
+    "longitude": -82.1541645,
     "recentMemberCount": 0
   },
   {
-    "name": "Fork Weightlifting",
-    "address": "18708 Telegraph, Romulus, Michigan, United States of America, 48174",
-    "latitude": 42.2138325,
-    "longitude": -83.327011,
+    "name": "RED WING WEIGHTLIFTING CLUB",
+    "address": "528 15th Street, Red Wing, Minnesota, United States of America, 55066",
+    "latitude": 44.5557901,
+    "longitude": -92.5226826,
     "recentMemberCount": 0
   },
   {
@@ -2237,6 +2209,13 @@
     "address": "2553 NW Upshur Street, Portland, Oregon, United States of America, 97210",
     "latitude": 45.5362011,
     "longitude": -122.7040111,
+    "recentMemberCount": 2
+  },
+  {
+    "name": "Lenka's Lifting Club",
+    "address": "6585 E. 250th St., Elko New Market, Minnesota, United States of America, 55020",
+    "latitude": 44.5735555,
+    "longitude": -93.3446461,
     "recentMemberCount": 1
   },
   {
@@ -2251,20 +2230,13 @@
     "address": "11 John St, Ste C, North Aurora, Illinois, United States of America, 60542",
     "latitude": 41.8130594,
     "longitude": -88.3254244,
-    "recentMemberCount": 3
+    "recentMemberCount": 4
   },
   {
     "name": "Muncie Weightlifting Club",
     "address": "210 E Centennial Ave, Muncie, Indiana, United States of America, 47303",
     "latitude": 40.208829,
     "longitude": -85.3848887,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "RED WING WEIGHTLIFTING CLUB",
-    "address": "528 15th Street, Red Wing, Minnesota, United States of America, 55066",
-    "latitude": 44.5557901,
-    "longitude": -92.5226826,
     "recentMemberCount": 0
   },
   {
@@ -2293,7 +2265,7 @@
     "address": "3160 Casteel Rd, Marietta, Georgia, United States of America, 30062",
     "latitude": 33.9982421,
     "longitude": -84.4689517,
-    "recentMemberCount": 0
+    "recentMemberCount": 1
   },
   {
     "name": "SANDUSKY WEIGHTLIFTING",
@@ -2307,21 +2279,21 @@
     "address": "2026 W Vista St, Springfield, Missouri, United States of America, 65807",
     "latitude": 37.1660564,
     "longitude": -93.3203972,
-    "recentMemberCount": 1
+    "recentMemberCount": 0
   },
   {
     "name": "The StrongBad Lifting Co.",
     "address": "540 S Highway 27 Unit A, Minneola, Florida, United States of America, 34715",
     "latitude": 28.6127638,
     "longitude": -81.7365641,
-    "recentMemberCount": 1
+    "recentMemberCount": 0
   },
   {
     "name": "UC-Santa Barbara",
     "address": "Robertson Gymnasium, Room 1420, Santa Barbara, California, United States of America, 93106",
     "latitude": 34.4161513,
     "longitude": -119.8493548,
-    "recentMemberCount": 2
+    "recentMemberCount": 1
   },
   {
     "name": "Uptown Strength",
@@ -2335,7 +2307,7 @@
     "address": "53 Albertson Ave., Albertson, New York, United States of America, 11507",
     "latitude": 40.7688609,
     "longitude": -73.6414664,
-    "recentMemberCount": 0
+    "recentMemberCount": 1
   },
   {
     "name": "Arc Weightlifting Club",
@@ -2345,60 +2317,46 @@
     "recentMemberCount": 0
   },
   {
-    "name": "Stonington Barbell Club",
-    "address": "2a Extrusion Dr, Pawcatuck, Connecticut, United States of America, 06379",
-    "latitude": 41.3649285,
-    "longitude": -71.8632853,
+    "name": "ARK Weightlifting",
+    "address": "1500 Lukas Ln,, oviedo, Florida, United States of America, 32765",
+    "latitude": 28.6536604,
+    "longitude": -81.2325552,
     "recentMemberCount": 0
   },
   {
-    "name": "Wood Weightlifting",
-    "address": "1703 N 24th St, Tampa, Florida, United States of America, 33605",
-    "latitude": 27.9596908,
-    "longitude": -82.4321739,
+    "name": "Barbell Seppuku",
+    "address": "Harrisburg, Pennsylvania, United States of America, 17110",
+    "latitude": 40.2663107,
+    "longitude": -76.8861122,
+    "recentMemberCount": 2
+  },
+  {
+    "name": "Enchanted Strength Weightlifting",
+    "address": "2400 Menaul Blvd NE, Albuquerque, New Mexico, United States of America, 87109",
+    "latitude": 35.109127,
+    "longitude": -106.616752,
     "recentMemberCount": 0
   },
   {
-    "name": "XIOS Strength & Conditioning",
-    "address": "7387 Monterey Street, Gilroy, California, United States of America, 95020",
-    "latitude": 37.0110912,
-    "longitude": -121.5706373,
-    "recentMemberCount": 2
-  },
-  {
-    "name": "Heartland Strength",
-    "address": "8944 H St., Omaha, Nebraska, United States of America, 68127",
-    "latitude": 41.2175046,
-    "longitude": -96.0506076,
-    "recentMemberCount": 2
+    "name": "Fork Weightlifting",
+    "address": "18708 Telegraph, Romulus, Michigan, United States of America, 48174",
+    "latitude": 42.2138325,
+    "longitude": -83.327011,
+    "recentMemberCount": 0
   },
   {
     "name": "HI PERFORMANCE ATHLETICS",
     "address": "47 La'a St, Kahului, Hawaii, United States of America, 96732",
     "latitude": 20.9221618,
     "longitude": -156.5886795,
-    "recentMemberCount": 5
-  },
-  {
-    "name": "Iron Legacy Weightlifting",
-    "address": "4100 El Camino Real, ATASCADERO, California, United States of America, 93422",
-    "latitude": 35.4985057,
-    "longitude": -120.683959,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "No Te Rajes Barbell",
-    "address": "14627 Bulverde Rd, San Antonio, Texas, United States of America, 78247",
-    "latitude": 29.5742159,
-    "longitude": -98.4182802,
-    "recentMemberCount": 0
+    "recentMemberCount": 2
   },
   {
     "name": "The Bar Weightlifting Club",
     "address": "558 Plate Dr Suite 11, East Dundee, Illinois, United States of America, 60118",
     "latitude": 42.0983165,
     "longitude": -88.2960327,
-    "recentMemberCount": 2
+    "recentMemberCount": 1
   },
   {
     "name": "The Strength Shack",
@@ -2406,20 +2364,6 @@
     "latitude": 40.6880168,
     "longitude": -75.2718454,
     "recentMemberCount": 0
-  },
-  {
-    "name": "V23 WEIGHTLIFTING",
-    "address": "80 Inverness Dr E., Englewood, Colorado, United States of America, 80112",
-    "latitude": 39.5792693,
-    "longitude": -104.8892455,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Volusia Barbell",
-    "address": "801 Taylor Rd, Port Orange, Florida, United States of America, 32129",
-    "latitude": 29.1099461,
-    "longitude": -81.0163563,
-    "recentMemberCount": 1
   },
   {
     "name": "Atlas Weightlifting Club",
@@ -2450,73 +2394,73 @@
     "recentMemberCount": 0
   },
   {
+    "name": "Iron Legacy Weightlifting",
+    "address": "4100 El Camino Real, ATASCADERO, California, United States of America, 93422",
+    "latitude": 35.4985057,
+    "longitude": -120.683959,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "No Te Rajes Barbell",
+    "address": "14627 Bulverde Rd, San Antonio, Texas, United States of America, 78247",
+    "latitude": 29.5742159,
+    "longitude": -98.4182802,
+    "recentMemberCount": 0
+  },
+  {
     "name": "Primo Barbell Club",
     "address": "905 Derby St., Pekin, Illinois, United States of America, 61554",
     "latitude": 40.5565611,
     "longitude": -89.6582495,
-    "recentMemberCount": 1
-  },
-  {
-    "name": "West Michigan Muscle",
-    "address": "2502 Saidla, Kalamazoo, Michigan, United States of America, 49001",
-    "latitude": 42.2660244,
-    "longitude": -85.5342993,
     "recentMemberCount": 0
   },
   {
-    "name": "Bexar Barbell",
-    "address": "12066 Starcrest Suite #310, San Antonio, Texas, United States of America, 78247",
-    "latitude": 29.5834532,
-    "longitude": -98.4090155,
-    "recentMemberCount": 15
+    "name": "V23 WEIGHTLIFTING",
+    "address": "80 Inverness Dr E., Englewood, Colorado, United States of America, 80112",
+    "latitude": 39.5792693,
+    "longitude": -104.8892455,
+    "recentMemberCount": 0
   },
   {
-    "name": "BGB barbell club",
-    "address": "170 Robinson Drive, Fayetteville, Georgia, United States of America, 30214",
-    "latitude": 33.4555841,
-    "longitude": -84.4303722,
+    "name": "Volusia Barbell",
+    "address": "801 Taylor Rd, Port Orange, Florida, United States of America, 32129",
+    "latitude": 29.1099461,
+    "longitude": -81.0163563,
     "recentMemberCount": 1
+  },
+  {
+    "name": "XIOS Strength & Conditioning",
+    "address": "7387 Monterey Street, Gilroy, California, United States of America, 95020",
+    "latitude": 37.0110912,
+    "longitude": -121.5706373,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Heartland Strength",
+    "address": "8944 H St., Omaha, Nebraska, United States of America, 68127",
+    "latitude": 41.2175046,
+    "longitude": -96.0506076,
+    "recentMemberCount": 5
+  },
+  {
+    "name": "Stonington Barbell Club",
+    "address": "2a Extrusion Dr, Pawcatuck, Connecticut, United States of America, 06379",
+    "latitude": 41.3649285,
+    "longitude": -71.8632853,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Wood Weightlifting",
+    "address": "1703 N 24th St, Tampa, Florida, United States of America, 33605",
+    "latitude": 27.9596908,
+    "longitude": -82.4321739,
+    "recentMemberCount": 0
   },
   {
     "name": "Buffalo Head Barbell Club",
     "address": "22 New Haven rd, Vergennes, Vermont, United States of America, 05491",
     "latitude": 44.1649224,
     "longitude": -73.2458918,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Chippewa Falls Weightlifting",
-    "address": "16 Taylor Street, Chippewa Falls, Wisconsin, United States of America, 54729",
-    "latitude": 44.9322735,
-    "longitude": -91.3956291,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Coven Club",
-    "address": "8920 Sunset Ave, Fair Oaks, California, United States of America, 95628",
-    "latitude": 38.6529223,
-    "longitude": -121.2578469,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "ECLIPSE BARBELL CLUB",
-    "address": "9233 S Mingo RD., Suite C2, Tulsa, Oklahoma, United States of America, 74133",
-    "latitude": 36.0337863,
-    "longitude": -95.8771667,
-    "recentMemberCount": 1
-  },
-  {
-    "name": "IRON ATHLETE WEIGHTLIFTING CLUB",
-    "address": "8 N Roosevelt Ave, Chandler, Arizona, United States of America, 85226",
-    "latitude": 33.3036351,
-    "longitude": -111.9511402,
-    "recentMemberCount": 1
-  },
-  {
-    "name": "Mako Athletics",
-    "address": "1500 N Palafox St, Pensacola, Florida, United States of America, 32501",
-    "latitude": 30.42808,
-    "longitude": -87.21879,
     "recentMemberCount": 0
   },
   {
@@ -2538,21 +2482,21 @@
     "address": "362 West Melody Lane, Casselberry, Florida, United States of America, 32707",
     "latitude": 28.6722123,
     "longitude": -81.344048,
-    "recentMemberCount": 7
+    "recentMemberCount": 6
   },
   {
     "name": "RCF Weightlifting Club",
     "address": "2533 Jefferson Ave., Tacoma, Washington, United States of America, 98402",
     "latitude": 47.2379743,
     "longitude": -122.4387463,
-    "recentMemberCount": 1
+    "recentMemberCount": 0
   },
   {
     "name": "Team Divergent",
     "address": "2162 24th Ave., San Francisco, California, United States of America, 94116",
     "latitude": 37.7463573,
     "longitude": -122.4802386,
-    "recentMemberCount": 2
+    "recentMemberCount": 1
   },
   {
     "name": "TEAM FLORIDA - AFP",
@@ -2573,7 +2517,14 @@
     "address": "31 Industrial Ave, Suite 3, Mahwah, New Jersey, United States of America, 07430",
     "latitude": 41.071505,
     "longitude": -74.1627108,
-    "recentMemberCount": 3
+    "recentMemberCount": 2
+  },
+  {
+    "name": "West Michigan Muscle",
+    "address": "2502 Saidla, Kalamazoo, Michigan, United States of America, 49001",
+    "latitude": 42.2660244,
+    "longitude": -85.5342993,
+    "recentMemberCount": 0
   },
   {
     "name": "York County Barbell",
@@ -2597,10 +2548,52 @@
     "recentMemberCount": 0
   },
   {
-    "name": "San Francisco Weightlifting Club",
-    "address": "566 Monterey Boulevard, San Francisco, California, United States of America, 94127",
-    "latitude": 37.7314275,
-    "longitude": -122.4480593,
+    "name": "Bexar Barbell",
+    "address": "12066 Starcrest Suite #310, San Antonio, Texas, United States of America, 78247",
+    "latitude": 29.5834532,
+    "longitude": -98.4090155,
+    "recentMemberCount": 12
+  },
+  {
+    "name": "BGB barbell club",
+    "address": "170 Robinson Drive, Fayetteville, Georgia, United States of America, 30214",
+    "latitude": 33.4555841,
+    "longitude": -84.4303722,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Chippewa Falls Weightlifting",
+    "address": "16 Taylor Street, Chippewa Falls, Wisconsin, United States of America, 54729",
+    "latitude": 44.9322735,
+    "longitude": -91.3956291,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Coven Club",
+    "address": "8920 Sunset Ave, Fair Oaks, California, United States of America, 95628",
+    "latitude": 38.6529223,
+    "longitude": -121.2578469,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "ECLIPSE BARBELL CLUB",
+    "address": "9233 S Mingo RD., Suite C2, Tulsa, Oklahoma, United States of America, 74133",
+    "latitude": 36.0337863,
+    "longitude": -95.8771667,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "IRON ATHLETE WEIGHTLIFTING CLUB",
+    "address": "8 N Roosevelt Ave, Chandler, Arizona, United States of America, 85226",
+    "latitude": 33.3036351,
+    "longitude": -111.9511402,
+    "recentMemberCount": 1
+  },
+  {
+    "name": "Mako Athletics",
+    "address": "1500 N Palafox St, Pensacola, Florida, United States of America, 32501",
+    "latitude": 30.42808,
+    "longitude": -87.21879,
     "recentMemberCount": 0
   },
   {
@@ -2609,27 +2602,6 @@
     "latitude": 40.6964169,
     "longitude": -73.3202058,
     "recentMemberCount": 0
-  },
-  {
-    "name": "Ballard Barbell Club",
-    "address": "11100 Chateau Hill, Austin, Texas, United States of America, 78750",
-    "latitude": 30.434155,
-    "longitude": -97.79921,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Bars And Roses",
-    "address": "10810 Merrick Run, San Antonio, Texas, United States of America, 78254",
-    "latitude": 29.528296,
-    "longitude": -98.6933168,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Black Label Barbell Club",
-    "address": "9953 FM 521, Rosharon, Texas, United States of America, 77583",
-    "latitude": 29.4706684,
-    "longitude": -95.4596167,
-    "recentMemberCount": 1
   },
   {
     "name": "Bowen Elite Weightlifting",
@@ -2650,14 +2622,14 @@
     "address": "12910 Highway 92 Suite #101, Woodstock, Georgia, United States of America, 30188",
     "latitude": 34.1127279,
     "longitude": -84.467814,
-    "recentMemberCount": 3
+    "recentMemberCount": 4
   },
   {
     "name": "Columbus Weightlifting",
     "address": "12525 Fancher Road, Westerville, Ohio, United States of America, 43082",
     "latitude": 40.1533071,
     "longitude": -82.9124426,
-    "recentMemberCount": 3
+    "recentMemberCount": 2
   },
   {
     "name": "Crow River CrossFit Weightlifting",
@@ -2692,7 +2664,7 @@
     "address": "5741 Bayside Rd, Suite 101, Virginia Beach, Virginia, United States of America, 23455",
     "latitude": 36.6878242,
     "longitude": -76.229921,
-    "recentMemberCount": 12
+    "recentMemberCount": 6
   },
   {
     "name": "Fog City BBC",
@@ -2720,28 +2692,35 @@
     "address": "20365 S Gardner Rd, Gardner, Kansas, United States of America, 66030",
     "latitude": 38.8335165,
     "longitude": -94.9276283,
-    "recentMemberCount": 8
+    "recentMemberCount": 5
   },
   {
     "name": "On Track Barbell",
     "address": "15140 S Keeler Street, Suite A, Olathe, Kansas, United States of America, 66062",
     "latitude": 38.8698272,
     "longitude": -94.7769811,
-    "recentMemberCount": 1
+    "recentMemberCount": 0
   },
   {
     "name": "Rising Tide Weightlifting",
     "address": "6427 Windmill Way Unit D, Wilmington, North Carolina, United States of America, 28405",
     "latitude": 34.2593146,
     "longitude": -77.8614834,
-    "recentMemberCount": 3
+    "recentMemberCount": 2
+  },
+  {
+    "name": "San Francisco Weightlifting Club",
+    "address": "566 Monterey Boulevard, San Francisco, California, United States of America, 94127",
+    "latitude": 37.7314275,
+    "longitude": -122.4480593,
+    "recentMemberCount": 0
   },
   {
     "name": "WILLIAMS WEIGHTLIFTING",
     "address": "5007 B U Bowman Drive, Buford, Georgia, United States of America, 30518",
     "latitude": 34.1469345,
     "longitude": -83.9545886,
-    "recentMemberCount": 1
+    "recentMemberCount": 0
   },
   {
     "name": "A1 Barbell Club",
@@ -2751,38 +2730,24 @@
     "recentMemberCount": 0
   },
   {
-    "name": "Adapted Strength",
-    "address": "186 Bella Vista Road, STE D, Vacaville, California, United States of America, 95687",
-    "latitude": 38.3491556,
-    "longitude": -121.9642399,
+    "name": "Ballard Barbell Club",
+    "address": "11100 Chateau Hill, Austin, Texas, United States of America, 78750",
+    "latitude": 30.434155,
+    "longitude": -97.79921,
     "recentMemberCount": 0
   },
   {
-    "name": "AUSTIN WEIGHTLIFTING CLUB",
-    "address": "8708 South Congress, Building C, Austin, Texas, United States of America, 78745",
-    "latitude": 30.2091254,
-    "longitude": -97.7920726,
-    "recentMemberCount": 1
-  },
-  {
-    "name": "Everyday Athletes Barbell",
-    "address": "2001 Production Drive, Unit 6, Louisville, Kentucky, United States of America, 40299",
-    "latitude": 38.1889778,
-    "longitude": -85.5592441,
+    "name": "Bars And Roses",
+    "address": "10810 Merrick Run, San Antonio, Texas, United States of America, 78254",
+    "latitude": 29.528296,
+    "longitude": -98.6933168,
     "recentMemberCount": 0
   },
   {
-    "name": "HUMBLE BEAST WEIGHTLIFTING",
-    "address": "16111 sycamore ln, rockville, Maryland, United States of America, 20852",
-    "latitude": 39.051154,
-    "longitude": -77.1199837,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Independent City Barbell",
-    "address": "1984 Northgate Commerce Pkwy, Suffolk, Virginia, United States of America, 23435",
-    "latitude": 36.8170953,
-    "longitude": -76.4752212,
+    "name": "Black Label Barbell Club",
+    "address": "9953 FM 521, Rosharon, Texas, United States of America, 77583",
+    "latitude": 29.4706684,
+    "longitude": -95.4596167,
     "recentMemberCount": 0
   },
   {
@@ -2790,14 +2755,7 @@
     "address": "22 Commerce Blvd, Suite 1, Plainville, Massachusetts, United States of America, 02762",
     "latitude": 42.0185637,
     "longitude": -71.322841,
-    "recentMemberCount": 1
-  },
-  {
-    "name": "Keep Pulling",
-    "address": "9340 N Florida Avenue, Suite 3, Tampa, Florida, United States of America, 33612",
-    "latitude": 28.0500772,
-    "longitude": -82.4526179,
-    "recentMemberCount": 5
+    "recentMemberCount": 0
   },
   {
     "name": "Khmer Strength Movement",
@@ -2807,32 +2765,18 @@
     "recentMemberCount": 0
   },
   {
-    "name": "LAS VEGAS BARBELL",
-    "address": "3009 E Post Rd, Suite B, Las Vegas, Nevada, United States of America, 89120",
-    "latitude": 36.0776212,
-    "longitude": -115.1018466,
-    "recentMemberCount": 5
-  },
-  {
     "name": "Lowcountry Barbell",
     "address": "888 College Park Rd, Building 700, Summerville, South Carolina, United States of America, 29486-8682",
     "latitude": 33.0732226,
     "longitude": -80.1252441,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Mach 1 Barbell",
-    "address": "3435 route 9 north, Unit 6b, freehold, New Jersey, United States of America, 07728",
-    "latitude": 40.2426471,
-    "longitude": -74.2782269,
-    "recentMemberCount": 1
+    "recentMemberCount": 2
   },
   {
     "name": "Marble Weightlifting",
     "address": "54 W Main Street (Rear Building), Freehold, New Jersey, United States of America, 07728",
     "latitude": 40.2426471,
     "longitude": -74.2782269,
-    "recentMemberCount": 3
+    "recentMemberCount": 2
   },
   {
     "name": "Millennium Weightlifting",
@@ -2867,7 +2811,7 @@
     "address": "6550 Little River Turnpike, Alexandria, Virginia, United States of America, 22313",
     "latitude": 38.8169043,
     "longitude": -77.1401176,
-    "recentMemberCount": 0
+    "recentMemberCount": 2
   },
   {
     "name": "SONA Weightlifting",
@@ -2884,6 +2828,13 @@
     "recentMemberCount": 1
   },
   {
+    "name": "Adapted Strength",
+    "address": "186 Bella Vista Road, STE D, Vacaville, California, United States of America, 95687",
+    "latitude": 38.3491556,
+    "longitude": -121.9642399,
+    "recentMemberCount": 0
+  },
+  {
     "name": "Aspire Athletic Performance",
     "address": "1 Park Drive, Unit 11, Westford, Massachusetts, United States of America, 01886",
     "latitude": 42.5765642,
@@ -2891,11 +2842,53 @@
     "recentMemberCount": 0
   },
   {
-    "name": "Vespid Strength",
-    "address": "12 Williams Ct, Somerville, Massachusetts, United States of America, 02143",
-    "latitude": 42.3875006,
-    "longitude": -71.113529,
+    "name": "AUSTIN WEIGHTLIFTING CLUB",
+    "address": "8708 South Congress, Building C, Austin, Texas, United States of America, 78745",
+    "latitude": 30.2091254,
+    "longitude": -97.7920726,
+    "recentMemberCount": 1
+  },
+  {
+    "name": "Everyday Athletes Barbell",
+    "address": "2001 Production Drive, Unit 6, Louisville, Kentucky, United States of America, 40299",
+    "latitude": 38.1889778,
+    "longitude": -85.5592441,
     "recentMemberCount": 0
+  },
+  {
+    "name": "HUMBLE BEAST WEIGHTLIFTING",
+    "address": "16111 sycamore ln, rockville, Maryland, United States of America, 20852",
+    "latitude": 39.051154,
+    "longitude": -77.1199837,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Independent City Barbell",
+    "address": "1984 Northgate Commerce Pkwy, Suffolk, Virginia, United States of America, 23435",
+    "latitude": 36.8170953,
+    "longitude": -76.4752212,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Keep Pulling",
+    "address": "9340 N Florida Avenue, Suite 3, Tampa, Florida, United States of America, 33612",
+    "latitude": 28.0500772,
+    "longitude": -82.4526179,
+    "recentMemberCount": 1
+  },
+  {
+    "name": "LAS VEGAS BARBELL",
+    "address": "3009 E Post Rd, Suite B, Las Vegas, Nevada, United States of America, 89120",
+    "latitude": 36.0776212,
+    "longitude": -115.1018466,
+    "recentMemberCount": 6
+  },
+  {
+    "name": "Mach 1 Barbell",
+    "address": "3435 route 9 north, Unit 6b, freehold, New Jersey, United States of America, 07728",
+    "latitude": 40.2426471,
+    "longitude": -74.2782269,
+    "recentMemberCount": 3
   },
   {
     "name": "Force Praxeum",
@@ -2905,67 +2898,18 @@
     "recentMemberCount": 0
   },
   {
-    "name": "Gary’s Gym",
-    "address": "110 Hodgenville Rd, Elizabethtown, Kentucky, United States of America, 42701",
-    "latitude": 37.672264,
-    "longitude": -85.8433712,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Grey Castle Strength and Conditioning",
-    "address": "1405 Park Blvd, San Diego, California, United States of America, 92101",
-    "latitude": 32.7214126,
-    "longitude": -117.1512354,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Heavenly Gains Barbell",
-    "address": "5012 Serry Lane, Milton, Florida, United States of America, 32571",
-    "latitude": 30.6343286,
-    "longitude": -87.151733,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Higher Ground Barbell Club",
-    "address": "280 Missouri Ave, Unit B, Clarksville, Indiana, United States of America, 47130",
-    "latitude": 38.3270047,
-    "longitude": -85.7007894,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Mi5 Barbell Club",
-    "address": "17630 Juniper Path, SUITE F, Lakeville, Minnesota, United States of America, 55044",
-    "latitude": 44.6802791,
-    "longitude": -93.2508774,
-    "recentMemberCount": 3
-  },
-  {
-    "name": "Norman Strength Barbell",
-    "address": "2719 Bart Conner Ct, STE 107, Norman, Oklahoma, United States of America, 73072",
-    "latitude": 35.222446,
-    "longitude": -97.4817194,
-    "recentMemberCount": 0
-  },
-  {
     "name": "Palm Beach Weightlifting",
     "address": "1335 unit 23 old Dixie hwy, Lake Park, Florida, United States of America, 33403",
     "latitude": 26.8004944,
     "longitude": -80.0782882,
-    "recentMemberCount": 2
-  },
-  {
-    "name": "Protopig Strength",
-    "address": "35215 Aspen Ln SE, Unit 1303, Snoqualmie, Washington, United States of America, 98065",
-    "latitude": 47.5296101,
-    "longitude": -121.8624803,
-    "recentMemberCount": 0
+    "recentMemberCount": 4
   },
   {
     "name": "Stallion Weightlifting Club",
     "address": "11629 Broad River Rd, Chapin, South Carolina, United States of America, 29063",
     "latitude": 34.1139512,
     "longitude": -81.1907192,
-    "recentMemberCount": 0
+    "recentMemberCount": 2
   },
   {
     "name": "STONECUTTER WEIGHTLIFTING",
@@ -2979,7 +2923,7 @@
     "address": "1965 Recreation Lane, Avon, Ohio, United States of America, 44011",
     "latitude": 41.4621236,
     "longitude": -82.0632906,
-    "recentMemberCount": 0
+    "recentMemberCount": 3
   },
   {
     "name": "THE METAL CHAPTER PERFORMANCE & STRENGTH",
@@ -2993,7 +2937,7 @@
     "address": "2744 E 11th St, Unit B4/B5, OAKLAND, California, United States of America, 94601",
     "latitude": 37.7752312,
     "longitude": -122.2224806,
-    "recentMemberCount": 1
+    "recentMemberCount": 0
   },
   {
     "name": "The Shed Barbell",
@@ -3003,11 +2947,18 @@
     "recentMemberCount": 0
   },
   {
+    "name": "Vespid Strength",
+    "address": "12 Williams Ct, Somerville, Massachusetts, United States of America, 02143",
+    "latitude": 42.3875006,
+    "longitude": -71.113529,
+    "recentMemberCount": 0
+  },
+  {
     "name": "Warwick Weightlifting Club",
     "address": "28 Church Street, Suite 3, Warwick, New York, United States of America, 10990",
     "latitude": 41.2645096,
     "longitude": -74.3627069,
-    "recentMemberCount": 2
+    "recentMemberCount": 5
   },
   {
     "name": "WEBER STATE WEIGHTLIFTING",
@@ -3028,69 +2979,69 @@
     "address": "110 COMPETITION CENTER DR, Suite 150, MORRISVILLE, North Carolina, United States of America, 27560",
     "latitude": 35.8427471,
     "longitude": -78.8192034,
+    "recentMemberCount": 2
+  },
+  {
+    "name": "Gary’s Gym",
+    "address": "110 Hodgenville Rd, Elizabethtown, Kentucky, United States of America, 42701",
+    "latitude": 37.672264,
+    "longitude": -85.8433712,
     "recentMemberCount": 0
   },
   {
-    "name": "Slate Strength and Conditioning",
-    "address": "2701 NE 127th St, Seattle, Washington, United States of America, 98125",
-    "latitude": 47.7209458,
-    "longitude": -122.2986951,
+    "name": "Grey Castle Strength and Conditioning",
+    "address": "1405 Park Blvd, San Diego, California, United States of America, 92101",
+    "latitude": 32.7214126,
+    "longitude": -117.1512354,
     "recentMemberCount": 0
   },
   {
-    "name": "Wormtown Weightlifting",
-    "address": "5 Centech Blvd, Suite 1, Shrewsbury, Massachusetts, United States of America, 01545",
-    "latitude": 42.2884762,
-    "longitude": -71.7270592,
-    "recentMemberCount": 5
+    "name": "Heavenly Gains Barbell",
+    "address": "5012 Serry Lane, Milton, Florida, United States of America, 32571",
+    "latitude": 30.6343286,
+    "longitude": -87.151733,
+    "recentMemberCount": 1
   },
   {
-    "name": "ALLSOUTH Barbell",
-    "address": "6075 Atlantic Blvd, Norcross, Georgia, United States of America, 30071",
-    "latitude": 33.9412949,
-    "longitude": -84.2329337,
-    "recentMemberCount": 4
+    "name": "Higher Ground Barbell Club",
+    "address": "280 Missouri Ave, Unit B, Clarksville, Indiana, United States of America, 47130",
+    "latitude": 38.3270047,
+    "longitude": -85.7007894,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Mi5 Barbell Club",
+    "address": "17630 Juniper Path, SUITE F, Lakeville, Minnesota, United States of America, 55044",
+    "latitude": 44.6802791,
+    "longitude": -93.2508774,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Norman Strength Barbell",
+    "address": "2719 Bart Conner Ct, STE 107, Norman, Oklahoma, United States of America, 73072",
+    "latitude": 35.222446,
+    "longitude": -97.4817194,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Protopig Strength",
+    "address": "35215 Aspen Ln SE, Unit 1303, Snoqualmie, Washington, United States of America, 98065",
+    "latitude": 47.5296101,
+    "longitude": -121.8624803,
+    "recentMemberCount": 0
   },
   {
     "name": "ATLANTA PERFORMANCE",
     "address": "2080 Peachtree Industrial Ct SUITE 112, Chamblee, Georgia, United States of America, 30341",
     "latitude": 33.8914794,
     "longitude": -84.2910518,
-    "recentMemberCount": 3
+    "recentMemberCount": 1
   },
   {
     "name": "Battle Born Barbell",
     "address": "1296 Industrial Court, Gardnerville, Nevada, United States of America, 89460",
     "latitude": 38.931013,
     "longitude": -119.7276255,
-    "recentMemberCount": 1
-  },
-  {
-    "name": "Beyond The Barbell",
-    "address": "159 Trojan Way, Douglas, Georgia, United States of America, 31533",
-    "latitude": 31.5526373,
-    "longitude": -82.8613832,
-    "recentMemberCount": 6
-  },
-  {
-    "name": "BLACK & RED BARBELL CLUB",
-    "address": "8504 Tyco Rd, Tysons Corner, Virginia, United States of America, 22182",
-    "latitude": 38.9304719,
-    "longitude": -77.2421755,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Brooklyn Training Hall",
-    "address": "321 Scholes St., Brooklyn, New York, United States of America, 11206",
-    "latitude": 40.709761,
-    "longitude": -73.9354607,
-    "recentMemberCount": 1
-  },
-  {
-    "name": "Bull Strength Barbell",
-    "address": "14401 South Georgia st, Amarillo, Texas, United States of America, 79118",
-    "latitude": 35.1385663,
-    "longitude": -101.8660889,
     "recentMemberCount": 0
   },
   {
@@ -3105,7 +3056,7 @@
     "address": "170 Patton Dr, Cheshire, Connecticut, United States of America, 06410",
     "latitude": 41.4931373,
     "longitude": -72.909698,
-    "recentMemberCount": 1
+    "recentMemberCount": 0
   },
   {
     "name": "Granite Strength",
@@ -3115,18 +3066,11 @@
     "recentMemberCount": 0
   },
   {
-    "name": "Lotus Barbell Club",
-    "address": "906 Tommydon Street, Stockton, California, United States of America, 95210",
-    "latitude": 38.0184652,
-    "longitude": -121.3001506,
-    "recentMemberCount": 1
-  },
-  {
     "name": "PROJECT LIFT",
     "address": "5040 Nike Dr Ste B, Hilliard, Ohio, United States of America, 43026",
     "latitude": 40.0169508,
     "longitude": -83.1522381,
-    "recentMemberCount": 1
+    "recentMemberCount": 4
   },
   {
     "name": "Rockledge Barbell Club",
@@ -3134,6 +3078,20 @@
     "latitude": 28.3060214,
     "longitude": -80.726894,
     "recentMemberCount": 0
+  },
+  {
+    "name": "Slate Strength and Conditioning",
+    "address": "2701 NE 127th St, Seattle, Washington, United States of America, 98125",
+    "latitude": 47.7209458,
+    "longitude": -122.2986951,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Wormtown Weightlifting",
+    "address": "5 Centech Blvd, Suite 1, Shrewsbury, Massachusetts, United States of America, 01545",
+    "latitude": 42.2884762,
+    "longitude": -71.7270592,
+    "recentMemberCount": 1
   },
   {
     "name": "Zion Barbell Club",
@@ -3150,10 +3108,52 @@
     "recentMemberCount": 0
   },
   {
+    "name": "ALLSOUTH Barbell",
+    "address": "6075 Atlantic Blvd, Norcross, Georgia, United States of America, 30071",
+    "latitude": 33.9412949,
+    "longitude": -84.2329337,
+    "recentMemberCount": 1
+  },
+  {
     "name": "Argonauts SC",
     "address": "200 Great Barracuda Wy, St Johns, Florida, United States of America, 32259",
     "latitude": 30.0834343,
     "longitude": -81.4927836,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Beyond The Barbell",
+    "address": "159 Trojan Way, Douglas, Georgia, United States of America, 31533",
+    "latitude": 31.5526373,
+    "longitude": -82.8613832,
+    "recentMemberCount": 4
+  },
+  {
+    "name": "BLACK & RED BARBELL CLUB",
+    "address": "8504 Tyco Rd, Tysons Corner, Virginia, United States of America, 22182",
+    "latitude": 38.9304719,
+    "longitude": -77.2421755,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Brooklyn Training Hall",
+    "address": "321 Scholes St., Brooklyn, New York, United States of America, 11206",
+    "latitude": 40.709761,
+    "longitude": -73.9354607,
+    "recentMemberCount": 3
+  },
+  {
+    "name": "Bull Strength Barbell",
+    "address": "14401 South Georgia st, Amarillo, Texas, United States of America, 79118",
+    "latitude": 35.1385663,
+    "longitude": -101.8660889,
+    "recentMemberCount": 1
+  },
+  {
+    "name": "Lotus Barbell Club",
+    "address": "906 Tommydon Street, Stockton, California, United States of America, 95210",
+    "latitude": 38.0184652,
+    "longitude": -121.3001506,
     "recentMemberCount": 0
   },
   {
@@ -3164,32 +3164,11 @@
     "recentMemberCount": 0
   },
   {
-    "name": "Daidalos Weightlifting",
-    "address": "2312 250th Street, Lomita, California, United States of America, 90717",
-    "latitude": 33.798164,
-    "longitude": -118.323061,
-    "recentMemberCount": 1
-  },
-  {
-    "name": "Delaware and Vermont Weightlifting",
-    "address": "32779 East Riga Drive, OCEAN VIEW, Delaware, United States of America, 19970",
-    "latitude": 38.5566738,
-    "longitude": -75.1054161,
-    "recentMemberCount": 0
-  },
-  {
     "name": "Dirty Durham Barbell",
     "address": "2500 Meridian Parkway, Suite 180, Durham, North Carolina, United States of America, 27713",
     "latitude": 35.9133233,
     "longitude": -78.9207912,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Endless Strength Weightlifting",
-    "address": "4009 Lydney Circle, Waxhaw, North Carolina, United States of America, 28173",
-    "latitude": 34.9275673,
-    "longitude": -80.7688781,
-    "recentMemberCount": 0
+    "recentMemberCount": 1
   },
   {
     "name": "Force Barbell Club",
@@ -3210,14 +3189,14 @@
     "address": "661 Jackson Way, Panama city, Florida, United States of America, 32405",
     "latitude": 30.207997,
     "longitude": -85.6731159,
-    "recentMemberCount": 3
+    "recentMemberCount": 2
   },
   {
     "name": "Glass City Weightlifting",
     "address": "3063 W. Alexis Rd., Toledo, Ohio, United States of America, 43613",
     "latitude": 41.7208315,
     "longitude": -83.6191496,
-    "recentMemberCount": 1
+    "recentMemberCount": 0
   },
   {
     "name": "Grizzly weightlifting",
@@ -3259,28 +3238,28 @@
     "address": "13830 Gran Bay Pkwy, Unit 403/404, Jacksonville, Florida, United States of America, 32258",
     "latitude": 30.1388073,
     "longitude": -81.550539,
-    "recentMemberCount": 6
+    "recentMemberCount": 5
   },
   {
     "name": "MILLER WEIGHTLIFTING",
     "address": "1583 Pacheco St, Santa Fe, New Mexico, United States of America, 87505",
     "latitude": 35.6644161,
     "longitude": -105.9592428,
-    "recentMemberCount": 0
+    "recentMemberCount": 3
   },
   {
     "name": "One World Barbell Club",
     "address": "33415 Western Ave, Union City, California, United States of America, 94587",
     "latitude": 37.5956137,
     "longitude": -122.032774,
-    "recentMemberCount": 1
+    "recentMemberCount": 0
   },
   {
     "name": "Polaris Weightlifting",
     "address": "21010 Vanowen Street, Canoga Park, California, United States of America, 91303",
     "latitude": 34.1937645,
     "longitude": -118.6061353,
-    "recentMemberCount": 3
+    "recentMemberCount": 1
   },
   {
     "name": "Schuster Athletics",
@@ -3301,42 +3280,35 @@
     "address": "207 N Brett Street, Crestview, Florida, United States of America, 32539",
     "latitude": 30.7596959,
     "longitude": -86.5679266,
-    "recentMemberCount": 0
+    "recentMemberCount": 2
   },
   {
-    "name": "Lake City Barbell",
-    "address": "3909 Abernathy Farm Way, Acworth, Georgia, United States of America, 30101",
-    "latitude": 34.0504475,
-    "longitude": -84.6994108,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Christina&Kelly;",
-    "address": "30 Cimino Drive, Colorado Springs, Colorado, United States of America, 80903",
-    "latitude": 38.8323588,
-    "longitude": -104.8314089,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Club Dub",
-    "address": "9307 Curry Ford Rd, Orlando, Florida, United States of America, 32825",
-    "latitude": 28.5133841,
-    "longitude": -81.2548099,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Coffee Weightlifting Team",
-    "address": "159 Trojan Way, Douglas, Georgia, United States of America, 31533",
-    "latitude": 31.5526373,
-    "longitude": -82.8613832,
+    "name": "Daidalos Weightlifting",
+    "address": "2312 250th Street, Lomita, California, United States of America, 90717",
+    "latitude": 33.798164,
+    "longitude": -118.323061,
     "recentMemberCount": 1
   },
   {
-    "name": "EMINENCE BARBELL CLUB",
-    "address": "864 E 78th Ave, Thornton, Colorado, United States of America, 80229",
-    "latitude": 39.8566801,
-    "longitude": -104.9712205,
-    "recentMemberCount": 1
+    "name": "Delaware and Vermont Weightlifting",
+    "address": "32779 East Riga Drive, OCEAN VIEW, Delaware, United States of America, 19970",
+    "latitude": 38.5566738,
+    "longitude": -75.1054161,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Endless Strength Weightlifting",
+    "address": "4009 Lydney Circle, Waxhaw, North Carolina, United States of America, 28173",
+    "latitude": 34.9275673,
+    "longitude": -80.7688781,
+    "recentMemberCount": 2
+  },
+  {
+    "name": "Mind Forge CrossFit",
+    "address": "17649 US Hwy 27, Bldg B, Unit 8, Clermont, Florida, United States of America, 34715",
+    "latitude": 28.6127638,
+    "longitude": -81.7365641,
+    "recentMemberCount": 0
   },
   {
     "name": "FORNEY BARBELL CLUB",
@@ -3350,7 +3322,7 @@
     "address": "702 Greenbriar Dr, Friendswood, Texas, United States of America, 77546",
     "latitude": 29.5245329,
     "longitude": -95.1931697,
-    "recentMemberCount": 2
+    "recentMemberCount": 1
   },
   {
     "name": "Hungry dog barbell",
@@ -3371,14 +3343,14 @@
     "address": "41745 NW Wilkesboro RD, Banks, Oregon, United States of America, 97106",
     "latitude": 45.6073966,
     "longitude": -123.1066203,
-    "recentMemberCount": 2
+    "recentMemberCount": 1
   },
   {
     "name": "Ironside Weightlifting",
     "address": "935 SE Ankeny St, Portland, Oregon, United States of America, 97214",
     "latitude": 45.5224491,
     "longitude": -122.6559505,
-    "recentMemberCount": 1
+    "recentMemberCount": 2
   },
   {
     "name": "Just Commit Performance",
@@ -3392,6 +3364,13 @@
     "address": "920 N Montana Street, Dillon, Montana, United States of America, 59725",
     "latitude": 45.2182713,
     "longitude": -112.6368046,
+    "recentMemberCount": 1
+  },
+  {
+    "name": "Lake City Barbell",
+    "address": "3909 Abernathy Farm Way, Acworth, Georgia, United States of America, 30101",
+    "latitude": 34.0504475,
+    "longitude": -84.6994108,
     "recentMemberCount": 0
   },
   {
@@ -3416,13 +3395,6 @@
     "recentMemberCount": 0
   },
   {
-    "name": "Mind Forge CrossFit",
-    "address": "17649 US Hwy 27, Bldg B, Unit 8, Clermont, Florida, United States of America, 34715",
-    "latitude": 28.6127638,
-    "longitude": -81.7365641,
-    "recentMemberCount": 0
-  },
-  {
     "name": "New Berlin Barbell Club",
     "address": "2865 S. 160th St., New Berlin, Wisconsin, United States of America, 53151",
     "latitude": 42.9926254,
@@ -3434,7 +3406,7 @@
     "address": "610 Indeneer Drive, Kernersville, North Carolina, United States of America, 27284",
     "latitude": 36.1004419,
     "longitude": -80.0692905,
-    "recentMemberCount": 0
+    "recentMemberCount": 1
   },
   {
     "name": "Timberwolf Strength",
@@ -3448,14 +3420,70 @@
     "address": "1405 United Dr., 109, San Marcos, Texas, United States of America, 78666",
     "latitude": 29.8699192,
     "longitude": -97.9504145,
+    "recentMemberCount": 11
+  },
+  {
+    "name": "Christina&Kelly;",
+    "address": "30 Cimino Drive, Colorado Springs, Colorado, United States of America, 80903",
+    "latitude": 38.8323588,
+    "longitude": -104.8314089,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Club Dub",
+    "address": "9307 Curry Ford Rd, Orlando, Florida, United States of America, 32825",
+    "latitude": 28.5133841,
+    "longitude": -81.2548099,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Coffee Weightlifting Team",
+    "address": "159 Trojan Way, Douglas, Georgia, United States of America, 31533",
+    "latitude": 31.5526373,
+    "longitude": -82.8613832,
+    "recentMemberCount": 4
+  },
+  {
+    "name": "EMINENCE BARBELL CLUB",
+    "address": "864 E 78th Ave, Thornton, Colorado, United States of America, 80229",
+    "latitude": 39.8566801,
+    "longitude": -104.9712205,
     "recentMemberCount": 2
+  },
+  {
+    "name": "Blackheart Barbell",
+    "address": "1261 hargett st, Jacksonville, North Carolina, United States of America, 28540",
+    "latitude": 34.7524468,
+    "longitude": -77.4108008,
+    "recentMemberCount": 0
   },
   {
     "name": "Level Up Barbell Club",
     "address": "16939 E. Colony Dr., Fountain Hills, Arizona, United States of America, 85268",
     "latitude": 33.5836451,
     "longitude": -111.7327709,
-    "recentMemberCount": 1
+    "recentMemberCount": 0
+  },
+  {
+    "name": "TEAM CONNECTICUT",
+    "address": "53 Longmeadows Road, Wilton, Connecticut, United States of America, 06897",
+    "latitude": 41.2378745,
+    "longitude": -73.4782857,
+    "recentMemberCount": 2
+  },
+  {
+    "name": "West Chester Weightlifting",
+    "address": "1045 Andrew Dr, Suite C2, West Chester, Pennsylvania, United States of America, 19380",
+    "latitude": 39.9904396,
+    "longitude": -75.5935414,
+    "recentMemberCount": 3
+  },
+  {
+    "name": "Zion Barbell",
+    "address": "1758 S. Camino Real, Washington, Utah, United States of America, 84780",
+    "latitude": 37.1066306,
+    "longitude": -113.4937148,
+    "recentMemberCount": 4
   },
   {
     "name": "Anchored and Risen Barbell Club",
@@ -3465,10 +3493,17 @@
     "recentMemberCount": 0
   },
   {
-    "name": "Blackheart Barbell",
-    "address": "1261 hargett st, Jacksonville, North Carolina, United States of America, 28540",
-    "latitude": 34.7524468,
-    "longitude": -77.4108008,
+    "name": "Astoria Barbell Club",
+    "address": "3656 38th st, 2nd floor, Long Island City, New York, United States of America, 11101",
+    "latitude": 40.7484442,
+    "longitude": -73.9388347,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Big Blue Weightlifting",
+    "address": "242 Southland Drive, Lexington, Kentucky, United States of America, 40503",
+    "latitude": 38.0133177,
+    "longitude": -84.5214385,
     "recentMemberCount": 0
   },
   {
@@ -3504,14 +3539,14 @@
     "address": "600 W. Liberty St, Medina, Ohio, United States of America, 44256",
     "latitude": 41.1446536,
     "longitude": -81.8897045,
-    "recentMemberCount": 2
+    "recentMemberCount": 0
   },
   {
     "name": "Ischyros",
     "address": "1314 SW Pine Avenue, Live Oak, Florida, United States of America, 32060",
     "latitude": 30.2853991,
     "longitude": -82.9916731,
-    "recentMemberCount": 0
+    "recentMemberCount": 1
   },
   {
     "name": "Kilo Coalition",
@@ -3542,74 +3577,11 @@
     "recentMemberCount": 0
   },
   {
-    "name": "TEAM CONNECTICUT",
-    "address": "53 Longmeadows Road, Wilton, Connecticut, United States of America, 06897",
-    "latitude": 41.2378745,
-    "longitude": -73.4782857,
+    "name": "NTC Box Fitness",
+    "address": "127 Inner Loop Dr, Fort Irwin, California, United States of America, 92310",
+    "latitude": 35.2715267,
+    "longitude": -116.7113941,
     "recentMemberCount": 0
-  },
-  {
-    "name": "West Chester Weightlifting",
-    "address": "1045 Andrew Dr, Suite C2, West Chester, Pennsylvania, United States of America, 19380",
-    "latitude": 39.9904396,
-    "longitude": -75.5935414,
-    "recentMemberCount": 2
-  },
-  {
-    "name": "Zion Barbell",
-    "address": "1758 S. Camino Real, Washington, Utah, United States of America, 84780",
-    "latitude": 37.1066306,
-    "longitude": -113.4937148,
-    "recentMemberCount": 2
-  },
-  {
-    "name": "Astoria Barbell Club",
-    "address": "3656 38th st, 2nd floor, Long Island City, New York, United States of America, 11101",
-    "latitude": 40.7484442,
-    "longitude": -73.9388347,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Big Blue Weightlifting",
-    "address": "242 Southland Drive, Lexington, Kentucky, United States of America, 40503",
-    "latitude": 38.0133177,
-    "longitude": -84.5214385,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "MGP Strength",
-    "address": "652 E 60th Ave N, Wellington, Kansas, United States of America, 67152",
-    "latitude": 37.2632023,
-    "longitude": -97.402191,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Circle City Strength",
-    "address": "2495 Directors Row, Suite EF, Indianapolis, Indiana, United States of America, 46241",
-    "latitude": 39.7396043,
-    "longitude": -86.2516168,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Conviction Barbell",
-    "address": "1 New Orleans Rd, Unit C, Hilton Head Island, South Carolina, United States of America, 29928",
-    "latitude": 32.1605029,
-    "longitude": -80.7520144,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "DC Barbell",
-    "address": "1011 4th St Nw, Washington, District of Columbia, United States of America, 20001",
-    "latitude": 38.902741,
-    "longitude": -77.016066,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Diablo Strong",
-    "address": "2447 Estand Way, Pleasant Hill, California, United States of America, 94523",
-    "latitude": 37.9413737,
-    "longitude": -122.0533169,
-    "recentMemberCount": 1
   },
   {
     "name": "GRASS IRON WEIGHTLIFTING",
@@ -3637,7 +3609,7 @@
     "address": "5254 N. Meadows Dr., Castle Rock, Colorado, United States of America, 80109",
     "latitude": 39.4129217,
     "longitude": -104.8940255,
-    "recentMemberCount": 8
+    "recentMemberCount": 1
   },
   {
     "name": "Iron Brotherhood",
@@ -3661,11 +3633,18 @@
     "recentMemberCount": 0
   },
   {
+    "name": "MGP Strength",
+    "address": "652 E 60th Ave N, Wellington, Kansas, United States of America, 67152",
+    "latitude": 37.2632023,
+    "longitude": -97.402191,
+    "recentMemberCount": 0
+  },
+  {
     "name": "MOORESTOWN WLC",
     "address": "111 W. 2nd Street, Moorestown, New Jersey, United States of America, 08057",
     "latitude": 39.9641893,
     "longitude": -74.9494495,
-    "recentMemberCount": 2
+    "recentMemberCount": 0
   },
   {
     "name": "Myo Barbell",
@@ -3679,14 +3658,7 @@
     "address": "1106 N. D st., Suite 7, Sacramento, California, United States of America, 95811",
     "latitude": 38.5765928,
     "longitude": -121.4873706,
-    "recentMemberCount": 1
-  },
-  {
-    "name": "NTC Box Fitness",
-    "address": "127 Inner Loop Dr, Fort Irwin, California, United States of America, 92310",
-    "latitude": 35.2715267,
-    "longitude": -116.7113941,
-    "recentMemberCount": 0
+    "recentMemberCount": 2
   },
   {
     "name": "One Rep Weightlifting",
@@ -3707,35 +3679,175 @@
     "address": "5818 West Pierce Street, West Allis, Wisconsin, United States of America, 53214",
     "latitude": 43.0237907,
     "longitude": -87.9860983,
-    "recentMemberCount": 16
+    "recentMemberCount": 12
   },
   {
     "name": "R 3 Weightlifting",
     "address": "7399 Longleaf Pine Parkway, St. Johns, Florida, United States of America, 32259",
     "latitude": 30.046793,
     "longitude": -81.613558,
-    "recentMemberCount": 2
+    "recentMemberCount": 0
   },
   {
     "name": "Carlmont Scots Athletics",
     "address": "1400 Alameda De Las Pulgas, Belmont, California, United States of America, 94402",
     "latitude": 37.5051367,
     "longitude": -122.288723,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Circle City Strength",
+    "address": "2495 Directors Row, Suite EF, Indianapolis, Indiana, United States of America, 46241",
+    "latitude": 39.7396043,
+    "longitude": -86.2516168,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Conviction Barbell",
+    "address": "1 New Orleans Rd, Unit C, Hilton Head Island, South Carolina, United States of America, 29928",
+    "latitude": 32.1605029,
+    "longitude": -80.7520144,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "DC Barbell",
+    "address": "1011 4th St Nw, Washington, District of Columbia, United States of America, 20001",
+    "latitude": 38.902741,
+    "longitude": -77.016066,
     "recentMemberCount": 2
+  },
+  {
+    "name": "Diablo Strong",
+    "address": "2447 Estand Way, Pleasant Hill, California, United States of America, 94523",
+    "latitude": 37.9413737,
+    "longitude": -122.0533169,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Rival Fitness and Weightlifting",
+    "address": "4131 Knight Avenue, Waycross, Georgia, United States of America, 31503",
+    "latitude": 31.2127075,
+    "longitude": -82.352701,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Littleton Performance Barbell",
+    "address": "1020 E Floyd Ave, Englewood, Colorado, United States of America, 80113",
+    "latitude": 39.6567126,
+    "longitude": -104.9755078,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Oro Strength",
+    "address": "6845 W Pinto Rd, Sahuarita, Arizona, United States of America, 85629",
+    "latitude": 31.9642734,
+    "longitude": -110.98614,
+    "recentMemberCount": 0
   },
   {
     "name": "People's Republic of The Dojo",
     "address": "36 landies Lane, Leominster, Massachusetts, United States of America, 01453",
     "latitude": 42.5310718,
     "longitude": -71.7548222,
+    "recentMemberCount": 3
+  },
+  {
+    "name": "PERFORMANCE ONE WEIGHTLIFTING",
+    "address": "5616 E. Main Street, Mesa, Arizona, United States of America, 85205",
+    "latitude": 33.4156645,
+    "longitude": -111.7101272,
+    "recentMemberCount": 2
+  },
+  {
+    "name": "PWRBLD Barbell Club",
+    "address": "1661 Easton Rd Unit C-1, Warrington, Pennsylvania, United States of America, 18976",
+    "latitude": 40.240415,
+    "longitude": -75.1352617,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "RAWW Barbell",
+    "address": "641 Academy Drive, Northbrook, Illinois, United States of America, 60062",
+    "latitude": 42.1414237,
+    "longitude": -87.856765,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Rockford Barbell",
+    "address": "213 N 3rd St, Rockford, Illinois, United States of America, 61107",
+    "latitude": 42.2681636,
+    "longitude": -89.0852594,
+    "recentMemberCount": 1
+  },
+  {
+    "name": "RoseCity Barbell",
+    "address": "9385 SW Greenburg Rd., Suite 100, Portland, Oregon, United States of America, 97223",
+    "latitude": 45.4403584,
+    "longitude": -122.7841637,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Speed Power Strength",
+    "address": "2140 Livingston, Oakland, California, United States of America, 94606",
+    "latitude": 37.7809249,
+    "longitude": -122.2406879,
+    "recentMemberCount": 1
+  },
+  {
+    "name": "Strength Academy Weightlifting",
+    "address": "2015 7th St, Ste B, Albuquerque, New Mexico, United States of America, 87102",
+    "latitude": 35.0861815,
+    "longitude": -106.6475286,
+    "recentMemberCount": 2
+  },
+  {
+    "name": "Strength Ratio",
+    "address": "829 Riverside Drive, Asheville, North Carolina, United States of America, 28801",
+    "latitude": 35.6146362,
+    "longitude": -82.5746172,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Strong Weightlifting",
+    "address": "4207 Simonton Rd, Farmers Branch, Texas, United States of America, 75244",
+    "latitude": 32.9308452,
+    "longitude": -96.8306411,
     "recentMemberCount": 4
+  },
+  {
+    "name": "TEAM FLORIDA GULFCOAST WL",
+    "address": "3210 59th Ave Dr E, Unit 103, Bradenton, Florida, United States of America, 34201",
+    "latitude": 27.4000391,
+    "longitude": -82.4681229,
+    "recentMemberCount": 1
+  },
+  {
+    "name": "TORQUE BARBELL",
+    "address": "1480 Weir Dr - Ste 300, Woodbury, Minnesota, United States of America, 55125",
+    "latitude": 44.910425,
+    "longitude": -92.9449436,
+    "recentMemberCount": 1
+  },
+  {
+    "name": "Valley Strength Weightlifting",
+    "address": "745 Main St, Dallas, Oregon, United States of America, 97388",
+    "latitude": 44.8750979,
+    "longitude": -124.0345449,
+    "recentMemberCount": 2
+  },
+  {
+    "name": "4 Star Strength",
+    "address": "12620 Newburgh rd, Livonia, Michigan, United States of America, 48150",
+    "latitude": 42.3757997,
+    "longitude": -83.4116129,
+    "recentMemberCount": 5
   },
   {
     "name": "Black Tree Barbell Club",
     "address": "805 South Ave, Grand Junction, Colorado, United States of America, 81507",
     "latitude": 39.0630082,
     "longitude": -108.5591377,
-    "recentMemberCount": 0
+    "recentMemberCount": 1
   },
   {
     "name": "Bowling Green Barbell Club",
@@ -3756,119 +3868,70 @@
     "address": "4619 S. Congress Ave. Suite D, Austin, Texas, United States of America, 78745",
     "latitude": 30.2091254,
     "longitude": -97.7920726,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Littleton Performance Barbell",
-    "address": "1020 E Floyd Ave, Englewood, Colorado, United States of America, 80113",
-    "latitude": 39.6567126,
-    "longitude": -104.9755078,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Oro Strength",
-    "address": "6845 W Pinto Rd, Sahuarita, Arizona, United States of America, 85629",
-    "latitude": 31.9642734,
-    "longitude": -110.98614,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "PERFORMANCE ONE WEIGHTLIFTING",
-    "address": "5616 E. Main Street, Mesa, Arizona, United States of America, 85205",
-    "latitude": 33.4156645,
-    "longitude": -111.7101272,
-    "recentMemberCount": 4
-  },
-  {
-    "name": "PWRBLD Barbell Club",
-    "address": "1661 Easton Rd Unit C-1, Warrington, Pennsylvania, United States of America, 18976",
-    "latitude": 40.240415,
-    "longitude": -75.1352617,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "RAWW Barbell",
-    "address": "641 Academy Drive, Northbrook, Illinois, United States of America, 60062",
-    "latitude": 42.1414237,
-    "longitude": -87.856765,
     "recentMemberCount": 1
   },
   {
-    "name": "Rival Fitness and Weightlifting",
-    "address": "4131 Knight Avenue, Waycross, Georgia, United States of America, 31503",
-    "latitude": 31.2127075,
-    "longitude": -82.352701,
-    "recentMemberCount": 0
+    "name": "Empire Weightlifting",
+    "address": "80 Smokey Hollow Rd Unit 2, Baldwinsville, New York, United States of America, 13027",
+    "latitude": 43.1614156,
+    "longitude": -76.3203163,
+    "recentMemberCount": 1
   },
   {
-    "name": "Rockford Barbell",
-    "address": "213 N 3rd St, Rockford, Illinois, United States of America, 61107",
-    "latitude": 42.2681636,
-    "longitude": -89.0852594,
-    "recentMemberCount": 0
+    "name": "Feel The Steel Barbell Club",
+    "address": "821 Kuhn Dr. #106, Chula Vista, California, United States of America, 91914",
+    "latitude": 32.6642129,
+    "longitude": -116.9579477,
+    "recentMemberCount": 1
   },
   {
-    "name": "RoseCity Barbell",
-    "address": "9385 SW Greenburg Rd., Suite 100, Portland, Oregon, United States of America, 97223",
-    "latitude": 45.4403584,
-    "longitude": -122.7841637,
+    "name": "Freedom Weightlifting",
+    "address": "1109 Old Okeechobee Rd, West Palm Beach, Florida, United States of America, 33401",
+    "latitude": 26.70097,
+    "longitude": -80.0639815,
     "recentMemberCount": 2
   },
   {
-    "name": "Speed Power Strength",
-    "address": "2140 Livingston, Oakland, California, United States of America, 94606",
-    "latitude": 37.7809249,
-    "longitude": -122.2406879,
-    "recentMemberCount": 2
-  },
-  {
-    "name": "Strength Academy Weightlifting",
-    "address": "2015 7th St, Ste B, Albuquerque, New Mexico, United States of America, 87102",
-    "latitude": 35.0861815,
-    "longitude": -106.6475286,
+    "name": "MISSISSIPPI BARBELL",
+    "address": "210 Industrial Cove, Ridgeland, Mississippi, United States of America, 39157",
+    "latitude": 32.4220972,
+    "longitude": -90.1417672,
     "recentMemberCount": 0
   },
   {
-    "name": "Strength Ratio",
-    "address": "829 Riverside Drive, Asheville, North Carolina, United States of America, 28801",
-    "latitude": 35.6146362,
-    "longitude": -82.5746172,
+    "name": "Propulsion Wellness Barbell Club",
+    "address": "2008 Dover Rd #2, Epsom, New Hampshire, United States of America, 03234",
+    "latitude": 43.2266707,
+    "longitude": -71.3458249,
     "recentMemberCount": 0
   },
   {
-    "name": "Strong Weightlifting",
-    "address": "4207 Simonton Rd, Farmers Branch, Texas, United States of America, 75244",
-    "latitude": 32.9308452,
-    "longitude": -96.8306411,
-    "recentMemberCount": 2
+    "name": "Scarsdale High School",
+    "address": "1057 Post Road, Scarsdale, New York, United States of America, 10583",
+    "latitude": 40.9945225,
+    "longitude": -73.7935612,
+    "recentMemberCount": 0
   },
   {
-    "name": "TEAM FLORIDA GULFCOAST WL",
-    "address": "3210 59th Ave Dr E, Unit 103, Bradenton, Florida, United States of America, 34201",
-    "latitude": 27.4000391,
-    "longitude": -82.4681229,
-    "recentMemberCount": 4
-  },
-  {
-    "name": "TORQUE BARBELL",
-    "address": "1480 Weir Dr - Ste 300, Woodbury, Minnesota, United States of America, 55125",
-    "latitude": 44.910425,
-    "longitude": -92.9449436,
+    "name": "TEAM SAVANNAH",
+    "address": "7232 Varnedoe Drive, Savannah, Georgia, United States of America, 31406",
+    "latitude": 31.9922445,
+    "longitude": -81.0805502,
     "recentMemberCount": 1
   },
   {
-    "name": "Valley Strength Weightlifting",
-    "address": "745 Main St, Dallas, Oregon, United States of America, 97388",
-    "latitude": 44.8750979,
-    "longitude": -124.0345449,
+    "name": "Texas A&M Aggie Weightlifting",
+    "address": "303 Dominik Dr, College Station, Texas, United States of America, 77840",
+    "latitude": 30.6194139,
+    "longitude": -96.3208674,
     "recentMemberCount": 1
   },
   {
-    "name": "4 Star Strength",
-    "address": "12620 Newburgh rd, Livonia, Michigan, United States of America, 48150",
-    "latitude": 42.3757997,
-    "longitude": -83.4116129,
-    "recentMemberCount": 1
+    "name": "Town Barbell",
+    "address": "3914 6th Ave, Tacoma, Washington, United States of America, 98406",
+    "latitude": 47.2551113,
+    "longitude": -122.4898848,
+    "recentMemberCount": 0
   },
   {
     "name": "Iron Grit Barbell",
@@ -3882,7 +3945,7 @@
     "address": "14411 Coil Plus Dr, Plainfield, Illinois, United States of America, 60544",
     "latitude": 41.6217551,
     "longitude": -88.2168442,
-    "recentMemberCount": 0
+    "recentMemberCount": 1
   },
   {
     "name": "MALVERN WEIGHTLIFTING CLUB",
@@ -3913,88 +3976,18 @@
     "recentMemberCount": 3
   },
   {
-    "name": "TEAM SAVANNAH",
-    "address": "7232 Varnedoe Drive, Savannah, Georgia, United States of America, 31406",
-    "latitude": 31.9922445,
-    "longitude": -81.0805502,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Texas A&M Aggie Weightlifting",
-    "address": "303 Dominik Dr, College Station, Texas, United States of America, 77840",
-    "latitude": 30.6194139,
-    "longitude": -96.3208674,
-    "recentMemberCount": 1
-  },
-  {
-    "name": "MISSISSIPPI BARBELL",
-    "address": "210 Industrial Cove, Ridgeland, Mississippi, United States of America, 39157",
-    "latitude": 32.4220972,
-    "longitude": -90.1417672,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Town Barbell",
-    "address": "3914 6th Ave, Tacoma, Washington, United States of America, 98406",
-    "latitude": 47.2551113,
-    "longitude": -122.4898848,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Empire Weightlifting",
-    "address": "80 Smokey Hollow Rd Unit 2, Baldwinsville, New York, United States of America, 13027",
-    "latitude": 43.1614156,
-    "longitude": -76.3203163,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Feel The Steel Barbell Club",
-    "address": "821 Kuhn Dr. #106, Chula Vista, California, United States of America, 91914",
-    "latitude": 32.6642129,
-    "longitude": -116.9579477,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Freedom Weightlifting",
-    "address": "1109 Old Okeechobee Rd, West Palm Beach, Florida, United States of America, 33401",
-    "latitude": 26.70097,
-    "longitude": -80.0639815,
-    "recentMemberCount": 7
-  },
-  {
-    "name": "Propulsion Wellness Barbell Club",
-    "address": "2008 Dover Rd #2, Epsom, New Hampshire, United States of America, 03234",
-    "latitude": 43.2266707,
-    "longitude": -71.3458249,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Scarsdale High School",
-    "address": "1057 Post Road, Scarsdale, New York, United States of America, 10583",
-    "latitude": 40.9945225,
-    "longitude": -73.7935612,
-    "recentMemberCount": 0
-  },
-  {
     "name": "TEAM TEXAS",
     "address": "3000 Invincible Circle, League City, Texas, United States of America, 77573",
     "latitude": 29.541596,
     "longitude": -95.06375,
-    "recentMemberCount": 0
+    "recentMemberCount": 4
   },
   {
     "name": "TEAM WESTERN NEW YORK",
     "address": "3946 Broadway, Depew, New York, United States of America, 14043",
     "latitude": 42.9056894,
     "longitude": -78.7273558,
-    "recentMemberCount": 3
-  },
-  {
-    "name": "Category 5 Athletics",
-    "address": "1705 W Chestnut St, Tampa, Florida, United States of America, 33607",
-    "latitude": 27.9586785,
-    "longitude": -82.4880518,
-    "recentMemberCount": 3
+    "recentMemberCount": 1
   },
   {
     "name": "CHFP WEIGHTLIFTING CLUB",
@@ -4002,20 +3995,6 @@
     "latitude": 36.6878242,
     "longitude": -76.229921,
     "recentMemberCount": 3
-  },
-  {
-    "name": "Geno Athletics",
-    "address": "5322 NW 92nd Way, Gainesville, Florida, United States of America, 32653",
-    "latitude": 29.7084652,
-    "longitude": -82.3895233,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "HOOSIER BARBELL CLUB",
-    "address": "Crown Point High School, 1500 South Main, Crown Point, Indiana, United States of America, 46307",
-    "latitude": 41.417722,
-    "longitude": -87.3643641,
-    "recentMemberCount": 0
   },
   {
     "name": "Iron Wolf Weightlifting",
@@ -4064,21 +4043,21 @@
     "address": "111 Division Ave., Levittown, New York, United States of America, 11756",
     "latitude": 40.727851,
     "longitude": -73.5274589,
-    "recentMemberCount": 2
+    "recentMemberCount": 1
   },
   {
     "name": "LSU - Shreveport",
     "address": "1 University Place, HPE 211, Shreveport, Louisiana, United States of America, 71115",
     "latitude": 32.2868344,
     "longitude": -93.5855029,
-    "recentMemberCount": 3
+    "recentMemberCount": 2
   },
   {
     "name": "MASS Strength",
     "address": "72 Grove Street, Franklin, Massachusetts, United States of America, 02038",
     "latitude": 42.0810769,
     "longitude": -71.423203,
-    "recentMemberCount": 4
+    "recentMemberCount": 2
   },
   {
     "name": "No Guts No Glory BBC",
@@ -4137,17 +4116,24 @@
     "recentMemberCount": 0
   },
   {
-    "name": "Boombox Barbell",
-    "address": "8501 Als Way, Louisville, Kentucky, United States of America, 40214",
-    "latitude": 38.1274367,
-    "longitude": -85.7736652,
-    "recentMemberCount": 2
+    "name": "Category 5 Athletics",
+    "address": "1705 W Chestnut St, Tampa, Florida, United States of America, 33607",
+    "latitude": 27.9586785,
+    "longitude": -82.4880518,
+    "recentMemberCount": 1
   },
   {
-    "name": "Built By Becker- nZone/Chantilly",
-    "address": "14550 Lee Road, Chantilly, Virginia, United States of America, 20151",
-    "latitude": 38.8966513,
-    "longitude": -77.4478363,
+    "name": "Geno Athletics",
+    "address": "5322 NW 92nd Way, Gainesville, Florida, United States of America, 32653",
+    "latitude": 29.7084652,
+    "longitude": -82.3895233,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "HOOSIER BARBELL CLUB",
+    "address": "Crown Point High School, 1500 South Main, Crown Point, Indiana, United States of America, 46307",
+    "latitude": 41.417722,
+    "longitude": -87.3643641,
     "recentMemberCount": 0
   },
   {
@@ -4155,28 +4141,28 @@
     "address": "3200 Schofield Ave, Ste 2, Weston, Wisconsin, United States of America, 54476",
     "latitude": 44.9015983,
     "longitude": -89.5702935,
-    "recentMemberCount": 0
+    "recentMemberCount": 2
   },
   {
     "name": "Conqueror Weightlifting",
     "address": "20343 Blondo Parkway, Suite 104, Elkhorn, Nebraska, United States of America, 68022",
     "latitude": 41.2528631,
     "longitude": -96.2413462,
-    "recentMemberCount": 8
+    "recentMemberCount": 4
   },
   {
     "name": "Emory University Weightlifting Club",
     "address": "26 Eagle Row, Atlanta, Georgia, United States of America, 30322",
     "latitude": 33.7933407,
     "longitude": -84.3259774,
-    "recentMemberCount": 0
+    "recentMemberCount": 1
   },
   {
     "name": "Florida Elite",
     "address": "190 Old Dixie Hwy, Vero Beach, Florida, United States of America, 32960",
     "latitude": 27.6380842,
     "longitude": -80.398926,
-    "recentMemberCount": 4
+    "recentMemberCount": 5
   },
   {
     "name": "Fortis Weightlifting Club",
@@ -4204,21 +4190,21 @@
     "address": "1433 Dennison Road SW, Albuquerque, New Mexico, United States of America, 87105",
     "latitude": 35.0735866,
     "longitude": -106.7040256,
-    "recentMemberCount": 4
+    "recentMemberCount": 3
   },
   {
     "name": "Jake Pudenz Strength & Power",
     "address": "4367 Merle Hay Rd, Des Moines, Iowa, United States of America, 50310",
     "latitude": 41.6410711,
     "longitude": -93.6963294,
-    "recentMemberCount": 1
+    "recentMemberCount": 0
   },
   {
     "name": "K'Hai Bar",
     "address": "2252 Quarry Ln, Onalaska, Wisconsin, United States of America, 54650",
     "latitude": 43.8884912,
     "longitude": -91.2239912,
-    "recentMemberCount": 2
+    "recentMemberCount": 0
   },
   {
     "name": "LIC Barbell Club",
@@ -4239,7 +4225,7 @@
     "address": "500 E. College Street, Marshall, Missouri, United States of America, 65340",
     "latitude": 39.1064411,
     "longitude": -93.1907708,
-    "recentMemberCount": 0
+    "recentMemberCount": 2
   },
   {
     "name": "Red Line Weightlifting",
@@ -4260,14 +4246,14 @@
     "address": "4264 Strausser St. NW, North Canton, Ohio, United States of America, 44720",
     "latitude": 40.8883506,
     "longitude": -81.4228691,
-    "recentMemberCount": 3
+    "recentMemberCount": 1
   },
   {
     "name": "Sanctuary Barbell",
     "address": "5444 E Washington St, Ste 3, Phoenix, Arizona, United States of America, 85034",
     "latitude": 33.4349109,
     "longitude": -112.019178,
-    "recentMemberCount": 2
+    "recentMemberCount": 3
   },
   {
     "name": "SBSC Weightlifting",
@@ -4281,27 +4267,20 @@
     "address": "714 Shelby Lane, Unit F, Austin, Texas, United States of America, 78745",
     "latitude": 30.2091254,
     "longitude": -97.7920726,
-    "recentMemberCount": 10
+    "recentMemberCount": 12
   },
   {
-    "name": "Axle Weightlifting",
-    "address": "301 W 4th St, Tucson,, Arizona, United States of America, 85705",
-    "latitude": 32.230201,
-    "longitude": -110.976496,
+    "name": "Boombox Barbell",
+    "address": "8501 Als Way, Louisville, Kentucky, United States of America, 40214",
+    "latitude": 38.1274367,
+    "longitude": -85.7736652,
     "recentMemberCount": 0
   },
   {
-    "name": "Boulder Barbell Club",
-    "address": "4919 North Broadway, Unit 50, Boulder, Colorado, United States of America, 80304",
-    "latitude": 40.0396642,
-    "longitude": -105.2768679,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Common Ground Weightlifting",
-    "address": "2820 SE 8th, Portland, Oregon, United States of America, 97202",
-    "latitude": 45.5024994,
-    "longitude": -122.6576752,
+    "name": "Built By Becker- nZone/Chantilly",
+    "address": "14550 Lee Road, Chantilly, Virginia, United States of America, 20151",
+    "latitude": 38.8966513,
+    "longitude": -77.4478363,
     "recentMemberCount": 0
   },
   {
@@ -4323,14 +4302,14 @@
     "address": "333 Speedway Cir, Lincoln, Nebraska, United States of America, 68502",
     "latitude": 40.7844441,
     "longitude": -96.7174319,
-    "recentMemberCount": 1
+    "recentMemberCount": 0
   },
   {
     "name": "No Respect 4 Gravity",
     "address": "12330 SW 53rd Street unit 708, Pembroke Pines, Florida, United States of America, 33330",
     "latitude": 26.0620973,
     "longitude": -80.3179471,
-    "recentMemberCount": 2
+    "recentMemberCount": 1
   },
   {
     "name": "NYC Barbell Club",
@@ -4365,14 +4344,14 @@
     "address": "120 S. Seneca Ave., Bartlesville, Oklahoma, United States of America, 74003",
     "latitude": 36.7492436,
     "longitude": -95.9688582,
-    "recentMemberCount": 2
+    "recentMemberCount": 4
   },
   {
     "name": "Rise Weightlifting",
     "address": "1232 Winter Garden Vineland Road #116, Winter Garden, Florida, United States of America, 34787",
     "latitude": 28.5423837,
     "longitude": -81.5975692,
-    "recentMemberCount": 3
+    "recentMemberCount": 2
   },
   {
     "name": "Rizk weightlifting",
@@ -4393,35 +4372,35 @@
     "address": "3595 Cadillac Ave, Unit 103, Costa Mesa, California, United States of America, 92626",
     "latitude": 33.6790726,
     "longitude": -117.9105981,
-    "recentMemberCount": 4
+    "recentMemberCount": 6
   },
   {
     "name": "Southside Barbell Club",
     "address": "8031 Whitebark Terrace, 8031 Whitebark Terrace, Richmond, Virginia, United States of America, 23237",
     "latitude": 36.6878242,
     "longitude": -76.229921,
-    "recentMemberCount": 2
+    "recentMemberCount": 0
   },
   {
     "name": "STONEAGE WEIGHTLIFTING CLUB",
     "address": "E-113 Mini-Dome ETSU, Johnson City, Tennessee, United States of America, 37614",
     "latitude": 36.2905105,
     "longitude": -82.4812728,
-    "recentMemberCount": 4
+    "recentMemberCount": 2
   },
   {
     "name": "Vehement Elite Athletics",
     "address": "3000 Paseo Mercado, Unit #110, Oxnard, California, United States of America, 93036",
     "latitude": 34.2321137,
     "longitude": -119.1726633,
-    "recentMemberCount": 0
+    "recentMemberCount": 1
   },
   {
     "name": "Wellbuilt Strength",
     "address": "1725 Jamieson Ave, B, Alexandria, Virginia, United States of America, 22314",
     "latitude": 38.8032109,
     "longitude": -77.0605211,
-    "recentMemberCount": 1
+    "recentMemberCount": 0
   },
   {
     "name": "Arkitect Fitness",
@@ -4431,18 +4410,32 @@
     "recentMemberCount": 0
   },
   {
-    "name": "CANNON FALLS WEIGHTLIFTING",
-    "address": "820 E. Minnesota St., Cannon Falls, Minnesota, United States of America, 55009",
-    "latitude": 44.5115782,
-    "longitude": -92.8903214,
-    "recentMemberCount": 2
+    "name": "Axle Weightlifting",
+    "address": "301 W 4th St, Tucson,, Arizona, United States of America, 85705",
+    "latitude": 32.230201,
+    "longitude": -110.976496,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Boulder Barbell Club",
+    "address": "4919 North Broadway, Unit 50, Boulder, Colorado, United States of America, 80304",
+    "latitude": 40.0396642,
+    "longitude": -105.2768679,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Common Ground Weightlifting",
+    "address": "2820 SE 8th, Portland, Oregon, United States of America, 97202",
+    "latitude": 45.5024994,
+    "longitude": -122.6576752,
+    "recentMemberCount": 0
   },
   {
     "name": "Centre City Weighlifting",
     "address": "81 Sterling Road, Brockton, Massachusetts, United States of America, 02302",
     "latitude": 42.0832415,
     "longitude": -70.9900991,
-    "recentMemberCount": 0
+    "recentMemberCount": 1
   },
   {
     "name": "CLE Barbell Club",
@@ -4452,25 +4445,18 @@
     "recentMemberCount": 1
   },
   {
-    "name": "DSP Barbell Club",
-    "address": "2927 Beale Ave, Suite 110, Altoona, Pennsylvania, United States of America, 16601",
-    "latitude": 40.4984896,
-    "longitude": -78.4150718,
-    "recentMemberCount": 1
-  },
-  {
     "name": "Gator Weightlifting",
     "address": "22 NE 11 street, Gainesville, Florida, United States of America, 32601",
     "latitude": 29.6617797,
     "longitude": -82.3380731,
-    "recentMemberCount": 4
+    "recentMemberCount": 2
   },
   {
     "name": "MILWAUKEE BARBELL WEIGHTLIFTING CLUB",
     "address": "1539 W St Paul Ave, Milwaukee, Wisconsin, United States of America, 53233",
     "latitude": 43.0346224,
     "longitude": -87.9328033,
-    "recentMemberCount": 3
+    "recentMemberCount": 5
   },
   {
     "name": "Northern Power WLC",
@@ -4484,7 +4470,7 @@
     "address": "8131 Kingston St, Suite 400, Avon, Indiana, United States of America, 46123",
     "latitude": 39.7664711,
     "longitude": -86.3919965,
-    "recentMemberCount": 0
+    "recentMemberCount": 1
   },
   {
     "name": "Optimus Barbell Club",
@@ -4512,21 +4498,21 @@
     "address": "713 N Lindenwood Dr, Olathe, Kansas, United States of America, 66062",
     "latitude": 38.89207,
     "longitude": -94.785633,
-    "recentMemberCount": 0
+    "recentMemberCount": 1
   },
   {
     "name": "Strength Republic",
     "address": "760 Broadway St, El Centro, California, United States of America, 92243",
     "latitude": 32.793963,
     "longitude": -115.5605002,
-    "recentMemberCount": 1
+    "recentMemberCount": 0
   },
   {
     "name": "StrengthFix",
     "address": "5 S Main St, WINCHESTER, Kentucky, United States of America, 40391",
     "latitude": 38.001588,
     "longitude": -84.1728075,
-    "recentMemberCount": 0
+    "recentMemberCount": 1
   },
   {
     "name": "Team Burbank",
@@ -4540,21 +4526,21 @@
     "address": "1722 N. Pace Blvd, Pensacola, Florida, United States of America, 32505",
     "latitude": 30.4218108,
     "longitude": -87.241192,
-    "recentMemberCount": 1
+    "recentMemberCount": 0
   },
   {
     "name": "Team Minnesota",
     "address": "1306 1st Avenue Circle NE, Kasson, Minnesota, United States of America, 55944",
     "latitude": 44.020661,
     "longitude": -92.7428924,
-    "recentMemberCount": 2
+    "recentMemberCount": 0
   },
   {
     "name": "Team Strength Works",
     "address": "8516 Manchester Rd, St. louis, Missouri, United States of America, 63144",
     "latitude": 38.6142445,
     "longitude": -90.3138193,
-    "recentMemberCount": 3
+    "recentMemberCount": 2
   },
   {
     "name": "Team Thick Weightlifting",
@@ -4578,11 +4564,18 @@
     "recentMemberCount": 2
   },
   {
-    "name": "Built By Becker- Crossfit 234",
-    "address": "3741 Fettler Park Dr, Dumfries, Virginia, United States of America, 22025",
-    "latitude": 36.6878242,
-    "longitude": -76.229921,
-    "recentMemberCount": 0
+    "name": "CANNON FALLS WEIGHTLIFTING",
+    "address": "820 E. Minnesota St., Cannon Falls, Minnesota, United States of America, 55009",
+    "latitude": 44.5115782,
+    "longitude": -92.8903214,
+    "recentMemberCount": 1
+  },
+  {
+    "name": "DSP Barbell Club",
+    "address": "2927 Beale Ave, Suite 110, Altoona, Pennsylvania, United States of America, 16601",
+    "latitude": 40.4984896,
+    "longitude": -78.4150718,
+    "recentMemberCount": 2
   },
   {
     "name": "CFC Weightlifting Club",
@@ -4596,13 +4589,6 @@
     "address": "8200 E. Pacific Pl. Unit 110, Denver, CO, Colorado, United States of America, 80231",
     "latitude": 39.6790708,
     "longitude": -104.892601,
-    "recentMemberCount": 1
-  },
-  {
-    "name": "Defined Barbell Club",
-    "address": "3834 N. Broadway, Chicago, Illinois, United States of America, 60613",
-    "latitude": 41.9523379,
-    "longitude": -87.6498092,
     "recentMemberCount": 0
   },
   {
@@ -4610,7 +4596,7 @@
     "address": "430 Woodruff Rd, suite 550, Greenville, South Carolina, United States of America, 29607",
     "latitude": 34.830452,
     "longitude": -82.3465095,
-    "recentMemberCount": 1
+    "recentMemberCount": 0
   },
   {
     "name": "Harpoon Stone & Barbell Club",
@@ -4624,7 +4610,7 @@
     "address": "7501 Caldwell Rd, Harrisburg, North Carolina, United States of America, 28075",
     "latitude": 35.3153566,
     "longitude": -80.6730094,
-    "recentMemberCount": 3
+    "recentMemberCount": 2
   },
   {
     "name": "Kuma Weightlifting",
@@ -4638,35 +4624,35 @@
     "address": "182 Mulberry St, Basement, New York, New York, United States of America, 10012",
     "latitude": 40.7250595,
     "longitude": -73.9980609,
-    "recentMemberCount": 1
+    "recentMemberCount": 0
   },
   {
     "name": "Olympic Weightlifting Club at The Ohio State University",
     "address": "609 Oakland Park Ave, Unit B, Columbus, Ohio, United States of America, 43214",
     "latitude": 40.0487933,
     "longitude": -83.0140544,
-    "recentMemberCount": 0
+    "recentMemberCount": 2
   },
   {
     "name": "PHILADELPHIA BARBELL",
     "address": "2027 E. Willlard St, Philadelphia, Pennsylvania, United States of America, 19134",
     "latitude": 39.9927877,
     "longitude": -75.1108957,
-    "recentMemberCount": 3
+    "recentMemberCount": 4
   },
   {
     "name": "Providence Barbell Club",
     "address": "479 Washington St, Providence, Rhode Island, United States of America, 02903",
     "latitude": 41.8179781,
     "longitude": -71.4253671,
-    "recentMemberCount": 2
+    "recentMemberCount": 4
   },
   {
     "name": "Red Eye Barbell Club",
     "address": "65 South Colony Rd., Wallingford, Connecticut, United States of America, 06492",
     "latitude": 41.4557323,
     "longitude": -72.8250659,
-    "recentMemberCount": 0
+    "recentMemberCount": 1
   },
   {
     "name": "Steel Anchor Weightlifting",
@@ -4687,14 +4673,14 @@
     "address": "1213 York Street, Cincinnati, Ohio, United States of America, 45214",
     "latitude": 39.1177099,
     "longitude": -84.5357842,
-    "recentMemberCount": 0
+    "recentMemberCount": 1
   },
   {
     "name": "TITAN WEIGHTLIFTING ASSN",
     "address": "1991 Merrick Ave, Merrick, New York, United States of America, 11566",
     "latitude": 40.6696581,
     "longitude": -73.5545094,
-    "recentMemberCount": 1
+    "recentMemberCount": 0
   },
   {
     "name": "UW - LA CROSSE WEIGHTLIFTING CLUB",
@@ -4718,39 +4704,25 @@
     "recentMemberCount": 0
   },
   {
-    "name": "Black Flag Barbell",
-    "address": "33750 Lear Industrial Pkwy, Avon, Ohio, United States of America, 44011",
-    "latitude": 41.4722723,
-    "longitude": -81.9927414,
+    "name": "Built By Becker- Crossfit 234",
+    "address": "3741 Fettler Park Dr, Dumfries, Virginia, United States of America, 22025",
+    "latitude": 36.6878242,
+    "longitude": -76.229921,
     "recentMemberCount": 0
   },
   {
-    "name": "Broken Record Barbell",
-    "address": "968 S Jordan Pkwy, South Jordan, Utah, United States of America, 84095",
-    "latitude": 40.5601148,
-    "longitude": -111.9179945,
-    "recentMemberCount": 2
-  },
-  {
-    "name": "Dedicated Strength",
-    "address": "1802 11th St. NW 1B, Washington, District of Columbia, United States of America, 20001",
-    "latitude": 38.9145258,
-    "longitude": -77.0273707,
-    "recentMemberCount": 0
-  },
-  {
-    "name": "Fortius Weightlifting",
-    "address": "598 Vail Valley Dr, Vail, Colorado, United States of America, 81657",
-    "latitude": 39.6382138,
-    "longitude": -106.3673111,
-    "recentMemberCount": 0
+    "name": "Defined Barbell Club",
+    "address": "3834 N. Broadway, Chicago, Illinois, United States of America, 60613",
+    "latitude": 41.9523379,
+    "longitude": -87.6498092,
+    "recentMemberCount": 1
   },
   {
     "name": "FOUNDATION BARBELL",
     "address": "1415 12th Ave, Seattle, Washington, United States of America, 98122",
     "latitude": 47.6134866,
     "longitude": -122.3170376,
-    "recentMemberCount": 3
+    "recentMemberCount": 1
   },
   {
     "name": "Grand Rapids Barbell Club",
@@ -4771,7 +4743,7 @@
     "address": "1001  5th Ave SE, Little Falls, Minnesota, United States of America, 56345",
     "latitude": 45.971645,
     "longitude": -94.3477326,
-    "recentMemberCount": 1
+    "recentMemberCount": 0
   },
   {
     "name": "Ma Weightlifting",
@@ -4785,14 +4757,14 @@
     "address": "1610 W 22nd St, Houston, Texas, United States of America, 77008",
     "latitude": 29.805562,
     "longitude": -95.4276552,
-    "recentMemberCount": 0
+    "recentMemberCount": 1
   },
   {
     "name": "Moran Academy",
     "address": "1099 3rd Ave. Southwest, Carmel, Indiana, United States of America, 46032",
     "latitude": 39.9632713,
     "longitude": -86.1319266,
-    "recentMemberCount": 2
+    "recentMemberCount": 3
   },
   {
     "name": "Muscle + Mindset",
@@ -4820,14 +4792,14 @@
     "address": "38958 bluebell drive, Newark, California, United States of America, 94560",
     "latitude": 37.5228555,
     "longitude": -122.0093474,
-    "recentMemberCount": 1
+    "recentMemberCount": 0
   },
   {
     "name": "OKC BARBELL CLUB",
     "address": "825 NW 85th Street, STE D, Oklahoma City, Oklahoma, United States of America, 73114",
     "latitude": 35.5793584,
     "longitude": -97.530288,
-    "recentMemberCount": 2
+    "recentMemberCount": 0
   },
   {
     "name": "S&C GRADUATE WLC",
@@ -4841,7 +4813,7 @@
     "address": "620 Lakestone Commons Ave, Suite 620, Fuquay-Varina, North Carolina, United States of America, 27526",
     "latitude": 35.5901148,
     "longitude": -78.7840848,
-    "recentMemberCount": 5
+    "recentMemberCount": 0
   },
   {
     "name": "Sweep The Sheds Weightlifting",
@@ -4855,6 +4827,34 @@
     "address": "7521 Pulaski Highway, Baltimore, Maryland, United States of America, 21237",
     "latitude": 39.312755,
     "longitude": -76.5216728,
-    "recentMemberCount": 1
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Black Flag Barbell",
+    "address": "33750 Lear Industrial Pkwy, Avon, Ohio, United States of America, 44011",
+    "latitude": 41.4722723,
+    "longitude": -81.9927414,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Broken Record Barbell",
+    "address": "968 S Jordan Pkwy, South Jordan, Utah, United States of America, 84095",
+    "latitude": 40.5601148,
+    "longitude": -111.9179945,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Dedicated Strength",
+    "address": "1802 11th St. NW 1B, Washington, District of Columbia, United States of America, 20001",
+    "latitude": 38.9145258,
+    "longitude": -77.0273707,
+    "recentMemberCount": 0
+  },
+  {
+    "name": "Fortius Weightlifting",
+    "address": "598 Vail Valley Dr, Vail, Colorado, United States of America, 81657",
+    "latitude": 39.6382138,
+    "longitude": -106.3673111,
+    "recentMemberCount": 0
   }
 ]
