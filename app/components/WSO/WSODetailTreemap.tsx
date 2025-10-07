@@ -358,7 +358,9 @@ export default function WSODetailTreemap({ wsoSlug, className = "", height = 400
         .attr("stroke-opacity", theme === 'dark' ? 0.8 : 1)
 
       // Attach hover handlers with updated colors
-      const cellGroup = d3.select(this.parentNode as any)
+      const element = this as unknown as HTMLElement
+      if (!element?.parentNode) return
+      const cellGroup = d3.select(element.parentNode as any)
       cellGroup
         .on("mouseenter", function() {
           d3.select(this).select(".club-cell-path")

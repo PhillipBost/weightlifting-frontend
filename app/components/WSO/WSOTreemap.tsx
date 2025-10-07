@@ -11,6 +11,7 @@ interface TreemapNode {
   size?: number
   type?: 'wso' | 'club'
   children?: TreemapNode[]
+  [key: string]: any
 }
 
 interface WSOTreemapProps {

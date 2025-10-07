@@ -409,7 +409,9 @@ export default function WSOVoronoiTreemap({ className = "", height = 600, wsoDat
         .attr("stroke-opacity", theme === 'dark' ? 0.8 : 1)
 
       // Re-attach hover handlers with updated colors
-      const cellGroup = d3.select(this.parentNode as any)
+      const element = this as unknown as HTMLElement
+      if (!element?.parentNode) return
+      const cellGroup = d3.select(element.parentNode as any)
       cellGroup
         .on("mouseenter", function() {
           const group = d3.select(this)

@@ -191,7 +191,7 @@ export default function WSOTreemapD3({ className = "", height = 600 }: WSOTreema
         let lines: string[] = []
         let currentLine = ''
 
-        words.forEach((word, i) => {
+        words.forEach((word: string, i: number) => {
           const testLine = currentLine ? `${currentLine} ${word}` : word
           // Rough estimate: 7 pixels per character
           if (testLine.length * 7 > maxWidth && currentLine) {
