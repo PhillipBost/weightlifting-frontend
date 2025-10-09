@@ -367,7 +367,7 @@ export default function WSOVoronoiTreemap({ className = "", height = 600, wsoDat
             const bbox = (nameTextElem.node() as SVGTextElement)?.getBBox()
             if (bbox && bbox.width > 0) {
               // Get SVG dimensions from container
-              const svgWidth = containerRef.current?.clientWidth || width
+              const svgWidth = containerRef.current?.clientWidth || 800
               const svgHeight = height
               
               // Calculate text boundaries
