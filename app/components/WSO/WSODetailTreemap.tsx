@@ -232,37 +232,60 @@ export default function WSODetailTreemap({ wsoSlug, className = "", height = 400
         .attr("pointer-events", "none")
         .style("user-select", "none")
 
-      // Multi-line text wrapping for club names
-      const words = cellData.name.split(/\s+/)
-      const lineHeight = 12
-      const maxWidth = cellWidth - 8
+      // Split on both spaces AND hyphens for better wrapping
+      const words = cellData.name.split(/(\s+|-)/g).filter((w: string) => w.trim().length > 0 || w === '-')
+      
+      // Calculate dynamic font size - larger cells get larger fonts
+      const baseFontSize = Math.min(11, Math.max(6, Math.min(cellWidth / 12, cellHeight / 8)))
+      const lineHeight = baseFontSize * 1.2
+      const maxWidth = cellWidth - 12 // More padding
+      const charWidth = baseFontSize * 0.5 // More conservative estimate
 
       let lines: string[] = []
       let currentLine = ''
 
       words.forEach((word: string) => {
-        const testLine = currentLine ? `${currentLine} ${word}` : word
-        if (testLine.length * 5.5 > maxWidth && currentLine) {
+        // Don't add space before hyphens or if it's whitespace
+        const isWhitespace = /^\s+$/.test(word)
+        const needsSpace = currentLine && !currentLine.endsWith('-') && word !== '-' && !isWhitespace
+        const separator = needsSpace ? ' ' : ''
+        const testLine = currentLine ? `${currentLine}${separator}${word}` : word
+        const estimatedWidth = testLine.length * charWidth
+        
+        if (estimatedWidth > maxWidth && currentLine) {
           lines.push(currentLine)
-          currentLine = word
+          currentLine = word === '-' ? '' : word
         } else {
           currentLine = testLine
         }
       })
       if (currentLine) lines.push(currentLine)
-      lines = lines.slice(0, 3) // Max 3 lines
+      
+      // Limit lines to fit in cell with safety margin
+      const maxLines = Math.floor((cellHeight - 20) / lineHeight)
+      lines = lines.slice(0, Math.max(1, Math.min(3, maxLines)))
+      
+      // Verify each line actually fits, truncate if needed
+      lines = lines.map(line => {
+        const estimatedWidth = line.length * charWidth
+        if (estimatedWidth > maxWidth) {
+          const maxChars = Math.floor(maxWidth / charWidth) - 1
+          return line.substring(0, maxChars) + '…'
+        }
+        return line
+      })
 
       const totalTextHeight = lines.length * lineHeight + 12
       const textStartY = centroid[1] - (totalTextHeight / 2) + lineHeight
 
-      // Club name (multi-line)
+      // Create normal state labels
       lines.forEach((line, i) => {
         textGroup.append("text")
-          .attr("class", "club-label-text")
+          .attr("class", "club-label-text club-label-normal")
           .attr("x", centroid[0])
           .attr("y", textStartY + (i * lineHeight))
           .attr("text-anchor", "middle")
-          .attr("font-size", "10px")
+          .attr("font-size", `${baseFontSize}px`)
           .attr("font-weight", "600")
           .attr("opacity", 0.95)
           .text(line)
@@ -270,13 +293,82 @@ export default function WSODetailTreemap({ wsoSlug, className = "", height = 400
 
       // Active lifter count
       textGroup.append("text")
-        .attr("class", "club-label-count")
+        .attr("class", "club-label-count club-label-normal")
         .attr("x", centroid[0])
         .attr("y", textStartY + (lines.length * lineHeight) + 10)
         .attr("text-anchor", "middle")
-        .attr("font-size", "9px")
+        .attr("font-size", `${baseFontSize - 1}px`)
         .attr("font-weight", "600")
         .attr("opacity", 0.8)
+        .text(cellValue.toLocaleString())
+
+      // Create hover state labels (larger, full name)
+      // Ensure minimum readable hover size, especially for small cells
+      const hoverFontSize = Math.max(12, Math.min(18, baseFontSize * 2.2))
+      const hoverGroup = cellGroup.append("g")
+        .attr("class", "club-labels-hover")
+        .attr("pointer-events", "none")
+        .style("user-select", "none")
+        .style("opacity", "0")
+
+      const nameTextElem = hoverGroup.append("text")
+        .attr("class", "club-label-text-hover")
+        .attr("x", centroid[0])
+        .attr("y", centroid[1] - 5)
+        .attr("text-anchor", "middle")
+        .attr("font-size", `${hoverFontSize}px`)
+        .attr("font-weight", "700")
+        .text(cellData.name)
+
+      // Add backdrop rectangle with viewport boundary detection
+      try {
+        const bbox = (nameTextElem.node() as SVGTextElement)?.getBBox()
+        if (bbox && bbox.width > 0) {
+          // Get SVG dimensions from container
+          const svgWidth = containerRef.current?.clientWidth || 0
+          const svgHeight = height
+          
+          // Calculate text boundaries
+          let textX = centroid[0]
+          let textAnchor = "middle"
+          const textLeft = bbox.x - 4
+          const textRight = bbox.x + bbox.width + 4
+          
+          // Adjust text position if it goes out of bounds
+          if (textLeft < 0) {
+            // Text extends past left edge - anchor to left
+            textX = bounds.minX + 4
+            textAnchor = "start"
+            nameTextElem.attr("x", textX).attr("text-anchor", textAnchor)
+          } else if (textRight > svgWidth) {
+            // Text extends past right edge - anchor to right
+            textX = bounds.maxX - 4
+            textAnchor = "end"
+            nameTextElem.attr("x", textX).attr("text-anchor", textAnchor)
+          }
+          
+          // Recalculate bbox after potential position change
+          const finalBbox = (nameTextElem.node() as SVGTextElement)?.getBBox()
+          if (finalBbox) {
+            hoverGroup.insert("rect", "text")
+              .attr("x", finalBbox.x - 4)
+              .attr("y", finalBbox.y - 2)
+              .attr("width", finalBbox.width + 8)
+              .attr("height", finalBbox.height + 4)
+              .attr("rx", 3)
+          }
+        }
+      } catch (e) {
+        // getBBox can fail in some browsers, silently ignore
+      }
+
+      hoverGroup.append("text")
+        .attr("class", "club-label-count-hover")
+        .attr("x", centroid[0])
+        .attr("y", centroid[1] + hoverFontSize - 2)
+        .attr("text-anchor", "middle")
+        .attr("font-size", `${hoverFontSize - 2}px`)
+        .attr("font-weight", "700")
         .text(cellValue.toLocaleString())
     }
 
@@ -363,16 +455,34 @@ export default function WSODetailTreemap({ wsoSlug, className = "", height = 400
       const cellGroup = d3.select(element.parentNode as any)
       cellGroup
         .on("mouseenter", function() {
-          d3.select(this).select(".club-cell-path")
+          const group = d3.select(this)
+          
+          // Raise this cell above others
+          this.parentNode?.appendChild(this)
+
+          group.select(".club-cell-path")
             .transition()
             .duration(200)
             .attr("fill", brightColor)
             .attr("fill-opacity", 0.9)
             .attr("stroke-width", theme === 'dark' ? 3 : 4)
             .attr("stroke", theme === 'dark' ? '#F3F4F6' : '#000000')
+
+          // Hide normal labels, show hover labels
+          group.select(".club-labels")
+            .transition()
+            .duration(200)
+            .style("opacity", "0")
+
+          group.select(".club-labels-hover")
+            .transition()
+            .duration(200)
+            .style("opacity", "1")
         })
         .on("mouseleave", function() {
-          d3.select(this).select(".club-cell-path")
+          const group = d3.select(this)
+
+          group.select(".club-cell-path")
             .transition()
             .duration(200)
             .attr("fill", cellColor)
@@ -380,12 +490,30 @@ export default function WSODetailTreemap({ wsoSlug, className = "", height = 400
             .attr("stroke-width", originalStrokeWidth)
             .attr("stroke", originalStroke)
             .attr("stroke-opacity", theme === 'dark' ? 0.8 : 1)
+
+          // Show normal labels, hide hover labels
+          group.select(".club-labels")
+            .transition()
+            .duration(200)
+            .style("opacity", "1")
+
+          group.select(".club-labels-hover")
+            .transition()
+            .duration(200)
+            .style("opacity", "0")
         })
     })
 
     // Update label colors
-    svg.selectAll(".club-label-text, .club-label-count")
+    svg.selectAll(".club-label-text, .club-label-count, .club-label-normal")
       .attr("fill", theme === 'dark' ? '#ffffff' : '#000000')
+
+    svg.selectAll(".club-label-text-hover, .club-label-count-hover")
+      .attr("fill", theme === 'dark' ? '#ffffff' : '#000000')
+
+    // Update hover group backdrops
+    svg.selectAll(".club-labels-hover rect")
+      .attr("fill", theme === 'dark' ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.8)')
 
   }, [theme, computedHierarchy, structureReady, wsoId])
 

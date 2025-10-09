@@ -273,35 +273,60 @@ export default function WSOVoronoiTreemap({ className = "", height = 600, wsoDat
             .attr("pointer-events", "none")
             .style("user-select", "none")
 
-          const words = cellData.name.split(/\s+/)
-          const lineHeight = 14
-          const maxWidth = cellWidth - 16
+          // Split on both spaces AND hyphens for better wrapping
+          const words = cellData.name.split(/(\s+|-)/g).filter((w: string) => w.trim().length > 0 || w === '-')
+          
+          // Calculate dynamic font size - larger cells get larger fonts
+          const baseFontSize = Math.min(12, Math.max(6, Math.min(cellWidth / 10, cellHeight / 6)))
+          const lineHeight = baseFontSize * 1.2
+          const maxWidth = cellWidth - 16 // More padding
+          const charWidth = baseFontSize * 0.55 // More conservative estimate
 
           let lines: string[] = []
           let currentLine = ''
 
           words.forEach((word: string) => {
-            const testLine = currentLine ? `${currentLine} ${word}` : word
-            if (testLine.length * 6.5 > maxWidth && currentLine) {
+            // Don't add space before hyphens or if it's whitespace
+            const isWhitespace = /^\s+$/.test(word)
+            const needsSpace = currentLine && !currentLine.endsWith('-') && word !== '-' && !isWhitespace
+            const separator = needsSpace ? ' ' : ''
+            const testLine = currentLine ? `${currentLine}${separator}${word}` : word
+            const estimatedWidth = testLine.length * charWidth
+            
+            if (estimatedWidth > maxWidth && currentLine) {
               lines.push(currentLine)
-              currentLine = word
+              currentLine = word === '-' ? '' : word
             } else {
               currentLine = testLine
             }
           })
           if (currentLine) lines.push(currentLine)
-          lines = lines.slice(0, 3)
+          
+          // Limit lines to fit in cell with safety margin
+          const maxLines = Math.floor((cellHeight - 24) / lineHeight)
+          lines = lines.slice(0, Math.max(1, Math.min(3, maxLines)))
+          
+          // Verify each line actually fits, truncate if needed
+          lines = lines.map(line => {
+            const estimatedWidth = line.length * charWidth
+            if (estimatedWidth > maxWidth) {
+              const maxChars = Math.floor(maxWidth / charWidth) - 1
+              return line.substring(0, maxChars) + '…'
+            }
+            return line
+          })
 
           const totalTextHeight = lines.length * lineHeight + 16
           const textStartY = centroid[1] - (totalTextHeight / 2) + lineHeight
 
+          // Create normal state labels
           lines.forEach((line, i) => {
             textGroup.append("text")
-              .attr("class", "wso-label-text")
+              .attr("class", "wso-label-text wso-label-normal")
               .attr("x", centroid[0])
               .attr("y", textStartY + (i * lineHeight))
               .attr("text-anchor", "middle")
-              .attr("font-size", "11px")
+              .attr("font-size", `${baseFontSize}px`)
               .attr("font-weight", "700")
               .attr("opacity", 0.95)
               .text(line)
@@ -309,15 +334,84 @@ export default function WSOVoronoiTreemap({ className = "", height = 600, wsoDat
 
           if (cellHeight > totalTextHeight + 10) {
             textGroup.append("text")
-              .attr("class", "wso-label-count")
+              .attr("class", "wso-label-count wso-label-normal")
               .attr("x", centroid[0])
               .attr("y", textStartY + (lines.length * lineHeight) + 12)
               .attr("text-anchor", "middle")
-              .attr("font-size", "10px")
+              .attr("font-size", `${baseFontSize - 1}px`)
               .attr("font-weight", "600")
               .attr("opacity", 0.8)
               .text(cellValue.toLocaleString())
           }
+
+          // Create hover state labels (larger, full name)
+          // Ensure minimum readable hover size, especially for small cells
+          const hoverFontSize = Math.max(14, Math.min(20, baseFontSize * 2.2))
+          const hoverGroup = cellGroup.append("g")
+            .attr("class", "wso-labels-hover")
+            .attr("pointer-events", "none")
+            .style("user-select", "none")
+            .style("opacity", "0")
+
+          const nameTextElem = hoverGroup.append("text")
+            .attr("class", "wso-label-text-hover")
+            .attr("x", centroid[0])
+            .attr("y", centroid[1] - 6)
+            .attr("text-anchor", "middle")
+            .attr("font-size", `${hoverFontSize}px`)
+            .attr("font-weight", "800")
+            .text(cellData.name)
+
+          // Add backdrop rectangle with viewport boundary detection
+          try {
+            const bbox = (nameTextElem.node() as SVGTextElement)?.getBBox()
+            if (bbox && bbox.width > 0) {
+              // Get SVG dimensions from container
+              const svgWidth = containerRef.current?.clientWidth || width
+              const svgHeight = height
+              
+              // Calculate text boundaries
+              let textX = centroid[0]
+              let textAnchor = "middle"
+              const textLeft = bbox.x - 4
+              const textRight = bbox.x + bbox.width + 4
+              
+              // Adjust text position if it goes out of bounds
+              if (textLeft < 0) {
+                // Text extends past left edge - anchor to left
+                textX = bounds.minX + 4
+                textAnchor = "start"
+                nameTextElem.attr("x", textX).attr("text-anchor", textAnchor)
+              } else if (textRight > svgWidth) {
+                // Text extends past right edge - anchor to right
+                textX = bounds.maxX - 4
+                textAnchor = "end"
+                nameTextElem.attr("x", textX).attr("text-anchor", textAnchor)
+              }
+              
+              // Recalculate bbox after potential position change
+              const finalBbox = (nameTextElem.node() as SVGTextElement)?.getBBox()
+              if (finalBbox) {
+                hoverGroup.insert("rect", "text")
+                  .attr("x", finalBbox.x - 4)
+                  .attr("y", finalBbox.y - 2)
+                  .attr("width", finalBbox.width + 8)
+                  .attr("height", finalBbox.height + 4)
+                  .attr("rx", 3)
+              }
+            }
+          } catch (e) {
+            // getBBox can fail in some browsers, silently ignore
+          }
+
+          hoverGroup.append("text")
+            .attr("class", "wso-label-count-hover")
+            .attr("x", centroid[0])
+            .attr("y", centroid[1] + hoverFontSize)
+            .attr("text-anchor", "middle")
+            .attr("font-size", `${hoverFontSize - 2}px`)
+            .attr("font-weight", "700")
+            .text(cellValue.toLocaleString())
         }
       } else if (isClub) {
         // Draw club borders only (colors will be set by theme effect)
@@ -417,6 +511,9 @@ export default function WSOVoronoiTreemap({ className = "", height = 600, wsoDat
           const group = d3.select(this)
           const wsoIdAttr = group.attr("data-wso-id")
 
+          // Raise this cell above others
+          this.parentNode?.appendChild(this)
+
           group.select(".wso-cell-path")
             .transition()
             .duration(200)
@@ -424,6 +521,17 @@ export default function WSOVoronoiTreemap({ className = "", height = 600, wsoDat
             .attr("fill-opacity", 0.9)
             .attr("stroke-width", theme === 'dark' ? 3 : 4)
             .attr("stroke", theme === 'dark' ? '#F3F4F6' : '#000000')
+
+          // Hide normal labels, show hover labels
+          group.select(".wso-labels")
+            .transition()
+            .duration(200)
+            .style("opacity", "0")
+
+          group.select(".wso-labels-hover")
+            .transition()
+            .duration(200)
+            .style("opacity", "1")
 
           svg.selectAll(`.club-border[data-parent-wso="${wsoIdAttr}"]`)
             .transition()
@@ -443,6 +551,17 @@ export default function WSOVoronoiTreemap({ className = "", height = 600, wsoDat
             .attr("stroke", originalStroke)
             .attr("stroke-opacity", theme === 'dark' ? 0.8 : 1)
 
+          // Show normal labels, hide hover labels
+          group.select(".wso-labels")
+            .transition()
+            .duration(200)
+            .style("opacity", "1")
+
+          group.select(".wso-labels-hover")
+            .transition()
+            .duration(200)
+            .style("opacity", "0")
+
           svg.selectAll(`.club-border[data-parent-wso="${wsoIdAttr}"]`)
             .transition()
             .duration(200)
@@ -457,8 +576,15 @@ export default function WSOVoronoiTreemap({ className = "", height = 600, wsoDat
       .attr("stroke-opacity", theme === 'dark' ? 0.4 : 0.5)
 
     // Update label colors
-    svg.selectAll(".wso-label-text, .wso-label-count")
+    svg.selectAll(".wso-label-text, .wso-label-count, .wso-label-normal")
       .attr("fill", theme === 'dark' ? '#ffffff' : '#000000')
+
+    svg.selectAll(".wso-label-text-hover, .wso-label-count-hover")
+      .attr("fill", theme === 'dark' ? '#ffffff' : '#000000')
+
+    // Update hover group backdrops
+    svg.selectAll(".wso-labels-hover rect")
+      .attr("fill", theme === 'dark' ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.8)')
 
   }, [theme, computedHierarchy, structureReady])
 
