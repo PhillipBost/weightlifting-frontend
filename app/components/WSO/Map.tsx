@@ -48,6 +48,7 @@ function StateBordersLayer({ theme }: { theme: 'light' | 'dark' }) {
 
   return (
     <GeoJSON
+      key={`state-borders-${theme}`}
       data={stateData}
       style={stateStyle}
     />
@@ -179,24 +180,34 @@ export default function Map({
 
     layer.on({
       mouseover: function(e: any) {
-        const layer = e.target
-        const currentColor = layer.options.fillColor
+        const hoveredLayer = e.target
+        const currentColor = hoveredLayer.options.fillColor
 
-        layer.setStyle({
-          weight: theme === 'dark' ? 3 : 4, // Slightly thinner hover border in dark mode
-          color: theme === 'dark' ? '#F3F4F6' : '#000000', // Softer white in dark mode
+        // Highlight the hovered WSO
+        hoveredLayer.setStyle({
+          weight: theme === 'dark' ? 3 : 4,
+          color: theme === 'dark' ? '#F3F4F6' : '#000000',
           fillOpacity: 0.9,
-          // Brighten the fill color on hover
           fillColor: adjustBrightness(currentColor, theme === 'dark' ? 15 : -10)
         })
-        layer.bringToFront()
+        hoveredLayer.bringToFront()
       },
       mouseout: function(e: any) {
-        const layer = e.target
+        const hoveredLayer = e.target
         const wsoName = feature.properties?.wso_name
         const wso = wsoData?.find(w => w.name === wsoName)
-        if (wso) {
-          layer.setStyle(getWSOStyle(wso.wso_id))
+        
+        // Restore all WSO polygons to default opacity
+        if (hoveredLayer._map) {
+          hoveredLayer._map.eachLayer((otherLayer: any) => {
+            if (otherLayer.feature) {
+              const otherWsoName = otherLayer.feature.properties?.wso_name
+              const otherWso = wsoData?.find(w => w.name === otherWsoName)
+              if (otherWso) {
+                otherLayer.setStyle(getWSOStyle(otherWso.wso_id))
+              }
+            }
+          })
         }
       }
     })
@@ -286,7 +297,7 @@ export default function Map({
             <GeoJSON
               key={`${wso.wso_id}-${theme}`} // Force re-render on theme change
               data={wso.territory_geojson}
-              style={() => getWSOStyle(wso.wso_id)}
+              style={getWSOStyle(wso.wso_id)}
               onEachFeature={onEachFeature}
             />
           )

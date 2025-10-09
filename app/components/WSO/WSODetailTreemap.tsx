@@ -362,7 +362,7 @@ export default function WSODetailTreemap({ wsoSlug, className = "", height = 400
         // getBBox can fail in some browsers, silently ignore
       }
 
-      hoverGroup.append("text")
+      const countTextElem = hoverGroup.append("text")
         .attr("class", "club-label-count-hover")
         .attr("x", centroid[0])
         .attr("y", centroid[1] + hoverFontSize - 2)
@@ -370,6 +370,21 @@ export default function WSODetailTreemap({ wsoSlug, className = "", height = 400
         .attr("font-size", `${hoverFontSize - 2}px`)
         .attr("font-weight", "700")
         .text(cellValue.toLocaleString())
+
+      // Add backdrop rectangle for count text
+      try {
+        const countBbox = (countTextElem.node() as SVGTextElement)?.getBBox()
+        if (countBbox && countBbox.width > 0) {
+          hoverGroup.insert("rect", ".club-label-count-hover")
+            .attr("x", countBbox.x - 4)
+            .attr("y", countBbox.y - 2)
+            .attr("width", countBbox.width + 8)
+            .attr("height", countBbox.height + 4)
+            .attr("rx", 3)
+        }
+      } catch (e) {
+        // getBBox can fail in some browsers, silently ignore
+      }
     }
 
     // Draw all club cells

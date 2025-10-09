@@ -404,7 +404,7 @@ export default function WSOVoronoiTreemap({ className = "", height = 600, wsoDat
             // getBBox can fail in some browsers, silently ignore
           }
 
-          hoverGroup.append("text")
+          const countTextElem = hoverGroup.append("text")
             .attr("class", "wso-label-count-hover")
             .attr("x", centroid[0])
             .attr("y", centroid[1] + hoverFontSize)
@@ -412,6 +412,21 @@ export default function WSOVoronoiTreemap({ className = "", height = 600, wsoDat
             .attr("font-size", `${hoverFontSize - 2}px`)
             .attr("font-weight", "700")
             .text(cellValue.toLocaleString())
+
+          // Add backdrop rectangle for count text
+          try {
+            const countBbox = (countTextElem.node() as SVGTextElement)?.getBBox()
+            if (countBbox && countBbox.width > 0) {
+              hoverGroup.insert("rect", ".wso-label-count-hover")
+                .attr("x", countBbox.x - 4)
+                .attr("y", countBbox.y - 2)
+                .attr("width", countBbox.width + 8)
+                .attr("height", countBbox.height + 4)
+                .attr("rx", 3)
+            }
+          } catch (e) {
+            // getBBox can fail in some browsers, silently ignore
+          }
         }
       } else if (isClub) {
         // Draw club borders only (colors will be set by theme effect)
