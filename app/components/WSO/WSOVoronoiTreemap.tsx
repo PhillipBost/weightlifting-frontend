@@ -267,7 +267,13 @@ export default function WSOVoronoiTreemap({ className = "", height = 600, wsoDat
         const cellWidth = bounds.maxX - bounds.minX
         const cellHeight = bounds.maxY - bounds.minY
 
-        if (cellWidth > 30 && cellHeight > 20) {
+        // Debug logging for Alabama
+        if (cellData.name === 'Alabama') {
+          console.log('Alabama cell dimensions:', { cellWidth, cellHeight, bounds, cellValue })
+        }
+
+        // Always show labels, but adjust font size based on cell size
+        if (cellWidth > 20 && cellHeight > 15) {
           const textGroup = cellGroup.append("g")
             .attr("class", "wso-labels")
             .attr("pointer-events", "none")
