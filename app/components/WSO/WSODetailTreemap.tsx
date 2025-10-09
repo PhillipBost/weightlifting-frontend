@@ -330,11 +330,12 @@ export default function WSODetailTreemap({ wsoSlug, className = "", height = 400
           
           // Calculate text boundaries
           let textX = centroid[0]
+          let textY = centroid[1] - 5
           let textAnchor = "middle"
           const textLeft = bbox.x - 4
           const textRight = bbox.x + bbox.width + 4
           
-          // Adjust text position if it goes out of bounds
+          // Adjust horizontal position if it goes out of bounds
           if (textLeft < 0) {
             // Text extends past left edge - anchor to left
             textX = bounds.minX + 4
@@ -347,40 +348,102 @@ export default function WSODetailTreemap({ wsoSlug, className = "", height = 400
             nameTextElem.attr("x", textX).attr("text-anchor", textAnchor)
           }
           
-          // Recalculate bbox after potential position change
-          const finalBbox = (nameTextElem.node() as SVGTextElement)?.getBBox()
+          // Recalculate bbox after potential horizontal position change
+          let finalBbox = (nameTextElem.node() as SVGTextElement)?.getBBox()
+          
           if (finalBbox) {
-            hoverGroup.insert("rect", "text")
-              .attr("x", finalBbox.x - 4)
-              .attr("y", finalBbox.y - 2)
-              .attr("width", finalBbox.width + 8)
-              .attr("height", finalBbox.height + 4)
-              .attr("rx", 3)
+            const textTop = finalBbox.y - 2
+            const textBottom = finalBbox.y + finalBbox.height + 2
+            
+            // Adjust vertical position if it goes out of bounds
+            if (textTop < 0) {
+              // Text extends past top edge - shift down
+              textY = textY - textTop + 4
+              nameTextElem.attr("y", textY)
+              finalBbox = (nameTextElem.node() as SVGTextElement)?.getBBox()
+            } else if (textBottom > svgHeight) {
+              // Text extends past bottom edge - shift up
+              textY = textY - (textBottom - svgHeight) - 4
+              nameTextElem.attr("y", textY)
+              finalBbox = (nameTextElem.node() as SVGTextElement)?.getBBox()
+            }
+            
+            // Add backdrop rectangle with final position
+            if (finalBbox) {
+              hoverGroup.insert("rect", "text")
+                .attr("x", finalBbox.x - 4)
+                .attr("y", finalBbox.y - 2)
+                .attr("width", finalBbox.width + 8)
+                .attr("height", finalBbox.height + 4)
+                .attr("rx", 3)
+            }
           }
         }
       } catch (e) {
         // getBBox can fail in some browsers, silently ignore
       }
 
+      // Position count text - will be adjusted if name text was repositioned
+      let countY = centroid[1] + hoverFontSize - 2
       const countTextElem = hoverGroup.append("text")
         .attr("class", "club-label-count-hover")
         .attr("x", centroid[0])
-        .attr("y", centroid[1] + hoverFontSize - 2)
+        .attr("y", countY)
         .attr("text-anchor", "middle")
         .attr("font-size", `${hoverFontSize - 2}px`)
         .attr("font-weight", "700")
         .text(cellValue.toLocaleString())
 
-      // Add backdrop rectangle for count text
+      // Add backdrop rectangle for count text with boundary detection
       try {
+        // Get the final Y position of the name text
+        const nameBbox = (nameTextElem.node() as SVGTextElement)?.getBBox()
+        if (nameBbox) {
+          // Position count text relative to the (possibly adjusted) name text with proper spacing
+          countY = nameBbox.y + nameBbox.height + (hoverFontSize - 2) + 4
+          countTextElem.attr("y", countY)
+        }
+        
         const countBbox = (countTextElem.node() as SVGTextElement)?.getBBox()
-        if (countBbox && countBbox.width > 0) {
-          hoverGroup.insert("rect", ".club-label-count-hover")
-            .attr("x", countBbox.x - 4)
-            .attr("y", countBbox.y - 2)
-            .attr("width", countBbox.width + 8)
-            .attr("height", countBbox.height + 4)
-            .attr("rx", 3)
+        if (countBbox && countBbox.width > 0 && nameBbox) {
+          // Check if the combined text group (name + count) extends past bottom
+          const combinedBottom = countBbox.y + countBbox.height + 2
+          if (combinedBottom > height) {
+            // Need to shift both texts up together to keep spacing consistent
+            const adjustment = combinedBottom - height + 4
+            
+            // Shift name text up
+            const currentNameY = parseFloat(nameTextElem.attr("y"))
+            nameTextElem.attr("y", currentNameY - adjustment)
+            
+            // Shift count text up by the same amount
+            countTextElem.attr("y", countY - adjustment)
+          }
+          
+          // Get final bboxes after potential adjustments
+          const finalNameBbox = (nameTextElem.node() as SVGTextElement)?.getBBox()
+          const finalCountBbox = (countTextElem.node() as SVGTextElement)?.getBBox()
+          
+          // Update name backdrop if it exists
+          if (finalNameBbox) {
+            hoverGroup.select("rect").remove()
+            hoverGroup.insert("rect", "text")
+              .attr("x", finalNameBbox.x - 4)
+              .attr("y", finalNameBbox.y - 2)
+              .attr("width", finalNameBbox.width + 8)
+              .attr("height", finalNameBbox.height + 4)
+              .attr("rx", 3)
+          }
+          
+          // Add count backdrop
+          if (finalCountBbox) {
+            hoverGroup.insert("rect", ".club-label-count-hover")
+              .attr("x", finalCountBbox.x - 4)
+              .attr("y", finalCountBbox.y - 2)
+              .attr("width", finalCountBbox.width + 8)
+              .attr("height", finalCountBbox.height + 4)
+              .attr("rx", 3)
+          }
         }
       } catch (e) {
         // getBBox can fail in some browsers, silently ignore
