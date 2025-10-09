@@ -267,7 +267,7 @@ export default function WSOVoronoiTreemap({ className = "", height = 600, wsoDat
         const cellWidth = bounds.maxX - bounds.minX
         const cellHeight = bounds.maxY - bounds.minY
 
-        if (cellWidth > 40 && cellHeight > 30) {
+        if (cellWidth > 30 && cellHeight > 20) {
           const textGroup = cellGroup.append("g")
             .attr("class", "wso-labels")
             .attr("pointer-events", "none")
@@ -277,7 +277,7 @@ export default function WSOVoronoiTreemap({ className = "", height = 600, wsoDat
           const words = cellData.name.split(/(\s+|-)/g).filter((w: string) => w.trim().length > 0 || w === '-')
           
           // Calculate dynamic font size - larger cells get larger fonts
-          const baseFontSize = Math.min(12, Math.max(6, Math.min(cellWidth / 10, cellHeight / 6)))
+          const baseFontSize = Math.min(12, Math.max(8, Math.min(cellWidth / 10, cellHeight / 6)))
           const lineHeight = baseFontSize * 1.2
           const maxWidth = cellWidth - 16 // More padding
           const charWidth = baseFontSize * 0.55 // More conservative estimate
@@ -346,7 +346,7 @@ export default function WSOVoronoiTreemap({ className = "", height = 600, wsoDat
 
           // Create hover state labels (larger, full name)
           // Ensure minimum readable hover size, especially for small cells
-          const hoverFontSize = Math.max(14, Math.min(20, baseFontSize * 2.2))
+          const hoverFontSize = Math.max(12, Math.min(20, baseFontSize * 2.2))
           const hoverGroup = cellGroup.append("g")
             .attr("class", "wso-labels-hover")
             .attr("pointer-events", "none")
