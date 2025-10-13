@@ -713,8 +713,8 @@ export default function ClubQuadrantChart({
   const maxActivity = Math.max(...clubs.map(c => c.activity_factor))
   const minActivity = Math.min(...clubs.map(c => c.activity_factor))
 
-  const xDomain = [0, maxLifters + Math.ceil(maxLifters * 0.1)]
-  const yDomain = [Math.max(0, minActivity - 0.5), maxActivity + 0.5]
+  const xDomain: [number, number] = [0, maxLifters + Math.ceil(maxLifters * 0.1)]
+  const yDomain: [number, number] = [Math.max(0, minActivity - 0.5), maxActivity + 0.5]
   
   // Update domain refs for zoom callbacks
   xDomainRef.current = xDomain
