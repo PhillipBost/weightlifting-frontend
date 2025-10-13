@@ -1,17 +1,18 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, use } from "react"
 import { useRouter } from "next/navigation"
 
 // Redirect route for backward compatibility
 // Redirects /barbell-club/[slug] to /club/[slug]
-export default function BarbelClubRedirect({ params }: { params: { slug: string } }) {
+export default function BarbelClubRedirect({ params }: { params: Promise<{ slug: string }> }) {
   const router = useRouter()
+  const { slug } = use(params)
 
   useEffect(() => {
     // Redirect to the new club route
-    router.replace(`/club/${params.slug}`)
-  }, [params.slug, router])
+    router.replace(`/club/${slug}`)
+  }, [slug, router])
 
   // Show a minimal loading state during redirect
   return (
