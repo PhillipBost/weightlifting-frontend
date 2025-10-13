@@ -45,7 +45,7 @@ function CustomXAxisLabel({ viewBox, theme }: any) {
   const [position, setPosition] = React.useState({ top: 0, left: 0 })
   const [mousePos, setMousePos] = React.useState({ x: 0, y: 0 })
   const iconRef = React.useRef<SVGCircleElement>(null)
-  const hideTimeoutRef = React.useRef<NodeJS.Timeout>()
+  const hideTimeoutRef = React.useRef<NodeJS.Timeout | null>(null)
 
   React.useEffect(() => {
     setMounted(true)
@@ -185,7 +185,7 @@ function CustomYAxisLabel({ viewBox, theme }: any) {
   const [position, setPosition] = React.useState({ top: 0, left: 0 })
   const [mousePos, setMousePos] = React.useState({ x: 0, y: 0 })
   const iconRef = React.useRef<SVGCircleElement>(null)
-  const hideTimeoutRef = React.useRef<NodeJS.Timeout>()
+  const hideTimeoutRef = React.useRef<NodeJS.Timeout | null>(null)
 
   React.useEffect(() => {
     setMounted(true)
