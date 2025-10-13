@@ -19,64 +19,61 @@ interface ClubQuadrantData {
   latitude: number
   longitude: number
   wso_geography: string
-  quadrant: 'powerhouse' | 'intensive' | 'potential' | 'struggling'
+  quadrant: 'powerhouse' | 'intensive' | 'sleeping-giant' | 'developing'
   quadrant_label: string
 }
 
 interface QuadrantStats {
   powerhouse: { count: number; avgLifters: number; avgActivity: number }
   intensive: { count: number; avgLifters: number; avgActivity: number }
-  potential: { count: number; avgLifters: number; avgActivity: number }
-  struggling: { count: number; avgLifters: number; avgActivity: number }
+  'sleeping-giant': { count: number; avgLifters: number; avgActivity: number }
+  developing: { count: number; avgLifters: number; avgActivity: number }
 }
 
 export async function GET() {
   try {
-    // Get club data with activity metrics from the clubs table
+    console.log('=== CLUB QUADRANT DATA API CALLED ===')
+
+    // Query clubs table with pre-calculated activity metrics
     const { data: clubsData, error: clubsError } = await supabaseAdmin
       .from('clubs')
-      .select(`
-        club_name,
-        active_lifters_count,
-        activity_factor,
-        total_participations,
-        recent_meets_count,
-        address,
-        latitude,
-        longitude,
-        wso_geography,
-        geocode_display_name
-      `)
-      .not('active_lifters_count', 'is', null)
-      .not('activity_factor', 'is', null)
-      .gt('active_lifters_count', 0)
+      .select('club_name, address, latitude, longitude, geocode_display_name, wso_geography, active_lifters_count, activity_factor, total_participations, recent_meets_count')
       .not('latitude', 'is', null)
       .not('longitude', 'is', null)
+      .gt('active_lifters_count', 0) // Only competition clubs
 
     if (clubsError) {
       console.error('Error fetching clubs:', clubsError)
-      return NextResponse.json({ error: clubsError.message }, { status: 500 })
+      throw new Error(`Database error: ${clubsError.message}`)
     }
 
-    if (!clubsData || clubsData.length === 0) {
+    console.log('Competition clubs fetched from database:', clubsData?.length || 0)
+
+    // Use the data directly from the clubs table
+    const activeClubsData = clubsData || []
+
+    if (activeClubsData.length === 0) {
       return NextResponse.json({
         clubs: [],
         stats: {
           powerhouse: { count: 0, avgLifters: 0, avgActivity: 0 },
           intensive: { count: 0, avgLifters: 0, avgActivity: 0 },
-          potential: { count: 0, avgLifters: 0, avgActivity: 0 },
-          struggling: { count: 0, avgLifters: 0, avgActivity: 0 }
+          'sleeping-giant': { count: 0, avgLifters: 0, avgActivity: 0 },
+          developing: { count: 0, avgLifters: 0, avgActivity: 0 }
         },
-        boundaries: { liftersMedian: 0, activityMedian: 0 }
+        boundaries: { liftersMedian: 0, activityMedian: 0 },
+        totalClubs: 0
       })
     }
 
-    // Calculate quadrant boundaries using medians
-    const liftersCounts = clubsData.map(club => club.active_lifters_count).sort((a, b) => a - b)
-    const activityFactors = clubsData.map(club => club.activity_factor).sort((a, b) => a - b)
+    // Hard-coded quadrant thresholds
+    const LIFTERS_THRESHOLD = 20  // 20+ = high lifters, 1-19 = low lifters
+    const ACTIVITY_THRESHOLD_POWERHOUSE = 2.0  // 2.0+ = powerhouse
+    const ACTIVITY_THRESHOLD_INTENSIVE = 1.6  // 1.6+ = intensive
 
-    const liftersMedian = liftersCounts[Math.floor(liftersCounts.length / 2)]
-    const activityMedian = activityFactors[Math.floor(activityFactors.length / 2)]
+    // Fixed boundaries for reference lines on chart
+    const liftersThreshold = LIFTERS_THRESHOLD
+    const activityThreshold = ACTIVITY_THRESHOLD_POWERHOUSE
 
     // Helper function to parse location from geocode display name or address
     function parseLocation(club: any): { city: string; state: string } {
@@ -97,34 +94,41 @@ export async function GET() {
       return { city: '', state: '' }
     }
 
-    // Categorize clubs into quadrants and enhance data
-    const enhancedClubs: ClubQuadrantData[] = clubsData.map(club => {
+    // Categorize competition clubs into quadrants and enhance data
+    const enhancedClubs: ClubQuadrantData[] = activeClubsData.map(club => {
       const { city, state } = parseLocation(club)
+
+      // Use pre-calculated activity factor from database
+      const activityFactor = club.activity_factor || 0
 
       let quadrant: ClubQuadrantData['quadrant']
       let quadrant_label: string
 
-      const highLifters = club.active_lifters_count >= liftersMedian
-      const highActivity = club.activity_factor >= activityMedian
+      // Hard-coded quadrant assignment based on fixed thresholds
+      // Powerhouse: 20+ lifters AND 2.0+ activity
+      // Intensive: 1-19 lifters AND 1.6+ activity
+      // Sleeping Giant: 20+ lifters AND ≤1.99 activity
+      // Developing: 1-19 lifters AND ≤1.59 activity
 
-      if (highLifters && highActivity) {
+      if (club.active_lifters_count >= 20 && activityFactor >= 2.0) {
         quadrant = 'powerhouse'
         quadrant_label = 'Powerhouse'
-      } else if (!highLifters && highActivity) {
+      } else if (club.active_lifters_count <= 19 && activityFactor >= 1.6) {
         quadrant = 'intensive'
         quadrant_label = 'Intensive'
-      } else if (highLifters && !highActivity) {
-        quadrant = 'potential'
-        quadrant_label = 'Potential'
+      } else if (club.active_lifters_count >= 20 && activityFactor <= 1.99) {
+        quadrant = 'sleeping-giant'
+        quadrant_label = 'Sleeping Giant'
       } else {
-        quadrant = 'struggling'
-        quadrant_label = 'Struggling'
+        // Developing: 1-19 lifters AND ≤1.59 activity
+        quadrant = 'developing'
+        quadrant_label = 'Developing'
       }
 
       return {
         club_name: club.club_name,
         active_lifters_count: club.active_lifters_count,
-        activity_factor: Number(club.activity_factor),
+        activity_factor: Number(activityFactor.toFixed(2)),
         total_participations: club.total_participations || 0,
         recent_meets_count: club.recent_meets_count || 0,
         address: club.address || '',
@@ -142,8 +146,8 @@ export async function GET() {
     const stats: QuadrantStats = {
       powerhouse: { count: 0, avgLifters: 0, avgActivity: 0 },
       intensive: { count: 0, avgLifters: 0, avgActivity: 0 },
-      potential: { count: 0, avgLifters: 0, avgActivity: 0 },
-      struggling: { count: 0, avgLifters: 0, avgActivity: 0 }
+      'sleeping-giant': { count: 0, avgLifters: 0, avgActivity: 0 },
+      developing: { count: 0, avgLifters: 0, avgActivity: 0 }
     }
 
     enhancedClubs.forEach(club => {
@@ -167,8 +171,8 @@ export async function GET() {
       clubs: enhancedClubs,
       stats,
       boundaries: {
-        liftersMedian,
-        activityMedian
+        liftersMedian: liftersThreshold,
+        activityMedian: activityThreshold
       },
       totalClubs: enhancedClubs.length
     }

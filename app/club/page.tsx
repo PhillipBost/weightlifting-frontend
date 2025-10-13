@@ -52,11 +52,11 @@ function ClubSummary() {
           USA Weightlifting Clubs Overview
         </h2>
         <p className="text-app-secondary">
-          Summary statistics for all registered barbell clubs across the United States.
+          Summary statistics for all registered barbell clubs. Competition clubs have had at least one lifter compete in the last 24 months.
         </p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 gap-6">
         <div className="text-center">
           <MetricTooltip
             title="Total Clubs"
@@ -72,39 +72,13 @@ function ClubSummary() {
 
         <div className="text-center">
           <MetricTooltip
-            title="Active Clubs"
-            description="Clubs with recent competitive activity"
-            methodology="Clubs with at least one active competitive lifter based on recent competition participation"
+            title="Competition Clubs"
+            description="Clubs with competitive activity in the last 24 months"
+            methodology="Clubs with at least one lifter who has competed in a sanctioned meet within the past 24 months"
           >
-            <div className="text-app-secondary text-sm mb-1">Active Clubs</div>
+            <div className="text-app-secondary text-sm mb-1">Competition Clubs</div>
             <div className="text-2xl font-bold text-app-primary">
               {stats.activeClubs}
-            </div>
-          </MetricTooltip>
-        </div>
-
-        <div className="text-center">
-          <MetricTooltip
-            title="States Covered"
-            description="Number of states with registered barbell clubs"
-            methodology="Unique count of states with at least one registered club location"
-          >
-            <div className="text-app-secondary text-sm mb-1">States Covered</div>
-            <div className="text-2xl font-bold text-app-primary">
-              {stats.statesCount}
-            </div>
-          </MetricTooltip>
-        </div>
-
-        <div className="text-center">
-          <MetricTooltip
-            title="Avg Members/Club"
-            description="Average number of active competitive members per club"
-            methodology="Average based on clubs with recent competitive activity from meet results data"
-          >
-            <div className="text-app-secondary text-sm mb-1">Avg Members/Club</div>
-            <div className="text-2xl font-bold text-app-primary">
-              {stats.averageMembersPerClub}
             </div>
           </MetricTooltip>
         </div>
@@ -134,6 +108,7 @@ const ClubQuadrantChart = dynamic(() => import("../components/Club/ClubQuadrantC
 })
 
 // Dynamically import the Club Bubble Chart component with SSR disabled
+/*
 const ClubBubbleChart = dynamic(() => import("../components/Club/ClubBubbleChart"), {
   ssr: false,
   loading: () => (
@@ -142,8 +117,10 @@ const ClubBubbleChart = dynamic(() => import("../components/Club/ClubBubbleChart
     </div>
   ),
 })
+*/
 
 // Dynamically import the Active Club Historical Chart component with SSR disabled
+/*
 const ActiveClubHistoricalChart = dynamic(() => import("../components/Club/ActiveClubHistoricalChart"), {
   ssr: false,
   loading: () => (
@@ -152,6 +129,7 @@ const ActiveClubHistoricalChart = dynamic(() => import("../components/Club/Activ
     </div>
   ),
 })
+*/
 
 export default function ClubPage() {
   const router = useRouter()
@@ -219,40 +197,23 @@ export default function ClubPage() {
               <ClubMap />
             </div>
 
-            {/* Club Development Quadrant Analysis */}
+            {/* Club Development Asymmetric Quadrant Plot */}
             <div className="card-large">
               <div className="mb-4">
                 <h2 className="text-xl font-semibold text-app-primary mb-2">
-                  Club Development Quadrant Analysis
+                  Club Development Asymmetric Quadrant Plot
                 </h2>
                 <p className="text-app-secondary">
                   Scatter plot visualization categorizing clubs by member count and activity level.
                   Hover over points for detailed club information and click to explore individual club pages.
+                  Note that point location on the graph isn't exactly precise due to 'jitter' setting which allows for visualization of overlapping points.
                 </p>
-                <div className="mt-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 rounded" style={{ backgroundColor: '#10B981' }}></div>
-                    <span className="text-app-secondary"><strong>Powerhouse:</strong> High members + High activity</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 rounded" style={{ backgroundColor: '#3B82F6' }}></div>
-                    <span className="text-app-secondary"><strong>Intensive:</strong> Low members + High activity</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 rounded" style={{ backgroundColor: '#F59E0B' }}></div>
-                    <span className="text-app-secondary"><strong>Potential:</strong> High members + Low activity</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 rounded" style={{ backgroundColor: '#EF4444' }}></div>
-                    <span className="text-app-secondary"><strong>Struggling:</strong> Low members + Low activity</span>
-                  </div>
-                </div>
               </div>
 
               <ClubQuadrantChart />
             </div>
 
-            {/* Club Comprehensive Bubble Chart */}
+            {/* Club Comprehensive Bubble Chart
             <div className="card-large">
               <div className="mb-4">
                 <h2 className="text-xl font-semibold text-app-primary mb-2">
@@ -288,8 +249,9 @@ export default function ClubPage() {
 
               <ClubBubbleChart />
             </div>
+            */}
 
-            {/* Active Club Performance Trends */}
+            {/* Active Club Performance Trends
             <div className="card-large">
               <div className="mb-4">
                 <h2 className="text-xl font-semibold text-app-primary mb-2">
@@ -324,8 +286,9 @@ export default function ClubPage() {
 
               <ActiveClubHistoricalChart />
             </div>
+            */}
 
-            {/* Additional Information */}
+            {/* Additional Information
             <div className="card-large">
               <div className="mb-4">
                 <h2 className="text-xl font-semibold text-app-primary mb-2">
@@ -346,6 +309,7 @@ export default function ClubPage() {
                 </div>
               </div>
             </div>
+            */}
           </div>
         </div>
       </div>

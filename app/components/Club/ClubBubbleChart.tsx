@@ -1,9 +1,20 @@
 "use client"
 
 import React from "react"
+import { useRouter } from "next/navigation"
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts"
 import { useClubQuadrantData } from "../../hooks/useClubQuadrantData"
 import { useTheme } from "../ThemeProvider"
+
+// Helper function to create club slug
+function createClubSlug(clubName: string): string {
+  return clubName
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+}
 
 interface ClubBubbleChartProps {
   className?: string
@@ -41,12 +52,23 @@ function getColorIntensity(meetsCount: number, maxMeets: number, minMeets: numbe
 
 // Custom tooltip component
 function CustomBubbleTooltip({ active, payload }: any) {
+  const router = useRouter()
+
   if (active && payload && payload.length) {
     const data = payload[0].payload
+    const clubSlug = createClubSlug(data.club_name)
+
+    const handleClick = () => {
+      router.push(`/club/${clubSlug}`)
+    }
+
     return (
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 max-w-sm">
+      <div
+        className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 max-w-sm cursor-pointer hover:border-blue-500 transition-colors"
+        onClick={handleClick}
+      >
         <div className="mb-3">
-          <h3 className="font-bold text-gray-900 dark:text-gray-100 text-sm">
+          <h3 className="font-bold text-blue-600 dark:text-blue-400 text-sm hover:underline">
             {data.club_name}
           </h3>
           <div className="text-xs text-gray-600 dark:text-gray-400">
@@ -119,6 +141,15 @@ export default function ClubBubbleChart({
 }: ClubBubbleChartProps) {
   const { quadrantData, loading, error } = useClubQuadrantData()
   const { theme } = useTheme()
+  const router = useRouter()
+
+  // Handle bubble click
+  const handleBubbleClick = (data: any) => {
+    if (data && data.club_name) {
+      const clubSlug = createClubSlug(data.club_name)
+      router.push(`/club/${clubSlug}`)
+    }
+  }
 
   if (loading) {
     return (
@@ -226,6 +257,7 @@ export default function ClubBubbleChart({
 
             <Scatter
               data={chartData}
+              onClick={handleBubbleClick}
               shape={(props: any) => (
                 <CustomBubble
                   {...props}

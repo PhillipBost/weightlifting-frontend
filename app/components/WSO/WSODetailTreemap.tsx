@@ -1,9 +1,20 @@
 "use client"
 
 import React, { useEffect, useRef, useState } from "react"
+import { useRouter } from "next/navigation"
 import { useTheme } from "../ThemeProvider"
 import * as d3 from "d3"
 import { voronoiTreemap } from "d3-voronoi-treemap"
+
+// Helper function to convert club name to URL slug
+const slugify = (name: string): string => {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '') // Remove special characters except spaces and hyphens
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+    .replace(/^-|-$/g, '') // Remove leading/trailing hyphens
+}
 
 interface TreemapNode {
   name: string
@@ -35,6 +46,7 @@ const hashData = (data: any): string => {
 }
 
 export default function WSODetailTreemap({ wsoSlug, className = "", height = 400 }: WSODetailTreemapProps) {
+  const router = useRouter()
   const [data, setData] = useState<TreemapNode | null>(null)
   const [computedHierarchy, setComputedHierarchy] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -206,7 +218,7 @@ export default function WSODetailTreemap({ wsoSlug, className = "", height = 400
       // Create cell group
       const cellGroup = cells.append("g")
         .attr("class", `voronoi-cell club-cell`)
-        .style("cursor", "default")
+        .style("cursor", "pointer")
 
       // Draw club cell path (no colors yet, will be set by theme effect)
       cellGroup.append("path")
@@ -215,6 +227,7 @@ export default function WSODetailTreemap({ wsoSlug, className = "", height = 400
         .attr("stroke-linejoin", "round")
         .attr("class", "club-cell-path")
         .attr("data-index", index)
+        .attr("data-club-name", cellData.name)
 
       // Add club labels (no thresholds - show all labels)
       const centroid = d3.polygonCentroid(node.polygon)
@@ -527,11 +540,19 @@ export default function WSODetailTreemap({ wsoSlug, className = "", height = 400
         .attr("fill-opacity", 0.6)
         .attr("stroke-opacity", theme === 'dark' ? 0.8 : 1)
 
-      // Attach hover handlers with updated colors
+      // Attach click handler for navigation
       const element = this as unknown as HTMLElement
       if (!element?.parentNode) return
       const cellGroup = d3.select(element.parentNode as any)
+      
       cellGroup
+        .on("click", function() {
+          const clubName = path.attr("data-club-name")
+          if (clubName) {
+            const slug = slugify(clubName)
+            router.push(`/club/${slug}`)
+          }
+        })
         .on("mouseenter", function() {
           const group = d3.select(this)
           

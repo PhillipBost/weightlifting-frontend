@@ -979,6 +979,29 @@ export default function WeightliftingLandingPage() {
                 </div>
               </div>
             </Link>
+
+            {/* Barbell Clubs Navigation Card */}
+            <Link href="/club" className="group">
+              <div className="bg-app-secondary border border-app-primary rounded-xl p-6 hover:bg-app-hover transition-all duration-200 hover:shadow-lg hover:scale-105">
+                <div className="flex items-center space-x-4">
+                  <div className="bg-orange-500/10 rounded-full p-3 group-hover:bg-orange-500/20 transition-colors">
+                    <Dumbbell className="h-6 w-6 text-orange-500" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-app-primary group-hover:text-orange-400 transition-colors">
+                      Barbell Clubs
+                    </h3>
+                    <p className="text-sm text-app-tertiary mt-1">
+                      Discover registered weightlifting clubs
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center mt-4 text-sm text-orange-500 group-hover:text-orange-400 transition-colors">
+                  <span>Explore club locations</span>
+                  <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </div>
+            </Link>
           </div>
         </div>
       </section>

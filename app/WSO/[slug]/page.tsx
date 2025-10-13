@@ -176,6 +176,9 @@ function WSOClubsTable({ slug }: { slug: string }) {
                   <span>Active Lifters <span className={sortField === 'active_lifters_count' ? 'text-accent-primary ml-1' : 'text-app-disabled ml-1'}>{sortField === 'active_lifters_count' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}</span></span>
                 </MetricTooltip>
               </th>
+              <th className="px-3 py-1.5 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -249,6 +252,15 @@ function WSOClubsTable({ slug }: { slug: string }) {
                   <td className="px-3 py-1.5 whitespace-nowrap">
                     <div className="text-sm text-app-primary">{club.active_lifters_count || 0}</div>
                   </td>
+                  <td className="px-3 py-1.5 whitespace-nowrap">
+                    <Link
+                      href={`/club/${club.club_name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`}
+                      className="inline-flex items-center px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
+                    >
+                      View Details
+                      <ChevronRight className="ml-1 h-4 w-4" />
+                    </Link>
+                  </td>
                 </tr>
               )
             })}
@@ -272,6 +284,7 @@ function WSOClubsTable({ slug }: { slug: string }) {
                   </div>
                 </MetricTooltip>
               </td>
+              <td className="px-3 py-1.5"></td>
             </tr>
           </tfoot>
         </table>

@@ -62,7 +62,6 @@ export default function ClubMap({
   const { theme } = useTheme()
 
   // Toggle states
-  const [showStateLabels, setShowStateLabels] = React.useState(true)
   const [filterByActivity, setFilterByActivity] = React.useState(false)
 
   // Get theme-appropriate tile layer
@@ -81,8 +80,8 @@ export default function ClubMap({
   }
 
   // Create custom club marker icon
-  const createClubIcon = (memberCount: number) => {
-    const size = memberCount > 15 ? 32 : memberCount > 8 ? 28 : 24
+  const createClubIcon = () => {
+    const size = 20 // Static size for all clubs
     const bgColor = theme === 'dark' ? '#F59E0B' : '#D97706' // Orange color
     const iconColor = theme === 'dark' ? '#1F2937' : '#FFFFFF'
 
@@ -156,23 +155,8 @@ export default function ClubMap({
   return (
     <div className={`${className} relative`}>
       {/* Toggle Controls */}
-      <div className="absolute bottom-4 left-4 z-[1000] space-y-2">
-        {/* State Borders Toggle */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-3">
-          <label className="flex items-center space-x-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={showStateLabels}
-              onChange={(e) => setShowStateLabels(e.target.checked)}
-              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-            />
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Show State Borders
-            </span>
-          </label>
-        </div>
-
-        {/* Activity Filter Toggle */}
+      <div className="absolute bottom-4 left-4 z-[1000]">
+        {/* Competition Filter Toggle */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-3">
           <label className="flex items-center space-x-2 cursor-pointer">
             <input
@@ -182,7 +166,7 @@ export default function ClubMap({
               className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
             />
             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Active Clubs Only
+              Competition Clubs Only
               {clubData.stats.activeClubs > 0 && (
                 <span className="ml-1 text-xs text-gray-500 dark:text-gray-400">
                   ({clubData.stats.activeClubs})
@@ -214,7 +198,7 @@ export default function ClubMap({
               <span className="text-xs text-gray-600 dark:text-gray-300">Barbell Clubs</span>
             </div>
             <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Larger markers = more active members
+              Click markers for club details
             </div>
           </div>
         </div>
@@ -255,15 +239,12 @@ export default function ClubMap({
           url={tileLayer.url}
         />
 
-        {/* State borders layer (when enabled) */}
-        {showStateLabels && <StateBordersLayer theme={theme} />}
-
         {/* Club Markers Layer */}
         {displayedClubs.map((club, index) => (
           <Marker
             key={`club-${club.id}-${club.name?.replace(/\s+/g, '-') || 'no-name'}-${index}`}
             position={[club.latitude, club.longitude]}
-            icon={createClubIcon(club.recentMemberCount)}
+            icon={createClubIcon()}
           >
             <Popup>
               <div className="p-3 max-w-sm">
@@ -276,7 +257,7 @@ export default function ClubMap({
                       <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      {club.recentMemberCount} active member{club.recentMemberCount !== 1 ? 's' : ''}
+                      {club.recentMemberCount} competing lifter{club.recentMemberCount !== 1 ? 's' : ''}
                     </div>
                   )}
                 </div>
@@ -307,7 +288,7 @@ export default function ClubMap({
                       .replace(/\s+/g, '-')
                       .replace(/-+/g, '-')
                       .replace(/^-|-$/g, '')
-                    window.open(`/barbell-club/${clubSlug}`, '_blank')
+                    window.open(`/club/${clubSlug}`, '_blank')
                   }}
                   className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white text-sm font-medium py-2 px-3 rounded-md transition-colors duration-200 flex items-center justify-center"
                 >

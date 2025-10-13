@@ -14,15 +14,15 @@ interface ClubQuadrantData {
   latitude: number
   longitude: number
   wso_geography: string
-  quadrant: 'powerhouse' | 'intensive' | 'potential' | 'struggling'
+  quadrant: 'powerhouse' | 'intensive' | 'sleeping-giant' | 'developing'
   quadrant_label: string
 }
 
 interface QuadrantStats {
   powerhouse: { count: number; avgLifters: number; avgActivity: number }
   intensive: { count: number; avgLifters: number; avgActivity: number }
-  potential: { count: number; avgLifters: number; avgActivity: number }
-  struggling: { count: number; avgLifters: number; avgActivity: number }
+  'sleeping-giant': { count: number; avgLifters: number; avgActivity: number }
+  developing: { count: number; avgLifters: number; avgActivity: number }
 }
 
 interface QuadrantBoundaries {
@@ -119,14 +119,14 @@ export function getQuadrantColor(quadrant: ClubQuadrantData['quadrant'], theme: 
     light: {
       powerhouse: '#10B981', // Green
       intensive: '#3B82F6',  // Blue
-      potential: '#F59E0B',  // Orange
-      struggling: '#EF4444'  // Red
+      'sleeping-giant': '#F59E0B',  // Orange
+      developing: '#EF4444'  // Red
     },
     dark: {
       powerhouse: '#059669', // Darker green
       intensive: '#2563EB',  // Darker blue
-      potential: '#D97706',  // Darker orange
-      struggling: '#DC2626'  // Darker red
+      'sleeping-giant': '#D97706',  // Darker orange
+      developing: '#DC2626'  // Darker red
     }
   }
 
@@ -138,8 +138,8 @@ export function getQuadrantDescription(quadrant: ClubQuadrantData['quadrant']) {
   const descriptions = {
     powerhouse: 'High member count with high activity per member - successful large clubs',
     intensive: 'Lower member count but very high activity per member - efficient small clubs',
-    potential: 'High member count but lower activity per member - clubs with growth opportunity',
-    struggling: 'Lower member count and lower activity per member - clubs needing support'
+    'sleeping-giant': 'High member count but lower activity per member - clubs with growth opportunity',
+    developing: 'Lower member count and lower activity per member - developing clubs with growth potential'
   }
 
   return descriptions[quadrant]

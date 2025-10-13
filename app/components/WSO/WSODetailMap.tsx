@@ -644,17 +644,15 @@ export default function WSODetailMap({
                   )}
                 </div>
 
-                {/* <button 
+                <button
                   onClick={() => {
-                    console.log('Club data:', club)
                     const clubSlug = (club.name || 'unknown-club')
                       .toLowerCase()
                       .replace(/[^a-z0-9\s-]/g, '')
                       .replace(/\s+/g, '-')
                       .replace(/-+/g, '-')
                       .replace(/^-|-$/g, '')
-                    console.log('Generated slug:', clubSlug)
-                    window.open(`/barbell-club/${clubSlug}`, '_blank')
+                    window.open(`/club/${clubSlug}`, '_blank')
                   }}
                   className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white text-sm font-medium py-2 px-3 rounded-md transition-colors duration-200 flex items-center justify-center"
                 >
@@ -662,7 +660,7 @@ export default function WSODetailMap({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
                   View Club Details
-                </button> */}
+                </button>
               </div>
             </Popup>
           </Marker>

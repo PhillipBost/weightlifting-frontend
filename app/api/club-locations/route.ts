@@ -7,79 +7,85 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
 const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
 
+// Helper function to parse city and state from geocode display name or address
+function parseLocation(club: { geocode_display_name: string | null; address: string | null }): { city: string; state: string } {
+  const displayName = club.geocode_display_name || club.address || ''
+  const parts = displayName.split(',').map(p => p.trim())
+
+  // Common formats: "City, State" or "Address, City, State" or "Address, City, State, Country"
+  if (parts.length >= 2) {
+    const state = parts[parts.length - 1]
+    const city = parts[parts.length - 2]
+
+    // Filter out country names and zip codes
+    if (state && !state.match(/^\d/) && state.length <= 20) {
+      return { city, state }
+    }
+  }
+
+  return { city: '', state: '' }
+}
+
 export async function GET() {
   try {
-    // Get club location data from clubs table
+    console.log('=== CLUB LOCATIONS API CALLED ===')
+
+    // Query clubs table directly with pre-calculated active_lifters_count
     const { data: clubsData, error: clubsError } = await supabaseAdmin
       .from('clubs')
-      .select('*')
+      .select('club_name, address, latitude, longitude, geocode_display_name, active_lifters_count')
       .not('latitude', 'is', null)
       .not('longitude', 'is', null)
 
     if (clubsError) {
       console.error('Error fetching clubs:', clubsError)
-      return NextResponse.json({ error: clubsError.message }, { status: 500 })
+      throw new Error(`Database error: ${clubsError.message}`)
     }
 
-    // Get current year for recent activity calculation
-    const currentYear = new Date().getFullYear()
-    const lastYear = currentYear - 1
+    console.log('Clubs fetched from database:', clubsData?.length || 0)
 
-    // Get recent activity data for clubs
-    const { data: activityData, error: activityError } = await supabaseAdmin
-      .from('meet_results')
-      .select('club_name, lifter_id, date')
-      .gte('date', `${lastYear}-01-01`)
-      .lt('date', `${currentYear + 1}-01-01`)
-      .not('club_name', 'is', null)
+    // Transform to match the existing API response format
+    const enrichedClubs = (clubsData || []).map((club, index) => {
+      const { city, state } = parseLocation(club)
 
-    if (activityError) {
-      console.warn('Could not fetch club activity data:', activityError.message)
-    }
-
-    // Process activity data by club
-    const clubActivity: Record<string, Set<string>> = {}
-    
-    if (activityData) {
-      activityData.forEach(result => {
-        if (!result.club_name || !result.lifter_id) return
-        
-        const clubName = result.club_name.trim()
-        if (!clubActivity[clubName]) {
-          clubActivity[clubName] = new Set()
-        }
-        clubActivity[clubName].add(result.lifter_id.toString())
-      })
-    }
-
-    // Enhance club data with activity metrics
-    const enrichedClubs = clubsData.map(club => ({
-      id: club.id,
-      name: club.club_name,
-      address: club.address,
-      latitude: parseFloat(club.latitude),
-      longitude: parseFloat(club.longitude),
-      city: club.city,
-      state: club.state,
-      recentMemberCount: clubActivity[club.club_name]?.size || 0
-    }))
+      return {
+        id: index + 1,
+        name: club.club_name,
+        address: club.address || '',
+        latitude: Number(club.latitude),
+        longitude: Number(club.longitude),
+        city,
+        state,
+        recentMemberCount: club.active_lifters_count || 0
+      }
+    })
 
     // Filter out clubs with invalid coordinates
-    const validClubs = enrichedClubs.filter(club => 
+    const validClubs = enrichedClubs.filter(club =>
       !isNaN(club.latitude) && !isNaN(club.longitude) &&
       club.latitude >= -90 && club.latitude <= 90 &&
       club.longitude >= -180 && club.longitude <= 180
     )
 
+    console.log('Valid clubs after filtering:', validClubs.length)
+    console.log('Sample club data:', validClubs.slice(0, 2).map(c => ({
+      name: c.name,
+      recentMemberCount: c.recentMemberCount
+    })))
+
     const response = NextResponse.json(validClubs)
-    
+
     // Add caching headers - club locations change monthly
     response.headers.set('Cache-Control', 'public, max-age=86400, s-maxage=86400') // 24 hours browser and CDN
     response.headers.set('CDN-Cache-Control', 'public, max-age=86400') // 24 hours CDN
-    
+
     return response
   } catch (err) {
     console.error('Unexpected error in club-locations API:', err)
-    return NextResponse.json({ error: 'Failed to fetch club locations' }, { status: 500 })
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+    return NextResponse.json({
+      error: 'Failed to fetch club locations',
+      details: errorMessage
+    }, { status: 500 })
   }
 }
