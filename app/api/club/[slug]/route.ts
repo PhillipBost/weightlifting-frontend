@@ -35,10 +35,10 @@ function parseLocation(club: any): { city: string; state: string } {
 
 export async function GET(
   request: Request,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const slug = params.slug
+    const { slug } = await params
     const searchPattern = slugToClubNamePattern(slug)
 
     console.log('=== CLUB SLUG API CALLED ===')
