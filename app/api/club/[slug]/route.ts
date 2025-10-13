@@ -10,8 +10,10 @@ const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
 // Helper function to convert slug to club name pattern
 function slugToClubNamePattern(slug: string): string {
   // Convert slug back to something we can search for
-  // Example: "crossfit-empire" -> "crossfit empire" or "CrossFit Empire"
-  return slug.replace(/-/g, ' ')
+  // Add wildcards between words to handle special characters like W/L
+  // Example: "east-coast-gold-wl-team" -> "%east%coast%gold%wl%team%"
+  const words = slug.split('-').filter(w => w.length > 0)
+  return '%' + words.join('%') + '%'
 }
 
 // Helper function to parse location from geocode display name or address
@@ -41,12 +43,28 @@ export async function GET(
     const { slug } = await params
     const searchPattern = slugToClubNamePattern(slug)
 
-    console.log('=== CLUB SLUG API CALLED ===')
+    console.log('=== CLUB SLUG API CALLED (v2) ===')
     console.log('Slug:', slug)
-    console.log('Search pattern:', searchPattern)
+    console.log('Search pattern (deprecated):', searchPattern)
 
-    // Get club data from clubs table
-    // We need to do case-insensitive matching on club name
+    // Get club data from clubs table using broader pattern matching
+    // Split slug into words and search for club names containing most of these words
+    const words = slug.split('-').filter(w => w.length > 0)
+    console.log('Searching for words:', words)
+    
+    // Handle 2-letter abbreviations that might have special characters (like W/L)
+    // Insert wildcards between each character for short words to handle special chars
+    const processedWords = words.map(word => {
+      if (word.length === 2) {
+        // For 2-letter words, add wildcard between chars to match things like "W/L"
+        return word.split('').join('%')
+      }
+      return word
+    })
+    
+    const simplePattern = processedWords.join('%')
+    console.log('Using pattern:', `%${simplePattern}%`)
+    
     const { data: clubsData, error: clubsError } = await supabaseAdmin
       .from('clubs')
       .select(`
@@ -61,7 +79,7 @@ export async function GET(
         wso_geography,
         geocode_display_name
       `)
-      .ilike('club_name', `%${searchPattern}%`)
+      .ilike('club_name', `%${simplePattern}%`)
       .not('latitude', 'is', null)
       .not('longitude', 'is', null)
       .limit(10)
@@ -87,10 +105,18 @@ export async function GET(
     // Find the best match - prioritize exact matches
     let bestMatch = clubsData[0]
 
-    // Try to find exact match (case-insensitive) - HIGHEST PRIORITY
-    const exactMatch = clubsData.find(club =>
-      club.club_name.toLowerCase() === searchPattern.toLowerCase()
-    )
+    // Try to find exact slug match (case-insensitive) - HIGHEST PRIORITY
+    // Convert each club name to slug and compare with target slug
+    const targetSlug = slug.toLowerCase()
+    const exactMatch = clubsData.find(club => {
+      const clubSlug = (club.club_name || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '')
+      return clubSlug === targetSlug
+    })
 
     if (exactMatch) {
       bestMatch = exactMatch
