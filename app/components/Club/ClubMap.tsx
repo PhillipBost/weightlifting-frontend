@@ -204,7 +204,7 @@ export default function ClubMap({
         </div>
       </div>
 
-      <style jsx global>{`
+      <style jsx global key={theme}>{`
         .club-marker {
           transition: all 0.2s ease-in-out;
         }
@@ -212,8 +212,8 @@ export default function ClubMap({
           transform: scale(1.1);
         }
         .leaflet-popup-content-wrapper {
-          background: var(--bg-secondary) !important;
-          border: none !important;
+          background: ${theme === 'dark' ? '#1F2937' : '#FFFFFF'} !important;
+          border: 1px solid ${theme === 'dark' ? '#374151' : '#E5E7EB'} !important;
           border-radius: 8px !important;
           box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
           padding: 0 !important;
@@ -221,10 +221,14 @@ export default function ClubMap({
         .leaflet-popup-content {
           margin: 0 !important;
           padding: 0 !important;
+          color: ${theme === 'dark' ? '#F3F4F6' : '#111827'} !important;
         }
         .leaflet-popup-tip {
-          background: var(--bg-secondary) !important;
+          background: ${theme === 'dark' ? '#1F2937' : '#FFFFFF'} !important;
           border: none !important;
+        }
+        .leaflet-popup-close-button {
+          color: ${theme === 'dark' ? '#F3F4F6' : '#111827'} !important;
         }
       `}</style>
 
@@ -247,9 +251,15 @@ export default function ClubMap({
             icon={createClubIcon()}
           >
             <Popup>
-              <div className="p-3 max-w-sm">
+              <div
+                className="p-3 max-w-sm"
+                style={{
+                  backgroundColor: theme === 'dark' ? '#1F2937' : '#FFFFFF',
+                  color: theme === 'dark' ? '#F3F4F6' : '#111827'
+                }}
+              >
                 <div className="mb-3">
-                  <h3 className="font-bold text-base text-gray-900 dark:text-gray-100 mb-1">
+                  <h3 className="font-bold text-base mb-1">
                     {club.name || 'Unnamed Club'}
                   </h3>
                   {club.recentMemberCount > 0 && (
@@ -262,7 +272,7 @@ export default function ClubMap({
                   )}
                 </div>
 
-                <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300 mb-3">
+                <div className="space-y-2 text-sm mb-3" style={{ opacity: 0.8 }}>
                   {club.address && (
                     <div className="flex items-start">
                       <svg className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -271,7 +281,7 @@ export default function ClubMap({
                       <div>
                         <div>{club.address}</div>
                         {club.city && club.state && (
-                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                          <div className="text-xs" style={{ opacity: 0.6 }}>
                             {club.city}, {club.state}
                           </div>
                         )}

@@ -68,8 +68,8 @@ export async function GET() {
 
     // Hard-coded quadrant thresholds
     const LIFTERS_THRESHOLD = 20  // 20+ = high lifters, 1-19 = low lifters
-    const ACTIVITY_THRESHOLD_POWERHOUSE = 2.0  // 2.0+ = powerhouse
-    const ACTIVITY_THRESHOLD_INTENSIVE = 1.6  // 1.6+ = intensive
+    const ACTIVITY_THRESHOLD_POWERHOUSE = 2.75  // 2.75+ = powerhouse
+    const ACTIVITY_THRESHOLD_INTENSIVE = 2.25  // 2.25+ = intensive
 
     // Fixed boundaries for reference lines on chart
     const liftersThreshold = LIFTERS_THRESHOLD
@@ -105,22 +105,22 @@ export async function GET() {
       let quadrant_label: string
 
       // Hard-coded quadrant assignment based on fixed thresholds
-      // Powerhouse: 20+ lifters AND 2.0+ activity
-      // Intensive: 1-19 lifters AND 1.6+ activity
-      // Sleeping Giant: 20+ lifters AND ≤1.99 activity
-      // Developing: 1-19 lifters AND ≤1.59 activity
+      // Powerhouse: 20+ lifters AND 2.75+ activity
+      // Intensive: 1-19 lifters AND 2.25+ activity
+      // Sleeping Giant: 20+ lifters AND < 2.75 activity
+      // Developing: 1-19 lifters AND < 2.25 activity
 
-      if (club.active_lifters_count >= 20 && activityFactor >= 2.0) {
+      if (club.active_lifters_count >= 20 && activityFactor >= 2.75) {
         quadrant = 'powerhouse'
         quadrant_label = 'Powerhouse'
-      } else if (club.active_lifters_count <= 19 && activityFactor >= 1.6) {
+      } else if (club.active_lifters_count <= 19 && activityFactor >= 2.25) {
         quadrant = 'intensive'
         quadrant_label = 'Intensive'
-      } else if (club.active_lifters_count >= 20 && activityFactor <= 1.99) {
+      } else if (club.active_lifters_count >= 20 && activityFactor < 2.75) {
         quadrant = 'sleeping-giant'
         quadrant_label = 'Sleeping Giant'
       } else {
-        // Developing: 1-19 lifters AND ≤1.59 activity
+        // Developing: 1-19 lifters AND < 2.25 activity
         quadrant = 'developing'
         quadrant_label = 'Developing'
       }

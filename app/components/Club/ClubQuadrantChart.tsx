@@ -21,14 +21,13 @@ function createClubSlug(clubName: string): string {
 // Custom dot shape for scatter plot with fixed size
 const CustomDot = (props: any) => {
   const { cx, cy, fill } = props
-  
+
   return (
-    <circle 
-      cx={cx} 
-      cy={cy} 
-      r={4} 
-      fill={fill} 
-      style={{ cursor: 'pointer' }}
+    <circle
+      cx={cx}
+      cy={cy}
+      r={4}
+      fill={fill}
     />
   )
 }
@@ -318,25 +317,18 @@ function CustomYAxisLabel({ viewBox, theme }: any) {
   )
 }
 
-// Custom tooltip component
+// Custom tooltip component - HOVER ONLY (non-interactive preview)
 function CustomTooltip({ active, payload }: any) {
-  const router = useRouter()
+  // Only show for hover, not for sticky (sticky is rendered via portal)
+  const displayData = active && payload && payload.length ? payload[0].payload : null
 
-  if (active && payload && payload.length) {
-    const data = payload[0].payload
-    const clubSlug = createClubSlug(data.club_name)
-
-    const handleClick = () => {
-      router.push(`/club/${clubSlug}`)
-    }
+  if (displayData) {
+    const data = displayData
 
     return (
-      <div
-        className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 max-w-sm cursor-pointer hover:border-blue-500 transition-colors"
-        onClick={handleClick}
-      >
+      <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 max-w-sm">
         <div className="mb-2">
-          <h3 className="font-bold text-blue-600 dark:text-blue-400 text-sm hover:underline">
+          <h3 className="font-bold text-gray-900 dark:text-gray-100 text-sm">
             {data.club_name}
           </h3>
           <div className="text-xs text-gray-600 dark:text-gray-400">
@@ -344,7 +336,7 @@ function CustomTooltip({ active, payload }: any) {
           </div>
         </div>
 
-        <div className="space-y-1 text-xs">
+        <div className="space-y-1 text-xs mb-3">
           <div className="flex justify-between">
             <span className="text-gray-600 dark:text-gray-400">Active Lifters:</span>
             <span className="font-medium text-gray-900 dark:text-gray-100">{data.active_lifters_count}</span>
@@ -359,7 +351,7 @@ function CustomTooltip({ active, payload }: any) {
           </div>
         </div>
 
-        <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-600">
+        <div className="pt-2 border-t border-gray-200 dark:border-gray-600">
           <div
             className="text-xs font-medium px-2 py-1 rounded"
             style={{
@@ -373,11 +365,163 @@ function CustomTooltip({ active, payload }: any) {
             {getQuadrantDescription(data.quadrant)}
           </div>
         </div>
+
+        <div className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center italic">
+          Click point for details
+        </div>
       </div>
     )
   }
 
   return null
+}
+
+// Sticky tooltip component - INTERACTIVE (rendered via portal)
+function StickyTooltipPortal({ data, position, onClose }: {
+  data: any,
+  position: { x: number, y: number },
+  onClose: () => void
+}) {
+  const router = useRouter()
+  const [positioned, setPositioned] = React.useState(false)
+  const [tooltipPos, setTooltipPos] = React.useState({ top: 0, left: 0 })
+  const tooltipRef = React.useRef<HTMLDivElement>(null)
+  const positionKeyRef = React.useRef<string>('')
+
+  // Reset positioned flag when position changes (for subsequent clicks)
+  React.useEffect(() => {
+    const newKey = `${position.x},${position.y}`
+    if (positionKeyRef.current !== newKey && positionKeyRef.current !== '') {
+      setPositioned(false)
+    }
+    positionKeyRef.current = newKey
+  }, [position])
+
+  // Calculate tooltip position to keep it within viewport
+  React.useEffect(() => {
+    if (!tooltipRef.current) return
+
+    // Use requestAnimationFrame to ensure DOM has painted and dimensions are available
+    const frameId = requestAnimationFrame(() => {
+      if (!tooltipRef.current) return
+
+      const tooltipWidth = tooltipRef.current.offsetWidth
+      const tooltipHeight = tooltipRef.current.offsetHeight
+
+      // Only proceed if we have valid dimensions
+      if (tooltipWidth === 0 || tooltipHeight === 0) {
+        // Retry on next frame if dimensions aren't ready
+        requestAnimationFrame(() => {
+          if (!tooltipRef.current) return
+          const width = tooltipRef.current.offsetWidth
+          const height = tooltipRef.current.offsetHeight
+          if (width > 0 && height > 0) {
+            calculatePosition(width, height)
+          }
+        })
+        return
+      }
+
+      calculatePosition(tooltipWidth, tooltipHeight)
+    })
+
+    function calculatePosition(tooltipWidth: number, tooltipHeight: number) {
+      let left = position.x - tooltipWidth / 2
+      let top = position.y - tooltipHeight - 15 // Position above cursor with gap
+
+      // Keep within viewport horizontally
+      if (left < 8) left = 8
+      if (left + tooltipWidth > window.innerWidth - 8) {
+        left = window.innerWidth - tooltipWidth - 8
+      }
+
+      // Keep within viewport vertically
+      if (top < 8) {
+        // Show below cursor if no space above
+        top = position.y + 15
+      }
+
+      setTooltipPos({ top, left })
+      setPositioned(true)
+    }
+
+    return () => cancelAnimationFrame(frameId)
+  }, [position])
+
+  if (!data) return null
+
+  const clubSlug = createClubSlug(data.club_name)
+
+  const handleButtonClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    router.push(`/club/${clubSlug}`)
+  }
+
+  const tooltipContent = (
+    <div
+      ref={tooltipRef}
+      className="fixed z-[9999] w-80 transition-opacity duration-200"
+      style={{
+        top: `${tooltipPos.top}px`,
+        left: `${tooltipPos.left}px`,
+        opacity: positioned ? 1 : 0
+      }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="sticky-tooltip bg-white dark:bg-gray-800 p-3 rounded-lg shadow-2xl border-2 border-gray-300 dark:border-gray-600 max-w-sm">
+        <div className="mb-2">
+          <h3 className="font-bold text-gray-900 dark:text-gray-100 text-sm">
+            {data.club_name}
+          </h3>
+          <div className="text-xs text-gray-600 dark:text-gray-400">
+            {data.city && data.state ? `${data.city}, ${data.state}` : data.wso_geography}
+          </div>
+        </div>
+
+        <div className="space-y-1 text-xs mb-3">
+          <div className="flex justify-between">
+            <span className="text-gray-600 dark:text-gray-400">Active Lifters:</span>
+            <span className="font-medium text-gray-900 dark:text-gray-100">{data.active_lifters_count}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-600 dark:text-gray-400">Activity Factor:</span>
+            <span className="font-medium text-gray-900 dark:text-gray-100">{data.activity_factor.toFixed(2)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-600 dark:text-gray-400">Total Participations:</span>
+            <span className="font-medium text-gray-900 dark:text-gray-100">{data.total_participations}</span>
+          </div>
+        </div>
+
+        <div className="mb-3 pt-2 border-t border-gray-200 dark:border-gray-600">
+          <div
+            className="text-xs font-medium px-2 py-1 rounded"
+            style={{
+              backgroundColor: getQuadrantColor(data.quadrant, 'light'),
+              color: 'white'
+            }}
+          >
+            {data.quadrant_label}
+          </div>
+          <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+            {getQuadrantDescription(data.quadrant)}
+          </div>
+        </div>
+
+        <button
+          onClick={handleButtonClick}
+          className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white text-xs font-medium py-2 px-3 rounded-md transition-colors duration-200 flex items-center justify-center cursor-pointer"
+        >
+          <svg className="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+          </svg>
+          View Club Details
+        </button>
+      </div>
+    </div>
+  )
+
+  return createPortal(tooltipContent, document.body)
 }
 
 // Quadrant label component
@@ -405,7 +549,8 @@ function QuadrantLabel({
         left: `${x}%`,
         top: `${y}%`,
         transform: 'translate(-50%, -50%)',
-        zIndex: 10
+        zIndex: 10,
+        pointerEvents: 'none'
       }}
     >
       <div className="flex items-center gap-1 mb-1">
@@ -440,17 +585,24 @@ export default function ClubQuadrantChart({
 
   // Zoom state management
   const [zoomDomain, setZoomDomain] = React.useState<{x: [number, number], y: [number, number]} | null>(null)
+
+  // Sticky tooltip state
+  const [stickyTooltip, setStickyTooltip] = React.useState<any>(null)
+  const [tooltipPosition, setTooltipPosition] = React.useState<{x: number, y: number} | null>(null)
   
   // Zoom state for mouse wheel and touch gestures - must be before conditional returns
   const chartRef = React.useRef<HTMLDivElement>(null)
-  const touchRef = React.useRef<{ distance: number | null, center: { x: number, y: number } | null }>({ 
-    distance: null, 
-    center: null 
+  const touchRef = React.useRef<{ distance: number | null, center: { x: number, y: number } | null }>({
+    distance: null,
+    center: null
   })
-  
+
   // Store domains in refs to avoid dependency issues in callbacks
   const xDomainRef = React.useRef<[number, number]>([0, 100])
   const yDomainRef = React.useRef<[number, number]>([0, 5])
+
+  // Track mouse position for sticky tooltip positioning
+  const mousePositionRef = React.useRef<{ x: number, y: number }>({ x: 0, y: 0 })
 
   // Handle mouse wheel zoom
   const handleWheel = React.useCallback((e: WheelEvent) => {
@@ -557,31 +709,110 @@ export default function ClubQuadrantChart({
     touchRef.current.center = null
   }, [])
   
-  // Attach wheel and touch event listeners
+  // Track mouse position for fallback tooltip positioning
+  const handleMouseMove = React.useCallback((e: MouseEvent) => {
+    mousePositionRef.current = { x: e.clientX, y: e.clientY }
+  }, [])
+
+  // Attach wheel, touch, and mouse move event listeners
   React.useEffect(() => {
     const chartElement = chartRef.current
     if (!chartElement) return
-    
+
     chartElement.addEventListener('wheel', handleWheel, { passive: false })
     chartElement.addEventListener('touchstart', handleTouchStart, { passive: false })
     chartElement.addEventListener('touchmove', handleTouchMove, { passive: false })
     chartElement.addEventListener('touchend', handleTouchEnd)
-    
+
+    // Track mouse position globally to ensure we always have valid coordinates
+    window.addEventListener('mousemove', handleMouseMove)
+
     return () => {
       chartElement.removeEventListener('wheel', handleWheel)
       chartElement.removeEventListener('touchstart', handleTouchStart)
       chartElement.removeEventListener('touchmove', handleTouchMove)
       chartElement.removeEventListener('touchend', handleTouchEnd)
+      window.removeEventListener('mousemove', handleMouseMove)
     }
-  }, [handleWheel, handleTouchStart, handleTouchMove, handleTouchEnd])
+  }, [handleWheel, handleTouchStart, handleTouchMove, handleTouchEnd, handleMouseMove])
 
-  // Handle scatter point click
-  const handleScatterClick = (data: any) => {
+  // Handle scatter point click to make tooltip sticky
+  // Recharts onClick signature: (data, index, event)
+  const handleScatterClick = (data: any, index: number, event: any) => {
     if (data && data.club_name) {
-      const clubSlug = createClubSlug(data.club_name)
-      router.push(`/club/${clubSlug}`)
+      // DEBUG: Log all parameters to understand Recharts onClick
+      console.log('=== Recharts Click Debug ===')
+      console.log('Parameter 1 (data):', data?.club_name)
+      console.log('Parameter 2 (index):', index, 'Type:', typeof index)
+      console.log('Parameter 3 (event):', event)
+      console.log('Event type:', typeof event)
+      console.log('Event keys:', event ? Object.keys(event) : 'null/undefined')
+      console.log('Event.clientX:', event?.clientX)
+      console.log('Event.clientY:', event?.clientY)
+      console.log('mousePositionRef:', mousePositionRef.current)
+      console.log('===========================')
+
+      // Prevent the click from immediately triggering the outside click handler
+      if (event && event.stopPropagation) {
+        event.stopPropagation()
+      }
+
+      setStickyTooltip(data)
+
+      // Try multiple methods to get click coordinates
+      let clickX: number | undefined
+      let clickY: number | undefined
+
+      // Method 1: Direct event properties
+      if (event?.clientX !== undefined && event?.clientY !== undefined) {
+        console.log('Using Method 1: event.clientX/clientY')
+        clickX = event.clientX
+        clickY = event.clientY
+      }
+      // Method 2: Native event (for synthetic events)
+      else if (event?.nativeEvent?.clientX !== undefined && event?.nativeEvent?.clientY !== undefined) {
+        console.log('Using Method 2: event.nativeEvent.clientX/clientY')
+        clickX = event.nativeEvent.clientX
+        clickY = event.nativeEvent.clientY
+      }
+      // Method 3: Fallback to tracked mouse position
+      else {
+        console.log('Using Method 3: mousePositionRef fallback')
+        clickX = mousePositionRef.current.x
+        clickY = mousePositionRef.current.y
+      }
+
+      console.log('Final coordinates:', { x: clickX, y: clickY })
+
+      // Always set tooltip position
+      setTooltipPosition({ x: clickX, y: clickY })
     }
   }
+
+  // Close sticky tooltip when clicking outside
+  React.useEffect(() => {
+    if (!stickyTooltip) return
+
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      // Don't close if clicking on the tooltip itself
+      if (target.closest('.sticky-tooltip')) {
+        return
+      }
+      setStickyTooltip(null)
+      setTooltipPosition(null)
+    }
+
+    // Add the listener in the next tick to avoid catching the opening click
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('click', handleClickOutside)
+    }, 0)
+
+    return () => {
+      clearTimeout(timeoutId)
+      document.removeEventListener('click', handleClickOutside)
+    }
+  }, [stickyTooltip])
 
   if (loading) {
     return (
@@ -724,18 +955,18 @@ export default function ClubQuadrantChart({
   const handleQuadrantZoom = (quadrant: 'powerhouse' | 'intensive' | 'sleeping-giant' | 'developing') => {
     // Hard-coded thresholds matching API logic
     const LIFTERS_THRESHOLD = 20
-    const ACTIVITY_THRESHOLD_POWERHOUSE = 2.0
-    const ACTIVITY_THRESHOLD_INTENSIVE = 1.6
+    const ACTIVITY_THRESHOLD_POWERHOUSE = 2.75
+    const ACTIVITY_THRESHOLD_INTENSIVE = 2.25
 
     const quadrantBounds = {
-      // Intensive: 1-19 lifters, 1.6+ activity
+      // Intensive: 1-19 lifters, 2.25+ activity
       intensive: { x: [0, 19.5] as [number, number], y: [ACTIVITY_THRESHOLD_INTENSIVE, maxActivity + 0.5] as [number, number] },
-      // Powerhouse: 20+ lifters, 2.0+ activity
+      // Powerhouse: 20+ lifters, 2.75+ activity
       powerhouse: { x: [LIFTERS_THRESHOLD - 0.5, maxLifters + Math.ceil(maxLifters * 0.1)] as [number, number], y: [ACTIVITY_THRESHOLD_POWERHOUSE, maxActivity + 0.5] as [number, number] },
-      // Developing: 1-19 lifters, ≤1.59 activity
-      developing: { x: [0, 19.5] as [number, number], y: [Math.max(0, minActivity - 0.5), 1.59] as [number, number] },
-      // Sleeping Giant: 20+ lifters, ≤1.99 activity
-      'sleeping-giant': { x: [LIFTERS_THRESHOLD - 0.5, maxLifters + Math.ceil(maxLifters * 0.1)] as [number, number], y: [Math.max(0, minActivity - 0.5), 1.99] as [number, number] }
+      // Developing: 1-19 lifters, < 2.25 activity
+      developing: { x: [0, 19.5] as [number, number], y: [Math.max(0, minActivity - 0.5), 2.24] as [number, number] },
+      // Sleeping Giant: 20+ lifters, < 2.75 activity
+      'sleeping-giant': { x: [LIFTERS_THRESHOLD - 0.5, maxLifters + Math.ceil(maxLifters * 0.1)] as [number, number], y: [Math.max(0, minActivity - 0.5), 2.74] as [number, number] }
     }
 
     setZoomDomain(quadrantBounds[quadrant])
@@ -764,13 +995,6 @@ export default function ClubQuadrantChart({
       {/* Chart Container */}
       <div ref={chartRef} className={`rounded-lg border p-4 ${theme === 'dark' ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-300'}`}>
         <style jsx>{`
-          :global(.recharts-symbols) {
-            transition: all 0.15s ease-in-out;
-            cursor: pointer;
-          }
-          :global(.recharts-symbols:hover) {
-            filter: brightness(1.4) drop-shadow(0 0 3px rgba(0, 0, 0, 0.6));
-          }
           :global(.recharts-wrapper .recharts-surface) {
             background: transparent !important;
           }
@@ -830,11 +1054,11 @@ export default function ClubQuadrantChart({
               ifOverflow="extendDomain"
             />
 
-            {/* Partial horizontal line at 1.6 activity - only left side (Intensive/Developing boundary) */}
+            {/* Partial horizontal line at 2.25 activity - only left side (Intensive/Developing boundary) */}
             <ReferenceLine
               segment={[
-                { x: xDomain[0], y: 1.6 },
-                { x: boundaries.liftersMedian, y: 1.6 }
+                { x: xDomain[0], y: 2.25 },
+                { x: boundaries.liftersMedian, y: 2.25 }
               ]}
               stroke={theme === 'dark' ? '#3B82F6' : '#2563EB'}
               strokeDasharray="8 4"
@@ -842,29 +1066,31 @@ export default function ClubQuadrantChart({
               ifOverflow="extendDomain"
             />
 
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip
+              content={<CustomTooltip />}
+              active={stickyTooltip ? false : undefined}
+            />
 
             {/* Scatter plot with colored points */}
             <Scatter
               data={clubsWithProximity}
               fill="#8884d8"
-              onClick={handleScatterClick}
-              cursor="pointer"
               shape={CustomDot}
+              onClick={handleScatterClick}
             >
               {clubsWithProximity.map((club, index) => (
                 <Cell
                   key={`cell-${index}`}
                   fill={getQuadrantColor(club.quadrant, theme)}
-                  style={{ cursor: 'pointer' }}
                 />
               ))}
             </Scatter>
           </ScatterChart>
         </ResponsiveContainer>
+      </div>
 
-        {/* Quadrant labels - inside chart */}
-        <QuadrantLabel
+      {/* Quadrant labels - overlaid on chart */}
+      <QuadrantLabel
           x={15}
           y={10}
           label="Intensive"
@@ -900,7 +1126,6 @@ export default function ClubQuadrantChart({
           description="Room for growth"
           onZoom={() => handleQuadrantZoom('sleeping-giant')}
         />
-      </div>
 
       {/* Legend */}
       <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -911,7 +1136,7 @@ export default function ClubQuadrantChart({
             'sleeping-giant': 'High members + Low activity',
             developing: 'Low members + Low activity'
           }
-          
+
           return (
             <div
               key={quadrant}
@@ -942,6 +1167,18 @@ export default function ClubQuadrantChart({
           )
         })}
       </div>
+
+      {/* Sticky Tooltip Portal - renders interactive tooltip outside SVG */}
+      {stickyTooltip && tooltipPosition && (
+        <StickyTooltipPortal
+          data={stickyTooltip}
+          position={tooltipPosition}
+          onClose={() => {
+            setStickyTooltip(null)
+            setTooltipPosition(null)
+          }}
+        />
+      )}
     </div>
   )
 }
