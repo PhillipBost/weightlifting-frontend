@@ -760,10 +760,11 @@ export default function ClubQuadrantChart({
       setStickyTooltip(data)
 
       // Try multiple methods to get click coordinates
-      let clickX: number | undefined
-      let clickY: number | undefined
+      // Initialize with fallback values to ensure type safety
+      let clickX: number = mousePositionRef.current.x
+      let clickY: number = mousePositionRef.current.y
 
-      // Method 1: Direct event properties
+      // Method 1: Direct event properties (preferred)
       if (event?.clientX !== undefined && event?.clientY !== undefined) {
         console.log('Using Method 1: event.clientX/clientY')
         clickX = event.clientX
@@ -775,11 +776,9 @@ export default function ClubQuadrantChart({
         clickX = event.nativeEvent.clientX
         clickY = event.nativeEvent.clientY
       }
-      // Method 3: Fallback to tracked mouse position
+      // Method 3: Already set to fallback values
       else {
         console.log('Using Method 3: mousePositionRef fallback')
-        clickX = mousePositionRef.current.x
-        clickY = mousePositionRef.current.y
       }
 
       console.log('Final coordinates:', { x: clickX, y: clickY })
