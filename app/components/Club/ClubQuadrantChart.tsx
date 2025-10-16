@@ -318,7 +318,7 @@ function CustomYAxisLabel({ viewBox, theme }: any) {
 }
 
 // Custom tooltip component - HOVER ONLY (non-interactive preview)
-function CustomTooltip({ active, payload }: any) {
+function CustomTooltip({ active, payload, theme }: any) {
   // Only show for hover, not for sticky (sticky is rendered via portal)
   const displayData = active && payload && payload.length ? payload[0].payload : null
 
@@ -326,32 +326,40 @@ function CustomTooltip({ active, payload }: any) {
     const data = displayData
 
     return (
-      <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 max-w-sm">
-        <div className="mb-2">
-          <h3 className="font-bold text-gray-900 dark:text-gray-100 text-sm">
+      <div
+        className="p-3 rounded-lg border max-w-sm"
+        style={{
+          backgroundColor: theme === 'dark' ? '#1F2937' : '#FFFFFF',
+          color: theme === 'dark' ? '#F3F4F6' : '#111827',
+          borderColor: theme === 'dark' ? '#374151' : '#E5E7EB',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+        }}
+      >
+        <div className="mb-3">
+          <h3 className="font-bold text-base mb-1">
             {data.club_name}
           </h3>
-          <div className="text-xs text-gray-600 dark:text-gray-400">
+          <div className="text-sm" style={{ opacity: 0.8 }}>
             {data.city && data.state ? `${data.city}, ${data.state}` : data.wso_geography}
           </div>
         </div>
 
-        <div className="space-y-1 text-xs mb-3">
+        <div className="space-y-2 text-sm mb-3" style={{ opacity: 0.8 }}>
           <div className="flex justify-between">
-            <span className="text-gray-600 dark:text-gray-400">Active Lifters:</span>
-            <span className="font-medium text-gray-900 dark:text-gray-100">{data.active_lifters_count}</span>
+            <span>Active Lifters:</span>
+            <span className="font-medium">{data.active_lifters_count}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600 dark:text-gray-400">Activity Factor:</span>
-            <span className="font-medium text-gray-900 dark:text-gray-100">{data.activity_factor.toFixed(2)}</span>
+            <span>Activity Factor:</span>
+            <span className="font-medium">{data.activity_factor.toFixed(2)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600 dark:text-gray-400">Total Participations:</span>
-            <span className="font-medium text-gray-900 dark:text-gray-100">{data.total_participations}</span>
+            <span>Total Participations:</span>
+            <span className="font-medium">{data.total_participations}</span>
           </div>
         </div>
 
-        <div className="pt-2 border-t border-gray-200 dark:border-gray-600">
+        <div className="pt-2 mb-2" style={{ borderTop: `1px solid ${theme === 'dark' ? '#374151' : '#E5E7EB'}` }}>
           <div
             className="text-xs font-medium px-2 py-1 rounded"
             style={{
@@ -361,12 +369,12 @@ function CustomTooltip({ active, payload }: any) {
           >
             {data.quadrant_label}
           </div>
-          <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+          <div className="text-xs mt-1" style={{ opacity: 0.8 }}>
             {getQuadrantDescription(data.quadrant)}
           </div>
         </div>
 
-        <div className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center italic">
+        <div className="text-xs text-center italic" style={{ opacity: 0.6 }}>
           Click point for details
         </div>
       </div>
@@ -377,10 +385,11 @@ function CustomTooltip({ active, payload }: any) {
 }
 
 // Sticky tooltip component - INTERACTIVE (rendered via portal)
-function StickyTooltipPortal({ data, position, onClose }: {
+function StickyTooltipPortal({ data, position, onClose, theme }: {
   data: any,
   position: { x: number, y: number },
-  onClose: () => void
+  onClose: () => void,
+  theme: 'light' | 'dark'
 }) {
   const router = useRouter()
   const [positioned, setPositioned] = React.useState(false)
@@ -468,32 +477,40 @@ function StickyTooltipPortal({ data, position, onClose }: {
       }}
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="sticky-tooltip bg-white dark:bg-gray-800 p-3 rounded-lg shadow-2xl border-2 border-gray-300 dark:border-gray-600 max-w-sm">
-        <div className="mb-2">
-          <h3 className="font-bold text-gray-900 dark:text-gray-100 text-sm">
+      <div
+        className="sticky-tooltip p-3 rounded-lg border max-w-sm"
+        style={{
+          backgroundColor: theme === 'dark' ? '#1F2937' : '#FFFFFF',
+          color: theme === 'dark' ? '#F3F4F6' : '#111827',
+          borderColor: theme === 'dark' ? '#374151' : '#E5E7EB',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+        }}
+      >
+        <div className="mb-3">
+          <h3 className="font-bold text-base mb-1">
             {data.club_name}
           </h3>
-          <div className="text-xs text-gray-600 dark:text-gray-400">
+          <div className="text-sm" style={{ opacity: 0.8 }}>
             {data.city && data.state ? `${data.city}, ${data.state}` : data.wso_geography}
           </div>
         </div>
 
-        <div className="space-y-1 text-xs mb-3">
+        <div className="space-y-2 text-sm mb-3" style={{ opacity: 0.8 }}>
           <div className="flex justify-between">
-            <span className="text-gray-600 dark:text-gray-400">Active Lifters:</span>
-            <span className="font-medium text-gray-900 dark:text-gray-100">{data.active_lifters_count}</span>
+            <span>Active Lifters:</span>
+            <span className="font-medium">{data.active_lifters_count}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600 dark:text-gray-400">Activity Factor:</span>
-            <span className="font-medium text-gray-900 dark:text-gray-100">{data.activity_factor.toFixed(2)}</span>
+            <span>Activity Factor:</span>
+            <span className="font-medium">{data.activity_factor.toFixed(2)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600 dark:text-gray-400">Total Participations:</span>
-            <span className="font-medium text-gray-900 dark:text-gray-100">{data.total_participations}</span>
+            <span>Total Participations:</span>
+            <span className="font-medium">{data.total_participations}</span>
           </div>
         </div>
 
-        <div className="mb-3 pt-2 border-t border-gray-200 dark:border-gray-600">
+        <div className="mb-3 pt-2" style={{ borderTop: `1px solid ${theme === 'dark' ? '#374151' : '#E5E7EB'}` }}>
           <div
             className="text-xs font-medium px-2 py-1 rounded"
             style={{
@@ -503,16 +520,16 @@ function StickyTooltipPortal({ data, position, onClose }: {
           >
             {data.quadrant_label}
           </div>
-          <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+          <div className="text-xs mt-1" style={{ opacity: 0.8 }}>
             {getQuadrantDescription(data.quadrant)}
           </div>
         </div>
 
         <button
           onClick={handleButtonClick}
-          className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white text-xs font-medium py-2 px-3 rounded-md transition-colors duration-200 flex items-center justify-center cursor-pointer"
+          className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white text-sm font-medium py-2 px-3 rounded-md transition-colors duration-200 flex items-center justify-center cursor-pointer"
         >
-          <svg className="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
           </svg>
           View Club Details
@@ -1066,7 +1083,7 @@ export default function ClubQuadrantChart({
             />
 
             <Tooltip
-              content={<CustomTooltip />}
+              content={<CustomTooltip theme={theme} />}
               active={stickyTooltip ? false : undefined}
             />
 
@@ -1172,6 +1189,7 @@ export default function ClubQuadrantChart({
         <StickyTooltipPortal
           data={stickyTooltip}
           position={tooltipPosition}
+          theme={theme}
           onClose={() => {
             setStickyTooltip(null)
             setTooltipPosition(null)
