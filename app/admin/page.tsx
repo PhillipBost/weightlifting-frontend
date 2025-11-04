@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../components/AuthProvider';
 import { AuthGuard } from '../components/AuthGuard';
 import { ROLES } from '../../lib/roles';
-import { ArrowLeft, Users, Shield, Search, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Users, Shield, Search, RefreshCw, Medal } from 'lucide-react';
 import { ThemeSwitcher } from '../components/ThemeSwitcher';
 import { UserTable } from './components/UserTable';
 
@@ -170,7 +170,7 @@ export default function AdminPage() {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
             <div className="card-primary text-center">
               <div className="text-2xl font-bold text-app-primary">{users.length}</div>
               <div className="text-sm text-app-secondary">Total Users</div>
@@ -182,6 +182,10 @@ export default function AdminPage() {
             <div className="card-primary text-center">
               <div className="text-2xl font-bold text-blue-500">{roleStats[ROLES.COACH] || 0}</div>
               <div className="text-sm text-app-secondary">Coaches</div>
+            </div>
+            <div className="card-primary text-center">
+              <div className="text-2xl font-bold text-emerald-500">{roleStats[ROLES.USAW_NATIONAL_TEAM_COACH] || 0}</div>
+              <div className="text-sm text-app-secondary">USAW Coaches</div>
             </div>
             <div className="card-primary text-center">
               <div className="text-2xl font-bold text-red-500">{roleStats[ROLES.ADMIN] || 0}</div>

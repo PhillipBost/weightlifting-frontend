@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { ROLES } from '../../../lib/roles';
-import { User, Crown, Shield, Briefcase, CheckCircle, XCircle } from 'lucide-react';
+import { User, Crown, Shield, Briefcase, CheckCircle, XCircle, Medal } from 'lucide-react';
 import { RoleSelector } from './RoleSelector';
 
 interface AdminUser {
@@ -64,6 +64,8 @@ export function UserTable({ users, onRoleUpdate, currentUserId }: UserTableProps
         return <Shield className="h-4 w-4 text-red-500" />;
       case ROLES.COACH:
         return <Briefcase className="h-4 w-4 text-blue-500" />;
+      case ROLES.USAW_NATIONAL_TEAM_COACH:
+        return <Medal className="h-4 w-4 text-emerald-500" />;
       case ROLES.PREMIUM:
         return <Crown className="h-4 w-4 text-yellow-500" />;
       default:
@@ -77,6 +79,8 @@ export function UserTable({ users, onRoleUpdate, currentUserId }: UserTableProps
         return 'text-red-500 bg-red-500/10 border-red-500/20';
       case ROLES.COACH:
         return 'text-blue-500 bg-blue-500/10 border-blue-500/20';
+      case ROLES.USAW_NATIONAL_TEAM_COACH:
+        return 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20';
       case ROLES.PREMIUM:
         return 'text-yellow-500 bg-yellow-500/10 border-yellow-500/20';
       default:

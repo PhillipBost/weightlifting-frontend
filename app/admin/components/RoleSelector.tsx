@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { ROLES } from '../../../lib/roles';
-import { ChevronDown, User, Crown, Shield, Briefcase, AlertTriangle } from 'lucide-react';
+import { ChevronDown, User, Crown, Shield, Briefcase, AlertTriangle, Medal } from 'lucide-react';
 
 interface RoleSelectorProps {
   currentRole: string;
@@ -36,6 +36,13 @@ export function RoleSelector({ currentRole, onRoleChange, disabled = false, isCu
       description: 'Team management features',
       icon: <Briefcase className="h-4 w-4" />,
       color: 'text-blue-500'
+    },
+    {
+      value: ROLES.USAW_NATIONAL_TEAM_COACH,
+      label: 'USAW National Team Coach',
+      description: 'National team coaching authority',
+      icon: <Medal className="h-4 w-4" />,
+      color: 'text-emerald-500'
     },
     {
       value: ROLES.ADMIN,

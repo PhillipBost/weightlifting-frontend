@@ -3,6 +3,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Search, TrendingUp, Trophy, Users, Calendar, CalendarDays, MapPinned, Weight, Dumbbell, Database, Filter, ArrowRight, Github, Heart, X, User, MapPin } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { supabaseIWF } from '../lib/supabaseIWF';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -10,6 +11,7 @@ import type { Metadata } from 'next';
 import { ThemeSwitcher } from './components/ThemeSwitcher';
 import { UserMenu } from './components/UserMenu';
 import { LoginModal } from './components/LoginModal';
+import { DataSource, getSourceBadge, getSourceColor, buildAthleteUrl, buildMeetUrl } from '../lib/types/dataSource';
 
 // Types for our search results
 interface SearchResult {
@@ -18,6 +20,11 @@ interface SearchResult {
   wso?: string;
   membership_number?: string;
   lifter_id?: string;
+  // IWF-specific fields
+  country?: string;
+  country_name?: string;
+  iwf_lifter_id?: string | number;
+  db_lifter_id?: string | number;
   type?: string;
   gender?: string;
   // Meet fields
@@ -25,7 +32,43 @@ interface SearchResult {
   date?: string;
   level?: string;
   meet_id?: string;
+  db_meet_id?: string | number;
+  // Source identifier
+  source?: DataSource;
 }
+
+// Country code to name mapping
+const COUNTRY_CODE_MAP: Record<string, string> = {
+  'CHN': 'China',
+  'THA': 'Thailand',
+  'USA': 'United States',
+  'NGR': 'Nigeria',
+  'GBR': 'United Kingdom',
+  'AUS': 'Australia',
+  'CAN': 'Canada',
+  'JPN': 'Japan',
+  'KOR': 'South Korea',
+  'RUS': 'Russia',
+  'UKR': 'Ukraine',
+  'POL': 'Poland',
+  'GER': 'Germany',
+  'ITA': 'Italy',
+  'FRA': 'France',
+  'ESP': 'Spain',
+  'MEX': 'Mexico',
+  'BRA': 'Brazil',
+  'ARG': 'Argentina',
+  'IND': 'India'
+};
+
+const getCountryName = (countryCode: string): string => {
+  // If it's already a full name (contains space or is longer than 3 chars), return as is
+  if (!countryCode || countryCode.length > 3 || countryCode.includes(' ')) {
+    return countryCode;
+  }
+  // Try to map code to name, otherwise return the code
+  return COUNTRY_CODE_MAP[countryCode.toUpperCase()] || countryCode;
+};
 
 // Debounce utility function
 function debounce<T extends (...args: any[]) => any>(
@@ -97,7 +140,7 @@ export default function WeightliftingLandingPage() {
     }
   };
 
-  // Debounced search function with fuzzy search for athlete names
+  // Debounced search function with fuzzy search for athlete names (USAW + IWF)
   const debouncedSearch = useCallback(
     debounce(async (query: string) => {
       if (!query.trim() || query.length < 2) {
@@ -109,48 +152,85 @@ export default function WeightliftingLandingPage() {
       setIsSearching(true);
       try {
         const searchTerms = generateAthleteSearchTerms(query);
-        const allResults: any[] = [];
-        
-        // Search with each term variation
-        for (const term of searchTerms.slice(0, 6)) { // Increase to 6 variations
-          const { data: lifters, error: liftersError } = await supabase
+        const usawResults: any[] = [];
+        const iwfResults: any[] = [];
+
+        // Search with each term variation using two-stage strategy
+        for (const term of searchTerms.slice(0, 6)) {
+          // USAW - Stage 1: Starts-with matches (high relevance, no limit needed)
+          const { data: usawStartsWith, error: usawStartsError } = await supabase
+            .from('lifters')
+            .select('lifter_id, athlete_name, membership_number')
+            .ilike('athlete_name', `${term}%`)
+            .order('athlete_name')
+            .limit(100);
+
+          // USAW - Stage 2: Contains matches (lower relevance, with limit)
+          const { data: usawContains, error: usawContainsError } = await supabase
             .from('lifters')
             .select('lifter_id, athlete_name, membership_number')
             .ilike('athlete_name', `%${term}%`)
+            .not('athlete_name', 'ilike', `${term}%`)
             .order('athlete_name')
-            .limit(50);
+            .limit(200);
 
-          // Debug logging for Kate Nye specifically
-          if (query.toLowerCase().includes('kate') && query.toLowerCase().includes('nye')) {
-            console.log(`Searching for term: "${term}"`);
-            console.log(`Results count: ${lifters?.length || 0}`);
-            if (lifters && lifters.length > 0) {
-              console.log('Found athletes:', lifters.map(l => l.athlete_name));
-            }
-            if (liftersError) {
-              console.log('Query error:', liftersError);
-            }
+          if (!usawStartsError && usawStartsWith) {
+            usawResults.push(...usawStartsWith);
+          }
+          if (!usawContainsError && usawContains) {
+            usawResults.push(...usawContains);
           }
 
-          if (!liftersError && lifters) {
-            allResults.push(...lifters);
+          // IWF - Stage 1: Starts-with matches (high relevance, no limit needed)
+          const { data: iwfStartsWith, error: iwfStartsError } = await supabaseIWF
+            .from('iwf_lifters')
+            .select('db_lifter_id, athlete_name, gender, country_name, iwf_lifter_id')
+            .ilike('athlete_name', `${term}%`)
+            .order('athlete_name')
+            .limit(100);
+
+          // IWF - Stage 2: Contains matches (lower relevance, with limit)
+          const { data: iwfContains, error: iwfContainsError } = await supabaseIWF
+            .from('iwf_lifters')
+            .select('db_lifter_id, athlete_name, gender, country_name, iwf_lifter_id')
+            .ilike('athlete_name', `%${term}%`)
+            .not('athlete_name', 'ilike', `${term}%`)
+            .order('athlete_name')
+            .limit(200);
+
+          if (iwfContainsError) {
+            console.error('IWF Stage 2 error for', term, ':', iwfContainsError);
+          } else {
+            // IWF Stage 2 succeeded
+          }
+
+          if (!iwfStartsError && iwfStartsWith) {
+            iwfResults.push(...iwfStartsWith);
+          } else if (iwfStartsError) {
+            // IWF Stage 1 error handled silently
+          }
+          if (!iwfContainsError && iwfContains) {
+            iwfResults.push(...iwfContains);
+          } else if (iwfContainsError) {
+            // IWF Stage 2 error handled silently
           }
         }
 
-        if (allResults.length === 0) {
-          setSearchResults([]);
-          setShowResults(true);
-          return;
-        }
-
-        // Remove duplicates by lifter_id
-        const uniqueLifters = Array.from(
-          new Map(allResults.map(lifter => [lifter.lifter_id, lifter])).values()
+        // Remove USAW duplicates by lifter_id
+        const uniqueUsawLifters = Array.from(
+          new Map(usawResults.map(lifter => [lifter.lifter_id, lifter])).values()
         );
 
-        // Step 2: Get recent meet results for WSO/club info for each lifter
-        const searchResults = await Promise.all(
-          uniqueLifters.map(async (lifter) => {
+        // Remove IWF duplicates by db_lifter_id
+        const uniqueIwfLifters = Array.from(
+          new Map(iwfResults.map(lifter => [lifter.db_lifter_id, lifter])).values()
+        );
+
+
+
+        // Get USAW athlete data with meet results
+        const usawAthletes = await Promise.all(
+          uniqueUsawLifters.map(async (lifter) => {
             const { data: recentResults } = await supabase
               .from('meet_results')
               .select('wso, club_name, gender, date')
@@ -169,31 +249,83 @@ export default function WeightliftingLandingPage() {
               wso: recentWso,
               club_name: recentClub,
               gender: recentGender,
-              type: 'athlete'
+              type: 'athlete',
+              source: 'USAW' as DataSource
             };
           })
         );
 
-        // Step 3: Sort results to prioritize exact matches, then alphabetically
+        // Transform IWF athlete data
+        const iwfAthletes = uniqueIwfLifters.map(lifter => ({
+          db_lifter_id: lifter.db_lifter_id,
+          athlete_name: lifter.athlete_name,
+          gender: lifter.gender,
+          country_name: lifter.country_name,
+          iwf_lifter_id: lifter.iwf_lifter_id,
+          type: 'athlete',
+          source: 'IWF' as DataSource
+        }));
+
+        // Merge all results
+        const allAthletes: SearchResult[] = [...usawAthletes, ...iwfAthletes];
+
+        // Deduplicate by (id, source) pair - preserves same-name athletes from different sources
+        const deduplicatedAthletes = Array.from(
+          new Map(
+            allAthletes.map(athlete => {
+              const id = 'lifter_id' in athlete 
+                ? athlete.lifter_id 
+                : 'db_lifter_id' in athlete 
+                ? athlete.db_lifter_id 
+                : athlete.athlete_name?.replace(/[^a-zA-Z0-9]/g, '_');
+              return [
+                `${String(id)}_${athlete.source}`,
+                athlete
+              ];
+            })
+          ).values()
+        );
+
+
+
+        // Sort results to prioritize exact matches, then by name matching quality
         const queryLower = query.toLowerCase();
-        searchResults.sort((a, b) => {
+        const queryWords = queryLower.split(/\s+/);
+        const firstWord = queryWords[0];
+        const lastWord = queryWords[queryWords.length - 1];
+
+        deduplicatedAthletes.sort((a, b) => {
           const aNameLower = a.athlete_name!.toLowerCase();
           const bNameLower = b.athlete_name!.toLowerCase();
-          
+
           // Check if either is an exact match
           const aExact = aNameLower === queryLower;
           const bExact = bNameLower === queryLower;
-          
+
           // Exact matches come first
           if (aExact && !bExact) return -1;
           if (bExact && !aExact) return 1;
-          
-          // If both exact or both partial, sort alphabetically
+
+          // For single-word queries, prioritize names that START with the query (likely first name)
+          if (queryWords.length === 1 && firstWord) {
+            const aStartsWithQuery = aNameLower.startsWith(firstWord);
+            const bStartsWithQuery = bNameLower.startsWith(firstWord);
+            if (aStartsWithQuery && !bStartsWithQuery) return -1;
+            if (bStartsWithQuery && !aStartsWithQuery) return 1;
+          }
+
+          // If both exact or both partial, sort by source (USAW first)
+          if (a.source !== b.source) {
+            return a.source === 'USAW' ? -1 : 1;
+          }
+
+          // Same source, sort alphabetically
           return aNameLower.localeCompare(bNameLower);
         });
 
-        
-        setSearchResults(searchResults.slice(0, 100) || []); // Limit to 100 results
+
+
+        setSearchResults(deduplicatedAthletes.slice(0, 100) || []);
         setShowResults(true);
       } catch (err) {
         console.error('Unexpected search error:', err);
@@ -250,11 +382,7 @@ export default function WeightliftingLandingPage() {
       }
     });
 
-    // Debug logging for development
-    if (query.toLowerCase().includes('masters')) {
-      console.log('Fuzzy search debug for:', query);
-      console.log('Generated terms:', terms);
-    }
+
     
     return [...new Set(terms)]; // Remove duplicates
   };
@@ -275,7 +403,24 @@ export default function WeightliftingLandingPage() {
     if (fuzzyQuery !== cleaned) {
       terms.push(query.replace(new RegExp(cleaned.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), fuzzyQuery));
     }
-    
+
+    // Handle multi-word queries to support names with middle names
+    // For "olivia reeves", also generate "olivia%reeves" pattern to match "Olivia Lynn REEVES"
+    const words = cleaned.trim().split(/\s+/);
+    if (words.length === 2) {
+      // Two-word query: add a pattern that allows for middle names
+      const twoWordPattern = `${words[0]}%${words[1]}`;
+      terms.push(twoWordPattern);
+    } else if (words.length > 2) {
+      // Three+ word query: generate patterns for first + last word combinations
+      // Example: "olivia lynn reeves" -> "olivia%reeves"
+      const firstWord = words[0];
+      const lastWord = words[words.length - 1];
+      if (firstWord !== lastWord) {
+        terms.push(`${firstWord}%${lastWord}`);
+      }
+    }
+
     // Common name variations
     const nameVariations: Record<string, string[]> = {
       // Philip variations
@@ -508,13 +653,7 @@ export default function WeightliftingLandingPage() {
       });
     }
 
-    // Debug logging for name changes
-    if (cleaned.includes('kate') && cleaned.includes('nye')) {
-      console.log('Kate Nye search debug:');
-      console.log('Query:', query);
-      console.log('Cleaned:', cleaned);
-      console.log('All terms:', terms);
-    }
+
     
     // Also try partial matches for name changes (in case the exact name format is different)
     if (cleaned.includes('kate') && cleaned.includes('nye')) {
@@ -541,54 +680,71 @@ export default function WeightliftingLandingPage() {
       setIsMeetSearching(true);
       try {
         const searchTerms = fuzzySearchTerms(query);
-        const allResults: any[] = [];
-        
+        const usawResults: any[] = [];
+        const iwfResults: any[] = [];
+
         // For multi-word searches, we want to find meets that contain ALL words
         const queryWords = query.toLowerCase().trim().split(/\s+/);
         const isMultiWordSearch = queryWords.length > 1;
-        
+
         if (isMultiWordSearch) {
-          // Multi-word search: build a query that requires all words to be present
+          // USAW Multi-word search
           let supabaseQuery = supabase
             .from('meets')
             .select('meet_id, Meet, Date, Level');
-          
-          // Add each word as a separate ilike condition (AND logic)
+
           queryWords.forEach(word => {
             supabaseQuery = supabaseQuery.ilike('Meet', `%${word}%`);
           });
-          
+
           const { data: exactMatches, error: exactError } = await supabaseQuery
             .order('Date', { ascending: false })
             .limit(30);
-            
+
           if (!exactError && exactMatches) {
-            allResults.push(...exactMatches);
+            usawResults.push(...exactMatches);
           }
-          
-          // Also try with fuzzy variations of the full query
+
+          // Also try with fuzzy variations
           for (const term of searchTerms.slice(0, 2)) {
             const termWords = term.toLowerCase().trim().split(/\s+/);
             if (termWords.length > 1) {
               let fuzzyQuery = supabase
                 .from('meets')
                 .select('meet_id, Meet, Date, Level');
-              
+
               termWords.forEach(word => {
                 fuzzyQuery = fuzzyQuery.ilike('Meet', `%${word}%`);
               });
-              
+
               const { data: fuzzyMatches, error: fuzzyError } = await fuzzyQuery
                 .order('Date', { ascending: false })
                 .limit(20);
-                
+
               if (!fuzzyError && fuzzyMatches) {
-                allResults.push(...fuzzyMatches);
+                usawResults.push(...fuzzyMatches);
               }
             }
           }
+
+          // IWF Multi-word search
+          let iwfQuery = supabaseIWF
+            .from('iwf_meets')
+            .select('db_meet_id, meet, date, level');
+
+          queryWords.forEach(word => {
+            iwfQuery = iwfQuery.ilike('meet', `%${word}%`);
+          });
+
+          const { data: iwfMatches, error: iwfError } = await iwfQuery
+            .order('date', { ascending: false })
+            .limit(30);
+
+          if (!iwfError && iwfMatches) {
+            iwfResults.push(...iwfMatches);
+          }
         } else {
-          // Single word search: use the original fuzzy search approach
+          // USAW Single word search
           for (const term of searchTerms.slice(0, 3)) {
             const { data: meets, error: meetsError } = await supabase
               .from('meets')
@@ -598,31 +754,82 @@ export default function WeightliftingLandingPage() {
               .limit(20);
 
             if (!meetsError && meets) {
-              allResults.push(...meets);
+              usawResults.push(...meets);
+            }
+          }
+
+          // IWF Single word search
+          for (const term of searchTerms.slice(0, 3)) {
+            const { data: iwfMeets, error: iwfError } = await supabaseIWF
+              .from('iwf_meets')
+              .select('db_meet_id, meet, date, level')
+              .ilike('meet', `%${term}%`)
+              .order('date', { ascending: false })
+              .limit(20);
+
+            if (!iwfError && iwfMeets) {
+              iwfResults.push(...iwfMeets);
             }
           }
         }
 
-        if (allResults.length === 0) {
+        // Remove USAW duplicates
+        const uniqueUsawMeets = Array.from(
+          new Map(usawResults.map(meet => [meet.meet_id, meet])).values()
+        );
+
+        // Remove IWF duplicates
+        const uniqueIwfMeets = Array.from(
+          new Map(iwfResults.map(meet => [meet.db_meet_id, meet])).values()
+        );
+
+        // Transform USAW results
+        const transformedUsawMeets = uniqueUsawMeets.map(meet => ({
+          meet_id: meet.meet_id,
+          meet_name: meet.Meet,
+          date: meet.Date,
+          level: meet.Level,
+          type: 'meet',
+          source: 'USAW' as DataSource
+        }));
+
+        // Transform IWF results
+        const transformedIwfMeets = uniqueIwfMeets.map(meet => ({
+          db_meet_id: meet.db_meet_id,
+          meet_name: meet.meet,
+          date: meet.date,
+          level: meet.level,
+          type: 'meet',
+          source: 'IWF' as DataSource
+        }));
+
+        // Merge all results
+        const allMeets = [...transformedUsawMeets, ...transformedIwfMeets];
+
+        if (allMeets.length === 0) {
           setMeetSearchResults([]);
           setShowMeetResults(true);
           return;
         }
 
-        // Remove duplicates and sort by date
-        const uniqueMeets = Array.from(
-          new Map(allResults.map(meet => [meet.meet_id, meet])).values()
-        ).sort((a, b) => new Date(b.Date).getTime() - new Date(a.Date).getTime());
+        // Sort by date (most recent first), then by source (USAW first)
+        allMeets.sort((a, b) => {
+          const aDate = new Date(a.date).getTime();
+          const bDate = new Date(b.date).getTime();
 
-        const meetResults = uniqueMeets.slice(0, 50).map(meet => ({
-          meet_id: meet.meet_id,
-          meet_name: meet.Meet,
-          date: meet.Date,
-          level: meet.Level,
-          type: 'meet'
-        }));
+          if (aDate !== bDate) {
+            return bDate - aDate; // Most recent first
+          }
 
-        setMeetSearchResults(meetResults);
+          // Same date, sort by source (USAW first)
+          if (a.source !== b.source) {
+            return a.source === 'USAW' ? -1 : 1;
+          }
+
+          return 0;
+        });
+
+        setMeetSearchResults(allMeets.slice(0, 50));
         setShowMeetResults(true);
       } catch (err) {
         console.error('Unexpected meet search error:', err);
@@ -663,6 +870,22 @@ export default function WeightliftingLandingPage() {
     setPlaceholderMeet(randomMeet);
   }, []);
 
+  useEffect(() => {
+    const testIWF = async () => {
+      try {
+        const { data, error } = await supabaseIWF
+          .from('iwf_lifters')
+          .select('athlete_name, country_name')
+          .eq('athlete_name', 'Lasha TALAKHADZE')
+          .single();
+        if (error) console.error('Sample fetch error:', error);
+      } catch (e) {
+        console.error('Sample fetch exception:', e);
+      }
+    };
+    testIWF();
+  }, []);
+
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -699,29 +922,46 @@ export default function WeightliftingLandingPage() {
   const handleResultSelect = (result: SearchResult) => {
     setSearchQuery(result.athlete_name!);
     setShowResults(false);
-    
-    // Navigate to athlete page - prefer membership number, fallback to name slug
+
+    const source: DataSource = result.source || 'USAW';
+
+    // Determine athlete ID based on source
     let athleteId: string;
-    
-    if (result.membership_number) {
-      athleteId = result.membership_number.toString();
+
+    if (source === 'USAW') {
+      // USAW: prefer membership number, fallback to name slug
+      if (result.membership_number) {
+        athleteId = result.membership_number.toString();
+      } else {
+        athleteId = result.athlete_name!
+          .toLowerCase()
+          .replace(/[^\w\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .trim();
+      }
     } else {
-      // Convert name to URL slug (e.g., "John Doe" -> "john-doe")
-      athleteId = result.athlete_name!
-        .toLowerCase()
-        .replace(/[^\w\s-]/g, '') // Remove special characters
-        .replace(/\s+/g, '-')     // Replace spaces with hyphens
-        .trim();
+      // IWF: use db_lifter_id
+      athleteId = result.db_lifter_id!.toString();
     }
-    
-    router.push(`/athlete/${athleteId}`);
+
+    // Use helper to build correct URL based on source
+    const url = buildAthleteUrl(athleteId, source);
+    router.push(url);
   };
 
   // Handle meet result selection
   const handleMeetResultSelect = (result: SearchResult) => {
     setMeetSearchQuery(result.meet_name!);
     setShowMeetResults(false);
-    router.push(`/meet/${result.meet_id}`);
+
+    const source: DataSource = result.source || 'USAW';
+
+    // Determine meet ID based on source
+    const meetId = source === 'USAW' ? result.meet_id : result.db_meet_id;
+
+    // Use helper to build correct URL based on source
+    const url = buildMeetUrl(meetId!.toString(), source);
+    router.push(url);
   };
 
   // Handle popular search clicks (for future implementation)
@@ -836,28 +1076,40 @@ export default function WeightliftingLandingPage() {
                     </div>
                   ) : searchResults.length > 0 ? (
                     <div className="py-2">
-                          {searchResults.map((result) => (
-                        <button
-                          key={result.lifter_id}
-                          onClick={() => handleResultSelect(result)}
-                          data-search-result="athlete"
-                          className="w-full px-4 py-3 text-left bg-interactive transition-colors flex items-center space-x-3"
-                        >
-                          {React.createElement(getSearchIcon(result.type || 'athlete'), { 
-                      className: "h-5 w-5 text-app-muted" 
-                      })}
-                          <div className="flex-1">
-                            <div className="text-app-primary font-medium">{result.athlete_name}</div>
-                            <div className="text-sm text-app-tertiary">
-                              {[
-                                result.gender,
-                                result.club_name,
-                                result.membership_number ? `#${result.membership_number}` : null
-                              ].filter(Boolean).join(' • ')}
+                          {searchResults.map((result) => {
+                        const source: DataSource = result.source || 'USAW';
+                        const sourceColors = getSourceColor(source);
+                        const resultKey = `${source}_${source === 'USAW' ? result.lifter_id : result.db_lifter_id}`;
+
+                        // Build display info based on source
+                        const displayInfo = source === 'IWF'
+                          ? [result.gender, result.country_name, result.db_lifter_id ? `#${result.db_lifter_id}` : null]
+                          : [result.gender, result.club_name, result.membership_number ? `#${result.membership_number}` : null];
+
+                        return (
+                          <button
+                            key={resultKey}
+                            onClick={() => handleResultSelect(result)}
+                            data-search-result="athlete"
+                            className="w-full px-4 py-3 text-left bg-interactive transition-colors flex items-center space-x-3"
+                          >
+                            {React.createElement(getSearchIcon(result.type || 'athlete'), {
+                        className: "h-5 w-5 text-app-muted"
+                        })}
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <div className="text-app-primary font-medium">{result.athlete_name}</div>
+                                <span className={`text-xs font-semibold px-2 py-1 rounded-full border ${sourceColors.bg} ${sourceColors.text} ${sourceColors.border}`}>
+                                  {getSourceBadge(source)}
+                                </span>
+                              </div>
+                              <div className="text-sm text-app-tertiary">
+                                {displayInfo.filter(Boolean).join(' • ')}
+                              </div>
                             </div>
-                          </div>
-                        </button>
-                      ))}
+                          </button>
+                        );
+                      })}
                     </div>
                   ) : searchQuery.length >= 2 ? (
                     <div className="p-4 text-center text-app-muted">
@@ -917,29 +1169,40 @@ export default function WeightliftingLandingPage() {
                     </div>
                   ) : meetSearchResults.length > 0 ? (
                     <div className="py-2">
-                      {meetSearchResults.map((result) => (
-                        <button
-                          key={result.meet_id}
-                          onClick={() => handleMeetResultSelect(result)}
-                          data-search-result="meet"
-                          className="w-full px-4 py-3 text-left bg-interactive transition-colors flex items-center space-x-3"
-                        >
-                          <CalendarDays className="h-5 w-5 text-app-muted" />
-                          <div className="flex-1">
-                            <div className="text-app-primary font-medium">{result.meet_name}</div>
-                            <div className="text-sm text-app-tertiary">
-                              {[
-                                result.date ? new Date(result.date).toLocaleDateString('en-US', { 
-                                  year: 'numeric', 
-                                  month: 'short', 
-                                  day: 'numeric' 
-                                }) : null,
-                                result.level
-                              ].filter(Boolean).join(' • ')}
+                      {meetSearchResults.map((result) => {
+                        const source: DataSource = result.source || 'USAW';
+                        const sourceColors = getSourceColor(source);
+                        const resultKey = `${source}_${source === 'USAW' ? result.meet_id : result.db_meet_id}`;
+
+                        return (
+                          <button
+                            key={resultKey}
+                            onClick={() => handleMeetResultSelect(result)}
+                            data-search-result="meet"
+                            className="w-full px-4 py-3 text-left bg-interactive transition-colors flex items-center space-x-3"
+                          >
+                            <CalendarDays className="h-5 w-5 text-app-muted" />
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <div className="text-app-primary font-medium">{result.meet_name}</div>
+                                <span className={`text-xs font-semibold px-2 py-1 rounded-full border ${sourceColors.bg} ${sourceColors.text} ${sourceColors.border}`}>
+                                  {getSourceBadge(source)}
+                                </span>
+                              </div>
+                              <div className="text-sm text-app-tertiary">
+                                {[
+                                  result.date ? new Date(result.date).toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric'
+                                  }) : null,
+                                  result.level
+                                ].filter(Boolean).join(' • ')}
+                              </div>
                             </div>
-                          </div>
-                        </button>
-                      ))}
+                          </button>
+                        );
+                      })}
                     </div>
                   ) : meetSearchQuery.length >= 2 ? (
                     <div className="p-4 text-center text-app-muted">
