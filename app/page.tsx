@@ -940,8 +940,8 @@ export default function WeightliftingLandingPage() {
           .trim();
       }
     } else {
-      // IWF: use db_lifter_id
-      athleteId = result.db_lifter_id!.toString();
+      // IWF: use iwf_lifter_id (preferred) or db_lifter_id as fallback
+      athleteId = (result.iwf_lifter_id || result.db_lifter_id)!.toString();
     }
 
     // Use helper to build correct URL based on source
@@ -1081,10 +1081,11 @@ export default function WeightliftingLandingPage() {
                         const sourceColors = getSourceColor(source);
                         const resultKey = `${source}_${source === 'USAW' ? result.lifter_id : result.db_lifter_id}`;
 
-                        // Build display info based on source
-                        const displayInfo = source === 'IWF'
-                          ? [result.gender, result.country_name, result.db_lifter_id ? `#${result.db_lifter_id}` : null]
-                          : [result.gender, result.club_name, result.membership_number ? `#${result.membership_number}` : null];
+
+  // Build display info based on source
+  const displayInfo = source === 'IWF'
+    ? [result.gender, result.country_name, result.iwf_lifter_id ? `#${result.iwf_lifter_id}` : (result.db_lifter_id ? `#${result.db_lifter_id}` : null)]
+    : [result.gender, result.club_name, result.membership_number ? `#${result.membership_number}` : null];
 
                         return (
                           <button

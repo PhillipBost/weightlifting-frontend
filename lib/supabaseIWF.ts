@@ -143,10 +143,15 @@ export interface IWFMeetResult {
 // ============================================================================
 
 /**
- * Extended result type for queries that join multiple tables
+ * Extended result type for queries that join with iwf_meets table
  */
 export interface IWFResultWithMeetData extends IWFMeetResult {
-  // Can include additional meet data if needed
+  iwf_meets?: {
+    meet?: string
+    level?: string
+    date?: string
+    url?: string
+  } | null
 }
 
 export interface IWFResultWithAthleteData extends IWFMeetResult {

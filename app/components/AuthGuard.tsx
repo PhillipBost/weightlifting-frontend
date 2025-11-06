@@ -7,10 +7,11 @@ import { ROLES } from '../../lib/roles';
 interface AuthGuardProps {
   children: ReactNode;
   requireRole?: string;
+  requireAnyRole?: string[];
   fallback?: ReactNode;
 }
 
-export function AuthGuard({ children, requireRole, fallback }: AuthGuardProps) {
+export function AuthGuard({ children, requireRole, requireAnyRole, fallback }: AuthGuardProps) {
   const { user, isLoading } = useAuth();
 
   // Show loading state
@@ -38,7 +39,15 @@ export function AuthGuard({ children, requireRole, fallback }: AuthGuardProps) {
     );
   }
 
-  // Check role requirements
+  // Check multi-role requirement
+  if (requireAnyRole && requireAnyRole.length > 0) {
+    const hasRequiredRole = user.role && requireAnyRole.includes(user.role);
+    if (!hasRequiredRole) {
+      return fallback || null;
+    }
+  }
+
+  // Check single-role requirement
   if (requireRole && user.role !== requireRole) {
     return fallback || (
       <div className="flex items-center justify-center min-h-screen">

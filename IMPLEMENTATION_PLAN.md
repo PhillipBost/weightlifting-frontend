@@ -228,13 +228,11 @@ Integrate IWF international weightlifting data alongside existing USAW data with
 **Files**: `app/athlete/iwf-[id]/page.tsx`, potentially `app/components/AthleteCard.tsx`
 **Tasks**:
 - Import `useAuth()` hook from existing auth system
-- Check if user is authenticated
+- Check if user is authenticated (Approved roles: Admin, Coach, USAW National Team Coach)
 - If authenticated: Show full AthleteCard with all insights
-- If not authenticated: Show placeholder/locked state with login prompt
-- Add "Sign in to view Performance Profile" message
-- Style locked state with lock icon and subtle blur effect
+- If not authenticated: Show nothing in its place
 
-**Success Criteria**: Non-authenticated users see locked Performance Profile; authenticated users see full analytics
+**Success Criteria**: Non-authenticated users see nothing where Performance Profile would normally be; authenticated users see full analytics
 
 ---
 

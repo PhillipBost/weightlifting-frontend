@@ -152,7 +152,7 @@ export function getSourceBadgeClasses(source: DataSource): string {
  */
 export function buildAthleteUrl(id: number | string, source: DataSource): string {
   if (isIWF(source)) {
-    return `/athlete/iwf-${id}`
+    return `/athlete/iwf/${id}`
   }
   return `/athlete/${id}`
 }
@@ -164,7 +164,7 @@ export function buildAthleteUrl(id: number | string, source: DataSource): string
  */
 export function buildMeetUrl(id: number | string, source: DataSource): string {
   if (isIWF(source)) {
-    return `/meet/iwf-${id}`
+    return `/meet/iwf/${id}`
   }
   return `/meet/${id}`
 }
