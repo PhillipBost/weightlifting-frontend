@@ -383,7 +383,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
   const [sortConfig, setSortConfig] = useState<{
     key: string | null;
     direction: 'asc' | 'desc';
-  }>({ key: null, direction: 'asc' });
+  }>({ key: 'date', direction: 'desc' });
   
   const resultsPerPage = 20;
 
@@ -1758,7 +1758,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
             requireAnyRole={[ROLES.ADMIN, ROLES.COACH, ROLES.USAW_NATIONAL_TEAM_COACH]}
             fallback={<></>}
           >
-            <AthleteCard athleteName={athlete.athlete_name} results={results} />
+            <AthleteCard athleteName={athlete.athlete_name} results={results} dataSource="iwf" />
           </AuthGuard>
         )}
 

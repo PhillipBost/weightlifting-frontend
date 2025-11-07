@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ROLES } from '../../../lib/roles';
 import { ChevronDown, User, Crown, Shield, Briefcase, AlertTriangle, Medal } from 'lucide-react';
 
@@ -14,6 +15,9 @@ interface RoleSelectorProps {
 export function RoleSelector({ currentRole, onRoleChange, disabled = false, isCurrentUser = false }: RoleSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showConfirm, setShowConfirm] = useState<string | null>(null);
+
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const roleOptions = [
     {
@@ -75,6 +79,31 @@ export function RoleSelector({ currentRole, onRoleChange, disabled = false, isCu
     }
   };
 
+  useEffect(() => {
+    const handleScrollOrResize = () => {
+      if (isOpen && buttonRef.current && dropdownRef.current) {
+        const rect = buttonRef.current.getBoundingClientRect();
+        const scrollX = window.pageXOffset;
+        const scrollY = window.pageYOffset;
+        dropdownRef.current.style.left = `${rect.left + scrollX}px`;
+        dropdownRef.current.style.top = `${rect.bottom + scrollY}px`;
+        dropdownRef.current.style.width = '16rem';
+      }
+    };
+
+    if (isOpen && buttonRef.current && dropdownRef.current) {
+      handleScrollOrResize();
+    }
+
+    window.addEventListener('scroll', handleScrollOrResize, true);
+    window.addEventListener('resize', handleScrollOrResize, true);
+
+    return () => {
+      window.removeEventListener('scroll', handleScrollOrResize, true);
+      window.removeEventListener('resize', handleScrollOrResize, true);
+    };
+  }, [isOpen]);
+
   const currentOption = getCurrentRoleOption();
 
   // Don't allow current user to change their own admin role
@@ -84,7 +113,11 @@ export function RoleSelector({ currentRole, onRoleChange, disabled = false, isCu
     <div className="relative">
       {/* Role Selector Button */}
       <button
-        onClick={() => !isDisabled && setIsOpen(!isOpen)}
+        ref={buttonRef}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (!isDisabled) setIsOpen(prev => !prev);
+        }}
         disabled={isDisabled}
         className={`
           flex items-center space-x-2 px-3 py-2 rounded-lg border transition-colors min-w-[120px]
@@ -106,8 +139,13 @@ export function RoleSelector({ currentRole, onRoleChange, disabled = false, isCu
       </button>
 
       {/* Dropdown Menu */}
-      {isOpen && !isDisabled && (
-        <div className="absolute top-full left-0 mt-1 w-64 bg-app-secondary border border-app-secondary rounded-lg shadow-lg z-50">
+      {isOpen && !isDisabled && createPortal(
+        <div 
+          ref={dropdownRef}
+          className="w-64 bg-app-secondary border border-app-secondary rounded-lg shadow-lg max-h-64 overflow-y-auto"
+          style={{ position: 'fixed', zIndex: 50 }}
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="py-1">
             {roleOptions.map((option) => (
               <button
@@ -135,8 +173,10 @@ export function RoleSelector({ currentRole, onRoleChange, disabled = false, isCu
               </button>
             ))}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
+
 
       {/* Confirmation Dialog */}
       {showConfirm && (

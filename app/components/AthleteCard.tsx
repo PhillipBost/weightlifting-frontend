@@ -39,6 +39,7 @@ interface CompetitionResult {
 interface AthleteCardProps {
   athleteName: string;
   results: CompetitionResult[];
+  dataSource?: 'usaw' | 'iwf';
 }
 
 // Helper functions for analytics calculations
@@ -385,7 +386,7 @@ function AthleteCardSkeleton() {
   );
 }
 
-export function AthleteCard({ athleteName, results }: AthleteCardProps) {
+export function AthleteCard({ athleteName, results, dataSource }: AthleteCardProps) {
   // Helper function for ordinal numbers
   const getOrdinal = (n: number): string => {
     const s = ["th", "st", "nd", "rd"];
@@ -398,10 +399,11 @@ export function AthleteCard({ athleteName, results }: AthleteCardProps) {
   const demographicFilter = recentResult ? {
     gender: recentResult.gender as 'M' | 'F' | undefined,
     ageCategory: recentResult.age_category || undefined,
-    competitionLevel: recentResult.meets?.Level
+    competitionLevel: recentResult.meets?.Level,
+    dataSource
   } : undefined;
 
-  const { stats: populationStats, loading: statsLoading } = usePopulationStats(demographicFilter);
+  const { stats: populationStats, loading: statsLoading, error: statsError } = usePopulationStats(demographicFilter);
 
   const analytics = useMemo(() => {
     if (results.length === 0) return null;
@@ -680,6 +682,11 @@ export function AthleteCard({ athleteName, results }: AthleteCardProps) {
 
   if (!analytics) {
     return null;
+  }
+
+  // If stats error, log it but continue with fallback (already handled in hook)
+  if (statsError) {
+    console.warn('Population stats error in AthleteCard:', statsError);
   }
 
   // Get performance level based on percentile
@@ -1585,7 +1592,7 @@ export function AthleteCard({ athleteName, results }: AthleteCardProps) {
         </div>
         
         {/* Comparison Context */}
-        {populationStats && (
+        {populationStats && !statsError && (
           <div className="mt-6 pt-4 border-t border-app-secondary">
             <div className="text-xs text-app-muted space-y-2">
               <div>
@@ -1602,6 +1609,19 @@ export function AthleteCard({ athleteName, results }: AthleteCardProps) {
               
               <div>
                 <strong>How to read percentiles:</strong> "85th percentile" means this athlete performs better than 85% of similar athletes in the same demographic group.
+              </div>
+            </div>
+          </div>
+        )}
+        {statsError && (
+          <div className="mt-6 pt-4 border-t border-app-secondary">
+            <div className="text-xs text-yellow-400 space-y-1">
+              <div className="flex items-center">
+                <AlertCircle className="h-3 w-3 mr-1" />
+                <strong>Stats Note:</strong> Unable to load detailed population statistics (using general benchmarks). {statsError}
+              </div>
+              <div className="text-app-muted">
+                This may be due to data availability for international athletes. Core performance metrics are still calculated from competition history.
               </div>
             </div>
           </div>
