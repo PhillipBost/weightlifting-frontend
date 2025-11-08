@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Search, TrendingUp, Trophy, Users, Calendar, CalendarDays, MapPinned, Weight, Dumbbell, Database, Filter, ArrowRight, Github, Heart, X, User, MapPin } from 'lucide-react';
+import { Search, TrendingUp, Trophy, Users, Calendar, CalendarDays, MapPinned, Weight, Dumbbell, Database, Filter, ArrowRight, Github, Heart, X, User, MapPin, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { supabaseIWF } from '../lib/supabaseIWF';
 import { useRouter } from 'next/navigation';
@@ -144,11 +144,12 @@ export default function WeightliftingLandingPage() {
   // Debounced search function with fuzzy search for athlete names (USAW + IWF)
   const debouncedSearch = useCallback(
     debounce(async (query: string) => {
-      if (!query.trim() || query.length < 2) {
-          setSearchResults([]);
-        setShowResults(false);
-        return;
-      }
+    if (!query.trim() || query.length < 2) {
+      setIsSearching(false);
+      setSearchResults([]);
+      setShowResults(false);
+      return;
+    }
 
       setIsSearching(true);
       try {
@@ -732,6 +733,7 @@ export default function WeightliftingLandingPage() {
   const debouncedMeetSearch = useCallback(
     debounce(async (query: string) => {
       if (!query.trim() || query.length < 2) {
+        setIsMeetSearching(false);
         setMeetSearchResults([]);
         setShowMeetResults(false);
         return;
@@ -993,7 +995,10 @@ export default function WeightliftingLandingPage() {
   // Handle search form submission (currently just lifters)
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Form submission handled by real-time search
+    if (searchQuery.trim().length >= 2 && !isSearching) {
+      setIsSearching(true);
+      debouncedSearch(searchQuery);
+    }
   };
 
   // Handle result selection
@@ -1108,19 +1113,36 @@ export default function WeightliftingLandingPage() {
             {/* Athlete Search Bar */}
             <div className="relative">
               <form onSubmit={handleSearch} className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-app-muted" />
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 w-6 h-6 flex items-center justify-center">
+                  {isSearching ? (
+                    <Loader2 className="animate-spin h-4 w-4 text-blue-400" />
+                  ) : (
+                    <Search className="h-4 w-4 text-app-muted" />
+                  )}
+                </div>
                 <input
                   ref={searchInputRef}
                   type="text"
                   id="athlete-search"
                   name="search"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setSearchQuery(value);
+                    if (value.length >= 2) {
+                      setIsSearching(true);
+                    } else {
+                      setIsSearching(false);
+                      setSearchResults([]);
+                      setShowResults(false);
+                    }
+                  }}
                   onFocus={() => {
                     setShowMeetResults(false);
                   }}
                   placeholder={`Search athletes... (e.g., ${placeholderName})`}
-                  className="input-primary"
+                  className={`pl-12 input-primary ${isSearching ? 'animate-pulse border-blue-400' : ''}`}
+                  aria-busy={isSearching}
                   autoComplete="off"
                 />
                 
@@ -1201,20 +1223,46 @@ export default function WeightliftingLandingPage() {
 
             {/* Meet Search Bar */}
             <div className="relative">
-              <form onSubmit={(e) => e.preventDefault()} className="relative">
-                <CalendarDays className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-app-muted" />
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (meetSearchQuery.trim().length >= 2 && !isMeetSearching) {
+                    setIsMeetSearching(true);
+                    debouncedMeetSearch(meetSearchQuery);
+                  }
+                }} 
+                className="relative"
+              >
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 w-6 h-6 flex items-center justify-center">
+                  {isMeetSearching ? (
+                    <Loader2 className="animate-spin h-4 w-4 text-blue-400" />
+                  ) : (
+                    <CalendarDays className="h-4 w-4 text-app-muted" />
+                  )}
+                </div>
                 <input
                   ref={meetSearchInputRef}
                   type="text"
                   id="meet-search"
                   name="meetSearch"
                   value={meetSearchQuery}
-                  onChange={(e) => setMeetSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setMeetSearchQuery(value);
+                    if (value.length >= 2) {
+                      setIsMeetSearching(true);
+                    } else {
+                      setIsMeetSearching(false);
+                      setMeetSearchResults([]);
+                      setShowMeetResults(false);
+                    }
+                  }}
                   onFocus={() => {
                     setShowResults(false);
                   }}
                   placeholder={`Search meets... (e.g., ${placeholderMeet})`}
-                  className="input-primary"
+                  className={`pl-12 input-primary ${isMeetSearching ? 'animate-pulse border-blue-400' : ''}`}
+                  aria-busy={isMeetSearching}
                   autoComplete="off"
                 />
                 
