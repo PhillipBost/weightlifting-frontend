@@ -333,14 +333,19 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         
         // Ensure type compatibility and merge meet data from separate fetch
         const typedResults = rawIWFResults as Partial<IWFMeetResult>[];
-        const mergedResults: IWFMeetResult[] = typedResults.map(result => ({
+        const mergedResults = typedResults.map(result => ({
           ...result,
+          db_result_id: result.db_result_id || 0,
+          db_lifter_id: result.db_lifter_id || 0,
           db_meet_id: parseInt(resolvedParams.id),
+          lifter_name: result.lifter_name || '',
           meet_name: meetData?.meet || '',
           date: meetData?.date || '',
           level: meetData?.level || 'International',
-          country: result.country || result.country_name || ''
-        }));
+          country: result.country || result.country_name || '',
+          birth_year: result.birth_year || 0,
+          manual_override: result.manual_override || false
+        })) as IWFMeetResult[];
         
         // Apply adapter to transform IWF results to USAW-compatible structure
         const adaptedResults = adaptIWFResults(mergedResults);
