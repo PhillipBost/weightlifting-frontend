@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { supabaseIWF } from '../../../../lib/supabaseIWF';
+import { supabaseIWF, IWFMeetResult } from '../../../../lib/supabaseIWF';
 import { adaptIWFResults } from '../../../../lib/adapters/iwfAdapter';
 import { ArrowLeft, Calendar, MapPin, Trophy, Users, ExternalLink, ChevronDown, ChevronRight, Mountain, Database, Medal } from 'lucide-react';
 import { ThemeSwitcher } from '../../../components/ThemeSwitcher';
@@ -265,13 +265,14 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
           iwf_url: meetData.url || null
         });
 
-        // Fetch results from IWF table (no join needed - data is denormalized)
+        // Fetch results from IWF table - select existing fields only
         console.log('Fetching results data for meet ID:', parseInt(resolvedParams.id));
         const { data: rawIWFResults, error: resultsError } = await supabaseIWF
           .from('iwf_meet_results')
           .select(`
             db_result_id,
             db_lifter_id,
+            db_meet_id,
             lifter_name,
             weight_class,
             best_snatch,
@@ -287,8 +288,10 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
             gender,
             age_category,
             competition_age,
+            birth_year,
             country_code,
             country_name,
+            country:country_name,
             competition_group,
             rank,
             qpoints,
@@ -304,6 +307,9 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
             bounce_back_snatch_3,
             bounce_back_cj_2,
             bounce_back_cj_3,
+            manual_override,
+            created_at,
+            updated_at,
             iwf_lifters!inner(iwf_lifter_id)
           `)
           .eq('db_meet_id', parseInt(resolvedParams.id));
@@ -325,9 +331,20 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
           sample: rawIWFResults?.slice(0, 2) || []
         });
         
+        // Ensure type compatibility and merge meet data from separate fetch
+        const typedResults = rawIWFResults as Partial<IWFMeetResult>[];
+        const mergedResults: IWFMeetResult[] = typedResults.map(result => ({
+          ...result,
+          db_meet_id: parseInt(resolvedParams.id),
+          meet_name: meetData?.meet || '',
+          date: meetData?.date || '',
+          level: meetData?.level || 'International',
+          country: result.country || result.country_name || ''
+        }));
+        
         // Apply adapter to transform IWF results to USAW-compatible structure
-        const adaptedResults = adaptIWFResults(rawIWFResults || []);
-        setResults(adaptedResults);
+        const adaptedResults = adaptIWFResults(mergedResults);
+        setResults(adaptedResults as MeetResult[]);
       } catch (err) {
         console.error('Unexpected error:', err);
         setError('An unexpected error occurred');
@@ -1026,7 +1043,11 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
               <ThemeSwitcher />
               {meet?.iwf_url && (
                 <button
-                  onClick={() => window.open(meet.iwf_url, '_blank')}
+                  onClick={() => {
+                    if (meet.iwf_url) {
+                      window.open(meet.iwf_url, '_blank');
+                    }
+                  }}
                   className="flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors"
                 >
                   <ExternalLink className="h-4 w-4" />
