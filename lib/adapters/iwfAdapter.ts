@@ -201,7 +201,7 @@ export function adaptIWFResult(iwfResult: IWFMeetResult): AdaptedResult {
     country_code: iwfResult.country_code,
 
     // IWF-specific fields
-    iwf_lifter_id: (iwfResult.iwf_lifters as any)?.iwf_lifter_id,
+    iwf_lifter_id: iwfResult.iwf_lifters?.iwf_lifter_id ?? null,
     competition_group: iwfResult.competition_group,
     rank: iwfResult.rank,
   };

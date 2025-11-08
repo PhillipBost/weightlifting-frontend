@@ -136,6 +136,11 @@ export interface IWFMeetResult {
   created_at: string
   updated_at: string
   manual_override: boolean
+
+  // Optional joined lifter data
+  iwf_lifters?: {
+    iwf_lifter_id?: number | null;
+  } | null;
 }
 
 // ============================================================================
