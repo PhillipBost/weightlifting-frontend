@@ -12,6 +12,8 @@ import html2canvas from 'html2canvas';
 import Papa from 'papaparse';
 import { ThemeSwitcher } from '../../components/ThemeSwitcher';
 import { AthleteCard } from '../../components/AthleteCard';
+import { AuthGuard } from '../../components/AuthGuard';
+import { ROLES } from '../../../lib/roles';
 
 const getBestQScore = (result: any) => {
   const qYouth = result.q_youth || 0;
@@ -613,7 +615,20 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
   };
 
   const recentInfo = athlete && results.length > 0 ? getRecentInfo() : { wso: null, club: null };
-  
+
+  // Detect if athlete competed internationally in past 4 years
+  const hasCompetedInternationally = useMemo(() => {
+    const fourYearsAgo = new Date();
+    fourYearsAgo.setFullYear(fourYearsAgo.getFullYear() - 4);
+
+    return results.some(result => {
+      const resultDate = new Date(result.date);
+      const level = result.meets?.Level?.toLowerCase() || '';
+      const isInternational = level.includes('international') || level.includes('world');
+      return isInternational && resultDate >= fourYearsAgo;
+    });
+  }, [results]);
+
   // Prepare chart data
   const chartData = results
     .filter(r => r.date && (r.best_snatch || r.best_cj || r.total || r.qpoints || r.q_youth || r.q_masters))
@@ -1725,7 +1740,16 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 
         {/* Athlete Performance Profile Card */}
         {results.length > 0 && (
-          <AthleteCard athleteName={athlete.athlete_name} results={results} />
+          hasCompetedInternationally ? (
+            <AuthGuard
+              requireAnyRole={[ROLES.ADMIN, ROLES.COACH, ROLES.USAW_NATIONAL_TEAM_COACH]}
+              fallback={<></>}
+            >
+              <AthleteCard athleteName={athlete.athlete_name} results={results} />
+            </AuthGuard>
+          ) : (
+            <AthleteCard athleteName={athlete.athlete_name} results={results} />
+          )
         )}
 
         {/* Personal Bests Cards */}
