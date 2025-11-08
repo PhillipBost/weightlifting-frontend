@@ -3,6 +3,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { supabase } from '@/lib/supabase'
 import { User, Session } from '@supabase/supabase-js'
+import { queryWithTimeout } from '@/lib/supabase-utils'
+import { checkSupabaseHealth } from '@/lib/supabase-health'
 
 // Extended user interface that includes profile data
 export interface ExtendedUser extends User {
@@ -127,14 +129,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session?.user?.email)
       setSession(session)
+
       if (session?.user) {
-        const extendedUser = await fetchUserProfile(session.user)
-        setUser(extendedUser)
+        try {
+          // Wrap fetchUserProfile with timeout
+          const extendedUser = await queryWithTimeout(
+            fetchUserProfile(session.user),
+            8000,
+            'fetchUserProfile'
+          )
+
+          setUser(extendedUser)
+        } catch (error) {
+          console.error('[AUTH] Profile fetch timeout:', error instanceof Error ? error.message : error)
+          // Still set basic user even if profile fetch fails
+          setUser(session.user as ExtendedUser)
+        }
       } else {
         setUser(null)
       }
+
       setIsLoading(false)
     })
 
@@ -197,13 +212,32 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Logout function
   const logout = async () => {
     try {
-      const { error } = await supabase.auth.signOut()
+      // Wrap with timeout to detect hanging promises
+      const result = await queryWithTimeout(
+        supabase.auth.signOut(),
+        15000,
+        'supabase.auth.signOut()'
+      )
+
+      const { error } = result
       if (error) {
         throw new Error(error.message)
       }
       // Session will be cleared via the onAuthStateChange listener
     } catch (error) {
-      console.error('Logout error:', error)
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+      console.error('[AUTH] Logout failed:', errorMsg)
+
+      // Check health when logout fails
+      try {
+        const health = await checkSupabaseHealth()
+        if (!health.healthy) {
+          console.error('[AUTH] Supabase health check failed:', health)
+        }
+      } catch (healthErr) {
+        console.error('[AUTH] Health check error:', healthErr instanceof Error ? healthErr.message : healthErr)
+      }
+
       throw error
     }
   }

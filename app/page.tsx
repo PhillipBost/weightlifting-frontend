@@ -12,6 +12,7 @@ import { ThemeSwitcher } from './components/ThemeSwitcher';
 import { UserMenu } from './components/UserMenu';
 import { LoginModal } from './components/LoginModal';
 import { DataSource, getSourceBadge, getSourceColor, buildAthleteUrl, buildMeetUrl } from '../lib/types/dataSource';
+import { queryWithTimeout } from '../lib/supabase-utils';
 
 // Types for our search results
 interface SearchResult {
@@ -144,7 +145,7 @@ export default function WeightliftingLandingPage() {
   const debouncedSearch = useCallback(
     debounce(async (query: string) => {
       if (!query.trim() || query.length < 2) {
-        setSearchResults([]);
+          setSearchResults([]);
         setShowResults(false);
         return;
       }
@@ -158,21 +159,51 @@ export default function WeightliftingLandingPage() {
         // Search with each term variation using two-stage strategy
         for (const term of searchTerms.slice(0, 6)) {
           // USAW - Stage 1: Starts-with matches (high relevance, no limit needed)
-          const { data: usawStartsWith, error: usawStartsError } = await supabase
-            .from('lifters')
-            .select('lifter_id, athlete_name, membership_number')
-            .ilike('athlete_name', `${term}%`)
-            .order('athlete_name')
-            .limit(100);
+          let usawStartsWith, usawStartsError;
+          try {
+            const result = await queryWithTimeout(
+              supabase
+                .from('lifters')
+                .select('lifter_id, athlete_name, membership_number')
+                .ilike('athlete_name', `${term}%`)
+                .order('athlete_name')
+                .limit(100) as any,
+              10000,
+              `USAW Stage 1 (${term})`
+            ) as any;
+            usawStartsWith = result.data;
+            usawStartsError = result.error;
+          } catch (err) {
+            usawStartsError = err;
+            usawStartsWith = null;
+          }
+          if (usawStartsError) {
+            console.error('[SEARCH] USAW Stage 1 error:', usawStartsError?.message || usawStartsError);
+          }
 
           // USAW - Stage 2: Contains matches (lower relevance, with limit)
-          const { data: usawContains, error: usawContainsError } = await supabase
-            .from('lifters')
-            .select('lifter_id, athlete_name, membership_number')
-            .ilike('athlete_name', `%${term}%`)
-            .not('athlete_name', 'ilike', `${term}%`)
-            .order('athlete_name')
-            .limit(200);
+          let usawContains, usawContainsError;
+          try {
+            const result = await queryWithTimeout(
+              supabase
+                .from('lifters')
+                .select('lifter_id, athlete_name, membership_number')
+                .ilike('athlete_name', `%${term}%`)
+                .not('athlete_name', 'ilike', `${term}%`)
+                .order('athlete_name')
+                .limit(200) as any,
+              10000,
+              `USAW Stage 2 (${term})`
+            ) as any;
+            usawContains = result.data;
+            usawContainsError = result.error;
+          } catch (err) {
+            usawContainsError = err;
+            usawContains = null;
+          }
+          if (usawContainsError) {
+            console.error('[SEARCH] USAW Stage 2 error:', usawContainsError?.message || usawContainsError);
+          }
 
           if (!usawStartsError && usawStartsWith) {
             usawResults.push(...usawStartsWith);
@@ -182,24 +213,50 @@ export default function WeightliftingLandingPage() {
           }
 
           // IWF - Stage 1: Starts-with matches (high relevance, no limit needed)
-          const { data: iwfStartsWith, error: iwfStartsError } = await supabaseIWF
-            .from('iwf_lifters')
-            .select('db_lifter_id, athlete_name, gender, country_name, iwf_lifter_id')
-            .ilike('athlete_name', `${term}%`)
-            .order('athlete_name')
-            .limit(100);
+          let iwfStartsWith, iwfStartsError;
+          try {
+            const result = await queryWithTimeout(
+              supabaseIWF
+                .from('iwf_lifters')
+                .select('db_lifter_id, athlete_name, gender, country_name, iwf_lifter_id')
+                .ilike('athlete_name', `${term}%`)
+                .order('athlete_name')
+                .limit(100) as any,
+              10000,
+              `IWF Stage 1 (${term})`
+            ) as any;
+            iwfStartsWith = result.data;
+            iwfStartsError = result.error;
+          } catch (err) {
+            iwfStartsError = err;
+            iwfStartsWith = null;
+          }
+          if (iwfStartsError) {
+            console.error('[SEARCH] IWF Stage 1 error:', iwfStartsError?.message || iwfStartsError);
+          }
 
           // IWF - Stage 2: Contains matches (lower relevance, with limit)
-          const { data: iwfContains, error: iwfContainsError } = await supabaseIWF
-            .from('iwf_lifters')
-            .select('db_lifter_id, athlete_name, gender, country_name, iwf_lifter_id')
-            .ilike('athlete_name', `%${term}%`)
-            .not('athlete_name', 'ilike', `${term}%`)
-            .order('athlete_name')
-            .limit(200);
-
+          let iwfContains, iwfContainsError;
+          try {
+            const result = await queryWithTimeout(
+              supabaseIWF
+                .from('iwf_lifters')
+                .select('db_lifter_id, athlete_name, gender, country_name, iwf_lifter_id')
+                .ilike('athlete_name', `%${term}%`)
+                .not('athlete_name', 'ilike', `${term}%`)
+                .order('athlete_name')
+                .limit(200) as any,
+              10000,
+              `IWF Stage 2 (${term})`
+            ) as any;
+            iwfContains = result.data;
+            iwfContainsError = result.error;
+          } catch (err) {
+            iwfContainsError = err;
+            iwfContains = null;
+          }
           if (iwfContainsError) {
-            console.error('IWF Stage 2 error for', term, ':', iwfContainsError);
+            console.error('[SEARCH] IWF Stage 2 error:', iwfContainsError?.message || iwfContainsError);
           } else {
             // IWF Stage 2 succeeded
           }
@@ -325,11 +382,14 @@ export default function WeightliftingLandingPage() {
 
 
 
-        setSearchResults(deduplicatedAthletes.slice(0, 100) || []);
+        const finalResults = deduplicatedAthletes.slice(0, 100) || [];
+        setSearchResults(finalResults);
         setShowResults(true);
       } catch (err) {
-        console.error('Unexpected search error:', err);
+        const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+        console.error('[SEARCH] Error:', errorMsg);
         setSearchResults([]);
+        setShowResults(false);
       } finally {
         setIsSearching(false);
       }
@@ -697,9 +757,24 @@ export default function WeightliftingLandingPage() {
             supabaseQuery = supabaseQuery.ilike('Meet', `%${word}%`);
           });
 
-          const { data: exactMatches, error: exactError } = await supabaseQuery
-            .order('Date', { ascending: false })
-            .limit(30);
+          let exactMatches, exactError;
+          try {
+            const result = await queryWithTimeout(
+              supabaseQuery
+                .order('Date', { ascending: false })
+                .limit(30) as any,
+              10000,
+              'USAW meet exact match'
+            ) as any;
+            exactMatches = result.data;
+            exactError = result.error;
+          } catch (err) {
+            exactError = err;
+            exactMatches = null;
+          }
+          if (exactError) {
+            console.error('[MEET_SEARCH] USAW exact match error:', exactError?.message || exactError);
+          }
 
           if (!exactError && exactMatches) {
             usawResults.push(...exactMatches);
@@ -829,11 +904,14 @@ export default function WeightliftingLandingPage() {
           return 0;
         });
 
-        setMeetSearchResults(allMeets.slice(0, 50));
+        const finalResults = allMeets.slice(0, 50);
+        setMeetSearchResults(finalResults);
         setShowMeetResults(true);
       } catch (err) {
-        console.error('Unexpected meet search error:', err);
+        const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+        console.error('[MEET_SEARCH] Error:', errorMsg);
         setMeetSearchResults([]);
+        setShowMeetResults(false);
       } finally {
         setIsMeetSearching(false);
       }

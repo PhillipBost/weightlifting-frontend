@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useAuth } from './AuthProvider'
+import { queryWithTimeout } from '@/lib/supabase-utils'
+import { checkSupabaseHealth } from '@/lib/supabase-health'
 
 interface UserMenuProps {
   onLoginClick?: () => void
@@ -11,6 +13,8 @@ interface UserMenuProps {
 export function UserMenu({ onLoginClick, showOnlyWhenLoggedIn = false }: UserMenuProps) {
   const { user, logout, isLoading } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [logoutError, setLogoutError] = useState<string | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
   // Close menu when clicking outside
@@ -30,12 +34,33 @@ export function UserMenu({ onLoginClick, showOnlyWhenLoggedIn = false }: UserMen
     }
   }, [isOpen])
 
-  const handleLogout = async () => {
+  const handleLogout = async (e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent click-outside handler from closing dropdown prematurely
+
+    setIsLoggingOut(true)
+    setLogoutError(null)
+
     try {
-      await logout()
+      // Wrap logout with timeout to detect hanging promises
+      await queryWithTimeout(
+        logout(),
+        20000,
+        'Sign out'
+      )
+
       setIsOpen(false)
     } catch (error) {
-      console.error('Logout failed:', error)
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+      console.error('[LOGOUT] Failed:', errorMsg)
+      setLogoutError(errorMsg)
+
+      // Check Supabase health when logout fails
+      const health = await checkSupabaseHealth()
+      if (!health.healthy) {
+        console.error('[LOGOUT] Supabase health check failed:', health)
+      }
+    } finally {
+      setIsLoggingOut(false)
     }
   }
 
@@ -109,11 +134,17 @@ export function UserMenu({ onLoginClick, showOnlyWhenLoggedIn = false }: UserMen
           </div>
 
           <div className="p-2">
+            {logoutError && (
+              <div className="mb-2 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-700">
+                {logoutError}
+              </div>
+            )}
             <button
               onClick={handleLogout}
-              className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded transition-colors"
+              disabled={isLoggingOut}
+              className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Sign Out
+              {isLoggingOut ? 'Signing out...' : 'Sign Out'}
             </button>
           </div>
         </div>

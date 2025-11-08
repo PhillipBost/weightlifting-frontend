@@ -34,7 +34,9 @@ export interface AdaptedAthlete {
  * Adapted competition result that matches USAW meet_results structure
  */
 export interface AdaptedResult {
+  result_id: number; // Added: maps to db_result_id
   lifter_id: number;
+  lifter_name: string; // Added: athlete's name from database
   date: string;
   meet_name?: string;
   meet_id?: number; // Maps to db_meet_id for IWF
@@ -85,6 +87,11 @@ export interface AdaptedResult {
   club_name?: string; // Maps to country_name
   country_name?: string; // Preserve original
   country_code?: string; // Preserve original
+
+  // IWF-specific fields
+  iwf_lifter_id?: number | null;
+  competition_group?: string | null;
+  rank?: number | null;
 }
 
 // ============================================================================
@@ -134,8 +141,10 @@ export function adaptIWFAthlete(iwfLifter: IWFLifter): AdaptedAthlete {
  */
 export function adaptIWFResult(iwfResult: IWFMeetResult): AdaptedResult {
   return {
-    // Map primary ID
+    // Map primary IDs
+    result_id: iwfResult.db_result_id,
     lifter_id: iwfResult.db_lifter_id,
+    lifter_name: iwfResult.lifter_name,
 
     // Meet info
     date: iwfResult.date,
@@ -190,6 +199,11 @@ export function adaptIWFResult(iwfResult: IWFMeetResult): AdaptedResult {
     // Preserve original country data
     country_name: iwfResult.country_name,
     country_code: iwfResult.country_code,
+
+    // IWF-specific fields
+    iwf_lifter_id: (iwfResult.iwf_lifters as any)?.iwf_lifter_id,
+    competition_group: iwfResult.competition_group,
+    rank: iwfResult.rank,
   };
 }
 
