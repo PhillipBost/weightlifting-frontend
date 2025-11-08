@@ -128,7 +128,7 @@
 body {
   background: var(--bg-primary);
   color: var(--text-secondary);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 

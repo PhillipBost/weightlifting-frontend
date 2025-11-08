@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { supabase } from '../../../lib/supabase';
-import { ArrowLeft, Calendar, MapPin, Trophy, Users, ExternalLink, ChevronDown, ChevronRight, Mountain, Database } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Trophy, Users, ExternalLink, ChevronDown, ChevronRight, Mountain, Database, Medal } from 'lucide-react';
 import { ThemeSwitcher } from '../../components/ThemeSwitcher';
 
 interface MeetResult {
@@ -1121,7 +1121,12 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                               return (
                               <tr key={result.result_id} className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors group" style={{ borderTopColor: 'var(--border-secondary)' }}>
                                 <td className="px-2 py-1 whitespace-nowrap text-sm font-medium text-app-primary">
-                                  {displayPlace}
+                                  <div className="flex items-center gap-1">
+                                    <span>{displayPlace}</span>
+                                    {displayPlace === 1 && <Medal className="h-4 w-4" style={{ color: '#FFD700' }} />}
+                                    {displayPlace === 2 && <Medal className="h-4 w-4" style={{ color: '#C0C0C0' }} />}
+                                    {displayPlace === 3 && <Medal className="h-4 w-4" style={{ color: '#CD7F32' }} />}
+                                  </div>
                                 </td>
                                 <td className="px-2 py-1 whitespace-nowrap">
                                   <button

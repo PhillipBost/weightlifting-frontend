@@ -8,6 +8,21 @@ import { supabaseIWF, IWFMeetResult } from '../../../../lib/supabaseIWF';
 import { adaptIWFResults } from '../../../../lib/adapters/iwfAdapter';
 import { ArrowLeft, Calendar, MapPin, Trophy, Users, ExternalLink, ChevronDown, ChevronRight, Mountain, Database, Medal } from 'lucide-react';
 import { ThemeSwitcher } from '../../../components/ThemeSwitcher';
+import {
+  Ad, Ae, Af, Ag, Ai, Al, Am, Ao, Aq, Ar, As, At, Au, Aw, Ax, Az,
+  Ba, Bb, Bd, Be, Bf, Bg, Bh, Bi, Bj, Bl, Bm, Bn, Bo, Bq, Br, Bs, Bt, Bv, Bw, By, Bz,
+  Ca, Cc, Cd, Cf, Cg, Ch, Ci, Ck, Cl, Cm, Cn, Co, Cr, Cu, Cv, Cw, Cx, Cy, Cz,
+  De, Dj, Dk, Dm, Do, Dz, Ec, Ee, Eg, Eh, Er, Es, Et,
+  Fi, Fj, Fk, Fm, Fo, Fr, Ga, Gb, Gd, Ge, Gf, Gg, Gh, Gi, Gl, Gm, Gn, Gp, Gq, Gr, Gs, Gt, Gu, Gw, Gy,
+  Hk, Hm, Hn, Hr, Ht, Hu, Id, Ie, Il, Im, In, Io, Iq, Ir, Is, It,
+  Je, Jm, Jo, Jp, Ke, Kg, Kh, Ki, Km, Kn, Kp, Kr, Kw, Ky, Kz,
+  La, Lb, Lc, Li, Lk, Lr, Ls, Lt, Lu, Lv, Ly, Ma, Mc, Md, Me, Mf, Mg, Mh, Mk, Ml, Mm, Mn, Mo, Mp, Mq, Mr, Ms, Mt, Mu, Mv, Mw, Mx, My, Mz,
+  Na, Nc, Ne, Nf, Ng, Ni, Nl, No, Np, Nr, Nu, Nz, Om, Pa, Pe, Pf, Pg, Ph, Pk, Pl, Pm, Pn, Pr, Ps, Pt, Pw, Py,
+  Qa, Re, Ro, Rs, Ru, Rw, Sa, Sb, Sc, Sd, Se, Sg, Sh, Si, Sj, Sk, Sl, Sm, Sn, So, Sr, Ss, St, Sv, Sx, Sy, Sz,
+  Tc, Td, Tf, Tg, Th, Tj, Tk, Tl, Tm, Tn, To, Tr, Tt, Tv, Tw, Tz, Ua, Ug, Um, Us, Uy, Uz,
+  Va, Vc, Ve, Vg, Vi, Vn, Vu, Wf, Ws, Ye, Yt, Za, Zm, Zw,
+  GbEng, GbSct, GbWls
+} from 'react-flag-icons';
 
 interface MeetResult {
   result_id: number;
@@ -51,80 +66,67 @@ interface Meet {
   iwf_url?: string | null;
 }
 
-// Helper function to convert country code to emoji flag
-// Generates flags programmatically from 2-letter ISO codes
-const countryCodeToFlag = (code: string): string => {
-  if (!code) return '';
+const getCountryFlagComponent = (code: string): React.ComponentType<any> | null => {
+  if (!code) return null;
 
-  // Reverse mapping from 3-letter to 2-letter codes
-  const threeToTwoMapping: Record<string, string> = {
-    'AND': 'AD', 'ARE': 'AE', 'AFG': 'AF', 'ATG': 'AG', 'AIA': 'AI', 'ALB': 'AL',
-    'ARM': 'AM', 'AGO': 'AO', 'ATA': 'AQ', 'ARG': 'AR', 'ASM': 'AS', 'AUT': 'AT',
-    'AUS': 'AU', 'ABW': 'AW', 'ALA': 'AX', 'AZE': 'AZ', 'BIH': 'BA', 'BRB': 'BB',
-    'BGD': 'BD', 'BEL': 'BE', 'BFA': 'BF', 'BGR': 'BG', 'BHR': 'BH', 'BDI': 'BI',
-    'BEN': 'BJ', 'BLM': 'BL', 'BMU': 'BM', 'BRN': 'BN', 'BOL': 'BO', 'BES': 'BQ',
-    'BRA': 'BR', 'BHS': 'BS', 'BTN': 'BT', 'BVT': 'BV', 'BWA': 'BW', 'BLR': 'BY',
-    'BLZ': 'BZ', 'CAN': 'CA', 'CCK': 'CC', 'COD': 'CD', 'CAF': 'CF', 'COG': 'CG',
-    'CHE': 'CH', 'CIV': 'CI', 'COK': 'CK', 'CHL': 'CL', 'CMR': 'CM', 'CHN': 'CN',
-    'COL': 'CO', 'CRI': 'CR', 'CUB': 'CU', 'CPV': 'CV', 'CUW': 'CW', 'CXR': 'CX',
-    'CYP': 'CY', 'CZE': 'CZ', 'DEU': 'DE', 'DJI': 'DJ', 'DNK': 'DK', 'DMA': 'DM',
-    'DOM': 'DO', 'DZA': 'DZ', 'ECU': 'EC', 'EST': 'EE', 'EGY': 'EG', 'ESH': 'EH',
-    'ERI': 'ER', 'ESP': 'ES', 'ETH': 'ET', 'FIN': 'FI', 'FJI': 'FJ', 'FLK': 'FK',
-    'FSM': 'FM', 'FRO': 'FO', 'FRA': 'FR', 'GAB': 'GA', 'GBR': 'GB', 'GRD': 'GD',
-    'GEO': 'GE', 'GUF': 'GF', 'GGY': 'GG', 'GHA': 'GH', 'GIB': 'GI', 'GRL': 'GL',
-    'GMB': 'GM', 'GIN': 'GN', 'GLP': 'GP', 'GNQ': 'GQ', 'GRC': 'GR', 'SGS': 'GS',
-    'GTM': 'GT', 'GUM': 'GU', 'GNB': 'GW', 'GUY': 'GY', 'HKG': 'HK', 'HMD': 'HM',
-    'HND': 'HN', 'HRV': 'HR', 'HTI': 'HT', 'HUN': 'HU', 'IDN': 'ID', 'IRL': 'IE',
-    'ISR': 'IL', 'IMN': 'IM', 'IND': 'IN', 'IOT': 'IO', 'IRQ': 'IQ', 'IRN': 'IR',
-    'ISL': 'IS', 'ITA': 'IT', 'JEY': 'JE', 'JAM': 'JM', 'JOR': 'JO', 'JPN': 'JP',
-    'KEN': 'KE', 'KGZ': 'KG', 'KHM': 'KH', 'KIR': 'KI', 'COM': 'KM', 'KNA': 'KN',
-    'PRK': 'KP', 'KOR': 'KR', 'KWT': 'KW', 'CYM': 'KY', 'KAZ': 'KZ', 'LAO': 'LA',
-    'LBN': 'LB', 'LCA': 'LC', 'LIE': 'LI', 'LKA': 'LK', 'LBR': 'LR', 'LSO': 'LS',
-    'LTU': 'LT', 'LUX': 'LU', 'LVA': 'LV', 'LBY': 'LY', 'MAR': 'MA', 'MCO': 'MC',
-    'MDA': 'MD', 'MNE': 'ME', 'MAF': 'MF', 'MDG': 'MG', 'MHL': 'MH', 'MKD': 'MK',
-    'MLI': 'ML', 'MMR': 'MM', 'MNG': 'MN', 'MAC': 'MO', 'MNP': 'MP', 'MTQ': 'MQ',
-    'MRT': 'MR', 'MSR': 'MS', 'MLT': 'MT', 'MUS': 'MU', 'MDV': 'MV', 'MWI': 'MW',
-    'MEX': 'MX', 'MYS': 'MY', 'MOZ': 'MZ', 'NAM': 'NA', 'NCL': 'NC', 'NER': 'NE',
-    'NFK': 'NF', 'NGA': 'NG', 'NIC': 'NI', 'NLD': 'NL', 'NOR': 'NO', 'NPL': 'NP',
-    'NRU': 'NR', 'NIU': 'NU', 'NZL': 'NZ', 'OMN': 'OM', 'PAN': 'PA', 'PER': 'PE',
-    'PYF': 'PF', 'PNG': 'PG', 'PHL': 'PH', 'PAK': 'PK', 'POL': 'PL', 'SPM': 'PM',
-    'PCN': 'PN', 'PRI': 'PR', 'PSE': 'PS', 'PRT': 'PT', 'PLW': 'PW', 'PRY': 'PY',
-    'QAT': 'QA', 'REU': 'RE', 'ROU': 'RO', 'SRB': 'RS', 'RUS': 'RU', 'RWA': 'RW',
-    'SAU': 'SA', 'SLB': 'SB', 'SYC': 'SC', 'SDN': 'SD', 'SWE': 'SE', 'SGP': 'SG',
-    'SHN': 'SH', 'SVN': 'SI', 'SJM': 'SJ', 'SVK': 'SK', 'SLE': 'SL', 'SMR': 'SM',
-    'SEN': 'SN', 'SOM': 'SO', 'SUR': 'SR', 'SSD': 'SS', 'STP': 'ST', 'SLV': 'SV',
-    'SXM': 'SX', 'SYR': 'SY', 'SWZ': 'SZ', 'TCA': 'TC', 'TCD': 'TD', 'ATF': 'TF',
-    'TGO': 'TG', 'THA': 'TH', 'TJK': 'TJ', 'TKL': 'TK', 'TLS': 'TL', 'TKM': 'TM',
-    'TUN': 'TN', 'TON': 'TO', 'TUR': 'TR', 'TTO': 'TT', 'TUV': 'TV', 'TWN': 'TW',
-    'TZA': 'TZ', 'UKR': 'UA', 'UGA': 'UG', 'UMI': 'UM', 'USA': 'US', 'URY': 'UY',
-    'UZB': 'UZ', 'VAT': 'VA', 'VCT': 'VC', 'VEN': 'VE', 'VGB': 'VG', 'VIR': 'VI',
-    'VNM': 'VN', 'VUT': 'VU', 'WLF': 'WF', 'WSM': 'WS', 'YEM': 'YE', 'MYT': 'YT',
-    'ZAF': 'ZA', 'ZMB': 'ZM', 'ZWE': 'ZW',
+  // IOC to component mapping (from iwf-lifter-manager.js country codes)
+  const iocMap: Record<string, React.ComponentType<any>> = {
+    // European countries (IOC codes)
+    'ALB': Al, 'AND': Ad, 'ARM': Am, 'AUT': At, 'AZE': Az, 'BEL': Be, 'BIH': Ba, 'BUL': Bg, 'CRO': Hr, 'CYP': Cy,
+    'CZE': Cz, 'DEN': Dk, 'EST': Ee, 'FIN': Fi, 'FRA': Fr, 'GEO': Ge, 'GER': De, 'GRE': Gr, 'GBR': Gb, 'HUN': Hu,
+    'ISL': Is, 'IRL': Ie, 'ITA': It, 'KOS': null, 'LAT': Lv, 'LIE': Li, 'LTU': Lt, 'LUX': Lu, 'MDA': Md, 'MON': Mc,
+    'MNE': Me, 'NED': Nl, 'NOR': No, 'POL': Pl, 'POR': Pt, 'ROU': Ro, 'RUS': Ru, 'SMR': Sm, 'SRB': Rs, 'SVK': Sk,
+    'SVN': Si, 'ESP': Es, 'SWE': Se, 'SUI': Ch, 'TUR': Tr, 'UKR': Ua,
+    // Asian countries (IOC codes)
+    'AFG': Af, 'BAN': Bd, 'CAM': Kh, 'CHN': Cn, 'HKG': Hk, 'IND': In, 'IDN': Id, 'IRN': Ir, 'JPN': Jp, 'JOR': Jo,
+    'KAZ': Kz, 'KOR': Kr, 'KWT': Kw, 'KGZ': Kg, 'LAO': La, 'LBN': Lb, 'MAS': My, 'MGL': Mn, 'MYA': Mm, 'NEP': Np,
+    'PAK': Pk, 'PHI': Ph, 'QAT': Qa, 'SGP': Sg, 'THA': Th, 'TJK': Tj, 'TPE': Tw, 'TKM': Tm, 'UZB': Uz, 'VIE': Vn,
+    // Americas (IOC codes)
+    'ARG': Ar, 'BAR': Bb, 'BRA': Br, 'CAN': Ca, 'CHI': Cl, 'COL': Co, 'CRC': Cr, 'CUB': Cu, 'DOM': Do, 'ECU': Ec,
+    'SLV': Sv, 'GUA': Gt, 'HAI': Ht, 'HND': Hn, 'JAM': Jm, 'MEX': Mx, 'PAN': Pa, 'PAR': Py, 'PER': Pe, 'PUR': Pr,
+    'URU': Uy, 'USA': Us, 'VEN': Ve,
+    // Oceania (IOC codes)
+    'AUS': Au, 'FIJ': Fj, 'NZL': Nz, 'PNG': Pg, 'SAM': Ws, 'TON': To,
+    // Africa (IOC codes)
+    'ALG': Dz, 'ANG': Ao, 'BOT': Bw, 'BWA': Bw, 'CMR': Cm, 'EGY': Eg, 'ETH': Et, 'GHA': Gh, 'KEN': Ke, 'LIB': Ly,
+    'MAR': Ma, 'MRI': Mu, 'MOZ': Mz, 'NAM': Na, 'NGA': Ng, 'RWA': Rw, 'RSA': Za, 'SUD': Sd, 'TAN': Tz, 'TUN': Tn,
+    'UGA': Ug, 'ZIM': Zw,
+    // Special/Neutral codes
+    'VAN': Vu, 'WRT': null, 'ISR': Il, 'KUW': Kw, 'MLT': Mt, 'INA': Id, 'BRN': Bn, 'UAE': Ae, 'TGA': To, 'PRK': Kp,
+    'PLE': Ps, 'NMI': Mp, 'NGR': Ng, 'KSA': Sa, 'IRI': Ir, 'ARU': Aw, 'ASA': As, 'BDI': Bi, 'BLR': By, 'BOL': Bo,
+    'BRU': Bn, 'CGO': Cg, 'COD': Cd, 'COK': Ck, 'COM': Km, 'CPV': Cv, 'CUR': Cw, 'ENG': GbEng, 'ESA': Sv, 'FSM': Fm,
+    'GAM': Gm, 'GEQ': Gq, 'GIB': Gi, 'GUI': Gn, 'GUM': Gu, 'GUY': Gy, 'HON': Hn, 'IOA': null, 'IRQ': Iq, 'KIR': Ki,
+    'KRI': Ki, 'LBA': Ly, 'LBR': Lr, 'LES': Ls, 'MAC': Mo, 'MAD': Mg, 'MAW': Mw, 'MHL': Mh, 'MTN': Mr, 'NCA': Ni,
+    'NCL': Nc, 'NIC': Ni, 'NIR': GbWls, 'NIU': Nu, 'NRU': Nr, 'OMA': Om, 'PLW': Pw, 'ROC': Tw, 'RWF': null, 'SCO': GbSct,
+    'SEN': Sn, 'SEY': Sc, 'SLE': Sl, 'SLO': Si, 'SOL': Sb, 'SRI': Lk, 'SWZ': Sz, 'SYR': Sy, 'TAH': Pf, 'TCA': Tc,
+    'TLS': Tl, 'TTO': Tt, 'TUV': Tv, 'VIN': Vc, 'WAL': GbWls, 'WLF': Wf, 'YEM': Ye, 'ZAM': Zm, 'ZAN': Tz,
+    // Also support ISO 2-letter codes directly
+    'AD': Ad, 'AE': Ae, 'AF': Af, 'AG': Ag, 'AI': Ai, 'AL': Al, 'AM': Am, 'AO': Ao, 'AQ': Aq, 'AR': Ar, 'AS': As, 'AT': At,
+    'AU': Au, 'AW': Aw, 'AX': Ax, 'AZ': Az, 'BA': Ba, 'BB': Bb, 'BD': Bd, 'BE': Be, 'BF': Bf, 'BG': Bg, 'BH': Bh, 'BI': Bi,
+    'BJ': Bj, 'BL': Bl, 'BM': Bm, 'BN': Bn, 'BO': Bo, 'BQ': Bq, 'BR': Br, 'BS': Bs, 'BT': Bt, 'BV': Bv, 'BW': Bw, 'BY': By,
+    'BZ': Bz, 'CA': Ca, 'CC': Cc, 'CD': Cd, 'CF': Cf, 'CG': Cg, 'CH': Ch, 'CI': Ci, 'CK': Ck, 'CL': Cl, 'CM': Cm, 'CN': Cn,
+    'CO': Co, 'CR': Cr, 'CU': Cu, 'CV': Cv, 'CW': Cw, 'CX': Cx, 'CY': Cy, 'CZ': Cz, 'DE': De, 'DJ': Dj, 'DK': Dk, 'DM': Dm,
+    'DO': Do, 'DZ': Dz, 'EC': Ec, 'EE': Ee, 'EG': Eg, 'EH': Eh, 'ER': Er, 'ES': Es, 'ET': Et, 'FI': Fi, 'FJ': Fj, 'FK': Fk,
+    'FM': Fm, 'FO': Fo, 'FR': Fr, 'GA': Ga, 'GB': Gb, 'GD': Gd, 'GE': Ge, 'GF': Gf, 'GG': Gg, 'GH': Gh, 'GI': Gi, 'GL': Gl,
+    'GM': Gm, 'GN': Gn, 'GP': Gp, 'GQ': Gq, 'GR': Gr, 'GS': Gs, 'GT': Gt, 'GU': Gu, 'GW': Gw, 'GY': Gy, 'HK': Hk, 'HM': Hm,
+    'HN': Hn, 'HR': Hr, 'HT': Ht, 'HU': Hu, 'ID': Id, 'IE': Ie, 'IL': Il, 'IM': Im, 'IN': In, 'IO': Io, 'IQ': Iq, 'IR': Ir,
+    'IS': Is, 'IT': It, 'JE': Je, 'JM': Jm, 'JO': Jo, 'JP': Jp, 'KE': Ke, 'KG': Kg, 'KH': Kh, 'KI': Ki, 'KM': Km, 'KN': Kn,
+    'KP': Kp, 'KR': Kr, 'KW': Kw, 'KY': Ky, 'KZ': Kz, 'LA': La, 'LB': Lb, 'LC': Lc, 'LI': Li, 'LK': Lk, 'LR': Lr, 'LS': Ls,
+    'LT': Lt, 'LU': Lu, 'LV': Lv, 'LY': Ly, 'MA': Ma, 'MC': Mc, 'MD': Md, 'ME': Me, 'MF': Mf, 'MG': Mg, 'MH': Mh, 'MK': Mk,
+    'ML': Ml, 'MM': Mm, 'MN': Mn, 'MO': Mo, 'MP': Mp, 'MQ': Mq, 'MR': Mr, 'MS': Ms, 'MT': Mt, 'MU': Mu, 'MV': Mv, 'MW': Mw,
+    'MX': Mx, 'MY': My, 'MZ': Mz, 'NA': Na, 'NC': Nc, 'NE': Ne, 'NF': Nf, 'NG': Ng, 'NI': Ni, 'NL': Nl, 'NO': No, 'NP': Np,
+    'NR': Nr, 'NU': Nu, 'NZ': Nz, 'OM': Om, 'PA': Pa, 'PE': Pe, 'PF': Pf, 'PG': Pg, 'PH': Ph, 'PK': Pk, 'PL': Pl, 'PM': Pm,
+    'PN': Pn, 'PR': Pr, 'PS': Ps, 'PT': Pt, 'PW': Pw, 'PY': Py, 'QA': Qa, 'RE': Re, 'RO': Ro, 'RS': Rs, 'RU': Ru, 'RW': Rw,
+    'SA': Sa, 'SB': Sb, 'SC': Sc, 'SD': Sd, 'SE': Se, 'SG': Sg, 'SH': Sh, 'SI': Si, 'SJ': Sj, 'SK': Sk, 'SL': Sl, 'SM': Sm,
+    'SN': Sn, 'SO': So, 'SR': Sr, 'SS': Ss, 'ST': St, 'SV': Sv, 'SX': Sx, 'SY': Sy, 'SZ': Sz, 'TC': Tc, 'TD': Td, 'TF': Tf,
+    'TG': Tg, 'TH': Th, 'TJ': Tj, 'TK': Tk, 'TL': Tl, 'TM': Tm, 'TN': Tn, 'TO': To, 'TR': Tr, 'TT': Tt, 'TV': Tv, 'TW': Tw,
+    'TZ': Tz, 'UA': Ua, 'UG': Ug, 'UM': Um, 'US': Us, 'UY': Uy, 'UZ': Uz, 'VA': Va, 'VC': Vc, 'VE': Ve, 'VG': Vg, 'VI': Vi,
+    'VN': Vn, 'VU': Vu, 'WF': Wf, 'WS': Ws, 'YE': Ye, 'YT': Yt, 'ZA': Za, 'ZM': Zm, 'ZW': Zw,
+    'GbEng': GbEng, 'GbSct': GbSct, 'GbWls': GbWls,
   };
 
-  const normalizedCode = code.toUpperCase().trim();
-
-  // Special cases
-  if (normalizedCode === 'AIN' || normalizedCode === 'ROC') {
-    return '🏳️';
-  }
-
-  // Get 2-letter code
-  let twoLetterCode = normalizedCode;
-  if (normalizedCode.length === 3) {
-    twoLetterCode = threeToTwoMapping[normalizedCode] || normalizedCode;
-  }
-
-  // Generate flag emoji from 2-letter code
-  if (twoLetterCode.length === 2) {
-    return twoLetterCode
-      .toUpperCase()
-      .split('')
-      .map(char => String.fromCodePoint(0x1F1E6 + char.charCodeAt(0) - 65))
-      .join('');
-  }
-
-  return '';
+  const normalized = code.toUpperCase().trim();
+  return iocMap[normalized] || null;
 };
 
 const SortIcon = ({ column, sortConfig, division }: {
@@ -1285,7 +1287,10 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                                 </td>
                                 <td className="px-2 py-1 whitespace-nowrap text-sm text-app-secondary">
                                   <div className="flex items-center gap-2">
-                                    <span className="text-lg">{countryCodeToFlag(result.wso || '')}</span>
+                                    {(() => {
+                                      const FlagComponent = getCountryFlagComponent(result.wso);
+                                      return FlagComponent ? <FlagComponent style={{ width: '18px', height: '18px' }} /> : null;
+                                    })()}
                                     <span className="text-sm">{result.club_name || '-'}</span>
                                   </div>
                                 </td>
