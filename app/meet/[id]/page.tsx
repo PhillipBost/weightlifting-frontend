@@ -43,6 +43,8 @@ interface Meet {
   location: string;
   level: string;
   elevation?: number | null;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 const SortIcon = ({ column, sortConfig, division }: {

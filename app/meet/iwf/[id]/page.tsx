@@ -24,6 +24,54 @@ import {
   GbEng, GbSct, GbWls
 } from 'react-flag-icons';
 
+// Custom ROC (Russian Olympic Committee) flag component
+const RocFlag: React.FC<{ style?: React.CSSProperties }> = ({ style }) => (
+  <img
+    src="/roc-flag.svg"
+    alt="ROC"
+    style={{ ...style, width: '18px', height: 'auto' }}
+  />
+);
+
+// Custom Israel flag component
+const IsraelFlag: React.FC<{ style?: React.CSSProperties }> = ({ style }) => (
+  <img
+    src="/israel-flag.svg"
+    alt="Israel"
+    style={{ ...style, width: '18px', height: 'auto' }}
+  />
+);
+
+// Olympic flag component (for neutral athletes: EOR, IOP, IOA, OAR)
+const OlympicFlag: React.FC<{ style?: React.CSSProperties }> = ({ style }) => (
+  <img
+    src="/Olympic_flag.svg"
+    alt="Olympic Neutral"
+    style={{ ...style, width: '18px', height: 'auto' }}
+  />
+);
+
+// ANA (Individual Neutral Athletes) flag component with year detection
+const AnaFlag: React.FC<{ style?: React.CSSProperties; year?: number }> = ({ style, year }) => {
+  let flagFile = '/Flag_of_the_Individual_Neutral_Athletes_at_the_2024_Summer_Olympics.svg'; // default to 2024
+
+  if (year) {
+    if (year <= 2020) {
+      flagFile = '/ANA_flag_(2017).svg';
+    } else if (year <= 2023) {
+      flagFile = '/ANA_flag_(2021)_WA.svg';
+    }
+  }
+
+  return (
+    <img
+      src={flagFile}
+      alt="ANA"
+      style={{ ...style, width: '18px', height: 'auto' }}
+    />
+  );
+};
+
 interface MeetResult {
   result_id: number;
   lifter_name: string;
@@ -74,7 +122,7 @@ const getCountryFlagComponent = (code: string): React.ComponentType<any> | null 
     // European countries (IOC codes)
     'ALB': Al, 'AND': Ad, 'ARM': Am, 'AUT': At, 'AZE': Az, 'BEL': Be, 'BIH': Ba, 'BUL': Bg, 'CRO': Hr, 'CYP': Cy,
     'CZE': Cz, 'DEN': Dk, 'EST': Ee, 'FIN': Fi, 'FRA': Fr, 'GEO': Ge, 'GER': De, 'GRE': Gr, 'GBR': Gb, 'HUN': Hu,
-    'ISL': Is, 'IRL': Ie, 'ITA': It, 'KOS': null, 'LAT': Lv, 'LIE': Li, 'LTU': Lt, 'LUX': Lu, 'MDA': Md, 'MON': Mc,
+    'ISL': Is, 'IRL': Ie, 'ISR': IsraelFlag, 'ITA': It, 'KOS': null, 'LAT': Lv, 'LIE': Li, 'LTU': Lt, 'LUX': Lu, 'MDA': Md, 'MON': Mc,
     'MNE': Me, 'NED': Nl, 'NOR': No, 'POL': Pl, 'POR': Pt, 'ROU': Ro, 'RUS': Ru, 'SMR': Sm, 'SRB': Rs, 'SVK': Sk,
     'SVN': Si, 'ESP': Es, 'SWE': Se, 'SUI': Ch, 'TUR': Tr, 'UKR': Ua,
     // Asian countries (IOC codes)
@@ -92,12 +140,12 @@ const getCountryFlagComponent = (code: string): React.ComponentType<any> | null 
     'MAR': Ma, 'MRI': Mu, 'MOZ': Mz, 'NAM': Na, 'NGA': Ng, 'RWA': Rw, 'RSA': Za, 'SUD': Sd, 'TAN': Tz, 'TUN': Tn,
     'UGA': Ug, 'ZIM': Zw,
     // Special/Neutral codes
-    'VAN': Vu, 'WRT': null, 'KUW': Kw, 'MLT': Mt, 'INA': Id, 'BRN': Bn, 'UAE': Ae, 'TGA': To, 'PRK': Kp,
+    'AIN': AnaFlag, 'ANA': AnaFlag, 'EOR': OlympicFlag, 'IOP': OlympicFlag, 'OAR': OlympicFlag, 'VAN': Vu, 'WRT': OlympicFlag, 'KUW': Kw, 'MLT': Mt, 'INA': Id, 'BRN': Bn, 'UAE': Ae, 'TGA': To, 'PRK': Kp,
     'PLE': Ps, 'NMI': Mp, 'NGR': Ng, 'KSA': Sa, 'IRI': Ir, 'ARU': Aw, 'ASA': As, 'BDI': Bi, 'BLR': By, 'BOL': Bo,
     'BRU': Bn, 'CGO': Cg, 'COD': Cd, 'COK': Ck, 'COM': Km, 'CPV': Cv, 'CUR': Cw, 'ENG': GbEng, 'ESA': Sv, 'FSM': Fm,
-    'GAM': Gm, 'GEQ': Gq, 'GIB': Gi, 'GUI': Gn, 'GUM': Gu, 'GUY': Gy, 'HON': Hn, 'IOA': null, 'IRQ': Iq, 'KIR': Ki,
+    'GAM': Gm, 'GEQ': Gq, 'GIB': Gi, 'GUI': Gn, 'GUM': Gu, 'GUY': Gy, 'HON': Hn, 'IOA': OlympicFlag, 'IRQ': Iq, 'KIR': Ki,
     'KRI': Ki, 'LBA': Ly, 'LBR': Lr, 'LES': Ls, 'MAC': Mo, 'MAD': Mg, 'MAW': Mw, 'MHL': Mh, 'MTN': Mr, 'NCA': Ni,
-    'NCL': Nc, 'NIC': Ni, 'NIR': GbWls, 'NIU': Nu, 'NRU': Nr, 'OMA': Om, 'PLW': Pw, 'ROC': Tw, 'RWF': null, 'SCO': GbSct,
+    'NCL': Nc, 'NIC': Ni, 'NIR': GbWls, 'NIU': Nu, 'NRU': Nr, 'OMA': Om, 'PLW': Pw, 'ROC': RocFlag, 'RWF': null, 'SCO': GbSct,
     'SEN': Sn, 'SEY': Sc, 'SLE': Sl, 'SLO': Si, 'SOL': Sb, 'SRI': Lk, 'SWZ': Sz, 'SYR': Sy, 'TAH': Pf, 'TCA': Tc,
     'TLS': Tl, 'TTO': Tt, 'TUV': Tv, 'VIN': Vc, 'WAL': GbWls, 'WLF': Wf, 'YEM': Ye, 'ZAM': Zm, 'ZAN': Tz,
     // Also support ISO 2-letter codes directly
@@ -109,7 +157,7 @@ const getCountryFlagComponent = (code: string): React.ComponentType<any> | null 
     'DO': Do, 'DZ': Dz, 'EC': Ec, 'EE': Ee, 'EG': Eg, 'ER': Er, 'ES': Es, 'ET': Et, 'FI': Fi, 'FJ': Fj, 'FK': Fk,
     'FM': Fm, 'FO': Fo, 'FR': Fr, 'GA': Ga, 'GB': Gb, 'GD': Gd, 'GE': Ge, 'GF': Gf, 'GG': Gg, 'GH': Gh, 'GI': Gi, 'GL': Gl,
     'GM': Gm, 'GN': Gn, 'GP': Gp, 'GQ': Gq, 'GR': Gr, 'GS': Gs, 'GT': Gt, 'GU': Gu, 'GW': Gw, 'GY': Gy, 'HK': Hk, 'HM': Hm,
-    'HN': Hn, 'HR': Hr, 'HT': Ht, 'HU': Hu, 'ID': Id, 'IE': Ie, 'IM': Im, 'IN': In, 'IO': Io, 'IQ': Iq, 'IR': Ir,
+    'HN': Hn, 'HR': Hr, 'HT': Ht, 'HU': Hu, 'ID': Id, 'IE': Ie, 'IL': IsraelFlag, 'IM': Im, 'IN': In, 'IO': Io, 'IQ': Iq, 'IR': Ir,
     'IS': Is, 'IT': It, 'JE': Je, 'JM': Jm, 'JO': Jo, 'JP': Jp, 'KE': Ke, 'KG': Kg, 'KH': Kh, 'KI': Ki, 'KM': Km, 'KN': Kn,
     'KP': Kp, 'KR': Kr, 'KW': Kw, 'KY': Ky, 'KZ': Kz, 'LA': La, 'LB': Lb, 'LC': Lc, 'LI': Li, 'LK': Lk, 'LR': Lr, 'LS': Ls,
     'LT': Lt, 'LU': Lu, 'LV': Lv, 'LY': Ly, 'MA': Ma, 'MC': Mc, 'MD': Md, 'ME': Me, 'MF': Mf, 'MG': Mg, 'MH': Mh, 'MK': Mk,
@@ -1289,7 +1337,15 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                                   <div className="flex items-center gap-2">
                                     {(() => {
                                       const FlagComponent = getCountryFlagComponent(result.wso);
-                                      return FlagComponent ? <FlagComponent style={{ width: '18px', height: '18px' }} /> : null;
+                                      if (!FlagComponent) return null;
+
+                                      // Pass year to AnaFlag for year-aware flag selection
+                                      if (FlagComponent === AnaFlag && meet) {
+                                        const meetYear = new Date(meet.date).getFullYear();
+                                        return <FlagComponent style={{ width: '18px', height: '18px' }} year={meetYear} />;
+                                      }
+
+                                      return <FlagComponent style={{ width: '18px', height: '18px' }} />;
                                     })()}
                                     <span className="text-sm">{result.club_name || '-'}</span>
                                   </div>
