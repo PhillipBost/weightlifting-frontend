@@ -7,6 +7,10 @@ import Image from 'next/image';
 import { supabase } from '../../../lib/supabase';
 import { ArrowLeft, Calendar, MapPin, Trophy, Users, ExternalLink, ChevronDown, ChevronRight, Mountain, Database, Medal } from 'lucide-react';
 import { ThemeSwitcher } from '../../components/ThemeSwitcher';
+import { useMeetClubLocations } from '../../hooks/useMeetClubLocations';
+import dynamic from 'next/dynamic';
+
+const MeetHubSpokeMap = dynamic(() => import('../../components/MeetHubSpokeMap'), { ssr: false });
 
 interface MeetResult {
   result_id: number;
@@ -82,8 +86,11 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
     division: string;
     key: keyof MeetResult | 'place';
     direction: 'asc' | 'desc';
-  } | null>(null);
+    } | null>(null);
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
+
+  // Hook to fetch club/spoke data for the map
+  const { spokes, loading: mapLoading, error: mapError } = useMeetClubLocations(resolvedParams?.id || '');
 
   useEffect(() => {
     const resolveParams = async () => {
@@ -112,7 +119,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         console.log('Fetching meet data for ID:', parseInt(resolvedParams.id));
         const { data: meetData, error: meetError } = await supabase
           .from('meets')
-          .select('Meet, Date, Level')
+          .select('Meet, Date, Level, latitude, longitude')
           .eq('meet_id', parseInt(resolvedParams.id))
           .single();
 
@@ -182,7 +189,9 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
           date: meetData.Date,
           location: locationStr,
           level: meetData.Level || 'Local',
-          elevation: locationData && locationData.length > 0 ? locationData[0].elevation_meters : null
+          elevation: locationData && locationData.length > 0 ? locationData[0].elevation_meters : null,
+          latitude: meetData.latitude,
+          longitude: meetData.longitude
         });
 
         // Then fetch all results for this meet - join with lifters table to get membership_number
@@ -987,6 +996,20 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
             </div>
           </div>
         </div>
+        {/* Hub and Spoke Map */}
+        {meet.latitude && meet.longitude && (
+          <div className="card-primary mb-8">
+            <h2 className="text-xl font-bold text-app-primary mb-4">Participant Locations</h2>
+            <MeetHubSpokeMap
+              meetLat={meet.latitude}
+              meetLng={meet.longitude}
+              spokes={spokes}
+              type="club"
+              loading={mapLoading}
+              error={mapError}
+            />
+          </div>
+        )}
 
         {/* Results by Gender Section */}
         {Object.entries(genderGroupedResults).map(([genderSection, divisionsInSection]) => {

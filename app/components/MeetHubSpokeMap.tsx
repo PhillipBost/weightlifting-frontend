@@ -188,7 +188,7 @@ export default function MeetHubSpokeMap({
     )
   }
 
-  if (error || spokes.length === 0) {
+  if (error) {
     return (
       <div className={`${className} relative flex items-center justify-center bg-app-tertiary rounded-lg border border-app-secondary`}>
         <div className="text-center">
@@ -206,13 +206,13 @@ export default function MeetHubSpokeMap({
     <div className={`${className} relative`}>
       <MapContainer
         center={[meetLat, meetLng]}
-        zoom={initialZoom}
+        zoom={spokes.length === 0 ? 10 : initialZoom}
         style={{ height: "100%", width: "100%" }}
         className="rounded-lg border border-app-secondary"
       >
         <TileLayer attribution={tileLayer.attribution} url={tileLayer.url} />
-        
-        <FitBounds meetLat={meetLat} meetLng={meetLng} spokes={spokes} />
+
+        {spokes.length > 0 && <FitBounds meetLat={meetLat} meetLng={meetLng} spokes={spokes} />}
 
         {/* Hub Marker */}
         <Marker position={[meetLat, meetLng]} icon={hubIcon}>

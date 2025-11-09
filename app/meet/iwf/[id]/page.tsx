@@ -8,6 +8,10 @@ import { supabaseIWF, IWFMeetResult } from '../../../../lib/supabaseIWF';
 import { adaptIWFResults } from '../../../../lib/adapters/iwfAdapter';
 import { ArrowLeft, Calendar, MapPin, Trophy, Users, ExternalLink, ChevronDown, ChevronRight, Mountain, Database, Medal } from 'lucide-react';
 import { ThemeSwitcher } from '../../../components/ThemeSwitcher';
+import { useMeetClubLocations } from '../../../hooks/useMeetClubLocations';
+import dynamic from 'next/dynamic';
+
+const MeetHubSpokeMap = dynamic(() => import('../../../components/MeetHubSpokeMap'), { ssr: false });
 import {
   Ad, Ae, Af, Ag, Ai, Al, Am, Ao, Aq, Ar, As, At, Au, Aw, Ax, Az,
   Ba, Bb, Bd, Be, Bf, Bg, Bh, Bi, Bj, Bl, Bm, Bn, Bo, Bq, Br, Bs, Bt, Bv, Bw, By, Bz,
@@ -112,6 +116,8 @@ interface Meet {
   level: string;
   elevation?: number | null;
   iwf_url?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 const getCountryFlagComponent = (code: string): React.ComponentType<any> | null => {
@@ -174,7 +180,11 @@ const getCountryFlagComponent = (code: string): React.ComponentType<any> | null 
   };
 
   const normalized = code.toUpperCase().trim();
-  return iocMap[normalized] || null;
+  const component = iocMap[normalized] || null;
+  if (!component && normalized !== '') {
+    console.log('DEBUG: No flag component found for code:', `"${code}"`, 'normalized:', `"${normalized}"`);
+  }
+  return component;
 };
 
 const SortIcon = ({ column, sortConfig, division }: {
@@ -214,6 +224,9 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
     direction: 'asc' | 'desc';
   } | null>(null);
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
+
+  // Hook to fetch club/spoke data for the map
+  const { spokes, loading: mapLoading, error: mapError } = useMeetClubLocations(resolvedParams?.id || '');
 
   useEffect(() => {
     const resolveParams = async () => {
@@ -312,7 +325,9 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
           location: locationStr,
           level: meetData.level || 'International',
           elevation: locationData && locationData.length > 0 ? locationData[0].elevation_meters : null,
-          iwf_url: meetData.url || null
+          iwf_url: meetData.url || null,
+          latitude: locationData && locationData.length > 0 ? locationData[0].latitude : null,
+          longitude: locationData && locationData.length > 0 ? locationData[0].longitude : null
         });
 
         // Fetch results from IWF table - select existing fields only
@@ -1153,6 +1168,20 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
             </div>
           </div>
         </div>
+        {/* Hub and Spoke Map */}
+        {meet.latitude && meet.longitude && (
+          <div className="card-primary mb-8">
+            <h2 className="text-xl font-bold text-app-primary mb-4">Participant Locations</h2>
+            <MeetHubSpokeMap
+              meetLat={meet.latitude}
+              meetLng={meet.longitude}
+              spokes={spokes}
+              type="club"
+              loading={mapLoading}
+              error={mapError}
+            />
+          </div>
+        )}
 
         {/* Results by Gender Section */}
         {Object.entries(genderGroupedResults).map(([genderSection, divisionsInSection]) => {
@@ -1337,6 +1366,9 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                                   <div className="flex items-center gap-2">
                                     {(() => {
                                       const FlagComponent = getCountryFlagComponent(result.wso);
+                                      if (result.club_name && (result.club_name.includes('Neutral') || result.club_name.includes('Refugee'))) {
+                                        console.log(`DEBUG: ${result.lifter_name} - club_name: "${result.club_name}", wso: "${result.wso}", FlagComponent found: ${!!FlagComponent}`);
+                                      }
                                       if (!FlagComponent) return null;
 
                                       // Pass year to AnaFlag for year-aware flag selection
