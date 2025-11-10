@@ -1,5 +1,6 @@
 "use client"; // Only needed if using App Router
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 
 export default function Custom404() {
   const [cowsayOutput, setCowsayOutput] = useState('Loading cowsay...');
@@ -52,12 +53,12 @@ export default function Custom404() {
           >
             Go Back
           </button>
-          <a 
+          <Link 
             href="/"
             className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 inline-block font-medium"
           >
             Go Home
-          </a>
+          </Link>
         </div>
       </div>
     </div>

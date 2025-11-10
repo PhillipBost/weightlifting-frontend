@@ -142,6 +142,7 @@ export default function WeightliftingLandingPage() {
   };
 
   // Debounced search function with fuzzy search for athlete names (USAW + IWF)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedSearch = useCallback(
     debounce(async (query: string) => {
     if (!query.trim() || query.length < 2) {
@@ -730,6 +731,7 @@ export default function WeightliftingLandingPage() {
   };
 
   // Debounced meet search function
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedMeetSearch = useCallback(
     debounce(async (query: string) => {
       if (!query.trim() || query.length < 2) {
@@ -942,6 +944,7 @@ export default function WeightliftingLandingPage() {
     debouncedMeetSearch(meetSearchQuery);
   }, [meetSearchQuery, debouncedMeetSearch]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const randomName = athleteNames[Math.floor(Math.random() * athleteNames.length)];
     setPlaceholderName(randomName);
@@ -1214,7 +1217,7 @@ export default function WeightliftingLandingPage() {
                     </div>
                   ) : searchQuery.length >= 2 ? (
                     <div className="p-4 text-center text-app-muted">
-                      No results found for "{searchQuery}"
+                      No results found for &apos;{searchQuery}&apos;
                     </div>
                   ) : null}
                 </div>
@@ -1333,7 +1336,7 @@ export default function WeightliftingLandingPage() {
                     </div>
                   ) : meetSearchQuery.length >= 2 ? (
                     <div className="p-4 text-center text-app-muted">
-                      No results found for "{meetSearchQuery}"
+                      No results found for &apos;{meetSearchQuery}&apos;
                     </div>
                   ) : null}
                 </div>
