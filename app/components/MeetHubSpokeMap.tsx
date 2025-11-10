@@ -6,6 +6,16 @@ import { DivIcon, latLngBounds, LatLngExpression } from "leaflet"
 import { Users } from "lucide-react"
 import { useTheme } from "./ThemeProvider"
 
+// Convert country code to flag emoji
+const getCountryFlagEmoji = (code: string): string => {
+  if (!code || code.length !== 2) return '🌍';
+  const codePoints = code
+    .toUpperCase()
+    .split('')
+    .map(char => 127397 + char.charCodeAt(0));
+  return String.fromCodePoint(...codePoints);
+};
+
 // Inline getCountryFlagComponent for IWF flags (copy from IWF page)
 const getCountryFlagComponent = (code: string): React.ComponentType<any> | null => {
   if (!code) return null;
@@ -83,7 +93,7 @@ function createHubIcon(theme: 'light' | 'dark') {
 }
 
 function createSpokeIcon(type: 'club' | 'country', count: number, theme: 'light' | 'dark', code?: string) {
-  const size = Math.min(24 + count * 2, 40) // Scale by count
+  const size = 15 // Fixed size for all spoke endpoints
   const bgColor = type === 'club' ? (theme === 'dark' ? '#F59E0B' : '#D97706') : (theme === 'dark' ? '#3B82F6' : '#2563EB')
   const iconColor = theme === 'dark' ? '#1F2937' : '#FFFFFF'
 
@@ -102,18 +112,11 @@ function createSpokeIcon(type: 'club' | 'country', count: number, theme: 'light'
     ">
   `
 
-  if (type === 'club') {
+  if (type === 'country') {
+    // Country flag emoji
+    const flagEmoji = getCountryFlagEmoji(code || '');
     html += `
-      <svg width="${Math.floor(size * 0.7)}" height="${Math.floor(size * 0.7)}" viewBox="0 0 24 24" fill="none">
-        <circle cx="6" cy="12" r="3" fill="${iconColor}"/>
-        <circle cx="18" cy="12" r="3" fill="${iconColor}"/>
-        <rect x="7" y="11" width="10" height="2" fill="${iconColor}"/>
-      </svg>
-    `
-  } else {
-    // Country flag placeholder - actual flag in popup
-    html += `
-      <div style="width: 12px; height: 8px; background: linear-gradient(to bottom, #3B82F6, #10B981, #F59E0B); border-radius: 2px;"></div>
+      <div style="font-size: 11px; line-height: 1; display: flex; align-items: center; justify-content: center;">${flagEmoji}</div>
     `
   }
 

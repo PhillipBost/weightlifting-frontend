@@ -999,7 +999,6 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         {/* Hub and Spoke Map */}
         {meet.latitude && meet.longitude && (
           <div className="card-primary mb-8">
-            <h2 className="text-xl font-bold text-app-primary mb-4">Participant Locations</h2>
             <MeetHubSpokeMap
               meetLat={meet.latitude}
               meetLng={meet.longitude}

@@ -8,7 +8,7 @@ import { supabaseIWF, IWFMeetResult } from '../../../../lib/supabaseIWF';
 import { adaptIWFResults } from '../../../../lib/adapters/iwfAdapter';
 import { ArrowLeft, Calendar, MapPin, Trophy, Users, ExternalLink, ChevronDown, ChevronRight, Mountain, Database, Medal } from 'lucide-react';
 import { ThemeSwitcher } from '../../../components/ThemeSwitcher';
-import { useMeetClubLocations } from '../../../hooks/useMeetClubLocations';
+import { useMeetCountryLocations } from '../../../hooks/useMeetCountryLocations';
 import dynamic from 'next/dynamic';
 
 const MeetHubSpokeMap = dynamic(() => import('../../../components/MeetHubSpokeMap'), { ssr: false });
@@ -225,8 +225,8 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
   } | null>(null);
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
 
-  // Hook to fetch club/spoke data for the map
-  const { spokes, loading: mapLoading, error: mapError } = useMeetClubLocations(resolvedParams?.id || '');
+  // Hook to fetch country/spoke data for the map
+  const { spokes, loading: mapLoading, error: mapError } = useMeetCountryLocations(resolvedParams?.id || '');
 
   useEffect(() => {
     const resolveParams = async () => {
@@ -1171,12 +1171,11 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         {/* Hub and Spoke Map */}
         {meet.latitude && meet.longitude && (
           <div className="card-primary mb-8">
-            <h2 className="text-xl font-bold text-app-primary mb-4">Participant Locations</h2>
             <MeetHubSpokeMap
               meetLat={meet.latitude}
               meetLng={meet.longitude}
               spokes={spokes}
-              type="club"
+              type="country"
               loading={mapLoading}
               error={mapError}
             />
