@@ -55,7 +55,7 @@ function FitBounds({ meetLat, meetLng, spokes }: { meetLat: number; meetLng: num
     if (spokes.length > 0) {
       const bounds = latLngBounds([
         [meetLat, meetLng],
-        ...spokes.map(s => [s.lat, s.lng])
+        ...spokes.map(s => [s.lat, s.lng] as [number, number])
       ])
       map.fitBounds(bounds, { padding: [20, 20] })
     }
@@ -170,7 +170,7 @@ export default function MeetHubSpokeMap({
     return spokes.map(spoke => [
       [meetLat, meetLng],
       [spoke.lat, spoke.lng]
-    ])
+    ] as [number, number][])
   }, [meetLat, meetLng, spokes])
 
   const lineStyle = {
