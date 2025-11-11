@@ -24,7 +24,7 @@ import {
   Na, Nc, Ne, Nf, Ng, Ni, Nl, No, Np, Nr, Nu, Nz, Om, Pa, Pe, Pf, Pg, Ph, Pk, Pl, Pm, Pn, Pr, Ps, Pt, Pw, Py,
   Qa, Re, Ro, Rs, Ru, Rw, Sa, Sb, Sc, Sd, Se, Sg, Sh, Si, Sj, Sk, Sl, Sm, Sn, So, Sr, Ss, St, Sv, Sx, Sy, Sz,
   Tc, Td, Tf, Tg, Th, Tj, Tk, Tl, Tm, Tn, To, Tr, Tt, Tv, Tw, Tz, Ua, Ug, Um, Us, Uy, Uz,
-  Va, Vc, Ve, Vg, Vi, Vn, Vu, Wf, Ws, Ye, Yt, Za, Zm, Zw,
+  Va, Vc, Ve, Vg, Vi, Vn, Vu, Wf, Ws, Xk, Ye, Yt, Za, Zm, Zw,
   GbEng, GbSct, GbWls
 } from 'react-flag-icons';
 
@@ -128,7 +128,7 @@ const getCountryFlagComponent = (code: string): React.ComponentType<any> | null 
     // European countries (IOC codes)
     'ALB': Al, 'AND': Ad, 'ARM': Am, 'AUT': At, 'AZE': Az, 'BEL': Be, 'BIH': Ba, 'BUL': Bg, 'CRO': Hr, 'CYP': Cy,
     'CZE': Cz, 'DEN': Dk, 'EST': Ee, 'FIN': Fi, 'FRA': Fr, 'GEO': Ge, 'GER': De, 'GRE': Gr, 'GBR': Gb, 'HUN': Hu,
-    'ISL': Is, 'IRL': Ie, 'ISR': IsraelFlag, 'ITA': It, 'KOS': null, 'LAT': Lv, 'LIE': Li, 'LTU': Lt, 'LUX': Lu, 'MDA': Md, 'MON': Mc,
+    'ISL': Is, 'IRL': Ie, 'ISR': IsraelFlag, 'ITA': It, 'KOS': Xk, 'LAT': Lv, 'LIE': Li, 'LTU': Lt, 'LUX': Lu, 'MDA': Md, 'MON': Mc,
     'MNE': Me, 'NED': Nl, 'NOR': No, 'POL': Pl, 'POR': Pt, 'ROU': Ro, 'RUS': Ru, 'SMR': Sm, 'SRB': Rs, 'SVK': Sk,
     'SVN': Si, 'ESP': Es, 'SWE': Se, 'SUI': Ch, 'TUR': Tr, 'UKR': Ua,
     // Asian countries (IOC codes)
@@ -165,7 +165,7 @@ const getCountryFlagComponent = (code: string): React.ComponentType<any> | null 
     'GM': Gm, 'GN': Gn, 'GP': Gp, 'GQ': Gq, 'GR': Gr, 'GS': Gs, 'GT': Gt, 'GU': Gu, 'GW': Gw, 'GY': Gy, 'HK': Hk, 'HM': Hm,
     'HN': Hn, 'HR': Hr, 'HT': Ht, 'HU': Hu, 'ID': Id, 'IE': Ie, 'IL': IsraelFlag, 'IM': Im, 'IN': In, 'IO': Io, 'IQ': Iq, 'IR': Ir,
     'IS': Is, 'IT': It, 'JE': Je, 'JM': Jm, 'JO': Jo, 'JP': Jp, 'KE': Ke, 'KG': Kg, 'KH': Kh, 'KI': Ki, 'KM': Km, 'KN': Kn,
-    'KP': Kp, 'KR': Kr, 'KW': Kw, 'KY': Ky, 'KZ': Kz, 'LA': La, 'LB': Lb, 'LC': Lc, 'LI': Li, 'LK': Lk, 'LR': Lr, 'LS': Ls,
+    'KP': Kp, 'KR': Kr, 'KW': Kw, 'KY': Ky, 'KZ': Kz, 'XK': Xk, 'LA': La, 'LB': Lb, 'LC': Lc, 'LI': Li, 'LK': Lk, 'LR': Lr, 'LS': Ls,
     'LT': Lt, 'LU': Lu, 'LV': Lv, 'LY': Ly, 'MA': Ma, 'MC': Mc, 'MD': Md, 'ME': Me, 'MF': Mf, 'MG': Mg, 'MH': Mh, 'MK': Mk,
     'ML': Ml, 'MM': Mm, 'MN': Mn, 'MO': Mo, 'MP': Mp, 'MQ': Mq, 'MR': Mr, 'MS': Ms, 'MT': Mt, 'MU': Mu, 'MV': Mv, 'MW': Mw,
     'MX': Mx, 'MY': My, 'MZ': Mz, 'NA': Na, 'NC': Nc, 'NE': Ne, 'NF': Nf, 'NG': Ng, 'NI': Ni, 'NL': Nl, 'NO': No, 'NP': Np,
@@ -243,16 +243,9 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
       try {
         setLoading(true);
         
-        // Debug logging for environment and connection
-        console.log('Environment check:', {
-          supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'SET' : 'MISSING',
-          supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'SET' : 'MISSING',
-          meetId: resolvedParams.id,
-          parsedMeetId: parseInt(resolvedParams.id)
-        });
+        
         
         // First, fetch meet information (convert string ID to integer)
-        console.log('Fetching meet data for ID:', parseInt(resolvedParams.id));
         const { data: meetData, error: meetError } = await supabaseIWF
           .from('iwf_meets')
           .select('iwf_meet_id, meet, date, level, url')
@@ -260,21 +253,12 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
           .single();
 
         if (meetError) {
-          console.error('Meet fetch error:', meetError);
-          console.error('Meet error details:', {
-            code: meetError.code,
-            message: meetError.message,
-            details: meetError.details,
-            hint: meetError.hint
-          });
           setError(`Meet not found: ${meetError.message}`);
           return;
         }
 
-        console.log('Meet data retrieved:', meetData);
 
         // Fetch location data using iwf_meet_id
-        console.log('Fetching location data for meet ID:', meetData?.iwf_meet_id);
         const { data: locationData, error: locationError } = await supabaseIWF
           .from('iwf_meet_locations')
           .select('*')
@@ -282,18 +266,12 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
 
         // Debug logging for meet 6187
         if (resolvedParams.id === '6187') {
-          console.log('Meet data for 6187:', meetData);
-          console.log('Searching for meet_id:', parseInt(resolvedParams.id), 'type:', typeof parseInt(resolvedParams.id));
-          console.log('Location query error:', locationError);
-          console.log('Location data array:', locationData);
-          console.log('Location data length:', locationData?.length);
         }
 
         // Build location string from available data
         let locationStr = 'Location TBD';
         if (locationData && locationData.length > 0 && !locationError) {
           const loc = locationData[0]; // Take the first location record
-          console.log('Processing location data:', loc); // Debug all meets
           
           // Prefer location_text if available, then build from components
           if (loc.location_text) {
@@ -308,14 +286,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
             locationStr = loc.country;
           }
         } else {
-          console.log('No location data found or query error:', locationError);
           if (locationError) {
-            console.error('Location error details:', {
-              code: locationError.code,
-              message: locationError.message,
-              details: locationError.details,
-              hint: locationError.hint
-            });
           }
         }
 
@@ -331,7 +302,6 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         });
 
         // Fetch results from IWF table - select existing fields only
-        console.log('Fetching results data for meet ID:', parseInt(resolvedParams.id));
         const { data: rawIWFResults, error: resultsError } = await supabaseIWF
           .from('iwf_meet_results')
           .select(`
@@ -380,21 +350,9 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
           .eq('db_meet_id', parseInt(resolvedParams.id));
 
         if (resultsError) {
-          console.error('Results fetch error:', resultsError);
-          console.error('Results error details:', {
-            code: resultsError.code,
-            message: resultsError.message,
-            details: resultsError.details,
-            hint: resultsError.hint
-          });
           setError(`Error loading meet results: ${resultsError.message}`);
           return;
         }
-
-        console.log('Results data retrieved:', {
-          count: rawIWFResults?.length || 0,
-          sample: rawIWFResults?.slice(0, 2) || []
-        });
         
         // Ensure type compatibility and merge meet data from separate fetch
         const typedResults = rawIWFResults as Partial<IWFMeetResult>[];
@@ -416,7 +374,6 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         const adaptedResults = adaptIWFResults(mergedResults);
         setResults(adaptedResults as MeetResult[]);
       } catch (err) {
-        console.error('Unexpected error:', err);
         setError('An unexpected error occurred');
       } finally {
         setLoading(false);
@@ -585,18 +542,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
       let weightClass = result.weight_class?.trim();
       
       // Debug Grant specifically
-      if (result.lifter_name === 'Grant Fristo') {
-        console.log(`GRANT DEBUG - Original data:`, {
-          age_category: `"${result.age_category}"`,
-          weight_class: `"${result.weight_class}"`,
-          age_category_length: result.age_category?.length,
-          weight_class_length: result.weight_class?.length
-        });
-        console.log(`GRANT DEBUG - After trim:`, {
-          officialCategory: `"${officialCategory}"`,
-          weightClass: `"${weightClass}"`
-        });
-      }
+
       
       // Fill in missing data using age-appropriate defaults
       let updatedResult = { ...result };
@@ -606,7 +552,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         const defaultCategory = getDefaultDivisionFromAge(result.competition_age, result.gender);
         officialCategory = defaultCategory;
         updatedResult.age_category = defaultCategory; // Update the result object
-        console.log(`Filled missing age_category for ${result.lifter_name}: ${defaultCategory}`);
+
       }
       
       // Check for invalid weight_class values  
@@ -614,11 +560,10 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         // For now, use a default weight class - could be improved with body weight logic
         weightClass = result.gender === 'F' ? '63kg' : '77kg'; // Common middle weight classes
         updatedResult.weight_class = weightClass; // Update the result object
-        console.log(`Filled missing weight_class for ${result.lifter_name}: ${weightClass}`);
+
       }
       
       const officialKey = `${officialCategory} ${weightClass}`;
-      console.log(`DEBUG for ${result.lifter_name}: officialCategory="${officialCategory}", weightClass="${weightClass}", officialKey="${officialKey}"`);
       
       if (!allGroups[officialKey]) {
         allGroups[officialKey] = [];
@@ -627,7 +572,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
       
       // Create age-appropriate divisions for athletes competing in Open
       const ageAppropriateDivision = getAgeAppropriateDivision(updatedResult, weightClass);
-      console.log(`Lifter: ${updatedResult.lifter_name}, Age: ${updatedResult.competition_age}, Official: ${officialKey}, Age-appropriate: ${ageAppropriateDivision}`);
+
       if (ageAppropriateDivision && ageAppropriateDivision !== officialKey) {
         if (!ageAppropriateGroups[ageAppropriateDivision]) {
           ageAppropriateGroups[ageAppropriateDivision] = [];
@@ -682,7 +627,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
       const weightClass = getWeightClassFromDivision(divisionKey);
       processedWeightClasses.add(weightClass);
       
-      console.log(`Processing Open division: ${divisionKey} with weight class: ${weightClass}`);
+  
       
       // Find all OTHER divisions with same weight class and check for lifter overlap
       Object.entries(allGroups).forEach(([otherDivisionKey, otherResults]) => {
@@ -699,7 +644,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
           
           if (hasOverlap) {
             // Some lifters competed in both - this becomes a child of the Open division
-            console.log(`  Assigning ${otherDivisionKey} as child (overlap found)`);
+
             combinedGroups[otherDivisionKey] = otherResults.map(result => ({
               ...result,
               isDuplicateForAge: true,
@@ -707,7 +652,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
             }));
             assignedAsChildren.add(otherDivisionKey);
           } else {
-            console.log(`  ${otherDivisionKey} remains standalone (no overlap)`);
+
           }
         }
       });
@@ -719,7 +664,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         // Non-Open divisions become standalone parents but can never have children
         // Make sure they are NOT marked as age-appropriate (which would make them children)
         combinedGroups[divisionKey] = results;
-        console.log(`Creating standalone parent: ${divisionKey} (no children allowed)`);
+
       }
     });
     
@@ -727,12 +672,12 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
     Object.entries(ageAppropriateGroups).forEach(([divisionKey, results]) => {
       if (!combinedGroups[divisionKey]) {
         combinedGroups[divisionKey] = results;
-        console.log(`Adding age-appropriate group: ${divisionKey}`);
+
       }
     });
     
-    console.log('Open divisions found for weight classes:', Array.from(openDivisions));
-    console.log('All combined groups:', Object.keys(combinedGroups));
+
+
     
     // Sort athletes within each division by total (highest first)
     Object.keys(combinedGroups).forEach(divisionKey => {
@@ -765,7 +710,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         const results = orderedGroups[divisionKey];
         const hasChildrenMarked = results && results.some && results.some(result => result && result.isDuplicateForAge);
         
-        console.log(`DIVISION ANALYSIS: ${divisionKey} - hasChildrenMarked: ${hasChildrenMarked}`);
+
         
         if (hasChildrenMarked) {
           // This is a child division
@@ -780,7 +725,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
             return isOpen && sameWeightClass && sameGender;
           });
           
-          console.log(`${divisionKey} -> CHILD (weightClass: ${weightClass}) -> looking for Open parent: ${parentKey}`);
+
           
           if (parentKey) {
             if (!childDivisions[parentKey]) {
@@ -790,11 +735,11 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
           }
         } else {
           // This is a parent division
-          console.log(`${divisionKey} -> PARENT`);
+
           parentDivisions.push(divisionKey);
         }
       } catch (error) {
-        console.error(`Error processing division ${divisionKey}:`, error);
+
         // Default to parent if there's an error
         parentDivisions.push(divisionKey);
       }
@@ -846,14 +791,14 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
       }
     });
     
-    console.log('Parent divisions:', parentDivisions);
-    console.log('Child mapping:', childDivisions);
+
+
     
     return finalOrderedGroups;
   };
 
   const sortDivisionsByPattern = (groups: Record<string, MeetResult[]>): Record<string, MeetResult[]> => {
-    console.log('All division keys before sorting:', Object.keys(groups));
+
     
     // Parse weight class to numeric value for sorting (heaviest to lightest)
     const parseWeightClass = (weightClass: string): number => {
@@ -870,7 +815,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
     
     const getWeightClassValue = (weightClass: string): number => {
       const weight = parseWeightClass(weightClass);
-      console.log(`Weight class ${weightClass} -> parsed weight ${weight}`);
+
       return weight === -1 ? 9999 : -weight; // Negative for descending sort (heaviest first), unknown at end
     };
     
@@ -925,7 +870,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         ageGroup: ageGroup // For Masters: oldest to youngest
       };
       
-      console.log(`Division: ${divisionKey} -> WeightClass: ${weightClass}, ParsedWeight: ${weightValue}, SortWeight: ${sortKey.weight}, Gender: ${sortKey.gender} (${isFemale ? 'Female' : 'Male'}), Type: ${sortKey.divisionType}`);
+
       return sortKey;
     };
     
@@ -1366,7 +1311,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                                     {(() => {
                                       const FlagComponent = getCountryFlagComponent(result.wso);
                                       if (result.club_name && (result.club_name.includes('Neutral') || result.club_name.includes('Refugee'))) {
-                                        console.log(`DEBUG: ${result.lifter_name} - club_name: "${result.club_name}", wso: "${result.wso}", FlagComponent found: ${!!FlagComponent}`);
+                  
                                       }
                                       if (!FlagComponent) return null;
 

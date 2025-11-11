@@ -107,81 +107,30 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
       try {
         setLoading(true);
         
-        // Debug logging for environment and connection
-        console.log('Environment check:', {
-          supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'SET' : 'MISSING',
-          supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'SET' : 'MISSING',
-          meetId: resolvedParams.id,
-          parsedMeetId: parseInt(resolvedParams.id)
-        });
-        
         // First, fetch meet information (convert string ID to integer)
-        console.log('Fetching meet data for ID:', parseInt(resolvedParams.id));
         const { data: meetData, error: meetError } = await supabase
           .from('meets')
-          .select('Meet, Date, Level, latitude, longitude')
+          .select('Meet, Date, Level, city, state, address, elevation_meters, latitude, longitude')
           .eq('meet_id', parseInt(resolvedParams.id))
           .single();
 
-        if (meetError) {
-          console.error('Meet fetch error:', meetError);
-          console.error('Meet error details:', {
-            code: meetError.code,
-            message: meetError.message,
-            details: meetError.details,
-            hint: meetError.hint
-          });
-          setError(`Meet not found: ${meetError.message}`);
+        if (meetError || !meetData) {
+          setError(`Meet not found: ${meetError?.message || 'No data returned'}`);
           return;
         }
 
-        console.log('Meet data retrieved:', meetData);
-
-        // Try a simpler query first
-        console.log('Fetching location data for meet ID:', parseInt(resolvedParams.id));
-        const { data: locationData, error: locationError } = await supabase
-          .from('meet_locations')
-          .select('*')
-          .eq('meet_id', parseInt(resolvedParams.id));
-
-        // Debug logging for meet 6187
-        if (resolvedParams.id === '6187') {
-          console.log('Meet data for 6187:', meetData);
-          console.log('Searching for meet_id:', parseInt(resolvedParams.id), 'type:', typeof parseInt(resolvedParams.id));
-          console.log('Location query error:', locationError);
-          console.log('Location data array:', locationData);
-          console.log('Location data length:', locationData?.length);
-        }
-
-        // Build location string from available data
+        // Build location string directly from meets columns
         let locationStr = 'Location TBD';
-        if (locationData && locationData.length > 0 && !locationError) {
-          const loc = locationData[0]; // Take the first location record
-          console.log('Processing location data:', loc); // Debug all meets
-          
-          // Prefer location_text if available, then build from components
-          if (loc.location_text) {
-            locationStr = loc.location_text;
-          } else if (loc.geocode_display_name) {
-            locationStr = loc.geocode_display_name;
-          } else if (loc.city && loc.state) {
-            locationStr = `${loc.city}, ${loc.state}`;
-            if (loc.street_address) {
-              locationStr = `${loc.street_address}, ${locationStr}`;
-            }
-          } else if (loc.raw_address) {
-            locationStr = loc.raw_address;
-          }
-        } else {
-          console.log('No location data found or query error:', locationError);
-          if (locationError) {
-            console.error('Location error details:', {
-              code: locationError.code,
-              message: locationError.message,
-              details: locationError.details,
-              hint: locationError.hint
-            });
-          }
+        if (meetData.address && meetData.city && meetData.state) {
+          locationStr = `${meetData.address}, ${meetData.city}, ${meetData.state}`;
+        } else if (meetData.city && meetData.state) {
+          locationStr = `${meetData.city}, ${meetData.state}`;
+        } else if (meetData.city) {
+          locationStr = meetData.city;
+        } else if (meetData.state) {
+          locationStr = meetData.state;
+        } else if (meetData.address) {
+          locationStr = meetData.address;
         }
 
         setMeet({
@@ -189,13 +138,12 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
           date: meetData.Date,
           location: locationStr,
           level: meetData.Level || 'Local',
-          elevation: locationData && locationData.length > 0 ? locationData[0].elevation_meters : null,
+          elevation: meetData.elevation_meters ?? null,
           latitude: meetData.latitude,
           longitude: meetData.longitude
         });
 
         // Then fetch all results for this meet - join with lifters table to get membership_number
-        console.log('Fetching results data for meet ID:', parseInt(resolvedParams.id));
         const { data: resultsData, error: resultsError } = await supabase
           .from('meet_results')
           .select(`
@@ -223,24 +171,12 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
           .eq('meet_id', parseInt(resolvedParams.id));
 
         if (resultsError) {
-          console.error('Results fetch error:', resultsError);
-          console.error('Results error details:', {
-            code: resultsError.code,
-            message: resultsError.message,
-            details: resultsError.details,
-            hint: resultsError.hint
-          });
           setError(`Error loading meet results: ${resultsError.message}`);
           return;
         }
 
-        console.log('Results data retrieved:', {
-          count: resultsData?.length || 0,
-          sample: resultsData?.slice(0, 2) || []
-        });
         setResults(resultsData || []);
       } catch (err) {
-        console.error('Unexpected error:', err);
         setError('An unexpected error occurred');
       } finally {
         setLoading(false);
@@ -409,18 +345,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
       let weightClass = result.weight_class?.trim();
       
       // Debug Grant specifically
-      if (result.lifter_name === 'Grant Fristo') {
-        console.log(`GRANT DEBUG - Original data:`, {
-          age_category: `"${result.age_category}"`,
-          weight_class: `"${result.weight_class}"`,
-          age_category_length: result.age_category?.length,
-          weight_class_length: result.weight_class?.length
-        });
-        console.log(`GRANT DEBUG - After trim:`, {
-          officialCategory: `"${officialCategory}"`,
-          weightClass: `"${weightClass}"`
-        });
-      }
+
       
       // Fill in missing data using age-appropriate defaults
       let updatedResult = { ...result };
@@ -430,7 +355,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         const defaultCategory = getDefaultDivisionFromAge(result.competition_age, result.gender);
         officialCategory = defaultCategory;
         updatedResult.age_category = defaultCategory; // Update the result object
-        console.log(`Filled missing age_category for ${result.lifter_name}: ${defaultCategory}`);
+
       }
       
       // Check for invalid weight_class values  
@@ -438,11 +363,10 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         // For now, use a default weight class - could be improved with body weight logic
         weightClass = result.gender === 'F' ? '63kg' : '77kg'; // Common middle weight classes
         updatedResult.weight_class = weightClass; // Update the result object
-        console.log(`Filled missing weight_class for ${result.lifter_name}: ${weightClass}`);
+
       }
       
       const officialKey = `${officialCategory} ${weightClass}`;
-      console.log(`DEBUG for ${result.lifter_name}: officialCategory="${officialCategory}", weightClass="${weightClass}", officialKey="${officialKey}"`);
       
       if (!allGroups[officialKey]) {
         allGroups[officialKey] = [];
@@ -451,7 +375,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
       
       // Create age-appropriate divisions for athletes competing in Open
       const ageAppropriateDivision = getAgeAppropriateDivision(updatedResult, weightClass);
-      console.log(`Lifter: ${updatedResult.lifter_name}, Age: ${updatedResult.competition_age}, Official: ${officialKey}, Age-appropriate: ${ageAppropriateDivision}`);
+
       if (ageAppropriateDivision && ageAppropriateDivision !== officialKey) {
         if (!ageAppropriateGroups[ageAppropriateDivision]) {
           ageAppropriateGroups[ageAppropriateDivision] = [];
@@ -506,7 +430,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
       const weightClass = getWeightClassFromDivision(divisionKey);
       processedWeightClasses.add(weightClass);
       
-      console.log(`Processing Open division: ${divisionKey} with weight class: ${weightClass}`);
+
       
       // Find all OTHER divisions with same weight class and check for lifter overlap
       Object.entries(allGroups).forEach(([otherDivisionKey, otherResults]) => {
@@ -523,7 +447,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
           
           if (hasOverlap) {
             // Some lifters competed in both - this becomes a child of the Open division
-            console.log(`  Assigning ${otherDivisionKey} as child (overlap found)`);
+
             combinedGroups[otherDivisionKey] = otherResults.map(result => ({
               ...result,
               isDuplicateForAge: true,
@@ -531,7 +455,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
             }));
             assignedAsChildren.add(otherDivisionKey);
           } else {
-            console.log(`  ${otherDivisionKey} remains standalone (no overlap)`);
+
           }
         }
       });
@@ -543,7 +467,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         // Non-Open divisions become standalone parents but can never have children
         // Make sure they are NOT marked as age-appropriate (which would make them children)
         combinedGroups[divisionKey] = results;
-        console.log(`Creating standalone parent: ${divisionKey} (no children allowed)`);
+
       }
     });
     
@@ -551,12 +475,12 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
     Object.entries(ageAppropriateGroups).forEach(([divisionKey, results]) => {
       if (!combinedGroups[divisionKey]) {
         combinedGroups[divisionKey] = results;
-        console.log(`Adding age-appropriate group: ${divisionKey}`);
+
       }
     });
     
-    console.log('Open divisions found for weight classes:', Array.from(openDivisions));
-    console.log('All combined groups:', Object.keys(combinedGroups));
+
+
     
     // Sort athletes within each division by total (highest first)
     Object.keys(combinedGroups).forEach(divisionKey => {
@@ -589,7 +513,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         const results = orderedGroups[divisionKey];
         const hasChildrenMarked = results && results.some && results.some(result => result && result.isDuplicateForAge);
         
-        console.log(`DIVISION ANALYSIS: ${divisionKey} - hasChildrenMarked: ${hasChildrenMarked}`);
+
         
         if (hasChildrenMarked) {
           // This is a child division
@@ -604,7 +528,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
             return isOpen && sameWeightClass && sameGender;
           });
           
-          console.log(`${divisionKey} -> CHILD (weightClass: ${weightClass}) -> looking for Open parent: ${parentKey}`);
+
           
           if (parentKey) {
             if (!childDivisions[parentKey]) {
@@ -614,11 +538,11 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
           }
         } else {
           // This is a parent division
-          console.log(`${divisionKey} -> PARENT`);
+
           parentDivisions.push(divisionKey);
         }
       } catch (error) {
-        console.error(`Error processing division ${divisionKey}:`, error);
+
         // Default to parent if there's an error
         parentDivisions.push(divisionKey);
       }
@@ -670,14 +594,14 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
       }
     });
     
-    console.log('Parent divisions:', parentDivisions);
-    console.log('Child mapping:', childDivisions);
+
+
     
     return finalOrderedGroups;
   };
 
   const sortDivisionsByPattern = (groups: Record<string, MeetResult[]>): Record<string, MeetResult[]> => {
-    console.log('All division keys before sorting:', Object.keys(groups));
+
     
     // Parse weight class to numeric value for sorting (heaviest to lightest)
     const parseWeightClass = (weightClass: string): number => {
@@ -694,7 +618,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
     
     const getWeightClassValue = (weightClass: string): number => {
       const weight = parseWeightClass(weightClass);
-      console.log(`Weight class ${weightClass} -> parsed weight ${weight}`);
+
       return weight === -1 ? 9999 : -weight; // Negative for descending sort (heaviest first), unknown at end
     };
     
@@ -749,7 +673,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         ageGroup: ageGroup // For Masters: oldest to youngest
       };
       
-      console.log(`Division: ${divisionKey} -> WeightClass: ${weightClass}, ParsedWeight: ${weightValue}, SortWeight: ${sortKey.weight}, Gender: ${sortKey.gender} (${isFemale ? 'Female' : 'Male'}), Type: ${sortKey.divisionType}`);
+
       return sortKey;
     };
     

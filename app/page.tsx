@@ -34,6 +34,8 @@ interface SearchResult {
   level?: string;
   meet_id?: string;
   db_meet_id?: string | number;
+  // Meet location fields
+  location_text?: string;
   // Source identifier
   source?: DataSource;
 }
@@ -399,9 +401,14 @@ export default function WeightliftingLandingPage() {
     []
   );
 
+  // Strip punctuation from search terms
+  const stripPunctuation = (term: string): string => {
+    return term.replace(/[^\w\s-]/g, '').trim();
+  };
+
   // Simple fuzzy search helper for meets
   const fuzzySearchTerms = (query: string) => {
-    const terms = [query];
+    const terms = [stripPunctuation(query)];
     const cleaned = query.toLowerCase().trim();
     
     // Add variations for common typos and abbreviations
@@ -744,18 +751,19 @@ export default function WeightliftingLandingPage() {
       setIsMeetSearching(true);
       try {
         const searchTerms = fuzzySearchTerms(query);
+        const cleanSearchTerms = searchTerms.map(term => stripPunctuation(term));
         const usawResults: any[] = [];
         const iwfResults: any[] = [];
 
         // For multi-word searches, we want to find meets that contain ALL words
-        const queryWords = query.toLowerCase().trim().split(/\s+/);
+        const queryWords = stripPunctuation(query).split(/\s+/);
         const isMultiWordSearch = queryWords.length > 1;
 
         if (isMultiWordSearch) {
-          // USAW Multi-word search
+          // USAW Multi-word search (includes location columns)
           let supabaseQuery = supabase
             .from('meets')
-            .select('meet_id, Meet, Date, Level');
+            .select('meet_id, Meet, Date, Level, city, state, address');
 
           queryWords.forEach(word => {
             supabaseQuery = supabaseQuery.ilike('Meet', `%${word}%`);
@@ -790,7 +798,7 @@ export default function WeightliftingLandingPage() {
             if (termWords.length > 1) {
               let fuzzyQuery = supabase
                 .from('meets')
-                .select('meet_id, Meet, Date, Level');
+                .select('meet_id, Meet, Date, Level, city, state, address');
 
               termWords.forEach(word => {
                 fuzzyQuery = fuzzyQuery.ilike('Meet', `%${word}%`);
@@ -809,7 +817,7 @@ export default function WeightliftingLandingPage() {
           // IWF Multi-word search
           let iwfQuery = supabaseIWF
             .from('iwf_meets')
-            .select('db_meet_id, meet, date, level');
+            .select('db_meet_id, meet, date, level, iwf_meet_id, iwf_meet_locations(city, country, location_text)');
 
           queryWords.forEach(word => {
             iwfQuery = iwfQuery.ilike('meet', `%${word}%`);
@@ -822,12 +830,33 @@ export default function WeightliftingLandingPage() {
           if (!iwfError && iwfMatches) {
             iwfResults.push(...iwfMatches);
           }
+
+          // IWF Multi-word location search
+          for (const term of cleanSearchTerms.slice(0, 2)) {
+            const { data: locationMatches } = await supabaseIWF
+              .from('iwf_meet_locations')
+              .select('iwf_meet_id')
+              .or(`location_text.ilike.%${term}%,city.ilike.%${term}%,country.ilike.%${term}%`)
+              .limit(50);
+
+            if (locationMatches && locationMatches.length > 0) {
+              const iwfMeetIds = locationMatches.map(loc => loc.iwf_meet_id);
+              const { data: matchedMeets } = await supabaseIWF
+                .from('iwf_meets')
+                .select('db_meet_id, meet, date, level, iwf_meet_id, iwf_meet_locations(city, country, location_text)')
+                .in('iwf_meet_id', iwfMeetIds);
+              
+              if (matchedMeets) {
+                iwfResults.push(...matchedMeets);
+              }
+            }
+          }
         } else {
-          // USAW Single word search
-          for (const term of searchTerms.slice(0, 3)) {
+          // USAW Single word search (includes location columns)
+          for (const term of cleanSearchTerms.slice(0, 3)) {
             const { data: meets, error: meetsError } = await supabase
               .from('meets')
-              .select('meet_id, Meet, Date, Level')
+              .select('meet_id, Meet, Date, Level, city, state, address')
               .ilike('Meet', `%${term}%`)
               .order('Date', { ascending: false })
               .limit(20);
@@ -837,17 +866,51 @@ export default function WeightliftingLandingPage() {
             }
           }
 
+          // USAW location search (search in public.meets columns directly)
+          for (const term of cleanSearchTerms.slice(0, 2)) {
+            const { data: locationMatches, error: locError } = await supabase
+              .from('meets')
+              .select('meet_id, Meet, Date, Level, city, state, address')
+              .or(`city.ilike.%${term}%,state.ilike.%${term}%,address.ilike.%${term}%`)
+              .limit(50);
+
+            if (!locError && locationMatches) {
+              usawResults.push(...locationMatches);
+            }
+          }
+
           // IWF Single word search
-          for (const term of searchTerms.slice(0, 3)) {
+          for (const term of cleanSearchTerms.slice(0, 3)) {
             const { data: iwfMeets, error: iwfError } = await supabaseIWF
               .from('iwf_meets')
-              .select('db_meet_id, meet, date, level')
+              .select('db_meet_id, meet, date, level, iwf_meet_id, iwf_meet_locations(city, country, location_text)')
               .ilike('meet', `%${term}%`)
               .order('date', { ascending: false })
               .limit(20);
 
             if (!iwfError && iwfMeets) {
               iwfResults.push(...iwfMeets);
+            }
+          }
+
+          // IWF location search - use two-step pattern (query locations first, then meets)
+          for (const term of cleanSearchTerms.slice(0, 2)) {
+            const { data: locationMatches } = await supabaseIWF
+              .from('iwf_meet_locations')
+              .select('iwf_meet_id')
+              .or(`location_text.ilike.%${term}%,city.ilike.%${term}%,country.ilike.%${term}%`)
+              .limit(50);
+
+            if (locationMatches && locationMatches.length > 0) {
+              const iwfMeetIds = locationMatches.map(loc => loc.iwf_meet_id);
+              const { data: matchedMeets } = await supabaseIWF
+                .from('iwf_meets')
+                .select('db_meet_id, meet, date, level, iwf_meet_id, iwf_meet_locations(city, country, location_text)')
+                .in('iwf_meet_id', iwfMeetIds);
+              
+              if (matchedMeets) {
+                iwfResults.push(...matchedMeets);
+              }
             }
           }
         }
@@ -862,25 +925,104 @@ export default function WeightliftingLandingPage() {
           new Map(iwfResults.map(meet => [meet.db_meet_id, meet])).values()
         );
 
+        // DEBUG: Inspect raw IWF unique meets and nested locations
+        console.log(
+          '[IWF_UNIQUE_MEETS_SAMPLE]',
+          uniqueIwfMeets.slice(0, 5).map(m => ({
+            db_meet_id: m.db_meet_id,
+            iwf_meet_id: m.iwf_meet_id,
+            meet: m.meet,
+            iwf_meet_locations: m.iwf_meet_locations
+          }))
+        );
+
         // Transform USAW results
-        const transformedUsawMeets = uniqueUsawMeets.map(meet => ({
-          meet_id: meet.meet_id,
-          meet_name: meet.Meet,
-          date: meet.Date,
-          level: meet.Level,
-          type: 'meet',
-          source: 'USAW' as DataSource
-        }));
+        const transformedUsawMeets = uniqueUsawMeets.map((meet) => {
+          // Build a clean, user-friendly location string from meet columns
+          let locationText = '';
+
+          const rawAddress = (meet.address || '').trim();
+
+          // Treat long geocoded strings as noise for search display
+          const hasGeocodeNoise =
+            /united states/i.test(rawAddress) ||
+            /\b\d{5}(?:-\d{4})?\b/.test(rawAddress);
+
+          if (meet.city && meet.state) {
+            // Prefer "City, State" for USAW search results
+            locationText = `${meet.city}, ${meet.state}`;
+          } else if (!hasGeocodeNoise && rawAddress && meet.city && !meet.state) {
+            // If we only have city + a short address (no country/zip), show both
+            locationText = `${rawAddress}, ${meet.city}`;
+          } else if (meet.city) {
+            locationText = meet.city;
+          } else if (meet.state) {
+            locationText = meet.state;
+          } else if (!hasGeocodeNoise && rawAddress) {
+            // Only fall back to address if it doesn't look like full geocode noise
+            locationText = rawAddress;
+          }
+
+          return {
+            meet_id: meet.meet_id,
+            meet_name: meet.Meet,
+            date: meet.Date,
+            level: meet.Level,
+            location_text: locationText,
+            type: 'meet',
+            source: 'USAW' as DataSource
+          };
+        });
 
         // Transform IWF results
-        const transformedIwfMeets = uniqueIwfMeets.map(meet => ({
-          db_meet_id: meet.db_meet_id,
-          meet_name: meet.meet,
-          date: meet.date,
-          level: meet.level,
-          type: 'meet',
-          source: 'IWF' as DataSource
-        }));
+        const transformedIwfMeets = uniqueIwfMeets.map((meet, index) => {
+          // Extract location from nested iwf_meet_locations using schema:
+          // iwf_meet_locations(location_text, city, country, ...)
+          let locationText = '';
+
+          const rawLoc = (meet as any).iwf_meet_locations;
+
+          // Normalize: handle both single-object and array shapes from Supabase
+          const loc =
+            Array.isArray(rawLoc) && rawLoc.length > 0
+              ? rawLoc[0]
+              : rawLoc && !Array.isArray(rawLoc)
+              ? rawLoc
+              : null;
+
+          if (loc) {
+            if (loc.location_text && loc.location_text.trim() !== '') {
+              // Preferred: ready-made "Paris, France" style string
+              locationText = loc.location_text.trim();
+            } else if (loc.city && loc.country) {
+              locationText = `${loc.city}, ${loc.country}`;
+            } else if (loc.city) {
+              locationText = loc.city;
+            } else if (loc.country) {
+              locationText = loc.country;
+            }
+          }
+
+          if (index < 5) {
+            console.log('[IWF_TRANSFORM_SAMPLE]', {
+              db_meet_id: meet.db_meet_id,
+              iwf_meet_id: meet.iwf_meet_id,
+              meet: meet.meet,
+              iwf_meet_locations: meet.iwf_meet_locations,
+              locationText
+            });
+          }
+
+          return {
+            db_meet_id: meet.db_meet_id,
+            meet_name: meet.meet,
+            date: meet.date,
+            level: meet.level,
+            location_text: locationText,
+            type: 'meet',
+            source: 'IWF' as DataSource
+          };
+        });
 
         // Merge all results
         const allMeets = [...transformedUsawMeets, ...transformedIwfMeets];
@@ -1326,7 +1468,8 @@ export default function WeightliftingLandingPage() {
                                     month: 'short',
                                     day: 'numeric'
                                   }) : null,
-                                  result.level
+                                  result.level,
+                                  result.location_text
                                 ].filter(Boolean).join(' • ')}
                               </div>
                             </div>
