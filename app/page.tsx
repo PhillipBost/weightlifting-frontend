@@ -13,6 +13,8 @@ import { UserMenu } from './components/UserMenu';
 import { LoginModal } from './components/LoginModal';
 import { DataSource, getSourceBadge, getSourceColor, buildAthleteUrl, buildMeetUrl } from '../lib/types/dataSource';
 import { queryWithTimeout } from '../lib/supabase-utils';
+import { useAuth } from './components/AuthProvider';
+import { ROLES } from '../lib/roles';
 
 // Types for our search results
 interface SearchResult {
@@ -1212,6 +1214,13 @@ export default function WeightliftingLandingPage() {
     meetSearchInputRef.current?.focus();
   };
 
+  const { user } = useAuth();
+  const canViewRankings =
+    !!user &&
+    (user.role === ROLES.ADMIN ||
+      user.role === ROLES.COACH ||
+      user.role === ROLES.USAW_NATIONAL_TEAM_COACH);
+
   return (
     <div className="min-h-screen bg-app-gradient">
       {/* Header */}
@@ -1538,6 +1547,31 @@ export default function WeightliftingLandingPage() {
                 </div>
               </div>
             </Link>
+
+            {/* Rankings Navigation Card - visible only to authorized roles */}
+            {canViewRankings && (
+              <Link href="/rankings" className="group">
+                <div className="bg-app-secondary border border-app-primary rounded-xl p-6 hover:bg-app-hover transition-all duration-200 hover:shadow-lg hover:scale-105">
+                  <div className="flex items-center space-x-4">
+                    <div className="bg-emerald-500/10 rounded-full p-3 group-hover:bg-emerald-500/20 transition-colors">
+                      <Trophy className="h-6 w-6 text-emerald-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-app-primary group-hover:text-emerald-400 transition-colors">
+                        Rankings
+                      </h3>
+                      <p className="text-sm text-app-tertiary mt-1">
+                        Explore athlete qualification rankings
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center mt-4 text-sm text-emerald-400 group-hover:text-emerald-300 transition-colors">
+                    <span>View rankings</span>
+                    <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+              </Link>
+            )}
           </div>
         </div>
       </section>
