@@ -1028,52 +1028,6 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
 
   return (
     <div className="min-h-screen bg-app-gradient">
-      {/* Header */}
-      <header className="bg-header-blur border-b border-app-secondary">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-6">
-              <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-                <Image
-                  src="/logo.png"
-                  alt="WeightliftingDB Logo"
-                  width={40}
-                  height={40}
-                  className="h-10 w-10 object-contain"
-                />
-                <div>
-                  <div className="text-lg font-bold text-app-primary">WeightliftingDB</div>
-                  <div className="text-xs text-app-tertiary">International Weightlifting Federation Results</div>
-                </div>
-              </Link>
-              <button
-                onClick={() => router.back()}
-                className="flex items-center space-x-2 text-app-secondary hover:text-accent-primary transition-colors"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                <span>Back</span>
-              </button>
-            </div>
-            <div className="flex items-center space-x-4">
-              <ThemeSwitcher />
-              {meet?.iwf_url && (
-                <button
-                  onClick={() => {
-                    if (meet.iwf_url) {
-                      window.open(meet.iwf_url, '_blank');
-                    }
-                  }}
-                  className="flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  <span>IWF Official Results</span>
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
-
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Meet Header */}
         <div className="card-primary mb-8">

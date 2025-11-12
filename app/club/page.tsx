@@ -47,6 +47,9 @@ function ClubSummary() {
 
   return (
     <div className="card-large">
+      <h1 className="text-3xl font-bold text-app-primary mb-6">
+        Barbell Clubs
+      </h1>
       <div className="mb-6">
         <h2 className="text-xl font-semibold text-app-primary mb-2">
           USA Weightlifting Clubs Overview
@@ -138,45 +141,6 @@ export default function ClubPage() {
     <div className="min-h-screen bg-app-gradient">
       <div className="container mx-auto px-4 py-8">
         <div className="space-y-6">
-          {/* Responsive Header */}
-          <div className="flex justify-between items-start flex-wrap gap-4 mb-8">
-            <div className="flex items-center space-x-4 flex-wrap gap-2">
-              <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-                <Image
-                  src="/logo.png"
-                  alt="WeightliftingDB Logo"
-                  width={40}
-                  height={40}
-                  className="h-10 w-10 object-contain"
-                />
-                <div>
-                  <div className="text-lg font-bold text-app-primary">WeightliftingDB</div>
-                  <div className="text-xs text-app-tertiary">USA Weightlifting Results Database</div>
-                </div>
-              </Link>
-              <div className="text-app-muted">|</div>
-              <button
-                onClick={() => router.push('/')}
-                className="flex items-center space-x-2 text-app-secondary hover:text-accent-primary transition-colors"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                <span>Back to Home</span>
-              </button>
-              <div className="text-app-muted">|</div>
-              <h1 className="text-3xl font-bold text-app-primary">
-                Barbell Clubs
-              </h1>
-            </div>
-            <div className="flex-shrink-0">
-              <ThemeSwitcher />
-            </div>
-          </div>
-
-          <div className="text-center mb-6">
-            <p className="text-lg text-app-secondary">
-              Explore USA Weightlifting clubs across the United States
-            </p>
-          </div>
 
           {/* Content Sections */}
           <div className="space-y-6">

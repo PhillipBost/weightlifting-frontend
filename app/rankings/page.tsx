@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { AuthGuard } from "../components/AuthGuard";
 import { ROLES } from "../../lib/roles";
 import { supabase } from "../../lib/supabase";
+import { supabaseIWF } from "../../lib/supabaseIWF";
 import {
   Trophy,
   Filter,
@@ -22,6 +23,7 @@ interface AthleteRanking {
   lifter_id: string;
   lifter_name: string;
   gender: string;
+  federation: "usaw" | "iwf";
   weight_class?: string;
   age_category?: string;
   best_snatch: number;
@@ -35,6 +37,8 @@ interface AthleteRanking {
 }
 
 function RankingsContent() {
+  const [usawRankings, setUsawRankings] = useState<AthleteRanking[]>([]);
+  const [iwfRankings, setIwfRankings] = useState<AthleteRanking[]>([]);
   const [rankings, setRankings] = useState<AthleteRanking[]>([]);
   const [filteredRankings, setFilteredRankings] = useState<AthleteRanking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,15 +51,17 @@ function RankingsContent() {
     weightClass: "all",
     ageCategory: "all",
     rankBy: "best_total",
+    federation: "all",
     sortBy: "best_total",
     sortOrder: "desc",
     minCompetitions: 1,
-    yearRange: "all-time",
+    selectedYears: [] as number[],
   });
 
   // UI states
   const [showFilters, setShowFilters] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [showYearDropdown, setShowYearDropdown] = useState(false);
 
   // Get unique values for filter dropdowns
   const [filterOptions, setFilterOptions] = useState({
@@ -242,6 +248,7 @@ function RankingsContent() {
               mostRecentResult?.lifter_name ||
               "Unknown",
             gender,
+            federation: "usaw",
             weight_class: mostRecentResult?.weight_class || "",
             age_category: mostRecentResult?.age_category || "",
             best_snatch:
@@ -267,7 +274,7 @@ function RankingsContent() {
             athlete.best_total > 0)
       );
 
-      setRankings(rankedAthletes);
+      setUsawRankings(rankedAthletes);
 
       const weightClassCombinations = new Set<string>();
       rankedAthletes.forEach((athlete) => {
@@ -408,6 +415,152 @@ function RankingsContent() {
         weightClasses: sortedWeightClasses,
         ageCategories: sortedAgeCategories,
       });
+
+      // Fetch IWF rankings
+      try {
+        const { data: iwfResults, error: iwfError } = await supabaseIWF
+          .from("iwf_meet_results")
+          .select(
+            `
+            db_lifter_id,
+            lifter_name,
+            date,
+            weight_class,
+            age_category,
+            best_snatch,
+            best_cj,
+            total,
+            qpoints,
+            q_youth,
+            q_masters,
+            competition_age,
+            gender
+          `
+          )
+          .order("date", { ascending: false });
+
+        if (iwfError) {
+          console.error("Error fetching IWF results:", iwfError);
+        }
+
+        let iwfRankingsLocal: AthleteRanking[] = [];
+
+        if (iwfResults && Array.isArray(iwfResults)) {
+          const iwfGroups = iwfResults.reduce(
+            (groups: { [key: string]: any[] }, r: any) => {
+              const lifterId = r.db_lifter_id;
+              if (!groups[lifterId]) groups[lifterId] = [];
+              groups[lifterId].push(r);
+              return groups;
+            },
+            {}
+          );
+
+          iwfRankingsLocal = Object.entries(iwfGroups)
+            .map(([lifterId, resultsAny]) => {
+              const results = resultsAny as any[];
+
+              const validSnatches = results
+                .map((r) => {
+                  const value = r.best_snatch;
+                  if (!value || value === "0" || value === "") return 0;
+                  const parsed = parseInt(String(value), 10);
+                  return isNaN(parsed) ? 0 : Math.abs(parsed);
+                })
+                .filter((v: number) => v > 0);
+
+              const validCJs = results
+                .map((r) => {
+                  const value = r.best_cj;
+                  if (!value || value === "0" || value === "") return 0;
+                  const parsed = parseInt(String(value), 10);
+                  return isNaN(parsed) ? 0 : Math.abs(parsed);
+                })
+                .filter((v: number) => v > 0);
+
+              const validTotals = results
+                .map((r) => {
+                  const value = r.total;
+                  if (!value || value === "0" || value === "") return 0;
+                  const parsed = parseInt(String(value), 10);
+                  return isNaN(parsed) ? 0 : parsed;
+                })
+                .filter((v: number) => v > 0);
+
+              const validQPoints = results
+                .map((r) => {
+                  const qpoints = r.qpoints
+                    ? parseFloat(String(r.qpoints))
+                    : 0;
+                  const qYouth = r.q_youth
+                    ? parseFloat(String(r.q_youth))
+                    : 0;
+                  const qMasters = r.q_masters
+                    ? parseFloat(String(r.q_masters))
+                    : 0;
+                  return Math.max(qpoints, qYouth, qMasters);
+                })
+                .filter((v: number) => v > 0);
+
+              const mostRecentResult = results[0];
+
+              const gender =
+                mostRecentResult?.gender &&
+                typeof mostRecentResult.gender === "string"
+                  ? mostRecentResult.gender
+                  : "";
+
+              return {
+                lifter_id: String(lifterId),
+                lifter_name:
+                  mostRecentResult?.lifter_name || "Unknown",
+                gender,
+                federation: "iwf",
+                weight_class: mostRecentResult?.weight_class || "",
+                age_category: mostRecentResult?.age_category || "",
+                best_snatch:
+                  validSnatches.length > 0
+                    ? Math.max(...validSnatches)
+                    : 0,
+                best_cj:
+                  validCJs.length > 0
+                    ? Math.max(...validCJs)
+                    : 0,
+                best_total:
+                  validTotals.length > 0
+                    ? Math.max(...validTotals)
+                    : 0,
+                best_qpoints:
+                  validQPoints.length > 0
+                    ? Math.max(...validQPoints)
+                    : 0,
+                competition_count: results.length,
+                last_competition: mostRecentResult?.date || "",
+                competition_age:
+                  mostRecentResult?.competition_age || undefined,
+              };
+            })
+            .filter(
+              (athlete) =>
+                athlete.competition_count > 0 &&
+                (athlete.best_snatch > 0 ||
+                  athlete.best_cj > 0 ||
+                  athlete.best_total > 0)
+            );
+        }
+
+        setIwfRankings(iwfRankingsLocal);
+        // Default base rankings for "All Federations"
+        setRankings([
+          ...rankedAthletes.map((a) => ({ ...a, federation: "usaw" as const })),
+          ...iwfRankingsLocal.map((a) => ({ ...a, federation: "iwf" as const })),
+        ]);
+      } catch (iwfErr: any) {
+        console.error("Unexpected error fetching IWF rankings:", iwfErr);
+        // Fall back to USAW-only if IWF fails
+        setIwfRankings([]);
+        setRankings(rankedAthletes);
+      }
     } catch (err: any) {
       setError(err.message);
       console.error("Error fetching rankings data:", err);
@@ -417,7 +570,19 @@ function RankingsContent() {
   }
 
   function applyFilters() {
-    let filtered = [...rankings];
+    // Choose base dataset by federation
+    let base: AthleteRanking[];
+    if (filters.federation === "usaw") {
+      base = usawRankings;
+    } else if (filters.federation === "iwf") {
+      base = iwfRankings;
+    } else {
+      base = rankings.length
+        ? rankings
+        : [...usawRankings, ...iwfRankings];
+    }
+
+    let filtered = [...base];
 
     if (filters.searchTerm) {
       filtered = filtered.filter((athlete) =>
@@ -474,18 +639,13 @@ function RankingsContent() {
         athlete.competition_count >= filters.minCompetitions
     );
 
-    if (filters.yearRange !== "all-time") {
-      const currentYear = new Date().getFullYear();
-      const yearCutoff =
-        filters.yearRange === "last-year"
-          ? currentYear - 1
-          : currentYear - 2;
+    if (filters.selectedYears && filters.selectedYears.length > 0) {
       filtered = filtered.filter((athlete) => {
         if (!athlete.last_competition) return false;
         const competitionYear = new Date(
           athlete.last_competition
         ).getFullYear();
-        return competitionYear >= yearCutoff;
+        return filters.selectedYears.includes(competitionYear);
       });
     }
 
@@ -526,7 +686,8 @@ function RankingsContent() {
       trueRank: athleteRanks.get(athlete.lifter_id),
     }));
 
-    setFilteredRankings(rankedFiltered.slice(0, 50));
+    // No hard cap: show all matching athletes
+    setFilteredRankings(rankedFiltered);
   }
 
   function handleFilterChange(key: string, value: any) {
@@ -561,7 +722,8 @@ function RankingsContent() {
       sortBy: "best_total",
       sortOrder: "desc",
       minCompetitions: 1,
-      yearRange: "all-time",
+      selectedYears: [],
+      federation: "all",
     });
   }
 
@@ -722,49 +884,95 @@ function RankingsContent() {
       {/* Header */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="bg-gray-800 rounded-2xl p-8 mb-8 border border-gray-700">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-            <div className="flex items-center space-x-4 mb-4 md:mb-0">
-              <div className="bg-gray-700 rounded-full p-3">
-                <Trophy className="h-8 w-8 text-yellow-400" />
+        <div className="bg-gray-800 rounded-2xl p-6 md:p-8 mb-8 border border-gray-700">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            {/* Left: Title and context */}
+            <div className="flex items-start space-x-4">
+              <div className="bg-gray-700 rounded-2xl p-3 flex items-center justify-center">
+                <Trophy className="h-7 w-7 text-yellow-400" />
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-white">
                   Weightlifting Rankings
                 </h1>
-                <p className="text-gray-300">
-                  {filteredRankings.length} athletes • Last updated:{" "}
-                  {new Date().toLocaleDateString()}
+                <p className="text-sm text-gray-300 mt-1">
+                  Explore national and international rankings across federations,
+                  years, and divisions.
                 </p>
+                {/* Summary chips */}
+                <div className="mt-3 flex flex-wrap gap-2 text-[10px]">
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-700 text-gray-300">
+                    {filteredRankings.length} athletes
+                  </span>
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-700 text-gray-300">
+                    Federation:{" "}
+                    {filters.federation === "all"
+                      ? "All Federations"
+                      : filters.federation === "usaw"
+                      ? "USAW"
+                      : "IWF"}
+                  </span>
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-700 text-gray-300">
+                    Years:{" "}
+                    {filters.selectedYears.length === 0
+                      ? "All (1998–" + new Date().getFullYear() + ")"
+                      : filters.selectedYears
+                          .slice()
+                          .sort((a, b) => b - a)
+                          .join(", ")}
+                  </span>
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-700 text-gray-300">
+                    Min comps: {filters.minCompetitions}
+                  </span>
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-700 text-gray-300">
+                    Sorted by:{" "}
+                    {filters.sortBy === "lifter_name"
+                      ? "Name"
+                      : filters.sortBy === "competition_count"
+                      ? "Competition Count"
+                      : filters.sortBy === "best_snatch"
+                      ? "Best Snatch"
+                      : filters.sortBy === "best_cj"
+                      ? "Best C&J"
+                      : filters.sortBy === "best_qpoints"
+                      ? "Best Q-Points"
+                      : "Best Total"}{" "}
+                    ({filters.sortOrder === "asc" ? "Asc" : "Desc"})
+                  </span>
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-700 text-gray-400">
+                    Last updated: {new Date().toLocaleDateString()}
+                  </span>
+                </div>
               </div>
             </div>
 
-            <div className="flex space-x-3">
+            {/* Right: Actions */}
+            <div className="flex items-start md:items-center space-x-3">
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
               >
                 <Filter className="h-4 w-4" />
-                <span>Filters</span>
+                <span>{showFilters ? "Hide Filters" : "Show Filters"}</span>
               </button>
 
               <div className="relative">
                 <button
                   onClick={() => setShowExportMenu(!showExportMenu)}
-                  className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
+                  className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                 >
                   <Download className="h-4 w-4" />
                   <span>Export</span>
                 </button>
 
                 {showExportMenu && (
-                  <div className="absolute right-0 mt-2 w-48 bg-gray-700 border border-gray-600 rounded-lg shadow-lg z-10">
+                  <div className="absolute right-0 mt-2 w-52 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-20">
                     <button
                       onClick={() => {
                         exportToCSV();
                         setShowExportMenu(false);
                       }}
-                      className="flex items-center space-x-2 w-full text-left px-4 py-2 text-white hover:bg-gray-600 rounded-t-lg"
+                      className="flex items-center space-x-2 w-full text-left px-4 py-2 text-xs text-white hover:bg-gray-700 rounded-t-lg"
                     >
                       <FileSpreadsheet className="h-4 w-4" />
                       <span>Download CSV</span>
@@ -774,7 +982,7 @@ function RankingsContent() {
                         printTable();
                         setShowExportMenu(false);
                       }}
-                      className="flex items-center space-x-2 w-full text-left px-4 py-2 text-white hover:bg-gray-600 rounded-b-lg"
+                      className="flex items-center space-x-2 w-full text-left px-4 py-2 text-xs text-white hover:bg-gray-700 rounded-b-lg"
                     >
                       <Printer className="h-4 w-4" />
                       <span>Print Table</span>
@@ -809,6 +1017,24 @@ function RankingsContent() {
                       className="w-full pl-10 pr-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
+                </div>
+
+                {/* Federation */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Federation
+                  </label>
+                  <select
+                    value={filters.federation}
+                    onChange={(e) =>
+                      handleFilterChange("federation", e.target.value)
+                    }
+                    className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="all">All Federations</option>
+                    <option value="usaw">USAW</option>
+                    <option value="iwf">IWF</option>
+                  </select>
                 </div>
 
                 {/* Gender */}
@@ -971,31 +1197,106 @@ function RankingsContent() {
                   </select>
                 </div>
 
-                {/* Time Period */}
-                <div>
+                {/* Years dropdown with multi-select checkboxes */}
+                <div className="relative">
                   <label className="block text-sm font-medium text-gray-300 mb-1">
-                    Time Period
+                    Years
                   </label>
-                  <select
-                    value={filters.yearRange}
-                    onChange={(e) =>
-                      handleFilterChange(
-                        "yearRange",
-                        e.target.value
-                      )
-                    }
-                    className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  <button
+                    type="button"
+                    onClick={() => setShowYearDropdown((prev) => !prev)}
+                    className="w-full flex items-center justify-between px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="all-time">
-                      All Time
-                    </option>
-                    <option value="last-year">
-                      Last Year
-                    </option>
-                    <option value="last-2-years">
-                      Last 2 Years
-                    </option>
-                  </select>
+                    <span>
+                      {filters.selectedYears.length === 0
+                        ? "All Years (1998–" +
+                          new Date().getFullYear() +
+                          ")"
+                        : filters.selectedYears
+                            .slice()
+                            .sort((a, b) => b - a)
+                            .join(", ")}
+                    </span>
+                    <span className="ml-2 text-xs text-gray-300">
+                      {showYearDropdown ? "▲" : "▼"}
+                    </span>
+                  </button>
+
+                  {showYearDropdown && (
+                    <div className="absolute z-20 mt-1 w-64 max-h-64 overflow-y-auto bg-gray-800 border border-gray-600 rounded-lg shadow-lg p-2">
+                      <div className="flex justify-between items-center mb-2 text-[10px] text-gray-400">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const currentYear = new Date().getFullYear();
+                            const allYears = Array.from(
+                              { length: currentYear - 1998 + 1 },
+                              (_, i) => currentYear - i
+                            );
+                            setFilters((prev) => ({
+                              ...prev,
+                              selectedYears: allYears,
+                            }));
+                          }}
+                          className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600"
+                        >
+                          Select All
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setFilters((prev) => ({
+                              ...prev,
+                              selectedYears: [],
+                            }))
+                          }
+                          className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600"
+                        >
+                          Clear
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-3 gap-1">
+                        {Array.from(
+                          { length: new Date().getFullYear() - 1998 + 1 },
+                          (_, i) => new Date().getFullYear() - i
+                        ).map((year) => {
+                          const checked =
+                            filters.selectedYears.includes(year);
+                          return (
+                            <label
+                              key={year}
+                              className="flex items-center space-x-1 text-[10px] text-gray-200 cursor-pointer"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={() => {
+                                  setFilters((prev) => {
+                                    const exists =
+                                      prev.selectedYears.includes(year);
+                                    return {
+                                      ...prev,
+                                      selectedYears: exists
+                                        ? prev.selectedYears.filter(
+                                            (y) => y !== year
+                                          )
+                                        : [...prev.selectedYears, year],
+                                    };
+                                  });
+                                }}
+                                className="h-3 w-3 accent-blue-500"
+                              />
+                              <span>{year}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                      <p className="mt-2 text-[9px] text-gray-400">
+                        When no years are selected, rankings include all
+                        available years (All Time).
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Min Competitions */}
@@ -1138,7 +1439,7 @@ function RankingsContent() {
               <tbody>
                 {filteredRankings.map((athlete, index) => (
                   <tr
-                    key={athlete.lifter_id}
+                    key={`${athlete.federation || "usaw"}-${athlete.lifter_id}`}
                     className={`border-t border-gray-700 hover:bg-gray-700/50 transition-colors ${
                       (athlete.trueRank || index + 1) <= 3
                         ? "bg-gradient-to-r from-yellow-900/20 to-transparent"
@@ -1309,6 +1610,13 @@ function RankingsContent() {
           <div
             className="fixed inset-0 z-5"
             onClick={() => setShowExportMenu(false)}
+          />
+        )}
+
+        {showYearDropdown && (
+          <div
+            className="fixed inset-0 z-0"
+            onClick={() => setShowYearDropdown(false)}
           />
         )}
       </div>

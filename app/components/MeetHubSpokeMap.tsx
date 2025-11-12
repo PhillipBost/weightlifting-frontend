@@ -3,7 +3,10 @@
 import React, { useEffect, useMemo } from "react"
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet"
 import { DivIcon, latLngBounds, LatLngExpression } from "leaflet"
-import { Users } from "lucide-react"
+import { Users, Trophy } from "lucide-react"
+import "leaflet/dist/leaflet.css"
+import "leaflet-defaulticon-compatibility"
+import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css"
 import { useTheme } from "./ThemeProvider"
 
 // Convert country code to flag emoji
