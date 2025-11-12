@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient } from '@supabase/supabase-js'
 import { ROLES } from '@/lib/roles'
 
@@ -37,18 +37,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
     }
 
-    // Get the session from the request
-    const authHeader = request.headers.get('authorization')
-    
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    // Get the session from cookies
+    const supabase = await createServerClient()
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
 
-    const token = authHeader.split(' ')[1]
-    
-    // Verify the user and get their profile
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token)
-    
     if (userError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

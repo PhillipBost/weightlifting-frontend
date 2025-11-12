@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Search, TrendingUp, Trophy, Users, Calendar, CalendarDays, MapPinned, Weight, Dumbbell, Database, Filter, ArrowRight, Github, Heart, X, User, MapPin, Loader2 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { createClient } from '@/lib/supabase/client';
 import { supabaseIWF } from '../lib/supabaseIWF';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -88,6 +88,7 @@ function debounce<T extends (...args: any[]) => any>(
 }
 
 export default function WeightliftingLandingPage() {
+  const supabase = createClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [meetSearchQuery, setMeetSearchQuery] = useState('');
   const [searchType, setSearchType] = useState('lifters');

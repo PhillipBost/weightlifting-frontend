@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { supabase } from "../../lib/supabase"
 
 interface WSOBoundaryData {
   wso_id: number

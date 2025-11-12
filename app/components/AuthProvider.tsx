@@ -1,7 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/client'
 import { User, Session } from '@supabase/supabase-js'
 import { queryWithTimeout } from '@/lib/supabase-utils'
 import { checkSupabaseHealth } from '@/lib/supabase-health'
@@ -40,6 +40,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<ExtendedUser | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const supabase = createClient()
 
   // Fetch user profile data including role
   const fetchUserProfile = async (authUser: User): Promise<ExtendedUser> => {
@@ -155,6 +156,31 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     return () => subscription.unsubscribe()
   }, [])
+
+  // Proactive token refresh - refresh every 7 hours (1 hour before 8-hour expiration)
+  useEffect(() => {
+    // Only set up refresh interval if user is logged in
+    if (!session) return
+
+    const SEVEN_HOURS = 7 * 60 * 60 * 1000 // 7 hours in milliseconds
+
+    const refreshInterval = setInterval(async () => {
+      try {
+        console.log('[AUTH] Proactively refreshing session token...')
+        const { data, error } = await supabase.auth.refreshSession()
+
+        if (error) {
+          console.error('[AUTH] Proactive refresh failed:', error.message)
+        } else {
+          console.log('[AUTH] Session refreshed successfully')
+        }
+      } catch (err) {
+        console.error('[AUTH] Proactive refresh error:', err)
+      }
+    }, SEVEN_HOURS)
+
+    return () => clearInterval(refreshInterval)
+  }, [session, supabase])
 
   // Login function
   const login = async (email: string, password: string) => {

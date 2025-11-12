@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient } from '@supabase/supabase-js'
 
 // Create admin client with service role for user management
@@ -24,18 +24,10 @@ export async function GET(request: NextRequest) {
         error: 'Service role key not configured. Please set SUPABASE_SERVICE_ROLE_KEY environment variable.' 
       }, { status: 500 })
     }
-    // Get the session from the request
-    const authHeader = request.headers.get('authorization')
-    
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    // Get the session from cookies
+    const supabase = await createServerClient()
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
 
-    const token = authHeader.split(' ')[1]
-    
-    // Verify the user and get their profile
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token)
-    
     if (userError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

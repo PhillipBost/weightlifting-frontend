@@ -2,7 +2,7 @@
  * Supabase client health monitoring
  */
 
-import { supabase } from './supabase'
+import { createClient } from './supabase/client'
 import { queryWithTimeout } from './supabase-utils'
 
 export interface SupabaseHealthStatus {
@@ -15,6 +15,7 @@ export interface SupabaseHealthStatus {
 
 export async function checkSupabaseHealth(): Promise<SupabaseHealthStatus> {
   const timestamp = Date.now()
+  const supabase = createClient()
 
   try {
     // Check session

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { AuthGuard } from "../components/AuthGuard";
 import { ROLES } from "../../lib/roles";
-import { supabase } from "../../lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import { supabaseIWF } from "../../lib/supabaseIWF";
 import {
   Trophy,
@@ -37,6 +37,7 @@ interface AthleteRanking {
 }
 
 function RankingsContent() {
+  const supabase = createClient();
   const [usawRankings, setUsawRankings] = useState<AthleteRanking[]>([]);
   const [iwfRankings, setIwfRankings] = useState<AthleteRanking[]>([]);
   const [rankings, setRankings] = useState<AthleteRanking[]>([]);
