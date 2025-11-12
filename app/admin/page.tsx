@@ -122,26 +122,6 @@ export default function AdminPage() {
       </div>
     }>
       <div className="min-h-screen bg-app-gradient">
-        {/* Header */}
-        <header className="bg-header-blur border-b border-app-secondary">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-4">
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={() => router.push('/')}
-                  className="flex items-center space-x-2 text-app-secondary hover:text-accent-primary transition-colors"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  <span>Back to Home</span>
-                </button>
-              </div>
-              <div className="flex items-center space-x-4">
-                <ThemeSwitcher />
-              </div>
-            </div>
-          </div>
-        </header>
-
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Admin Header */}
           <div className="card-primary mb-8">

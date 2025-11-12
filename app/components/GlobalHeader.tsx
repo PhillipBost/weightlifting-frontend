@@ -4,8 +4,9 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
-import { ExternalLink, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { ThemeSwitcher } from "./ThemeSwitcher";
+import { UserMenu } from "./UserMenu";
 
 interface GlobalHeaderProps {
   /**
@@ -17,14 +18,6 @@ interface GlobalHeaderProps {
    * Optional explicit back href. If not provided, will call router.back().
    */
   backHref?: string;
-  /**
-   * Whether to show the Official Results link.
-   */
-  showOfficialResults?: boolean;
-  /**
-   * Official results URL.
-   */
-  officialResultsHref?: string;
 }
 
 /**
@@ -35,8 +28,6 @@ interface GlobalHeaderProps {
 export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
   showBack = true,
   backHref,
-  showOfficialResults = true,
-  officialResultsHref = "https://results.teamusa.org/sports/wl",
 }) => {
   const router = useRouter();
   const pathname = usePathname();
@@ -93,20 +84,10 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
             )}
           </div>
 
-          {/* Right: Theme + Official Results */}
+          {/* Right: Theme + User Menu */}
           <div className="flex items-center space-x-4">
             <ThemeSwitcher />
-            {showOfficialResults && (
-              <a
-                href={officialResultsHref}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors"
-              >
-                <ExternalLink className="h-4 w-4" />
-                <span>Official Results</span>
-              </a>
-            )}
+            <UserMenu showOnlyWhenLoggedIn />
           </div>
         </div>
       </div>

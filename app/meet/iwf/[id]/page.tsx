@@ -1065,6 +1065,21 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                 </div>
               </div>
             </div>
+
+            {/* External Link */}
+            {meet.iwf_url && (
+              <div className="flex flex-col gap-2">
+                <a
+                  href={meet.iwf_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  <span>IWF Results</span>
+                </a>
+              </div>
+            )}
           </div>
         </div>
         {/* Hub and Spoke Map */}

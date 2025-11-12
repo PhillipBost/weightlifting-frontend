@@ -730,25 +730,6 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
     
     return (
       <div className="min-h-screen bg-app-gradient">
-        <header className="bg-header-blur border-b border-app-secondary">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-4">
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={() => router.push('/')}
-                  className="flex items-center space-x-2 text-app-secondary hover:text-accent-primary transition-colors"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  <span>Back to Search</span>
-                </button>
-              </div>
-              <div className="flex items-center space-x-4">
-                <ThemeSwitcher />
-              </div>
-            </div>
-          </div>
-        </header>
-
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="card-primary mb-8">
             <h1 className="text-2xl font-bold text-app-primary mb-4">
@@ -811,48 +792,6 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 
   return (
     <div className="min-h-screen bg-app-gradient">
-      {/* Header */}
-      <header className="bg-header-blur border-b border-app-secondary">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-6">
-              <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-                <Image
-                  src="/logo.png"
-                  alt="WeightliftingDB Logo"
-                  width={40}
-                  height={40}
-                  className="h-10 w-10 object-contain"
-                />
-                <div>
-                  <div className="text-lg font-bold text-app-primary">WeightliftingDB</div>
-                  <div className="text-xs text-app-tertiary">USA Weightlifting Results Database</div>
-                </div>
-              </Link>
-              <button
-                onClick={() => router.push('/')}
-                className="flex items-center space-x-2 text-app-secondary hover:text-accent-primary transition-colors"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                <span>Back to Search</span>
-              </button>
-            </div>
-            <div className="flex items-center space-x-4">
-              <ThemeSwitcher />
-              {athlete?.iwf_athlete_url && (
-				  <button
-					onClick={() => window.open(athlete.iwf_athlete_url, '_blank')}
-					className="flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors"
-				  >
-					<ExternalLink className="h-4 w-4" />
-					<span>IWF Profile</span>
-				  </button>
-			  )}
-            </div>
-          </div>
-        </div>
-      </header>
-
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Athlete Header */}
         <div className="card-primary mb-8">
@@ -891,6 +830,21 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                 </div>
               </div>
             </div>
+
+            {/* External Profile Link */}
+            {athlete.iwf_athlete_url && (
+              <div className="flex flex-col gap-2 mt-4 md:mt-0">
+                <a
+                  href={athlete.iwf_athlete_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  <span>IWF Profile</span>
+                </a>
+              </div>
+            )}
           </div>
         </div>
 

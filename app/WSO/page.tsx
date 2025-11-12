@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowLeft, MapPin, Users, BarChart3, Activity, TrendingUp, ChevronRight, Database } from 'lucide-react'
+import { ArrowLeft, MapPin, Users, BarChart3, Activity, TrendingUp, ChevronRight, Database, ExternalLink } from 'lucide-react'
 import { ThemeSwitcher } from '../components/ThemeSwitcher'
 import { useWSOMapData } from '../hooks/useWSOMapData'
 import dynamic from 'next/dynamic'
@@ -235,7 +235,16 @@ export default function WSODirectoryPage() {
             <div className="text-app-muted">|</div>
             <h2 className="text-3xl font-bold text-app-primary">Weightlifting State Organizations</h2>
           </div>
-          <div className="flex-shrink-0">
+          <div className="flex items-center space-x-4 flex-shrink-0">
+            <a
+              href="https://www.usaweightlifting.org/club-wso/wso-information"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors"
+            >
+              <ExternalLink className="h-4 w-4" />
+              <span className="hidden sm:inline">WSO Information</span>
+            </a>
             <ThemeSwitcher />
           </div>
         </div>

@@ -5,7 +5,7 @@ import dynamic from "next/dynamic"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
-import { ArrowLeft, Database } from "lucide-react"
+import { ArrowLeft, Database, ExternalLink } from "lucide-react"
 import { ThemeSwitcher } from "../components/ThemeSwitcher"
 import { MetricTooltip } from "../components/MetricTooltip"
 import { useClubData } from "../hooks/useClubData"
@@ -85,6 +85,19 @@ function ClubSummary() {
             </div>
           </MetricTooltip>
         </div>
+      </div>
+
+      {/* External Link */}
+      <div className="pt-4 border-t border-app-secondary">
+        <a
+          href="https://usaweightlifting.sport80.com/public/widget/7"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors"
+        >
+          <ExternalLink className="h-4 w-4" />
+          <span>Official Club Directory</span>
+        </a>
       </div>
     </div>
   )

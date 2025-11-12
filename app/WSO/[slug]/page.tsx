@@ -5,7 +5,7 @@ import dynamic from "next/dynamic"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
-import { ArrowLeft, ChevronRight, Mail, Phone, Globe, Database } from "lucide-react"
+import { ArrowLeft, ChevronRight, Mail, Phone, Globe, Database, ExternalLink } from "lucide-react"
 import { ThemeSwitcher } from "../../components/ThemeSwitcher"
 import { MetricTooltip } from "../../components/MetricTooltip"
 import { useWSOClubData } from "../../hooks/useWSOClubData"
@@ -663,7 +663,18 @@ export default function WSODetailPage() {
                 {displayName} WSO
               </h1>
             </div>
-            <div className="flex-shrink-0">
+            <div className="flex items-center space-x-4 flex-shrink-0">
+              {clubData?.wsoInfo?.official_url && (
+                <a
+                  href={clubData.wsoInfo.official_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  <span className="hidden sm:inline">Official Website</span>
+                </a>
+              )}
               <ThemeSwitcher />
             </div>
           </div>

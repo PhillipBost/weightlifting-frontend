@@ -49,6 +49,7 @@ interface Meet {
   elevation?: number | null;
   latitude?: number | null;
   longitude?: number | null;
+  URL?: string | null;
 }
 
 const SortIcon = ({ column, sortConfig, division }: {
@@ -110,7 +111,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         // First, fetch meet information (convert string ID to integer)
         const { data: meetData, error: meetError } = await supabase
           .from('meets')
-          .select('Meet, Date, Level, city, state, address, elevation_meters, latitude, longitude')
+          .select('Meet, Date, Level, city, state, address, elevation_meters, latitude, longitude, URL')
           .eq('meet_id', parseInt(resolvedParams.id))
           .single();
 
@@ -140,7 +141,8 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
           level: meetData.Level || 'Local',
           elevation: meetData.elevation_meters ?? null,
           latitude: meetData.latitude,
-          longitude: meetData.longitude
+          longitude: meetData.longitude,
+          URL: meetData.URL
         });
 
         // Then fetch all results for this meet - join with lifters table to get membership_number
@@ -876,6 +878,21 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                 </div>
               </div>
             </div>
+
+            {/* External Link */}
+            {meet.URL && (
+              <div className="flex flex-col gap-2">
+                <a
+                  href={meet.URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  <span>Official Results</span>
+                </a>
+              </div>
+            )}
           </div>
         </div>
         {/* Hub and Spoke Map */}

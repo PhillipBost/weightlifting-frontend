@@ -24,6 +24,7 @@ interface WSOInfo {
   active_lifters_count?: number
   recent_meets_count?: number
   barbell_clubs_count?: number
+  official_url?: string | null
 }
 
 interface ClubStats {
