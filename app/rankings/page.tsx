@@ -248,7 +248,7 @@ function RankingsContent() {
               mostRecentResult?.lifter_name ||
               "Unknown",
             gender,
-            federation: "usaw",
+            federation: "usaw" as const,
             weight_class: mostRecentResult?.weight_class || "",
             age_category: mostRecentResult?.age_category || "",
             best_snatch:
@@ -515,7 +515,7 @@ function RankingsContent() {
                 lifter_name:
                   mostRecentResult?.lifter_name || "Unknown",
                 gender,
-                federation: "iwf",
+                federation: "iwf" as const,
                 weight_class: mostRecentResult?.weight_class || "",
                 age_category: mostRecentResult?.age_category || "",
                 best_snatch:
