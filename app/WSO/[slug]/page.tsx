@@ -4,9 +4,7 @@ import React, { useState, useEffect } from "react"
 import dynamic from "next/dynamic"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
-import Image from "next/image"
-import { ArrowLeft, ChevronRight, Mail, Phone, Globe, Database, ExternalLink } from "lucide-react"
-import { ThemeSwitcher } from "../../components/ThemeSwitcher"
+import { ChevronRight, Mail, Phone, Globe, Database, ExternalLink } from "lucide-react"
 import { MetricTooltip } from "../../components/MetricTooltip"
 import { useWSOClubData } from "../../hooks/useWSOClubData"
 import { useWSODetailData } from "../../hooks/useWSODetailData"
@@ -634,53 +632,6 @@ export default function WSODetailPage() {
     <div className="min-h-screen bg-app-gradient">
       <div className="container mx-auto px-4 py-8">
         <div className="space-y-6">
-          {/* Responsive Header */}
-          <div className="flex justify-between items-start flex-wrap gap-4 mb-8">
-            <div className="flex items-center space-x-4 flex-wrap gap-2">
-              <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-                <Image
-                  src="/logo.png"
-                  alt="WeightliftingDB Logo"
-                  width={40}
-                  height={40}
-                  className="h-10 w-10 object-contain"
-                />
-                <div>
-                  <div className="text-lg font-bold text-app-primary">WeightliftingDB</div>
-                  <div className="text-xs text-app-tertiary">USA Weightlifting Results Database</div>
-                </div>
-              </Link>
-              <div className="text-app-muted">|</div>
-              <button
-                onClick={() => router.push('/WSO')}
-                className="flex items-center space-x-2 text-app-secondary hover:text-accent-primary transition-colors"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                <span>Back to WSO Directory</span>
-              </button>
-              <div className="text-app-muted">|</div>
-              <h1 className="text-3xl font-bold text-app-primary">
-                {displayName} WSO
-              </h1>
-            </div>
-            <div className="flex items-center space-x-4 flex-shrink-0">
-              {clubData?.wsoInfo?.official_url && (
-                <a
-                  href={clubData.wsoInfo.official_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  <span className="hidden sm:inline">Official Website</span>
-                </a>
-              )}
-              <ThemeSwitcher />
-            </div>
-          </div>
-
-
-
           {/* Content Sections */}
           <div className="space-y-6">
             {/* WSO Summary Statistics */}
@@ -690,11 +641,22 @@ export default function WSODetailPage() {
             <div className="card-large">
               <div className="mb-4">
                 <h2 className="text-xl font-semibold text-app-primary mb-2">
-                  WSO Territory and Club Locations
+                  {displayName} WSO Territory and Club Locations
                 </h2>
                 <p className="text-app-secondary">
                   Geographic boundaries and registered club locations within this WSO region.
                 </p>
+                {clubData?.wsoInfo?.official_url && (
+                  <a
+                    href={clubData.wsoInfo.official_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors mt-2"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    <span>Official Website</span>
+                  </a>
+                )}
               </div>
 
               <WSODetailMap wsoSlug={slug} wsoName={displayName} recentMeetsCount={recentMeetsCount} />

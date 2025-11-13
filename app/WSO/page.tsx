@@ -2,9 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
-import { ArrowLeft, MapPin, Users, BarChart3, Activity, TrendingUp, ChevronRight, Database, ExternalLink } from 'lucide-react'
-import { ThemeSwitcher } from '../components/ThemeSwitcher'
+import { MapPin, Users, BarChart3, Activity, TrendingUp, ChevronRight, Database, ExternalLink } from 'lucide-react'
 import { useWSOMapData } from '../hooks/useWSOMapData'
 import dynamic from 'next/dynamic'
 import useSWR from 'swr'
@@ -216,45 +214,21 @@ export default function WSODirectoryPage() {
   return (
     <div className="min-h-screen bg-app-gradient">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Responsive Header */}
-        <div className="flex justify-between items-start flex-wrap gap-4 mb-8">
-          <div className="flex items-center space-x-4 flex-wrap gap-2">
-            <Link href="/" className="flex items-center space-x-4 hover:opacity-80 transition-opacity">
-              <Image
-                src="/logo.png"
-                alt="WeightliftingDB Logo"
-                width={56}
-                height={56}
-                className="h-14 w-14 object-contain"
-              />
-              <div>
-                <h1 className="text-2xl font-bold text-app-primary">WeightliftingDB</h1>
-                <p className="text-sm text-app-tertiary">USA Weightlifting Results Database</p>
-              </div>
-            </Link>
-            <div className="text-app-muted">|</div>
-            <h2 className="text-3xl font-bold text-app-primary">Weightlifting State Organizations</h2>
-          </div>
-          <div className="flex items-center space-x-4 flex-shrink-0">
-            <a
-              href="https://www.usaweightlifting.org/club-wso/wso-information"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors"
-            >
-              <ExternalLink className="h-4 w-4" />
-              <span className="hidden sm:inline">WSO Information</span>
-            </a>
-            <ThemeSwitcher />
-          </div>
-        </div>
-
         {/* Interactive WSO Map */}
         <div className="mt-8 card-large shadow-lg mb-8">
-          <h2 className="text-xl font-semibold text-app-primary mb-4 flex items-center gap-2">
+          <h2 className="text-xl font-semibold text-app-primary mb-2 flex items-center gap-2">
             <MapPin className="h-5 w-5" />
-            WSO Territory Map
+            USA Weightlifting State Organizations Territory Map
           </h2>
+          <a
+            href="https://www.usaweightlifting.org/club-wso/wso-information"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors mb-4"
+          >
+            <ExternalLink className="h-4 w-4" />
+            <span>WSO Information</span>
+          </a>
           <WSOMap className="h-[500px] w-full" />
         </div>
 

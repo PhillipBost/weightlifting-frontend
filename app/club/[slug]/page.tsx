@@ -3,9 +3,7 @@
 import React, { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import Image from "next/image"
-import { ArrowLeft, MapPin, Users, TrendingUp, Calendar, ExternalLink, Dumbbell, BarChart3 } from "lucide-react"
-import { ThemeSwitcher } from "../../components/ThemeSwitcher"
+import { MapPin, Users, TrendingUp, Calendar, ExternalLink, Dumbbell, BarChart3 } from "lucide-react"
 import { MetricTooltip } from "../../components/MetricTooltip"
 
 interface ClubData {
@@ -109,28 +107,6 @@ export default function ClubPage({ params }: { params: Promise<{ slug: string }>
     return (
       <div className="min-h-screen bg-app-gradient">
         <div className="container mx-auto px-4 py-8">
-          <div className="flex justify-between items-center mb-8">
-            <div className="flex items-center space-x-4">
-              <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-                <Image
-                  src="/logo.png"
-                  alt="WeightliftingDB Logo"
-                  width={40}
-                  height={40}
-                  className="h-10 w-10 object-contain"
-                />
-              </Link>
-              <button
-                onClick={() => router.back()}
-                className="flex items-center space-x-2 text-app-secondary hover:text-accent-primary transition-colors"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                <span>Back</span>
-              </button>
-            </div>
-            <ThemeSwitcher />
-          </div>
-
           <div className="card-large">
             <div className="animate-pulse space-y-4">
               <div className="h-8 bg-app-tertiary rounded w-3/4"></div>
@@ -152,28 +128,6 @@ export default function ClubPage({ params }: { params: Promise<{ slug: string }>
     return (
       <div className="min-h-screen bg-app-gradient">
         <div className="container mx-auto px-4 py-8">
-          <div className="flex justify-between items-center mb-8">
-            <div className="flex items-center space-x-4">
-              <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-                <Image
-                  src="/logo.png"
-                  alt="WeightliftingDB Logo"
-                  width={40}
-                  height={40}
-                  className="h-10 w-10 object-contain"
-                />
-              </Link>
-              <button
-                onClick={() => router.back()}
-                className="flex items-center space-x-2 text-app-secondary hover:text-accent-primary transition-colors"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                <span>Back</span>
-              </button>
-            </div>
-            <ThemeSwitcher />
-          </div>
-
           <div className="card-large">
             <div className="text-center py-12">
               <div className="text-red-500 text-xl mb-4">{error || 'Club not found'}</div>
@@ -198,86 +152,38 @@ export default function ClubPage({ params }: { params: Promise<{ slug: string }>
   return (
     <div className="min-h-screen bg-app-gradient">
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex justify-between items-start flex-wrap gap-4 mb-8">
-          <div className="flex items-center space-x-4 flex-wrap gap-2">
-            <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-              <Image
-                src="/logo.png"
-                alt="WeightliftingDB Logo"
-                width={40}
-                height={40}
-                className="h-10 w-10 object-contain"
-              />
-              <div>
-                <div className="text-lg font-bold text-app-primary">WeightliftingDB</div>
-                <div className="text-xs text-app-tertiary">USA Weightlifting Results Database</div>
-              </div>
-            </Link>
-            <div className="text-app-muted">|</div>
-            <button
-              onClick={() => router.back()}
-              className="flex items-center space-x-2 text-app-secondary hover:text-accent-primary transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span>Back</span>
-            </button>
-          </div>
-          <div className="flex-shrink-0">
-            <ThemeSwitcher />
-          </div>
-        </div>
-
         {/* Club Profile Header */}
         <div className="card-large mb-6">
-          <div className="space-y-4">
-            {/* Club Name and Badge */}
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <h1 className="text-3xl font-bold text-app-primary mb-2">
-                  {clubData.club_name}
-                </h1>
-                <div className="flex items-center space-x-2 text-app-secondary">
-                  <MapPin className="h-4 w-4" />
-                  <span>
-                    {clubData.city && clubData.state ? `${clubData.city}, ${clubData.state}` : clubData.address}
-                  </span>
+          <div className="flex items-start justify-between gap-4">
+            {/* Club Name and Location */}
+            <div>
+              <h1 className="text-3xl font-bold text-app-primary mb-2">
+                {clubData.club_name}
+              </h1>
+              <div className="flex items-center space-x-2 text-app-secondary">
+                <MapPin className="h-4 w-4" />
+                <span>
+                  {clubData.city && clubData.state ? `${clubData.city}, ${clubData.state}` : clubData.address}
+                </span>
+              </div>
+              {clubData.wso_geography && (
+                <div className="flex items-center space-x-2 text-app-tertiary text-sm mt-1">
+                  <Dumbbell className="h-4 w-4" />
+                  <span>WSO: {clubData.wso_geography}</span>
                 </div>
-                {clubData.wso_geography && (
-                  <div className="flex items-center space-x-2 text-app-tertiary text-sm mt-1">
-                    <Dumbbell className="h-4 w-4" />
-                    <span>WSO: {clubData.wso_geography}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Quadrant Badge */}
-              <div>
-                <MetricTooltip
-                  title={`${clubData.quadrant_label} Club`}
-                  description={getQuadrantDescription(clubData.quadrant)}
-                  methodology="Classification based on active member count and competition activity factor relative to all clubs"
-                >
-                  <div
-                    className="px-4 py-2 rounded-lg text-white font-semibold shadow-lg"
-                    style={{ backgroundColor: quadrantColor }}
-                  >
-                    {clubData.quadrant_label}
-                  </div>
-                </MetricTooltip>
-              </div>
+              )}
             </div>
 
             {/* External Link */}
-            <div className="pt-4 border-t border-app-secondary">
+            <div className="flex flex-col gap-2">
               <a
                 href="https://usaweightlifting.sport80.com/public/widget/7"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center space-x-2 text-accent-primary hover:text-accent-secondary transition-colors"
+                className="flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors"
               >
                 <ExternalLink className="h-4 w-4" />
-                <span>View USA Weightlifting Club Directory</span>
+                <span>Club Directory</span>
               </a>
             </div>
           </div>
@@ -363,7 +269,26 @@ export default function ClubPage({ params }: { params: Promise<{ slug: string }>
 
         {/* About Section */}
         <div className="card-large">
-          <h2 className="text-xl font-semibold text-app-primary mb-4">About This Club</h2>
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <h2 className="text-xl font-semibold text-app-primary">About This Club</h2>
+
+            {/* Quadrant Badge */}
+            <div>
+              <MetricTooltip
+                title={`${clubData.quadrant_label} Club`}
+                description={getQuadrantDescription(clubData.quadrant)}
+                methodology="Classification based on active member count and competition activity factor relative to all clubs"
+              >
+                <div
+                  className="px-4 py-2 rounded-lg text-white font-semibold shadow-lg"
+                  style={{ backgroundColor: quadrantColor }}
+                >
+                  {clubData.quadrant_label}
+                </div>
+              </MetricTooltip>
+            </div>
+          </div>
+
           <div className="space-y-3 text-app-secondary">
             <p>
               <strong>{clubData.club_name}</strong> is classified as a <strong style={{ color: quadrantColor }}>{clubData.quadrant_label}</strong> club,
