@@ -150,7 +150,7 @@ export default function AdminPage() {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+          <div className="max-w-[1200px] grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
             <div className="card-primary text-center">
               <div className="text-2xl font-bold text-app-primary">{users.length}</div>
               <div className="text-sm text-app-secondary">Total Users</div>

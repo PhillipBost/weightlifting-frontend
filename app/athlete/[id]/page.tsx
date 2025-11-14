@@ -847,7 +847,8 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 
         {/* Performance Charts */}
         {chartData.length > 1 && (
-          <div className="space-y-8 mb-8">
+          <div className="max-w-[1200px]">
+            <div className="space-y-8 mb-8">
             {/* Progress Over Time Chart */}
 			<div className="chart-container" ref={performanceChartRef}>
 				<div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-4">
@@ -1700,6 +1701,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 			  </div>
 			  
             </div>
+            </div>
           </div>
         )}
 
@@ -1718,7 +1720,8 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
         )}
 
         {/* Personal Bests Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="max-w-[1200px]">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="card-secondary">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-label">Best Snatch</h3>
@@ -1756,6 +1759,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
             </div>
             <div className="text-2xl text-heading">
               {personalBests.best_qpoints > 0 ? personalBests.best_qpoints.toFixed(1) : 'N/A'}
+            </div>
             </div>
           </div>
         </div>

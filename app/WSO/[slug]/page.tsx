@@ -51,33 +51,35 @@ function WSOClubsTable({ slug }: { slug: string }) {
 
   if (loading) {
     return (
-      <div className="card-large">
-        <div className="animate-pulse">
-          <div className="h-6 bg-app-tertiary rounded mb-2 w-32"></div>
-          <div className="h-4 bg-app-tertiary rounded mb-6 w-64"></div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200">
-                <tr>
-                  {[...Array(3)].map((_, i) => (
-                    <th key={i} className="px-3 py-1.5">
-                      <div className="h-3 bg-app-surface rounded"></div>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {[...Array(5)].map((_, i) => (
-                  <tr key={i}>
-                    <td className="px-3 py-1.5"><div className="h-5 bg-app-tertiary rounded w-40"></div></td>
-                    <td className="px-3 py-1.5"><div className="h-5 bg-app-tertiary rounded w-32"></div></td>
-                    <td className="px-3 py-1.5"><div className="h-5 bg-app-tertiary rounded w-16"></div></td>
+      <div className="max-w-[1200px]">
+        <div className="animate-pulse card-large">
+          <div className="animate-pulse">
+            <div className="h-6 bg-app-tertiary rounded mb-2 w-32"></div>
+            <div className="h-4 bg-app-tertiary rounded mb-6 w-64"></div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200">
+                  <tr>
+                    {[...Array(3)].map((_, i) => (
+                      <th key={i} className="px-3 py-1.5">
+                        <div className="h-3 bg-app-surface rounded"></div>
+                      </th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {[...Array(5)].map((_, i) => (
+                    <tr key={i}>
+                      <td className="px-3 py-1.5"><div className="h-5 bg-app-tertiary rounded w-40"></div></td>
+                      <td className="px-3 py-1.5"><div className="h-5 bg-app-tertiary rounded w-32"></div></td>
+                      <td className="px-3 py-1.5"><div className="h-5 bg-app-tertiary rounded w-16"></div></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="text-center py-8 text-app-muted invisible">No data</div>
           </div>
-          <div className="text-center py-8 text-app-muted invisible">No data</div>
         </div>
       </div>
     )
@@ -85,8 +87,10 @@ function WSOClubsTable({ slug }: { slug: string }) {
 
   if (error || !clubData) {
     return (
-      <div className="card-large">
-        <p className="text-red-500">Error loading clubs data: {error}</p>
+      <div className="max-w-[1200px]">
+        <div className="card-large">
+          <p className="text-red-500">Error loading clubs data: {error}</p>
+        </div>
       </div>
     )
   }
@@ -136,15 +140,16 @@ function WSOClubsTable({ slug }: { slug: string }) {
   const totalActiveLifters = clubs.reduce((sum, club) => sum + (club.active_lifters_count || 0), 0)
 
   return (
-    <div className="card-large">
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold text-app-primary mb-2">
-          Barbell Clubs
-        </h2>
-        <p className="text-app-secondary">
-          All registered weightlifting clubs within this WSO region.
-        </p>
-      </div>
+    <div className="max-w-[1200px]">
+      <div className="card-large">
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold text-app-primary mb-2">
+            Barbell Clubs
+          </h2>
+          <p className="text-app-secondary">
+            All registered weightlifting clubs within this WSO region.
+          </p>
+        </div>
 
       <div className="overflow-x-auto">
         <table className="w-full">
@@ -293,6 +298,7 @@ function WSOClubsTable({ slug }: { slug: string }) {
           No clubs found for this WSO region.
         </div>
       )}
+      </div>
     </div>
   )
 }
@@ -396,7 +402,7 @@ function WSORecentMeetsTable({ slug }: { slug: string }) {
 
   if (loading) {
     return (
-      <div className="card-large">
+      <div className="max-w-[1200px] mx-auto bg-app-secondary rounded-lg shadow-lg border border-app-primary p-6">
         <div className="animate-pulse">
           <div className="h-6 bg-app-tertiary rounded mb-2 w-32"></div>
           <div className="h-4 bg-app-tertiary rounded mb-6 w-64"></div>
@@ -431,7 +437,7 @@ function WSORecentMeetsTable({ slug }: { slug: string }) {
 
   if (error) {
     return (
-      <div className="card-large">
+      <div className="max-w-[1200px] mx-auto bg-app-secondary rounded-lg shadow-lg border border-app-primary p-6">
         <div className="mb-6">
           <h2 className="text-xl font-semibold text-app-primary mb-2">
             Recent Meets
@@ -453,7 +459,7 @@ function WSORecentMeetsTable({ slug }: { slug: string }) {
   }
 
   return (
-    <div className="card-large">
+    <div className="max-w-[1200px] mx-auto bg-app-secondary rounded-lg shadow-lg border border-app-primary p-6">
       <div className="mb-6">
         <h2 className="text-xl font-semibold text-app-primary mb-2">
           Recent Meets
@@ -554,7 +560,7 @@ function WSOSummary({ slug }: { slug: string }) {
 
   if (loading) {
     return (
-      <div className="card-large">
+      <div className="max-w-[1200px] mx-auto bg-app-secondary rounded-lg shadow-lg border border-app-primary p-6">
         <div className="animate-pulse">
           <div className="mb-4">
             <div className="h-6 bg-app-tertiary rounded mb-2 w-48"></div>
@@ -575,7 +581,7 @@ function WSOSummary({ slug }: { slug: string }) {
 
   if (error || !clubData) {
     return (
-      <div className="card-large">
+      <div className="max-w-[1200px] mx-auto bg-app-secondary rounded-lg shadow-lg border border-app-primary p-6">
         <p className="text-red-500">Error loading WSO information: {error}</p>
       </div>
     )
@@ -585,7 +591,7 @@ function WSOSummary({ slug }: { slug: string }) {
 
   if (!wsoInfo) {
     return (
-      <div className="card-large">
+      <div className="max-w-[1200px] mx-auto bg-app-secondary rounded-lg shadow-lg border border-app-primary p-6">
         <p className="text-red-500">Error: WSO information not available</p>
       </div>
     )
@@ -630,7 +636,7 @@ export default function WSODetailPage() {
 
   return (
     <div className="min-h-screen bg-app-gradient">
-      <div className="container mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="space-y-6">
           {/* Content Sections */}
           <div className="space-y-6">
@@ -638,7 +644,7 @@ export default function WSODetailPage() {
             <WSOSummary slug={slug} />
 
             {/* Map Container */}
-            <div className="card-large">
+            <div className="max-w-[1200px] mx-auto bg-app-secondary rounded-lg shadow-lg border border-app-primary p-6">
               <div className="mb-4">
                 <h2 className="text-xl font-semibold text-app-primary mb-2">
                   {displayName} WSO Territory and Club Locations
@@ -663,7 +669,7 @@ export default function WSODetailPage() {
             </div>
 
             {/* Club Participation Treemap */}
-            <div className="card-large">
+            <div className="max-w-[1200px] mx-auto bg-app-secondary rounded-lg shadow-lg border border-app-primary p-6">
               <div className="mb-4">
                 <h2 className="text-xl font-semibold text-app-primary mb-2">
                   Club Participation Overview
