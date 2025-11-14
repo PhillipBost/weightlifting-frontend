@@ -106,7 +106,7 @@ export default function ClubPage({ params }: { params: Promise<{ slug: string }>
   if (loading) {
     return (
       <div className="min-h-screen bg-app-gradient">
-        <div className="container mx-auto px-4 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="card-large">
             <div className="animate-pulse space-y-4">
               <div className="h-8 bg-app-tertiary rounded w-3/4"></div>
@@ -127,12 +127,12 @@ export default function ClubPage({ params }: { params: Promise<{ slug: string }>
   if (error || !clubData) {
     return (
       <div className="min-h-screen bg-app-gradient">
-        <div className="container mx-auto px-4 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="card-large">
             <div className="text-center py-12">
               <div className="text-red-500 text-xl mb-4">{error || 'Club not found'}</div>
               <p className="text-app-secondary mb-6">
-                The club you&apos;re looking for doesn&apos;t exist or couldn&apos;t be loaded.
+                The club you're looking for doesn't exist or couldn't be loaded.
               </p>
               <Link
                 href="/club"
@@ -151,9 +151,9 @@ export default function ClubPage({ params }: { params: Promise<{ slug: string }>
 
   return (
     <div className="min-h-screen bg-app-gradient">
-      <div className="container mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Club Profile Header */}
-        <div className="max-w-[1200px] mx-auto card-large mb-6">
+        <div className="max-w-[1200px] card-primary mb-6">
           <div className="flex items-start justify-between gap-4">
             {/* Club Name and Location */}
             <div>
@@ -190,15 +190,17 @@ export default function ClubPage({ params }: { params: Promise<{ slug: string }>
         </div>
 
         {/* Club Statistics */}
-        <div className="max-w-[1200px] mx-auto card-large mb-6">
-          <h2 className="text-xl font-semibold text-app-primary mb-6 flex items-center">
-            <BarChart3 className="h-5 w-5 mr-2" />
-            Club Statistics
-          </h2>
+        <div className="max-w-[1200px]">
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold text-app-primary mb-6 flex items-center">
+              <BarChart3 className="h-5 w-5 mr-2" />
+              Club Statistics
+            </h2>
+          </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
             {/* Active Lifters */}
-            <div className="text-center">
+            <div className="card-primary text-center">
               <MetricTooltip
                 title="Active Lifters"
                 description="Number of unique competitive lifters associated with this club in recent competitions"
@@ -215,7 +217,7 @@ export default function ClubPage({ params }: { params: Promise<{ slug: string }>
             </div>
 
             {/* Activity Factor */}
-            <div className="text-center">
+            <div className="card-primary text-center">
               <MetricTooltip
                 title="Activity Factor"
                 description="Average competitions per lifter - measures how actively club members compete"
@@ -232,7 +234,7 @@ export default function ClubPage({ params }: { params: Promise<{ slug: string }>
             </div>
 
             {/* Total Participations */}
-            <div className="text-center">
+            <div className="card-primary text-center">
               <MetricTooltip
                 title="Total Participations"
                 description="Total number of competition entries by club members"
@@ -249,7 +251,7 @@ export default function ClubPage({ params }: { params: Promise<{ slug: string }>
             </div>
 
             {/* Recent Meets */}
-            <div className="text-center">
+            <div className="card-primary text-center">
               <MetricTooltip
                 title="Recent Meets"
                 description="Number of different competitions club members have attended recently"
@@ -268,7 +270,7 @@ export default function ClubPage({ params }: { params: Promise<{ slug: string }>
         </div>
 
         {/* About Section */}
-        <div className="max-w-[1200px] mx-auto card-large">
+        <div className="max-w-[1200px] card-primary">
           <div className="flex items-start justify-between gap-4 mb-4">
             <h2 className="text-xl font-semibold text-app-primary">About This Club</h2>
 
