@@ -386,14 +386,13 @@ function AthleteCardSkeleton() {
   );
 }
 
-export function AthleteCard({ athleteName, results, dataSource }: AthleteCardProps) {
-  // Helper function for ordinal numbers
-  const getOrdinal = (n: number): string => {
-    const s = ["th", "st", "nd", "rd"];
-    const v = n % 100;
-    return n + (s[(v - 20) % 10] || s[v] || s[0]);
-  };
+const getOrdinal = (n: number): string => {
+  const s = ["th", "st", "nd", "rd"];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+};
 
+export function AthleteCard({ athleteName, results, dataSource }: AthleteCardProps) {
   // Get demographic info from most recent result for population comparison
   const recentResult = results.length > 0 ? results[0] : null;
   const demographicFilter = recentResult ? {
@@ -594,7 +593,7 @@ export function AthleteCard({ athleteName, results, dataSource }: AthleteCardPro
       ? allValidPercentages.reduce((sum, p) => sum + p, 0) / allValidPercentages.length 
       : 0;
     
-    const openerStrategy: 'conservative' | 'aggressive' | 'balanced' | 'insufficient data' = 
+  const openerStrategy: 'conservative' | 'aggressive' | 'balanced' | 'insufficient data' =
       allValidPercentages.length === 0 ? 'insufficient data' :
       avgOverallOpenerPercentage <= 88 ? 'conservative' :
       avgOverallOpenerPercentage >= 93 ? 'aggressive' : 'balanced';
@@ -1536,7 +1535,7 @@ export function AthleteCard({ athleteName, results, dataSource }: AthleteCardPro
                   );
                 }
                 
-                if (analytics.isSteadyEddie) {
+    if (analytics.isSteadyEddie) {
                   insights.push(
                     <MetricTooltip
                       key="steady-eddie"

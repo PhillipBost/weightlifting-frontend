@@ -712,7 +712,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
     
     return (
       <div className="min-h-screen bg-app-gradient">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-[1248px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="card-primary mb-8">
             <h1 className="text-2xl font-bold text-app-primary mb-4">
               Multiple athletes found for "{searchName}"
@@ -776,7 +776,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 
   return (
     <div className="min-h-screen bg-app-gradient">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Athlete Header */}
         <div className="card-primary mb-8">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between">

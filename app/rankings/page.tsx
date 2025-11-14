@@ -885,7 +885,7 @@ function RankingsContent() {
       {/* Header */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="bg-gray-800 rounded-2xl p-6 md:p-8 mb-8 border border-gray-700">
+        <div className="max-w-[1200px] bg-gray-800 rounded-2xl p-6 md:p-8 mb-8 border border-gray-700">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             {/* Left: Title and context */}
             <div className="flex items-start space-x-4">
@@ -1334,7 +1334,7 @@ function RankingsContent() {
         </div>
 
         {/* Rankings Table */}
-        <div className="bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden">
+        <div className="max-w-[1200px] bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead className="bg-gray-300 dark:bg-gray-700 dark:text-gray-200">

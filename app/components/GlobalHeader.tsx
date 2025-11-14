@@ -47,7 +47,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
 
   return (
     <header className="bg-header-blur border-b border-app-secondary">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           {/* Left: Logo + Back */}
           <div className="flex items-center space-x-6">

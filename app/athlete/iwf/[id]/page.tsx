@@ -730,7 +730,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
     
     return (
       <div className="min-h-screen bg-app-gradient">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="card-primary mb-8">
             <h1 className="text-2xl font-bold text-app-primary mb-4">
               Multiple athletes found for "{searchName}"
@@ -792,7 +792,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 
   return (
     <div className="min-h-screen bg-app-gradient">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Athlete Header */}
         <div className="card-primary mb-8">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between">
@@ -850,7 +850,8 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 
         {/* Performance Charts */}
         {chartData.length > 1 && (
-          <div className="space-y-8 mb-8">
+          <div className="max-w-[1200px]">
+            <div className="space-y-8 mb-8">
             {/* Progress Over Time Chart */}
 			<div className="chart-container" ref={performanceChartRef}>
 				<div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-4">
@@ -1700,9 +1701,10 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 					  <span className="text-sm text-app-secondary">Q-Masters</span>
 					</div>
 				  )}
-			  </div>
-			  
+              </div>
+
             </div>
+          </div>
           </div>
         )}
 
@@ -1717,7 +1719,8 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
         )}
 
         {/* Personal Bests Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="max-w-[1200px]">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="card-secondary">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-label">Best Snatch</h3>
@@ -1757,6 +1760,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
               {personalBests.best_qpoints > 0 ? personalBests.best_qpoints.toFixed(1) : 'N/A'}
             </div>
           </div>
+        </div>
         </div>
 
         {/* Competition Results */}

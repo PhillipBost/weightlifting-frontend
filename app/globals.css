@@ -160,6 +160,7 @@ body {
   
   /* Common Component Patterns */
   .card-primary {
+    @apply max-w-[1200px];
     background-color: var(--bg-secondary);
     border-radius: 1rem;
     padding: 0.75rem;
@@ -173,6 +174,7 @@ body {
   .qmasters-color { color: var(--chart-qmasters); }
   
   .card-secondary {
+    @apply max-w-[1200px];
     background-color: var(--bg-secondary);
     border-radius: 0.75rem;
     padding: 1.5rem;
@@ -181,6 +183,7 @@ body {
   }
   
   .card-large {
+    @apply max-w-[1200px];
     background-color: var(--bg-secondary);
     border-radius: 1rem;
     padding: 0.75rem;
@@ -189,6 +192,7 @@ body {
   }
   
   .card-results {
+    @apply max-w-[1200px];
     background-color: var(--bg-secondary);
     border-radius: 1rem;
     border: 1px solid var(--border-secondary);

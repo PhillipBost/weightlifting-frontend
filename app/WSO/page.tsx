@@ -215,7 +215,7 @@ export default function WSODirectoryPage() {
     <div className="min-h-screen bg-app-gradient">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Interactive WSO Map */}
-        <div className="mt-8 card-large shadow-lg mb-8">
+        <div className="max-w-[1200px] mx-auto mt-8 card-large shadow-lg mb-8">
           <h2 className="text-xl font-semibold text-app-primary mb-2 flex items-center gap-2">
             <MapPin className="h-5 w-5" />
             USA Weightlifting State Organizations Territory Map
@@ -233,7 +233,7 @@ export default function WSODirectoryPage() {
         </div>
 
         {/* WSO Treemap Visualization */}
-        <div className="card-large shadow-lg mb-8">
+        <div className="max-w-[1200px] mx-auto card-large shadow-lg mb-8">
           <h2 className="text-xl font-semibold text-app-primary mb-4 flex items-center gap-2">
             <BarChart3 className="h-5 w-5" />
             WSO Barbell Club Participation
@@ -245,7 +245,7 @@ export default function WSODirectoryPage() {
         </div>
 
         {/* WSO Directory Table */}
-        <div className="card-results shadow-lg">
+        <div className="max-w-[1200px] mx-auto card-results shadow-lg">
           <div className="px-6 py-4 border-b border-app-primary">
             <h2 className="text-xl font-semibold text-app-primary flex items-center gap-2">
               <BarChart3 className="h-5 w-5" />

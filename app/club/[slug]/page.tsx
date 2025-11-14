@@ -153,7 +153,7 @@ export default function ClubPage({ params }: { params: Promise<{ slug: string }>
     <div className="min-h-screen bg-app-gradient">
       <div className="container mx-auto px-4 py-8">
         {/* Club Profile Header */}
-        <div className="card-large mb-6">
+        <div className="max-w-[1200px] mx-auto card-large mb-6">
           <div className="flex items-start justify-between gap-4">
             {/* Club Name and Location */}
             <div>
@@ -190,7 +190,7 @@ export default function ClubPage({ params }: { params: Promise<{ slug: string }>
         </div>
 
         {/* Club Statistics */}
-        <div className="card-large mb-6">
+        <div className="max-w-[1200px] mx-auto card-large mb-6">
           <h2 className="text-xl font-semibold text-app-primary mb-6 flex items-center">
             <BarChart3 className="h-5 w-5 mr-2" />
             Club Statistics
@@ -268,7 +268,7 @@ export default function ClubPage({ params }: { params: Promise<{ slug: string }>
         </div>
 
         {/* About Section */}
-        <div className="card-large">
+        <div className="max-w-[1200px] mx-auto card-large">
           <div className="flex items-start justify-between gap-4 mb-4">
             <h2 className="text-xl font-semibold text-app-primary">About This Club</h2>
 

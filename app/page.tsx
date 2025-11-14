@@ -1226,7 +1226,7 @@ export default function WeightliftingLandingPage() {
     <div className="min-h-screen bg-app-gradient">
       {/* Header */}
       <header className="bg-header-blur border-b border-app-secondary">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <Link href="/" className="flex items-center space-x-4 hover:opacity-80 transition-opacity">
               <Image
@@ -1253,7 +1253,7 @@ export default function WeightliftingLandingPage() {
 
       {/* Hero Section with Search */}
       <section className="py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto text-center">
+        <div className="max-w-[1200px] mx-auto text-center">
           <h2 className="text-4xl sm:text-5xl font-bold text-app-primary mb-6">
             USA Weightlifting
             <span className="block text-blue-400">Results Database</span>
@@ -1501,7 +1501,7 @@ export default function WeightliftingLandingPage() {
 
       {/* Navigation Cards Section */}
       <section className="py-8 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-[1200px] mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* WSO Navigation Card */}
             <Link href="/WSO" className="group">
@@ -1579,7 +1579,7 @@ export default function WeightliftingLandingPage() {
 
       {/* Stats Section */}
       <section className="py-12 px-4 sm:px-6 lg:px-8 bg-app-tertiary/50">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-[1200px] mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {/* Stats content can be added here later */}
           </div>
@@ -1588,7 +1588,7 @@ export default function WeightliftingLandingPage() {
 
       {/* Footer */}
       <footer className="bg-app-secondary text-app-primary py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-[1200px] mx-auto">
           {/* Mobile: Centered vertical layout, Desktop: Two columns */}
           <div className="flex flex-col items-center md:grid md:grid-cols-2 gap-6 md:gap-8 md:items-start">
             {/* Logo and description */}

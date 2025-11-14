@@ -152,7 +152,7 @@ export default function ClubPage() {
 
   return (
     <div className="min-h-screen bg-app-gradient">
-      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-[1248px] mx-auto px-4 py-8">
         <div className="space-y-6">
 
           {/* Content Sections */}
