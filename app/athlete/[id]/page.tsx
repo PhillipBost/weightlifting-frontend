@@ -723,10 +723,10 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
             
             <div className="space-y-4">
               {duplicateAthletes.map((athlete, index) => (
-                <button
+                <Link
                   key={index}
-                  onClick={() => router.push(`/athlete/${athlete.membership_number}`)}
-                  className="w-full text-left p-4 bg-app-tertiary hover:bg-app-surface border border-app-secondary rounded-lg transition-colors"
+                  href={`/athlete/${athlete.membership_number}`}
+                  className="w-full text-left p-4 bg-app-tertiary hover:bg-app-surface border border-app-secondary rounded-lg transition-colors hover:shadow-md block"
                 >
                   <div className="flex items-center justify-between">
                     <div>
@@ -748,7 +748,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                     </div>
                     <ExternalLink className="h-4 w-4 text-app-muted" />
                   </div>
-                </button>
+                </Link>
               ))}
             </div>
           </div>
@@ -2001,13 +2001,13 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                               <>
                                 <td className="px-2 py-1 whitespace-nowrap text-xs">{new Date(result.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
                                 <td className="px-2 py-1 max-w-20 text-xs">
-                                  <button
-                                    onClick={() => router.push(`/meet/${result.meet_id}`)}
-                                    className="text-accent-primary hover:text-accent-primary-hover transition-colors truncate max-w-full block text-left"
+                                  <Link
+                                    href={`/meet/${result.meet_id}`}
+                                    className="text-accent-primary hover:text-accent-primary-hover transition-colors truncate max-w-full block text-left hover:underline"
                                     title={result.meet_name}
                                   >
                                     {result.meet_name}
-                                  </button>
+                                  </Link>
                                 </td>
 								<td className="px-2 py-1 whitespace-nowrap text-xs">{result.meets?.Level || '-'}</td>
                                 <td className="px-2 py-1 whitespace-nowrap text-xs">{result.wso || '-'}</td>
@@ -2033,13 +2033,13 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                               <>
                                 <td className="px-2 py-1 whitespace-nowrap text-xs">{new Date(result.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
                                 <td className="px-2 py-1 max-w-xs text-xs">
-                                  <button
-                                    onClick={() => router.push(`/meet/${result.meet_id}`)}
-                                    className="text-accent-primary hover:text-accent-primary-hover transition-colors truncate max-w-full block text-left"
+                                  <Link
+                                    href={`/meet/${result.meet_id}`}
+                                    className="text-accent-primary hover:text-accent-primary-hover transition-colors truncate max-w-full block text-left hover:underline"
                                     title={result.meet_name}
                                   >
                                     {result.meet_name}
-                                  </button>
+                                  </Link>
                                 </td>
                                 <td className="px-2 py-1 whitespace-nowrap text-xs">{result.weight_class || '-'}</td>
                                 <td className="px-2 py-1 whitespace-nowrap text-xs font-semibold" style={{ color: 'var(--chart-snatch)' }}>{result.best_snatch ? `${result.best_snatch}kg` : '-'}</td>

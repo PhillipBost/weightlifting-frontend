@@ -1247,13 +1247,13 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                                   </div>
                                 </td>
                                 <td className="px-2 py-1 whitespace-nowrap">
-                                  <button
-                                    onClick={() => router.push(getAthleteUrl(result))}
-                                    className="flex items-center space-x-1 text-accent-primary group-hover:text-accent-primary-hover transition-colors"
+                                  <Link
+                                    href={getAthleteUrl(result)}
+                                    className="flex items-center space-x-1 text-accent-primary group-hover:text-accent-primary-hover transition-colors hover:underline"
                                   >
                                     <span className="font-medium text-sm">{result.lifter_name}</span>
                                     <ExternalLink className="h-3 w-3" />
-                                  </button>
+                                  </Link>
                                   <div className="text-xs text-app-muted">
                                     {result.competition_age && `Age ${result.competition_age}`}
                                     {(() => {

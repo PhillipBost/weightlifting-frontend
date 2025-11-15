@@ -1119,8 +1119,8 @@ export default function WeightliftingLandingPage() {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element;
       
-      // Don't close if clicking on a search result button or its children
-      const isClickingOnResult = target.closest('button[data-search-result]');
+      // Don't close if clicking on a search result or its children
+      const isClickingOnResult = target.closest('[data-search-result]');
       if (isClickingOnResult) {
         return;
       }
@@ -1342,29 +1342,40 @@ export default function WeightliftingLandingPage() {
     ? [result.gender, result.country_name, result.iwf_lifter_id ? `#${result.iwf_lifter_id}` : (result.db_lifter_id ? `#${result.db_lifter_id}` : null)]
     : [result.gender, result.club_name, result.membership_number ? `#${result.membership_number}` : null];
 
-                        return (
-                          <button
-                            key={resultKey}
-                            onClick={() => handleResultSelect(result)}
-                            data-search-result="athlete"
-                            className="w-full px-4 py-3 text-left bg-interactive transition-colors flex items-center space-x-3"
-                          >
-                            {React.createElement(getSearchIcon(result.type || 'athlete'), {
-                        className: "h-5 w-5 text-app-muted"
-                        })}
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <div className="text-app-primary font-medium">{result.athlete_name}</div>
-                                <span className={`text-xs font-semibold px-2 py-1 rounded-full border ${sourceColors.bg} ${sourceColors.text} ${sourceColors.border}`}>
-                                  {getSourceBadge(source)}
-                                </span>
-                              </div>
-                              <div className="text-sm text-app-tertiary">
-                                {displayInfo.filter(Boolean).join(' • ')}
-                              </div>
-                            </div>
-                          </button>
-                        );
+                        const athleteUrl = buildAthleteUrl(
+          result.source === 'IWF'
+            ? (result.iwf_lifter_id || result.db_lifter_id)!.toString()
+            : (result.membership_number?.toString() || result.athlete_name!
+                .toLowerCase()
+                .replace(/[^\w\s-]/g, '')
+                .replace(/\s+/g, '-')
+                .trim()),
+          result.source || 'USAW'
+        );
+        return (
+          <Link
+            key={resultKey}
+            href={athleteUrl}
+            data-search-result="athlete"
+            onClick={() => setShowResults(false)}
+            className="w-full px-4 py-3 text-left bg-interactive transition-colors flex items-center space-x-3 hover:bg-blue-500/10"
+          >
+            {React.createElement(getSearchIcon(result.type || 'athlete'), {
+              className: "h-5 w-5 text-app-muted"
+            })}
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <div className="text-app-primary font-medium">{result.athlete_name}</div>
+                <span className={`text-xs font-semibold px-2 py-1 rounded-full border ${sourceColors.bg} ${sourceColors.text} ${sourceColors.border}`}>
+                  {getSourceBadge(source)}
+                </span>
+              </div>
+              <div className="text-sm text-app-tertiary">
+                {displayInfo.filter(Boolean).join(' • ')}
+              </div>
+            </div>
+          </Link>
+        );
                       })}
                     </div>
                   ) : searchQuery.length >= 2 ? (
@@ -1457,33 +1468,34 @@ export default function WeightliftingLandingPage() {
                         const resultKey = `${source}_${source === 'USAW' ? result.meet_id : result.db_meet_id}`;
 
                         return (
-                          <button
-                            key={resultKey}
-                            onClick={() => handleMeetResultSelect(result)}
-                            data-search-result="meet"
-                            className="w-full px-4 py-3 text-left bg-interactive transition-colors flex items-center space-x-3"
-                          >
-                            <CalendarDays className="h-5 w-5 text-app-muted" />
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <div className="text-app-primary font-medium">{result.meet_name}</div>
-                                <span className={`text-xs font-semibold px-2 py-1 rounded-full border ${sourceColors.bg} ${sourceColors.text} ${sourceColors.border}`}>
-                                  {getSourceBadge(source)}
-                                </span>
-                              </div>
-                              <div className="text-sm text-app-tertiary">
-                                {[
-                                  result.date ? new Date(result.date).toLocaleDateString('en-US', {
-                                    year: 'numeric',
-                                    month: 'short',
-                                    day: 'numeric'
-                                  }) : null,
-                                  result.level,
-                                  result.location_text
-                                ].filter(Boolean).join(' • ')}
-                              </div>
-                            </div>
-                          </button>
+                          <Link
+            key={resultKey}
+            href={buildMeetUrl((result.source === 'USAW' ? result.meet_id : result.db_meet_id)!.toString(), result.source || 'USAW')}
+            data-search-result="meet"
+            onClick={() => setShowMeetResults(false)}
+            className="w-full px-4 py-3 text-left bg-interactive transition-colors flex items-center space-x-3 hover:bg-blue-500/10"
+          >
+            <CalendarDays className="h-5 w-5 text-app-muted" />
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <div className="text-app-primary font-medium">{result.meet_name}</div>
+                <span className={`text-xs font-semibold px-2 py-1 rounded-full border ${sourceColors.bg} ${sourceColors.text} ${sourceColors.border}`}>
+                  {getSourceBadge(source)}
+                </span>
+              </div>
+              <div className="text-sm text-app-tertiary">
+                {[
+                  result.date ? new Date(result.date).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                  }) : null,
+                  result.level,
+                  result.location_text
+                ].filter(Boolean).join(' • ')}
+              </div>
+            </div>
+          </Link>
                         );
                       })}
                     </div>
