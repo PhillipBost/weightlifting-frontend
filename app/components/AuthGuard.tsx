@@ -12,9 +12,9 @@ interface AuthGuardProps {
 }
 
 export function AuthGuard({ children, requireRole, requireAnyRole, fallback }: AuthGuardProps) {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isLoadingProfile } = useAuth();
 
-  // Show loading state
+  // Show loading state for initial auth
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -42,28 +42,77 @@ export function AuthGuard({ children, requireRole, requireAnyRole, fallback }: A
   // Check multi-role requirement
   if (requireAnyRole && requireAnyRole.length > 0) {
     const hasRequiredRole = user.role && requireAnyRole.includes(user.role);
+
+    // Show loading state while profile is being verified
+    if (!hasRequiredRole && isLoadingProfile) {
+      return (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-400">
+              Verifying permissions...
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    // Only show access denied after profile is loaded
     if (!hasRequiredRole) {
-      return fallback || null;
+      return fallback || (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              Access Denied
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400">
+              You don't have permission to view the rankings.
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
+              Required role: {requireAnyRole.join(', ')}, Your role: {user.role || 'none'}
+            </p>
+          </div>
+        </div>
+      );
     }
   }
 
   // Check single-role requirement
-  if (requireRole && user.role !== requireRole) {
-    return fallback || (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-            Access Denied
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            You don't have permission to access this page.
-          </p>
-          <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
-            Required role: {requireRole}, Your role: {user.role || 'none'}
-          </p>
+  if (requireRole) {
+    const hasRequiredRole = user.role === requireRole;
+
+    // Show loading state while profile is being verified
+    if (!hasRequiredRole && isLoadingProfile) {
+      return (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-400">
+              Verifying permissions...
+            </p>
+          </div>
         </div>
-      </div>
-    );
+      );
+    }
+
+    // Only show access denied after profile is loaded
+    if (!hasRequiredRole) {
+      return fallback || (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              Access Denied
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400">
+              You don't have permission to access this page.
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
+              Required role: {requireRole}, Your role: {user.role || 'none'}
+            </p>
+          </div>
+        </div>
+      );
+    }
   }
 
   // User is authenticated and has required role

@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { User, Session } from '@supabase/supabase-js'
-import { queryWithTimeout } from '@/lib/supabase-utils'
+import { queryWithTimeout, queryWithRetry } from '@/lib/supabase-utils'
 import { checkSupabaseHealth } from '@/lib/supabase-health'
 
 // Extended user interface that includes profile data
@@ -16,6 +16,7 @@ export interface AuthContextType {
   user: ExtendedUser | null
   session: Session | null
   isLoading: boolean
+  isLoadingProfile: boolean
   login: (email: string, password: string) => Promise<void>
   register: (email: string, password: string, name?: string) => Promise<void>
   logout: () => Promise<void>
@@ -40,7 +41,52 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<ExtendedUser | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false)
   const supabase = createClient()
+
+  // Profile caching helpers
+  const PROFILE_CACHE_KEY = 'user_profile_cache'
+
+  const getCachedProfile = (userId: string): { name?: string; role?: string } | null => {
+    if (typeof window === 'undefined') return null
+    try {
+      const cached = sessionStorage.getItem(PROFILE_CACHE_KEY)
+      if (cached) {
+        const data = JSON.parse(cached)
+        if (data.userId === userId && data.timestamp > Date.now() - 5 * 60 * 1000) {
+          console.log('[AUTH] Using cached profile')
+          return data.profile
+        }
+      }
+    } catch (error) {
+      console.error('[AUTH] Error reading cached profile:', error)
+    }
+    return null
+  }
+
+  const setCachedProfile = (userId: string, profile: { name?: string; role?: string }) => {
+    if (typeof window === 'undefined') return
+    try {
+      sessionStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify({
+        userId,
+        profile,
+        timestamp: Date.now()
+      }))
+      console.log('[AUTH] Profile cached successfully')
+    } catch (error) {
+      console.error('[AUTH] Error caching profile:', error)
+    }
+  }
+
+  const clearCachedProfile = () => {
+    if (typeof window === 'undefined') return
+    try {
+      sessionStorage.removeItem(PROFILE_CACHE_KEY)
+      console.log('[AUTH] Profile cache cleared')
+    } catch (error) {
+      console.error('[AUTH] Error clearing profile cache:', error)
+    }
+  }
 
   // Fetch user profile data including role
   const fetchUserProfile = async (authUser: User): Promise<ExtendedUser> => {
@@ -133,28 +179,68 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setSession(session)
 
       if (session?.user) {
+        // Immediately set user with session data and cached profile as fallback
+        const cachedProfile = getCachedProfile(session.user.id)
+        const immediateUser: ExtendedUser = {
+          ...session.user,
+          name: cachedProfile?.name || session.user.email?.split('@')[0] || 'User',
+          role: cachedProfile?.role || 'default'
+        }
+        setUser(immediateUser)
+        setIsLoading(false)
+
+        // Only show loading profile if we don't have a cached role
+        if (!cachedProfile?.role) {
+          setIsLoadingProfile(true)
+        }
+
+        // Then fetch fresh profile with retry logic in the background
         try {
-          // Wrap fetchUserProfile with timeout
-          const extendedUser = await queryWithTimeout(
-            fetchUserProfile(session.user),
-            8000,
-            'fetchUserProfile'
+          const extendedUser = await queryWithRetry(
+            async () => {
+              const result = await fetchUserProfile(session.user)
+              // Only throw if we actually got an error, not if we got default values
+              if (!result.role || result.role === 'default') {
+                throw new Error('Profile not loaded yet')
+              }
+              return result
+            },
+            {
+              maxRetries: 4,
+              initialDelayMs: 100,
+              maxDelayMs: 2000,
+              queryName: 'fetchUserProfile'
+            }
           )
 
+          // Cache the successful profile fetch
+          if (extendedUser.name || extendedUser.role) {
+            setCachedProfile(session.user.id, {
+              name: extendedUser.name,
+              role: extendedUser.role
+            })
+          }
+
+          // Update user with fresh profile data
           setUser(extendedUser)
+          setIsLoadingProfile(false)
+          console.log('[AUTH] Profile loaded successfully:', extendedUser)
         } catch (error) {
-          console.error('[AUTH] Profile fetch timeout:', error instanceof Error ? error.message : error)
-          // Still set basic user even if profile fetch fails
-          setUser(session.user as ExtendedUser)
+          console.error('[AUTH] Profile fetch failed after retries:', error instanceof Error ? error.message : error)
+          // Keep the immediate user with cached/session data
+          setIsLoadingProfile(false)
+          console.log('[AUTH] Using fallback user data:', immediateUser)
         }
       } else {
         setUser(null)
+        clearCachedProfile()
+        setIsLoading(false)
+        setIsLoadingProfile(false)
       }
-
-      setIsLoading(false)
     })
 
     return () => subscription.unsubscribe()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Proactive token refresh - refresh every 7 hours (1 hour before 8-hour expiration)
@@ -238,6 +324,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Logout function
   const logout = async () => {
     try {
+      // Clear cached profile immediately
+      clearCachedProfile()
+
       // Wrap with timeout to detect hanging promises
       const result = await queryWithTimeout(
         supabase.auth.signOut(),
@@ -292,6 +381,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     user,
     session,
     isLoading,
+    isLoadingProfile,
     login,
     register,
     logout,
