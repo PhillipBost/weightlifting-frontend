@@ -1337,13 +1337,14 @@ function RankingsContent() {
         <div className="max-w-[1200px] bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left">
-              <thead className="bg-gray-300 dark:bg-gray-700 dark:text-gray-200">
+              <thead className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200">
                 <tr>
-                  <th className="px-6 py-4 text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">
+                  <th scope="col" className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">
                     Rank
                   </th>
                   <th
-                    className="px-6 py-4 text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors"
+                    scope="col"
+                    className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                     onClick={() =>
                       handleFilterChange(
                         "sortBy",
@@ -1356,17 +1357,18 @@ function RankingsContent() {
                       {getSortIcon("lifter_name")}
                     </div>
                   </th>
-                  <th className="px-6 py-4 text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">
+                  <th scope="col" className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">
                     Gender
                   </th>
-                  <th className="px-6 py-4 text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">
+                  <th scope="col" className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">
                     Weight Class
                   </th>
-                  <th className="px-6 py-4 text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">
+                  <th scope="col" className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">
                     Age Category
                   </th>
                   <th
-                    className="px-6 py-4 text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors"
+                    scope="col"
+                    className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                     onClick={() =>
                       handleFilterChange(
                         "sortBy",
@@ -1380,7 +1382,8 @@ function RankingsContent() {
                     </div>
                   </th>
                   <th
-                    className="px-6 py-4 text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors"
+                    scope="col"
+                    className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                     onClick={() =>
                       handleFilterChange(
                         "sortBy",
@@ -1394,7 +1397,8 @@ function RankingsContent() {
                     </div>
                   </th>
                   <th
-                    className="px-6 py-4 text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors"
+                    scope="col"
+                    className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                     onClick={() =>
                       handleFilterChange(
                         "sortBy",
@@ -1408,7 +1412,8 @@ function RankingsContent() {
                     </div>
                   </th>
                   <th
-                    className="px-6 py-4 text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors"
+                    scope="col"
+                    className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                     onClick={() =>
                       handleFilterChange(
                         "sortBy",
@@ -1422,7 +1427,8 @@ function RankingsContent() {
                     </div>
                   </th>
                   <th
-                    className="px-6 py-4 text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors"
+                    scope="col"
+                    className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                     onClick={() =>
                       handleFilterChange(
                         "sortBy",
@@ -1441,80 +1447,52 @@ function RankingsContent() {
                 {filteredRankings.map((athlete, index) => (
                   <tr
                     key={`${athlete.federation || "usaw"}-${athlete.lifter_id}`}
-                    className={`border-t border-gray-700 hover:bg-gray-700/50 transition-colors ${
-                      (athlete.trueRank || index + 1) <= 3
-                        ? "bg-gradient-to-r from-yellow-900/20 to-transparent"
-                        : ""
-                    }`}
+                    className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors"
+                    style={{ borderTopColor: 'var(--border-secondary)' }}
                   >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center space-x-2">
-                        <span
-                          className={`font-bold text-lg ${
-                            (athlete.trueRank || index + 1) === 1
-                              ? "text-yellow-400"
-                              : (athlete.trueRank || index + 1) === 2
-                              ? "text-gray-300"
-                              : (athlete.trueRank || index + 1) === 3
-                              ? "text-orange-400"
-                              : "text-white"
-                          }`}
-                        >
-                          {athlete.trueRank || index + 1}
-                        </span>
-                        {(athlete.trueRank || index + 1) <= 3 && (
-                          <Trophy
-                            className={`h-4 w-4 ${
-                              (athlete.trueRank || index + 1) === 1
-                                ? "text-yellow-400"
-                                : (athlete.trueRank || index + 1) === 2
-                                ? "text-gray-300"
-                                : "text-orange-400"
-                            }`}
-                          />
-                        )}
-                      </div>
+                    <td className="px-2 py-1 text-xs">
+                      {athlete.trueRank || index + 1}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-2 py-1 text-xs">
                       <div className="font-medium text-white">
                         {athlete.lifter_name}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-gray-300">
+                    <td className="px-2 py-1 text-gray-300 text-xs">
                       {athlete.gender}
                     </td>
-                    <td className="px-6 py-4 text-gray-300">
+                    <td className="px-2 py-1 text-gray-300 text-xs">
                       {athlete.weight_class || "-"}
                     </td>
-                    <td className="px-6 py-4 text-gray-300">
+                    <td className="px-2 py-1 text-gray-300 text-xs">
                       {athlete.age_category || "-"}
                     </td>
-                    <td className="px-6 py-4">
-                      <span className="text-blue-400 font-medium">
+                    <td className="px-2 py-1">
+                      <span className="font-medium whitespace-nowrap text-xs" style={{ color: 'var(--chart-snatch)' }}>
                         {athlete.best_snatch || "-"}
                         {athlete.best_snatch ? "kg" : ""}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
-                      <span className="text-green-400 font-medium">
+                    <td className="px-2 py-1">
+                      <span className="font-medium whitespace-nowrap text-xs" style={{ color: 'var(--chart-cleanjerk)' }}>
                         {athlete.best_cj || "-"}
                         {athlete.best_cj ? "kg" : ""}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
-                      <span className="text-yellow-400 font-bold text-lg">
+                    <td className="px-2 py-1">
+                      <span className="font-bold whitespace-nowrap text-xs" style={{ color: 'var(--chart-total)' }}>
                         {athlete.best_total || "-"}
                         {athlete.best_total ? "kg" : ""}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
-                      <span className="text-purple-400 font-medium">
+                    <td className="px-2 py-1">
+                      <span className="font-medium whitespace-nowrap text-xs" style={{ color: 'var(--chart-qpoints)' }}>
                         {athlete.best_qpoints
                           ? athlete.best_qpoints.toFixed(1)
                           : "-"}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-gray-300">
+                    <td className="px-2 py-1 text-gray-300 text-xs">
                       {athlete.competition_count}
                     </td>
                   </tr>
