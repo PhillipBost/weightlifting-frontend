@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { supabase } from '../../../lib/supabase';
+import { createClient } from '../../../lib/supabase/client';
 import { Trophy, Calendar, Weight, TrendingUp, Medal, User, Building, MapPin, ExternalLink, ArrowLeft, BarChart3, Dumbbell, ChevronLeft, ChevronRight, Database } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, AreaChart, Area, ScatterChart, Scatter, Brush, ReferenceLine } from 'recharts';
 import jsPDF from 'jspdf';
@@ -355,6 +355,7 @@ const SortIcon = ({ column, sortConfig }: {
 
 export default function AthletePage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
+  const supabase = createClient();
   const [selectedTab, setSelectedTab] = useState('overview');
   const [athlete, setAthlete] = useState<any>(null);
   const [results, setResults] = useState<any[]>([]);

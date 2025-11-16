@@ -101,6 +101,8 @@ export default function WeightliftingLandingPage() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const meetSearchInputRef = useRef<HTMLInputElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const meetAbortControllerRef = useRef<AbortController | null>(null);
   const router = useRouter();
   
   const [placeholderName, setPlaceholderName] = useState('');
@@ -157,14 +159,20 @@ export default function WeightliftingLandingPage() {
       return;
     }
 
+      // Cancel previous search if still running
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      abortControllerRef.current = new AbortController();
+
       setIsSearching(true);
       try {
         const searchTerms = generateAthleteSearchTerms(query);
         const usawResults: any[] = [];
         const iwfResults: any[] = [];
 
-        // Search with each term variation using two-stage strategy
-        for (const term of searchTerms.slice(0, 6)) {
+        // Search with each term variation using two-stage strategy (reduced to 3 terms for performance)
+        await Promise.all(searchTerms.slice(0, 3).map(async (term) => {
           // USAW - Stage 1: Starts-with matches (high relevance, no limit needed)
           let usawStartsWith, usawStartsError;
           try {
@@ -278,7 +286,7 @@ export default function WeightliftingLandingPage() {
           } else if (iwfContainsError) {
             // IWF Stage 2 error handled silently
           }
-        }
+        }));
 
         // Remove USAW duplicates by lifter_id
         const uniqueUsawLifters = Array.from(
@@ -290,21 +298,33 @@ export default function WeightliftingLandingPage() {
           new Map(iwfResults.map(lifter => [lifter.db_lifter_id, lifter])).values()
         );
 
+        // Get USAW athlete data with meet results (optimized with single batch query)
+        let usawAthletes: SearchResult[] = [];
+        if (uniqueUsawLifters.length > 0) {
+          const lifterIds = uniqueUsawLifters.map(l => l.lifter_id);
 
+          // Fetch recent results for all lifters in one query
+          const { data: allRecentResults } = await supabase
+            .from('meet_results')
+            .select('lifter_id, wso, club_name, gender, date')
+            .in('lifter_id', lifterIds)
+            .order('date', { ascending: false });
 
-        // Get USAW athlete data with meet results
-        const usawAthletes = await Promise.all(
-          uniqueUsawLifters.map(async (lifter) => {
-            const { data: recentResults } = await supabase
-              .from('meet_results')
-              .select('wso, club_name, gender, date')
-              .eq('lifter_id', lifter.lifter_id)
-              .order('date', { ascending: false })
-              .limit(10);
+          // Group results by lifter_id
+          const resultsByLifter = new Map<number, any[]>();
+          allRecentResults?.forEach(result => {
+            if (!resultsByLifter.has(result.lifter_id)) {
+              resultsByLifter.set(result.lifter_id, []);
+            }
+            resultsByLifter.get(result.lifter_id)!.push(result);
+          });
 
-            const recentWso = recentResults?.find(r => r.wso && r.wso.trim() !== '')?.wso;
-            const recentClub = recentResults?.find(r => r.club_name && r.club_name.trim() !== '')?.club_name;
-            const recentGender = recentResults?.find(r => r.gender && r.gender.trim() !== '')?.gender;
+          // Map lifters with their recent data
+          usawAthletes = uniqueUsawLifters.map(lifter => {
+            const results = resultsByLifter.get(lifter.lifter_id) || [];
+            const recentWso = results.find(r => r.wso && r.wso.trim() !== '')?.wso;
+            const recentClub = results.find(r => r.club_name && r.club_name.trim() !== '')?.club_name;
+            const recentGender = results.find(r => r.gender && r.gender.trim() !== '')?.gender;
 
             return {
               lifter_id: lifter.lifter_id,
@@ -316,8 +336,8 @@ export default function WeightliftingLandingPage() {
               type: 'athlete',
               source: 'USAW' as DataSource
             };
-          })
-        );
+          });
+        }
 
         // Transform IWF athlete data
         const iwfAthletes = uniqueIwfLifters.map(lifter => ({
@@ -393,8 +413,22 @@ export default function WeightliftingLandingPage() {
         setSearchResults(finalResults);
         setShowResults(true);
       } catch (err) {
+        // Don't show error if search was aborted (user typed again)
+        if (err instanceof Error && err.name === 'AbortError') {
+          console.log('[SEARCH] Search aborted - user typed again');
+          return;
+        }
+
         const errorMsg = err instanceof Error ? err.message : 'Unknown error';
         console.error('[SEARCH] Error:', errorMsg);
+
+        // Show user-friendly error message
+        if (errorMsg.includes('timeout')) {
+          console.warn('[SEARCH] Search timed out - database may be slow');
+        } else if (errorMsg.includes('network')) {
+          console.warn('[SEARCH] Network error - check your connection');
+        }
+
         setSearchResults([]);
         setShowResults(false);
       } finally {

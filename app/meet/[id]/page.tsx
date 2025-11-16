@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { supabase } from '../../../lib/supabase';
+import { createClient } from '../../../lib/supabase/client';
 import { ArrowLeft, Calendar, MapPin, Trophy, Users, ExternalLink, ChevronDown, ChevronRight, Mountain, Database, Medal } from 'lucide-react';
 import { ThemeSwitcher } from '../../components/ThemeSwitcher';
 import { useMeetClubLocations } from '../../hooks/useMeetClubLocations';
@@ -78,6 +78,7 @@ const SortIcon = ({ column, sortConfig, division }: {
 
 export default function MeetPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
+  const supabase = createClient();
   const [meet, setMeet] = useState<Meet | null>(null);
   const [results, setResults] = useState<MeetResult[]>([]);
   const [loading, setLoading] = useState(true);

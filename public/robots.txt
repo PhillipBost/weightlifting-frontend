@@ -1,0 +1,26 @@
+# Allow all well-behaved bots to crawl the site
+User-agent: *
+Allow: /
+
+# But add rate limiting to prevent abuse
+Crawl-delay: 2
+
+# Disallow aggressive crawlers that don't respect robots.txt
+User-agent: AhrefsBot
+User-agent: SemrushBot
+User-agent: MJ12bot
+User-agent: DotBot
+User-agent: BLEXBot
+Disallow: /
+
+# Protect sensitive endpoints from scraping
+User-agent: *
+Disallow: /admin
+Disallow: /api/
+
+# Don't index search results to avoid duplicate content
+Disallow: /*?search=*
+Disallow: /*?q=*
+
+# Sitemap location (create this later if needed)
+# Sitemap: https://weightlifting-db.vercel.app/sitemap.xml
