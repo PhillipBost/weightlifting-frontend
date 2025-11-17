@@ -1065,123 +1065,125 @@ function RankingsContent() {
     currentPage * resultsPerPage
   );
 
+
   return (
     <div className="min-h-screen bg-app-primary">
       {/* Header */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="card-primary mb-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            {/* Left: Title and context */}
-            <div className="flex items-start space-x-4">
-              <div className="bg-gray-700 rounded-2xl p-3 flex items-center justify-center">
-                <Trophy className="h-7 w-7 text-yellow-400" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-app-primary">
-                  Weightlifting Rankings
-                </h1>
-                <p className="text-sm text-app-secondary mt-1">
-                  Explore national and international rankings across federations,
-                  years, and divisions.
-                </p>
-                {/* Summary chips */}
-                <div className="mt-3 flex flex-wrap gap-2 text-[10px]">
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-app-tertiary text-app-secondary">
-                    {filteredRankings.length} athletes
-                  </span>
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-app-tertiary text-app-secondary">
-                    Federation:{" "}
-                    {filters.federation === "all"
-                      ? "All Federations"
-                      : filters.federation === "usaw"
-                      ? "USAW"
-                      : "IWF"}
-                  </span>
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-app-tertiary text-app-secondary">
-                    Years:{" "}
-                    {filters.selectedYears.length === 0
-                      ? "All (1998–" + new Date().getFullYear() + ")"
-                      : filters.selectedYears
-                          .slice()
-                          .sort((a, b) => b - a)
-                          .join(", ")}
-                  </span>
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-app-tertiary text-app-secondary">
-                    Min comps: {filters.minCompetitions}
-                  </span>
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-app-tertiary text-app-secondary">
-                    Sorted by:{" "}
-                    {filters.sortBy === "lifter_name"
-                      ? "Name"
-                      : filters.sortBy === "competition_count"
-                      ? "Competition Count"
-                      : filters.sortBy === "best_snatch"
-                      ? "Best Snatch"
-                      : filters.sortBy === "best_cj"
-                      ? "Best C&J"
-                      : filters.sortBy === "best_qpoints"
-                      ? "Best Q-Points"
-                      : "Best Total"}{" "}
-                    ({filters.sortOrder === "asc" ? "Asc" : "Desc"})
-                  </span>
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-app-tertiary text-app-muted">
-                    Last updated: {new Date().toLocaleDateString()}
-                  </span>
+          <div className="p-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              {/* Left: Title and context */}
+              <div className="flex items-start space-x-4">
+                <div className="bg-gray-700 rounded-2xl p-3 flex items-center justify-center">
+                  <Trophy className="h-7 w-7 text-yellow-400" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold text-app-primary">
+                    Weightlifting Rankings
+                  </h1>
+                  <p className="text-sm text-app-secondary mt-1">
+                    Explore national and international rankings across federations,
+                    years, and divisions.
+                  </p>
+                  {/* Summary chips */}
+                  <div className="mt-3 flex flex-wrap gap-2 text-[10px]">
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-app-tertiary text-app-secondary">
+                      {filteredRankings.length} athletes
+                    </span>
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-app-tertiary text-app-secondary">
+                      Federation:{" "}
+                      {filters.federation === "all"
+                        ? "All Federations"
+                        : filters.federation === "usaw"
+                        ? "USAW"
+                        : "IWF"}
+                    </span>
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-app-tertiary text-app-secondary">
+                      Years:{" "}
+                      {filters.selectedYears.length === 0
+                        ? "All (1998–" + new Date().getFullYear() + ")"
+                        : filters.selectedYears
+                            .slice()
+                            .sort((a, b) => b - a)
+                            .join(", ")}
+                    </span>
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-app-tertiary text-app-secondary">
+                      Min comps: {filters.minCompetitions}
+                    </span>
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-app-tertiary text-app-secondary">
+                      Sorted by:{" "}
+                      {filters.sortBy === "lifter_name"
+                        ? "Name"
+                        : filters.sortBy === "competition_count"
+                        ? "Competition Count"
+                        : filters.sortBy === "best_snatch"
+                        ? "Best Snatch"
+                        : filters.sortBy === "best_cj"
+                        ? "Best C&J"
+                        : filters.sortBy === "best_qpoints"
+                        ? "Best Q-Points"
+                        : "Best Total"}{" "}
+                      ({filters.sortOrder === "asc" ? "Asc" : "Desc"})
+                    </span>
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-app-tertiary text-app-muted">
+                      Last updated: {new Date().toLocaleDateString()}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Right: Actions */}
-            <div className="flex items-start md:items-center space-x-3">
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-              >
-                <Filter className="h-4 w-4" />
-                <span>{showFilters ? "Hide Filters" : "Show Filters"}</span>
-              </button>
-
-              <div className="relative">
+              {/* Right: Actions */}
+              <div className="flex items-start md:items-center space-x-3">
                 <button
-                  onClick={() => setShowExportMenu(!showExportMenu)}
-                  className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                 >
-                  <Download className="h-4 w-4" />
-                  <span>Export</span>
+                  <Filter className="h-4 w-4" />
+                  <span>{showFilters ? "Hide Filters" : "Show Filters"}</span>
                 </button>
 
-                {showExportMenu && (
-                  <div className="absolute right-0 mt-2 w-52 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-20">
-                    <button
-                      onClick={() => {
-                        exportToCSV();
-                        setShowExportMenu(false);
-                      }}
-                      className="flex items-center space-x-2 w-full text-left px-4 py-2 text-xs text-white hover:bg-gray-700 rounded-t-lg"
-                    >
-                      <FileSpreadsheet className="h-4 w-4" />
-                      <span>Download CSV</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        printTable();
-                        setShowExportMenu(false);
-                      }}
-                      className="flex items-center space-x-2 w-full text-left px-4 py-2 text-xs text-white hover:bg-gray-700 rounded-b-lg"
-                    >
-                      <Printer className="h-4 w-4" />
-                      <span>Print Table</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+                <div className="relative">
+                  <button
+                    onClick={() => setShowExportMenu(!showExportMenu)}
+                    className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                  >
+                    <Download className="h-4 w-4" />
+                    <span>Export</span>
+                  </button>
 
-          {/* Filters */}
-          {showFilters && (
-            <div className="mt-6 pt-6 border-t border-gray-700">
+                  {showExportMenu && (
+                    <div className="absolute right-0 mt-2 w-52 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-20">
+                      <button
+                        onClick={() => {
+                          exportToCSV();
+                          setShowExportMenu(false);
+                        }}
+                        className="flex items-center space-x-2 w-full text-left px-4 py-2 text-xs text-white hover:bg-gray-700 rounded-t-lg"
+                      >
+                        <FileSpreadsheet className="h-4 w-4" />
+                        <span>Download CSV</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          printTable();
+                          setShowExportMenu(false);
+                        }}
+                        className="flex items-center space-x-2 w-full text-left px-4 py-2 text-xs text-white hover:bg-gray-700 rounded-b-lg"
+                      >
+                        <Printer className="h-4 w-4" />
+                        <span>Print Table</span>
+                      </button>
+            </div>
+          )}
+        </div>
+      </div>
+  </div>
+
+            {/* Filters */}
+            {showFilters && (
+              <div className="mt-6 pt-6 border-t border-gray-700">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                 {/* Search */}
                 <div>
@@ -1520,10 +1522,13 @@ function RankingsContent() {
             </div>
           )}
         </div>
+        </div>
+      </div>
 
         {/* Rankings Table */}
-        <div className="card-results overflow-hidden">
-          <div className="overflow-x-auto">
+        <div className="card-results results-table mx-auto">
+          <div className="p-6">
+            <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200">
                 <tr>
