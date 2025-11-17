@@ -1070,7 +1070,7 @@ function RankingsContent() {
       {/* Header */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="max-w-[1200px] bg-gray-800 rounded-2xl p-6 md:p-8 mb-8 border border-gray-700">
+        <div className="card-primary mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             {/* Left: Title and context */}
             <div className="flex items-start space-x-4">
@@ -1087,10 +1087,10 @@ function RankingsContent() {
                 </p>
                 {/* Summary chips */}
                 <div className="mt-3 flex flex-wrap gap-2 text-[10px]">
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-700 text-gray-300">
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-app-tertiary text-app-secondary">
                     {filteredRankings.length} athletes
                   </span>
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-700 text-gray-300">
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-app-tertiary text-app-secondary">
                     Federation:{" "}
                     {filters.federation === "all"
                       ? "All Federations"
@@ -1098,7 +1098,7 @@ function RankingsContent() {
                       ? "USAW"
                       : "IWF"}
                   </span>
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-700 text-gray-300">
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-app-tertiary text-app-secondary">
                     Years:{" "}
                     {filters.selectedYears.length === 0
                       ? "All (1998–" + new Date().getFullYear() + ")"
@@ -1107,10 +1107,10 @@ function RankingsContent() {
                           .sort((a, b) => b - a)
                           .join(", ")}
                   </span>
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-700 text-gray-300">
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-app-tertiary text-app-secondary">
                     Min comps: {filters.minCompetitions}
                   </span>
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-700 text-gray-300">
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-app-tertiary text-app-secondary">
                     Sorted by:{" "}
                     {filters.sortBy === "lifter_name"
                       ? "Name"
@@ -1125,7 +1125,7 @@ function RankingsContent() {
                       : "Best Total"}{" "}
                     ({filters.sortOrder === "asc" ? "Asc" : "Desc"})
                   </span>
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-700 text-gray-400">
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-app-tertiary text-app-muted">
                     Last updated: {new Date().toLocaleDateString()}
                   </span>
                 </div>
@@ -1522,7 +1522,7 @@ function RankingsContent() {
         </div>
 
         {/* Rankings Table */}
-        <div className="max-w-[1200px] bg-gray-800 rounded-2xl border border-gray-700 overflow-hidden">
+        <div className="card-results overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200">
