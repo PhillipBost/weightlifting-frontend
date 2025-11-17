@@ -171,8 +171,8 @@ export default function WeightliftingLandingPage() {
         const usawResults: any[] = [];
         const iwfResults: any[] = [];
 
-        // Search with each term variation using two-stage strategy (reduced to 3 terms for performance)
-        await Promise.all(searchTerms.slice(0, 3).map(async (term) => {
+        // Search with each term variation using sequential two-stage strategy (USAW 1 → IWF 1 → USAW 2 → IWF 2)
+        for (const term of searchTerms.slice(0, 3)) {
           // USAW - Stage 1: Starts-with matches (high relevance, no limit needed)
           let usawStartsWith, usawStartsError;
           try {
@@ -194,6 +194,29 @@ export default function WeightliftingLandingPage() {
           }
           if (usawStartsError) {
             console.error('[SEARCH] USAW Stage 1 error:', usawStartsError?.message || usawStartsError);
+          }
+
+          // IWF - Stage 1: Starts-with matches (high relevance, no limit needed)
+          let iwfStartsWith, iwfStartsError;
+          try {
+            const result = await queryWithTimeout(
+              supabaseIWF
+                .from('iwf_lifters')
+                .select('db_lifter_id, athlete_name, gender, country_name, iwf_lifter_id')
+                .ilike('athlete_name', `${term}%`)
+                .order('athlete_name')
+                .limit(100) as any,
+              10000,
+              `IWF Stage 1 (${term})`
+            ) as any;
+            iwfStartsWith = result.data;
+            iwfStartsError = result.error;
+          } catch (err) {
+            iwfStartsError = err;
+            iwfStartsWith = null;
+          }
+          if (iwfStartsError) {
+            console.error('[SEARCH] IWF Stage 1 error:', iwfStartsError?.message || iwfStartsError);
           }
 
           // USAW - Stage 2: Contains matches (lower relevance, with limit)
@@ -218,36 +241,6 @@ export default function WeightliftingLandingPage() {
           }
           if (usawContainsError) {
             console.error('[SEARCH] USAW Stage 2 error:', usawContainsError?.message || usawContainsError);
-          }
-
-          if (!usawStartsError && usawStartsWith) {
-            usawResults.push(...usawStartsWith);
-          }
-          if (!usawContainsError && usawContains) {
-            usawResults.push(...usawContains);
-          }
-
-          // IWF - Stage 1: Starts-with matches (high relevance, no limit needed)
-          let iwfStartsWith, iwfStartsError;
-          try {
-            const result = await queryWithTimeout(
-              supabaseIWF
-                .from('iwf_lifters')
-                .select('db_lifter_id, athlete_name, gender, country_name, iwf_lifter_id')
-                .ilike('athlete_name', `${term}%`)
-                .order('athlete_name')
-                .limit(100) as any,
-              10000,
-              `IWF Stage 1 (${term})`
-            ) as any;
-            iwfStartsWith = result.data;
-            iwfStartsError = result.error;
-          } catch (err) {
-            iwfStartsError = err;
-            iwfStartsWith = null;
-          }
-          if (iwfStartsError) {
-            console.error('[SEARCH] IWF Stage 1 error:', iwfStartsError?.message || iwfStartsError);
           }
 
           // IWF - Stage 2: Contains matches (lower relevance, with limit)
@@ -276,17 +269,19 @@ export default function WeightliftingLandingPage() {
             // IWF Stage 2 succeeded
           }
 
+          if (!usawStartsError && usawStartsWith) {
+            usawResults.push(...usawStartsWith);
+          }
           if (!iwfStartsError && iwfStartsWith) {
             iwfResults.push(...iwfStartsWith);
-          } else if (iwfStartsError) {
-            // IWF Stage 1 error handled silently
+          }
+          if (!usawContainsError && usawContains) {
+            usawResults.push(...usawContains);
           }
           if (!iwfContainsError && iwfContains) {
             iwfResults.push(...iwfContains);
-          } else if (iwfContainsError) {
-            // IWF Stage 2 error handled silently
           }
-        }));
+        }
 
         // Remove USAW duplicates by lifter_id
         const uniqueUsawLifters = Array.from(
