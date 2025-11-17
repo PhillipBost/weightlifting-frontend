@@ -17,6 +17,8 @@ import {
   TrendingUp,
   X,
   FileSpreadsheet,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 interface AthleteRanking {
@@ -30,11 +32,34 @@ interface AthleteRanking {
   best_cj: number;
   best_total: number;
   best_qpoints: number;
+  q_youth?: number;
+  q_masters?: number;
+  qpoints?: number;
   competition_count: number;
   last_competition: string;
+  last_meet_name?: string;
+  last_body_weight?: string;
   competition_age?: number;
   trueRank?: number;
 }
+
+const getBestQScore = (result: any) => {
+  const qYouth = result.q_youth || 0;
+  const qPoints = result.qpoints || 0;
+  const qMasters = result.q_masters || 0;
+
+  if (qPoints >= qYouth && qPoints >= qMasters && qPoints > 0) {
+    return { value: qPoints, type: 'qpoints', style: { color: 'var(--chart-qpoints)' } };
+  }
+  if (qYouth >= qMasters && qYouth > 0) {
+    return { value: qYouth, type: 'qyouth', style: { color: 'var(--chart-qyouth)' } };
+  }
+  if (qMasters > 0) {
+    return { value: qMasters, type: 'qmasters', style: { color: 'var(--chart-qmasters)' } };
+  }
+
+  return { value: null, type: 'none', style: { color: 'var(--chart-qpoints)' } };
+};
 
 function RankingsContent() {
   const supabase = createClient();
@@ -64,6 +89,10 @@ function RankingsContent() {
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showYearDropdown, setShowYearDropdown] = useState(false);
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const resultsPerPage = 20;
+
   // Get unique values for filter dropdowns
   const [filterOptions, setFilterOptions] = useState({
     weightClasses: [] as string[],
@@ -82,6 +111,11 @@ function RankingsContent() {
   useEffect(() => {
     applyFilters();
   }, [rankings, filters]);
+
+  useEffect(() => {
+    // Reset to page 1 when filters change
+    setCurrentPage(1);
+  }, [filters]);
 
   async function initializeData() {
     try {
@@ -259,8 +293,13 @@ function RankingsContent() {
               validTotals.length > 0 ? Math.max(...validTotals) : 0,
             best_qpoints:
               validQPoints.length > 0 ? Math.max(...validQPoints) : 0,
+            q_youth: mostRecentResult?.q_youth ? parseFloat(String(mostRecentResult.q_youth)) : undefined,
+            q_masters: mostRecentResult?.q_masters ? parseFloat(String(mostRecentResult.q_masters)) : undefined,
+            qpoints: mostRecentResult?.qpoints ? parseFloat(String(mostRecentResult.qpoints)) : undefined,
             competition_count: athleteResults.length,
             last_competition: mostRecentResult?.date || "",
+            last_meet_name: mostRecentResult?.meet_name || "",
+            last_body_weight: mostRecentResult?.body_weight_kg || "",
             competition_age:
               mostRecentResult?.competition_age || undefined,
           };
@@ -270,9 +309,7 @@ function RankingsContent() {
       const rankedAthletes = athleteRankings.filter(
         (athlete) =>
           athlete.competition_count > 0 &&
-          (athlete.best_snatch > 0 ||
-            athlete.best_cj > 0 ||
-            athlete.best_total > 0)
+          athlete.best_total > 0
       );
 
       setUsawRankings(rankedAthletes);
@@ -426,8 +463,10 @@ function RankingsContent() {
             db_lifter_id,
             lifter_name,
             date,
+            meet_name,
             weight_class,
             age_category,
+            body_weight_kg,
             best_snatch,
             best_cj,
             total,
@@ -535,8 +574,13 @@ function RankingsContent() {
                   validQPoints.length > 0
                     ? Math.max(...validQPoints)
                     : 0,
+                q_youth: mostRecentResult?.q_youth ? parseFloat(String(mostRecentResult.q_youth)) : undefined,
+                q_masters: mostRecentResult?.q_masters ? parseFloat(String(mostRecentResult.q_masters)) : undefined,
+                qpoints: mostRecentResult?.qpoints ? parseFloat(String(mostRecentResult.qpoints)) : undefined,
                 competition_count: results.length,
                 last_competition: mostRecentResult?.date || "",
+                last_meet_name: mostRecentResult?.meet_name || "",
+                last_body_weight: mostRecentResult?.body_weight_kg || "",
                 competition_age:
                   mostRecentResult?.competition_age || undefined,
               };
@@ -544,9 +588,7 @@ function RankingsContent() {
             .filter(
               (athlete) =>
                 athlete.competition_count > 0 &&
-                (athlete.best_snatch > 0 ||
-                  athlete.best_cj > 0 ||
-                  athlete.best_total > 0)
+                athlete.best_total > 0
             );
         }
 
@@ -664,22 +706,144 @@ function RankingsContent() {
       athleteRanks.set(athlete.lifter_id, index + 1);
     });
 
+    // Handle trueRank sorting separately since it's calculated
+    if (filters.sortBy === "trueRank") {
+      // First rank by the rankingCriteria, then apply the table sort direction
+      rankedForTrueRank.sort((a, b) => {
+        const aValue = a[rankingCriteria] as number;
+        const bValue = b[rankingCriteria] as number;
+        return bValue - aValue;
+      });
+
+      const athleteRanks = new Map<string, number>();
+      rankedForTrueRank.forEach((athlete, index) => {
+        athleteRanks.set(athlete.lifter_id, index + 1);
+      });
+
+      filtered.sort((a, b) => {
+        const rankA = athleteRanks.get(a.lifter_id) || Number.MAX_SAFE_INTEGER;
+        const rankB = athleteRanks.get(b.lifter_id) || Number.MAX_SAFE_INTEGER;
+        return filters.sortOrder === "asc" ? rankA - rankB : rankB - rankA;
+      });
+
+      const rankedFiltered = filtered.map((athlete) => ({
+        ...athlete,
+        trueRank: athleteRanks.get(athlete.lifter_id),
+      }));
+
+      setFilteredRankings(rankedFiltered);
+      return;
+    }
+
     filtered.sort((a, b) => {
       const sortKey = filters.sortBy as keyof AthleteRanking;
       const aVal = a[sortKey];
       const bVal = b[sortKey];
 
-      if (filters.sortBy === "lifter_name") {
+      // String comparisons
+      if (filters.sortBy === "lifter_name" || filters.sortBy === "gender" || filters.sortBy === "last_meet_name") {
+        const aStr = String(aVal || "");
+        const bStr = String(bVal || "");
         return filters.sortOrder === "asc"
-          ? String(aVal).localeCompare(String(bVal))
-          : String(bVal).localeCompare(String(aVal));
+          ? aStr.localeCompare(bStr)
+          : bStr.localeCompare(aStr);
       }
 
-      if (filters.sortOrder === "asc") {
-        return (aVal as number) - (bVal as number);
-      } else {
-        return (bVal as number) - (aVal as number);
+      // Weight class sorting (parse numeric, handle +109kg)
+      if (filters.sortBy === "weight_class") {
+        const parseWeight = (wc: string) => {
+          if (!wc) return 0;
+          const match = wc.match(/(\d+)/);
+          const base = match ? parseInt(match[1]) : 0;
+          return wc.includes("+") ? base + 0.5 : base;
+        };
+        const weightA = parseWeight(String(aVal || ""));
+        const weightB = parseWeight(String(bVal || ""));
+        return filters.sortOrder === "asc" ? weightA - weightB : weightB - weightA;
       }
+
+      // Age category sorting (use predefined order)
+      if (filters.sortBy === "age_category") {
+        // Normalize age category to match order array format
+        const normalizeAgeCategory = (ageCategory: string) => {
+          if (!ageCategory) return "";
+          
+          if (ageCategory.includes("11 Under")) return "11 Under Age Group";
+          if (ageCategory.includes("13 Under")) return "13 Under Age Group";
+          if (ageCategory.includes("14-15")) return "14-15 Age Group";
+          if (ageCategory.includes("16-17")) return "16-17 Age Group";
+          if (ageCategory.includes("Junior")) return "Junior";
+          if (ageCategory.includes("Masters (35-39)")) return "Masters (35-39)";
+          if (ageCategory.includes("Masters (40-44)")) return "Masters (40-44)";
+          if (ageCategory.includes("Masters (45-49)")) return "Masters (45-49)";
+          if (ageCategory.includes("Masters (50-54)")) return "Masters (50-54)";
+          if (ageCategory.includes("Masters (55-59)")) return "Masters (55-59)";
+          if (ageCategory.includes("Masters (60-64)")) return "Masters (60-64)";
+          if (ageCategory.includes("Masters (65-69)")) return "Masters (65-69)";
+          if (ageCategory.includes("Masters (70-74)")) return "Masters (70-74)";
+          if (ageCategory.includes("Masters (75-79)")) return "Masters (75-79)";
+          if (ageCategory.includes("Masters (75+)")) return "Masters (75+)";
+          if (ageCategory.includes("Masters (80+)")) return "Masters (80+)";
+          if (ageCategory.includes("Open")) return "Open";
+          
+          return ageCategory;
+        };
+
+        const ageCategoryOrder = [
+          "11 Under Age Group",
+          "13 Under Age Group",
+          "14-15 Age Group",
+          "16-17 Age Group",
+          "Junior",
+          "Open",
+          "Masters (35-39)",
+          "Masters (40-44)",
+          "Masters (45-49)",
+          "Masters (50-54)",
+          "Masters (55-59)",
+          "Masters (60-64)",
+          "Masters (65-69)",
+          "Masters (70-74)",
+          "Masters (75-79)",
+          "Masters (75+)",
+          "Masters (80+)",
+        ];
+
+        // Normalize both values before comparison
+        const normalizedA = normalizeAgeCategory(String(aVal || ""));
+        const normalizedB = normalizeAgeCategory(String(bVal || ""));
+
+        const indexA = ageCategoryOrder.indexOf(normalizedA);
+        const indexB = ageCategoryOrder.indexOf(normalizedB);
+        const finalIndexA = indexA === -1 ? 999 : indexA;
+        const finalIndexB = indexB === -1 ? 999 : indexB;
+
+        return filters.sortOrder === "asc" ? finalIndexA - finalIndexB : finalIndexB - finalIndexA;
+      }
+
+      // Body weight sorting (parse numeric value from string format)
+      if (filters.sortBy === "last_body_weight") {
+        const parseBodyWeight = (bw: string) => {
+          if (!bw) return 0;
+          const numericValue = parseFloat(bw.replace(/[^\d.]/g, ""));
+          return isNaN(numericValue) ? 0 : numericValue;
+        };
+        const weightA = parseBodyWeight(String(aVal || ""));
+        const weightB = parseBodyWeight(String(bVal || ""));
+        return filters.sortOrder === "asc" ? weightA - weightB : weightB - weightA;
+      }
+
+      // Date sorting (parse and compare timestamps)
+      if (filters.sortBy === "last_competition") {
+        const dateA = aVal ? new Date(String(aVal)).getTime() : 0;
+        const dateB = bVal ? new Date(String(bVal)).getTime() : 0;
+        return filters.sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+      }
+
+      // Numeric comparisons (default for all other fields)
+      const numA = (aVal as number) || 0;
+      const numB = (bVal as number) || 0;
+      return filters.sortOrder === "asc" ? numA - numB : numB - numA;
     });
 
     const rankedFiltered = filtered.map((athlete) => ({
@@ -689,6 +853,20 @@ function RankingsContent() {
 
     // No hard cap: show all matching athletes
     setFilteredRankings(rankedFiltered);
+  }
+
+  function handleSort(column: string) {
+    let newSortOrder: 'asc' | 'desc' = 'asc';
+    
+    if (filters.sortBy === column && filters.sortOrder === 'asc') {
+      newSortOrder = 'desc';
+    }
+    
+    setFilters(prev => ({
+      ...prev,
+      sortBy: column,
+      sortOrder: newSortOrder
+    }));
   }
 
   function handleFilterChange(key: string, value: any) {
@@ -848,7 +1026,7 @@ function RankingsContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-slate-800 flex items-center justify-center">
+      <div className="min-h-screen bg-app-primary flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-400 mx-auto mb-4"></div>
           <p className="text-lg text-gray-300">
@@ -861,7 +1039,7 @@ function RankingsContent() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-slate-800 flex items-center justify-center">
+      <div className="min-h-screen bg-app-primary flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-white mb-4">
             Error Loading Rankings
@@ -880,8 +1058,15 @@ function RankingsContent() {
     );
   }
 
+  // Calculate paginated results
+  const totalPages = Math.ceil(filteredRankings.length / resultsPerPage);
+  const displayResults = filteredRankings.slice(
+    (currentPage - 1) * resultsPerPage,
+    currentPage * resultsPerPage
+  );
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-slate-800">
+    <div className="min-h-screen bg-app-primary">
       {/* Header */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
@@ -1171,6 +1356,9 @@ function RankingsContent() {
                     <option value="competition_count">
                       Competition Count
                     </option>
+                    <option value="trueRank">
+                      Rank
+                    </option>
                   </select>
                 </div>
 
@@ -1339,112 +1527,49 @@ function RankingsContent() {
             <table className="w-full text-left">
               <thead className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200">
                 <tr>
-                  <th scope="col" className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">
-                    Rank
+                  <th className="px-2 py-2 text-xs font-semibold text-gray-900 dark:text-gray-200 cursor-pointer hover:bg-app-surface transition-colors" onClick={() => handleSort("trueRank")}>
+                    Rank {getSortIcon("trueRank")}
                   </th>
-                  <th
-                    scope="col"
-                    className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
-                    onClick={() =>
-                      handleFilterChange(
-                        "sortBy",
-                        "lifter_name"
-                      )
-                    }
-                  >
-                    <div className="flex items-center space-x-1">
-                      <span>Athlete</span>
-                      {getSortIcon("lifter_name")}
-                    </div>
+                  <th className="px-2 py-2 text-xs font-semibold text-gray-900 dark:text-gray-200 cursor-pointer hover:bg-app-surface transition-colors" onClick={() => handleSort("lifter_name")}>
+                    Athlete {getSortIcon("lifter_name")}
                   </th>
-                  <th scope="col" className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">
-                    Gender
+                  <th className="px-2 py-2 text-xs font-semibold text-gray-900 dark:text-gray-200 cursor-pointer hover:bg-app-surface transition-colors" onClick={() => handleSort("gender")}>
+                    Gender {getSortIcon("gender")}
                   </th>
-                  <th scope="col" className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">
-                    Weight Class
+                  <th className="px-2 py-2 text-xs font-semibold text-gray-900 dark:text-gray-200 cursor-pointer hover:bg-app-surface transition-colors" onClick={() => handleSort("weight_class")}>
+                    Weight Class {getSortIcon("weight_class")}
                   </th>
-                  <th scope="col" className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">
+                  <th className="px-2 py-2 text-xs font-semibold text-gray-900 dark:text-gray-200">
                     Age Category
                   </th>
-                  <th
-                    scope="col"
-                    className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
-                    onClick={() =>
-                      handleFilterChange(
-                        "sortBy",
-                        "best_snatch"
-                      )
-                    }
-                  >
-                    <div className="flex items-center space-x-1">
-                      <span>Snatch</span>
-                      {getSortIcon("best_snatch")}
-                    </div>
+                  <th className="px-2 py-2 text-xs font-semibold text-gray-900 dark:text-gray-200 cursor-pointer hover:bg-app-surface transition-colors" onClick={() => handleSort("last_competition")}>
+                    Date {getSortIcon("last_competition")}
                   </th>
-                  <th
-                    scope="col"
-                    className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
-                    onClick={() =>
-                      handleFilterChange(
-                        "sortBy",
-                        "best_cj"
-                      )
-                    }
-                  >
-                    <div className="flex items-center space-x-1">
-                      <span>C&J</span>
-                      {getSortIcon("best_cj")}
-                    </div>
+                  <th className="px-2 py-2 text-xs font-semibold text-gray-900 dark:text-gray-200 cursor-pointer hover:bg-app-surface transition-colors" onClick={() => handleSort("last_meet_name")}>
+                    Meet Name {getSortIcon("last_meet_name")}
                   </th>
-                  <th
-                    scope="col"
-                    className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
-                    onClick={() =>
-                      handleFilterChange(
-                        "sortBy",
-                        "best_total"
-                      )
-                    }
-                  >
-                    <div className="flex items-center space-x-1">
-                      <span>Total</span>
-                      {getSortIcon("best_total")}
-                    </div>
+                  <th className="px-2 py-2 text-xs font-semibold text-gray-900 dark:text-gray-200 cursor-pointer hover:bg-app-surface transition-colors" onClick={() => handleSort("last_body_weight")}>
+                    Body Weight {getSortIcon("last_body_weight")}
                   </th>
-                  <th
-                    scope="col"
-                    className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
-                    onClick={() =>
-                      handleFilterChange(
-                        "sortBy",
-                        "best_qpoints"
-                      )
-                    }
-                  >
-                    <div className="flex items-center space-x-1">
-                      <span>Q-Points</span>
-                      {getSortIcon("best_qpoints")}
-                    </div>
+                  <th className="px-2 py-2 text-xs font-semibold text-gray-900 dark:text-gray-200 cursor-pointer hover:bg-app-surface transition-colors" onClick={() => handleSort("competition_age")}>
+                    Comp Age {getSortIcon("competition_age")}
                   </th>
-                  <th
-                    scope="col"
-                    className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
-                    onClick={() =>
-                      handleFilterChange(
-                        "sortBy",
-                        "competition_count"
-                      )
-                    }
-                  >
-                    <div className="flex items-center space-x-1">
-                      <span>Comps</span>
-                      {getSortIcon("competition_count")}
-                    </div>
+                  <th className="px-2 py-2 text-xs font-semibold text-gray-900 dark:text-gray-200 cursor-pointer hover:bg-app-surface transition-colors" onClick={() => handleSort("best_snatch")}>
+                    Best Snatch {getSortIcon("best_snatch")}
+                  </th>
+                  <th className="px-2 py-2 text-xs font-semibold text-gray-900 dark:text-gray-200 cursor-pointer hover:bg-app-surface transition-colors" onClick={() => handleSort("best_cj")}>
+                    Best C&J {getSortIcon("best_cj")}
+                  </th>
+                  <th className="px-2 py-2 text-xs font-semibold text-gray-900 dark:text-gray-200 cursor-pointer hover:bg-app-surface transition-colors" onClick={() => handleSort("best_total")}>
+                    Best Total {getSortIcon("best_total")}
+                  </th>
+                  <th className="px-2 py-2 text-xs font-semibold text-gray-900 dark:text-gray-200 cursor-pointer hover:bg-app-surface transition-colors" onClick={() => handleSort("best_qpoints")}>
+                    Q-Points {getSortIcon("best_qpoints")}
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {filteredRankings.map((athlete, index) => (
+                {displayResults.map((athlete, index) => (
                   <tr
                     key={`${athlete.federation || "usaw"}-${athlete.lifter_id}`}
                     className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors"
@@ -1467,6 +1592,18 @@ function RankingsContent() {
                     <td className="px-2 py-1 text-gray-300 text-xs">
                       {athlete.age_category || "-"}
                     </td>
+                    <td className="px-2 py-1 text-gray-300 text-xs">
+                      {athlete.last_competition ? new Date(athlete.last_competition).toLocaleDateString() : "-"}
+                    </td>
+                    <td className="px-2 py-1 text-gray-300 text-xs">
+                      {athlete.last_meet_name || "-"}
+                    </td>
+                    <td className="px-2 py-1 text-gray-300 text-xs">
+                      {athlete.last_body_weight ? `${athlete.last_body_weight}kg` : "-"}
+                    </td>
+                    <td className="px-2 py-1 text-gray-300 text-xs">
+                      {athlete.competition_age || "-"}
+                    </td>
                     <td className="px-2 py-1">
                       <span className="font-medium whitespace-nowrap text-xs" style={{ color: 'var(--chart-snatch)' }}>
                         {athlete.best_snatch || "-"}
@@ -1486,15 +1623,16 @@ function RankingsContent() {
                       </span>
                     </td>
                     <td className="px-2 py-1">
-                      <span className="font-medium whitespace-nowrap text-xs" style={{ color: 'var(--chart-qpoints)' }}>
-                        {athlete.best_qpoints
-                          ? athlete.best_qpoints.toFixed(1)
-                          : "-"}
-                      </span>
+                      {(() => {
+                        const bestQScore = getBestQScore(athlete);
+                        return (
+                          <span className="font-medium whitespace-nowrap text-xs" style={bestQScore.style}>
+                            {bestQScore.value ? bestQScore.value.toFixed(1) : "-"}
+                          </span>
+                        );
+                      })()}
                     </td>
-                    <td className="px-2 py-1 text-gray-300 text-xs">
-                      {athlete.competition_count}
-                    </td>
+
                   </tr>
                 ))}
               </tbody>
@@ -1515,74 +1653,82 @@ function RankingsContent() {
               </div>
             )}
           </div>
+
+          {/* Pagination */}
+          {filteredRankings.length > 0 && totalPages > 1 && (
+            <div className="flex items-center justify-between mt-6">
+              <div className="text-sm text-app-muted">
+                Showing {((currentPage - 1) * resultsPerPage) + 1} to {Math.min(currentPage * resultsPerPage, filteredRankings.length)} of {filteredRankings.length} results
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                {currentPage > 1 && (
+                  <button
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="flex items-center px-3 py-2 text-sm font-medium text-app-secondary bg-app-tertiary border border-app-secondary rounded-lg hover:bg-app-surface disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ChevronLeft className="h-4 w-4 mr-1" />
+                    Previous
+                  </button>
+                )}
+
+                <div className="flex space-x-1">
+                  {(() => {
+                    const delta = 2;
+                    const pages = [];
+                    const start = Math.max(1, currentPage - delta);
+                    const end = Math.min(totalPages, currentPage + delta);
+
+                    if (start > 1) {
+                      pages.push(1);
+                      if (start > 2) pages.push('...');
+                    }
+
+                    for (let i = start; i <= end; i++) {
+                      pages.push(i);
+                    }
+
+                    if (end < totalPages) {
+                      if (end < totalPages - 1) pages.push('...');
+                      pages.push(totalPages);
+                    }
+
+                    return pages.map((page, index) => (
+                      <button
+                        key={index}
+                        onClick={() => typeof page === 'number' && setCurrentPage(page)}
+                        disabled={page === '...'}
+                        className={`px-3 py-2 text-sm font-medium rounded-lg ${
+                          page === currentPage
+                            ? 'bg-accent-primary text-app-primary border border-accent-primary'
+                            : page === '...'
+                              ? 'text-app-muted cursor-default'
+                              : 'text-app-secondary bg-app-tertiary border border-app-secondary hover:bg-app-surface'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ));
+                  })()}
+                </div>
+
+                {currentPage < totalPages && (
+                  <button
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="flex items-center px-3 py-2 text-sm font-medium text-app-secondary bg-app-tertiary border border-app-secondary rounded-lg hover:bg-app-surface disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4 ml-1" />
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Summary Stats */}
-        {filteredRankings.length > 0 && (
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-semibold text-gray-300">
-                  Total Athletes
-                </h3>
-                <Users className="h-5 w-5 text-blue-400" />
-              </div>
-              <div className="text-2xl font-bold text-white">
-                {filteredRankings.length}
-              </div>
-            </div>
 
-            <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-semibold text-gray-300">
-                  Highest Total
-                </h3>
-                <Weight className="h-5 w-5 text-yellow-400" />
-              </div>
-              <div className="text-2xl font-bold text-white">
-                {Math.max(
-                  ...filteredRankings
-                    .map((a) => a.best_total)
-                    .filter((t) => t > 0)
-                ) || 0}
-                kg
-              </div>
-            </div>
-
-            <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-semibold text-gray-300">
-                  Avg Competitions
-                </h3>
-                <Calendar className="h-5 w-5 text-green-400" />
-              </div>
-              <div className="text-2xl font-bold text-white">
-                {(
-                  filteredRankings.reduce(
-                    (sum, a) => sum + a.competition_count,
-                    0
-                  ) / filteredRankings.length
-                ).toFixed(1)}
-              </div>
-            </div>
-
-            <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-semibold text-gray-300">
-                  Top Q-Score
-                </h3>
-                <TrendingUp className="h-5 w-5 text-purple-400" />
-              </div>
-              <div className="text-2xl font-bold text-white">
-                {Math.max(
-                  ...filteredRankings
-                    .map((a) => a.best_qpoints)
-                    .filter((q) => q > 0)
-                ).toFixed(1) || 0}
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Click outside handler for export menu */}
         {showExportMenu && (
