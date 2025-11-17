@@ -1078,10 +1078,10 @@ function RankingsContent() {
                 <Trophy className="h-7 w-7 text-yellow-400" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-white">
+                <h1 className="text-3xl font-bold text-app-primary">
                   Weightlifting Rankings
                 </h1>
-                <p className="text-sm text-gray-300 mt-1">
+                <p className="text-sm text-app-secondary mt-1">
                   Explore national and international rankings across federations,
                   years, and divisions.
                 </p>
@@ -1579,7 +1579,7 @@ function RankingsContent() {
                       {athlete.trueRank || index + 1}
                     </td>
                     <td className="px-2 py-1 text-xs">
-                      <div className="font-medium text-white">
+                      <div className="font-medium">
                         {athlete.lifter_name}
                       </div>
                     </td>
