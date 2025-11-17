@@ -1583,25 +1583,25 @@ function RankingsContent() {
                         {athlete.lifter_name}
                       </div>
                     </td>
-                    <td className="px-2 py-1 text-gray-300 text-xs">
+                    <td className="px-2 py-1 text-xs">
                       {athlete.gender}
                     </td>
-                    <td className="px-2 py-1 text-gray-300 text-xs">
+                    <td className="px-2 py-1 text-xs">
                       {athlete.weight_class || "-"}
                     </td>
-                    <td className="px-2 py-1 text-gray-300 text-xs">
+                    <td className="px-2 py-1 text-xs">
                       {athlete.age_category || "-"}
                     </td>
-                    <td className="px-2 py-1 text-gray-300 text-xs">
+                    <td className="px-2 py-1 text-xs">
                       {athlete.last_competition ? new Date(athlete.last_competition).toLocaleDateString() : "-"}
                     </td>
-                    <td className="px-2 py-1 text-gray-300 text-xs">
+                    <td className="px-2 py-1 text-xs">
                       {athlete.last_meet_name || "-"}
                     </td>
-                    <td className="px-2 py-1 text-gray-300 text-xs">
+                    <td className="px-2 py-1 text-xs">
                       {athlete.last_body_weight ? `${athlete.last_body_weight}kg` : "-"}
                     </td>
-                    <td className="px-2 py-1 text-gray-300 text-xs">
+                    <td className="px-2 py-1 text-xs">
                       {athlete.competition_age || "-"}
                     </td>
                     <td className="px-2 py-1">
