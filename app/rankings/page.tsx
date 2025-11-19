@@ -272,7 +272,7 @@ function RankingsContent() {
 
           const gender =
             mostRecentResult?.gender &&
-            typeof mostRecentResult.gender === "string"
+              typeof mostRecentResult.gender === "string"
               ? mostRecentResult.gender
               : "";
 
@@ -546,7 +546,7 @@ function RankingsContent() {
 
               const gender =
                 mostRecentResult?.gender &&
-                typeof mostRecentResult.gender === "string"
+                  typeof mostRecentResult.gender === "string"
                   ? mostRecentResult.gender
                   : "";
 
@@ -655,14 +655,13 @@ function RankingsContent() {
         )
           gender = "Men's";
 
-        const genderWeightClass = `${gender} ${
-          athlete.weight_class || ""
-        }`.trim();
+        const genderWeightClass = `${gender} ${athlete.weight_class || ""
+          }`.trim();
 
         return (
           genderWeightClass === filters.weightClass ||
           genderWeightClass ===
-            filters.weightClass.replace("(Inactive) ", "")
+          filters.weightClass.replace("(Inactive) ", "")
         );
       });
     }
@@ -767,7 +766,7 @@ function RankingsContent() {
         // Normalize age category to match order array format
         const normalizeAgeCategory = (ageCategory: string) => {
           if (!ageCategory) return "";
-          
+
           if (ageCategory.includes("11 Under")) return "11 Under Age Group";
           if (ageCategory.includes("13 Under")) return "13 Under Age Group";
           if (ageCategory.includes("14-15")) return "14-15 Age Group";
@@ -785,7 +784,7 @@ function RankingsContent() {
           if (ageCategory.includes("Masters (75+)")) return "Masters (75+)";
           if (ageCategory.includes("Masters (80+)")) return "Masters (80+)";
           if (ageCategory.includes("Open")) return "Open";
-          
+
           return ageCategory;
         };
 
@@ -857,11 +856,11 @@ function RankingsContent() {
 
   function handleSort(column: string) {
     let newSortOrder: 'asc' | 'desc' = 'asc';
-    
+
     if (filters.sortBy === column && filters.sortOrder === 'asc') {
       newSortOrder = 'desc';
     }
-    
+
     setFilters(prev => ({
       ...prev,
       sortBy: column,
@@ -947,9 +946,8 @@ function RankingsContent() {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `weightlifting-rankings-${
-      new Date().toISOString().split("T")[0]
-    }.csv`;
+    a.download = `weightlifting-rankings-${new Date().toISOString().split("T")[0]
+      }.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
   }
@@ -993,8 +991,8 @@ function RankingsContent() {
             </thead>
             <tbody>
               ${filteredRankings
-                .map(
-                  (athlete) => `
+        .map(
+          (athlete) => `
                 <tr>
                   <td class="rank">${athlete.trueRank || "N/A"}</td>
                   <td>${athlete.lifter_name}</td>
@@ -1004,15 +1002,14 @@ function RankingsContent() {
                   <td>${athlete.best_snatch || "-"}</td>
                   <td>${athlete.best_cj || "-"}</td>
                   <td>${athlete.best_total || "-"}</td>
-                  <td>${
-                    athlete.best_qpoints
-                      ? athlete.best_qpoints.toFixed(1)
-                      : "-"
-                  }</td>
+                  <td>${athlete.best_qpoints
+              ? athlete.best_qpoints.toFixed(1)
+              : "-"
+            }</td>
                 </tr>
               `
-                )
-                .join("")}
+        )
+        .join("")}
             </tbody>
           </table>
         </body>
@@ -1071,686 +1068,681 @@ function RankingsContent() {
       {/* Header */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="card-primary mb-8">
-          <div className="p-6">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              {/* Left: Title and context */}
-              <div className="flex items-start space-x-4">
-                <div className="bg-gray-700 rounded-2xl p-3 flex items-center justify-center">
-                  <Trophy className="h-7 w-7 text-yellow-400" />
-                </div>
-                <div>
-                  <h1 className="text-3xl font-bold text-app-primary">
-                    Weightlifting Rankings
-                  </h1>
-                  <p className="text-sm text-app-secondary mt-1">
-                    Explore national and international rankings across federations,
-                    years, and divisions.
-                  </p>
-                  {/* Summary chips */}
-                  <div className="mt-3 flex flex-wrap gap-2 text-[10px]">
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-app-tertiary text-app-secondary">
-                      {filteredRankings.length} athletes
-                    </span>
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-app-tertiary text-app-secondary">
-                      Federation:{" "}
-                      {filters.federation === "all"
-                        ? "All Federations"
-                        : filters.federation === "usaw"
-                        ? "USAW"
-                        : "IWF"}
-                    </span>
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-app-tertiary text-app-secondary">
-                      Years:{" "}
-                      {filters.selectedYears.length === 0
-                        ? "All (1998–" + new Date().getFullYear() + ")"
-                        : filters.selectedYears
+        <div className="max-w-[1200px] mx-auto">
+          <div className="card-primary mb-8">
+            <div className="p-6">
+              <div className="flex flex-nowrap items-center justify-between gap-4">
+                {/* Left: Title and context */}
+                <div className="flex items-start space-x-4 flex-1 min-w-0">
+                  <div className="bg-gray-700 rounded-2xl p-3 flex items-center justify-center">
+                    <Trophy className="h-7 w-7 text-yellow-400" />
+                  </div>
+                  <div>
+                    <h1 className="text-3xl font-bold text-app-primary">
+                      Weightlifting Rankings
+                    </h1>
+                    <p className="text-sm text-app-secondary mt-1">
+                      Explore national and international rankings across federations,
+                      years, and divisions.
+                    </p>
+                    {/* Summary chips */}
+                    <div className="mt-3 flex flex-wrap gap-2 text-[10px]">
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-app-tertiary text-app-secondary">
+                        {filteredRankings.length} athletes
+                      </span>
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-app-tertiary text-app-secondary">
+                        Federation:{" "}
+                        {filters.federation === "all"
+                          ? "All Federations"
+                          : filters.federation === "usaw"
+                            ? "USAW"
+                            : "IWF"}
+                      </span>
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-app-tertiary text-app-secondary">
+                        Years:{" "}
+                        {filters.selectedYears.length === 0
+                          ? "All (1998–" + new Date().getFullYear() + ")"
+                          : filters.selectedYears
                             .slice()
                             .sort((a, b) => b - a)
                             .join(", ")}
-                    </span>
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-app-tertiary text-app-secondary">
-                      Min comps: {filters.minCompetitions}
-                    </span>
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-app-tertiary text-app-secondary">
-                      Sorted by:{" "}
-                      {filters.sortBy === "lifter_name"
-                        ? "Name"
-                        : filters.sortBy === "competition_count"
-                        ? "Competition Count"
-                        : filters.sortBy === "best_snatch"
-                        ? "Best Snatch"
-                        : filters.sortBy === "best_cj"
-                        ? "Best C&J"
-                        : filters.sortBy === "best_qpoints"
-                        ? "Best Q-Points"
-                        : "Best Total"}{" "}
-                      ({filters.sortOrder === "asc" ? "Asc" : "Desc"})
-                    </span>
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-app-tertiary text-app-muted">
-                      Last updated: {new Date().toLocaleDateString()}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right: Actions */}
-              <div className="flex items-start md:items-center space-x-3">
-                <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                >
-                  <Filter className="h-4 w-4" />
-                  <span>{showFilters ? "Hide Filters" : "Show Filters"}</span>
-                </button>
-
-                <div className="relative">
-                  <button
-                    onClick={() => setShowExportMenu(!showExportMenu)}
-                    className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                  >
-                    <Download className="h-4 w-4" />
-                    <span>Export</span>
-                  </button>
-
-                  {showExportMenu && (
-                    <div className="absolute right-0 mt-2 w-52 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-20">
-                      <button
-                        onClick={() => {
-                          exportToCSV();
-                          setShowExportMenu(false);
-                        }}
-                        className="flex items-center space-x-2 w-full text-left px-4 py-2 text-xs text-white hover:bg-gray-700 rounded-t-lg"
-                      >
-                        <FileSpreadsheet className="h-4 w-4" />
-                        <span>Download CSV</span>
-                      </button>
-                      <button
-                        onClick={() => {
-                          printTable();
-                          setShowExportMenu(false);
-                        }}
-                        className="flex items-center space-x-2 w-full text-left px-4 py-2 text-xs text-white hover:bg-gray-700 rounded-b-lg"
-                      >
-                        <Printer className="h-4 w-4" />
-                        <span>Print Table</span>
-                      </button>
-            </div>
-          )}
-        </div>
-      </div>
-  </div>
-
-            {/* Filters */}
-            {showFilters && (
-              <div className="mt-6 pt-6 border-t border-gray-700">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                {/* Search */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
-                    Search
-                  </label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <input
-                      type="text"
-                      value={filters.searchTerm}
-                      onChange={(e) =>
-                        handleFilterChange(
-                          "searchTerm",
-                          e.target.value
-                        )
-                      }
-                      placeholder="Athlete name"
-                      className="w-full pl-10 pr-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
-
-                {/* Federation */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
-                    Federation
-                  </label>
-                  <select
-                    value={filters.federation}
-                    onChange={(e) =>
-                      handleFilterChange("federation", e.target.value)
-                    }
-                    className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="all">All Federations</option>
-                    <option value="usaw">USAW</option>
-                    <option value="iwf">IWF</option>
-                  </select>
-                </div>
-
-                {/* Gender */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
-                    Gender
-                  </label>
-                  <select
-                    value={filters.gender}
-                    onChange={(e) =>
-                      handleFilterChange("gender", e.target.value)
-                    }
-                    className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="all">All Genders</option>
-                    <option value="M">Male</option>
-                    <option value="F">Female</option>
-                  </select>
-                </div>
-
-                {/* Weight Class */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
-                    Weight Class
-                  </label>
-                  <select
-                    value={filters.weightClass}
-                    onChange={(e) =>
-                      handleFilterChange(
-                        "weightClass",
-                        e.target.value
-                      )
-                    }
-                    className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="all">
-                      All Weight Classes
-                    </option>
-                    {filterOptions.weightClasses.map((wc) => (
-                      <option key={wc} value={wc}>
-                        {wc}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Age Category */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
-                    Age Category
-                  </label>
-                  <select
-                    value={filters.ageCategory}
-                    onChange={(e) =>
-                      handleFilterChange(
-                        "ageCategory",
-                        e.target.value
-                      )
-                    }
-                    className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="all">
-                      All Age Categories
-                    </option>
-                    {filterOptions.ageCategories.map((ac) => (
-                      <option key={ac} value={ac}>
-                        {ac}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Rank By */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
-                    Rank By
-                  </label>
-                  <select
-                    value={filters.rankBy}
-                    onChange={(e) =>
-                      handleFilterChange(
-                        "rankBy",
-                        e.target.value
-                      )
-                    }
-                    className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="best_total">
-                      Best Total
-                    </option>
-                    <option value="best_snatch">
-                      Best Snatch
-                    </option>
-                    <option value="best_cj">
-                      Best Clean & Jerk
-                    </option>
-                    <option value="best_qpoints">
-                      Best Q-Points
-                    </option>
-                  </select>
-                </div>
-
-                {/* Sort By */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
-                    Sort By
-                  </label>
-                  <select
-                    value={filters.sortBy}
-                    onChange={(e) =>
-                      handleFilterChange(
-                        "sortBy",
-                        e.target.value
-                      )
-                    }
-                    className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="best_total">
-                      Best Total
-                    </option>
-                    <option value="best_snatch">
-                      Best Snatch
-                    </option>
-                    <option value="best_cj">
-                      Best Clean & Jerk
-                    </option>
-                    <option value="best_qpoints">
-                      Best Q-Points
-                    </option>
-                    <option value="lifter_name">
-                      Name
-                    </option>
-                    <option value="competition_count">
-                      Competition Count
-                    </option>
-                    <option value="trueRank">
-                      Rank
-                    </option>
-                  </select>
-                </div>
-
-                {/* Sort Order */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
-                    Order
-                  </label>
-                  <select
-                    value={filters.sortOrder}
-                    onChange={(e) =>
-                      handleFilterChange(
-                        "sortOrder",
-                        e.target.value
-                      )
-                    }
-                    className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="desc">
-                      Highest First
-                    </option>
-                    <option value="asc">
-                      Lowest First
-                    </option>
-                  </select>
-                </div>
-
-                {/* Years dropdown with multi-select checkboxes */}
-                <div className="relative">
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
-                    Years
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => setShowYearDropdown((prev) => !prev)}
-                    className="w-full flex items-center justify-between px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <span>
-                      {filters.selectedYears.length === 0
-                        ? "All Years (1998–" +
-                          new Date().getFullYear() +
-                          ")"
-                        : filters.selectedYears
-                            .slice()
-                            .sort((a, b) => b - a)
-                            .join(", ")}
-                    </span>
-                    <span className="ml-2 text-xs text-gray-300">
-                      {showYearDropdown ? "▲" : "▼"}
-                    </span>
-                  </button>
-
-                  {showYearDropdown && (
-                    <div className="absolute z-20 mt-1 w-64 max-h-64 overflow-y-auto bg-gray-800 border border-gray-600 rounded-lg shadow-lg p-2">
-                      <div className="flex justify-between items-center mb-2 text-[10px] text-gray-400">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const currentYear = new Date().getFullYear();
-                            const allYears = Array.from(
-                              { length: currentYear - 1998 + 1 },
-                              (_, i) => currentYear - i
-                            );
-                            setFilters((prev) => ({
-                              ...prev,
-                              selectedYears: allYears,
-                            }));
-                          }}
-                          className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600"
-                        >
-                          Select All
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setFilters((prev) => ({
-                              ...prev,
-                              selectedYears: [],
-                            }))
-                          }
-                          className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600"
-                        >
-                          Clear
-                        </button>
-                      </div>
-                      <div className="grid grid-cols-3 gap-1">
-                        {Array.from(
-                          { length: new Date().getFullYear() - 1998 + 1 },
-                          (_, i) => new Date().getFullYear() - i
-                        ).map((year) => {
-                          const checked =
-                            filters.selectedYears.includes(year);
-                          return (
-                            <label
-                              key={year}
-                              className="flex items-center space-x-1 text-[10px] text-gray-200 cursor-pointer"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={checked}
-                                onChange={() => {
-                                  setFilters((prev) => {
-                                    const exists =
-                                      prev.selectedYears.includes(year);
-                                    return {
-                                      ...prev,
-                                      selectedYears: exists
-                                        ? prev.selectedYears.filter(
-                                            (y) => y !== year
-                                          )
-                                        : [...prev.selectedYears, year],
-                                    };
-                                  });
-                                }}
-                                className="h-3 w-3 accent-blue-500"
-                              />
-                              <span>{year}</span>
-                            </label>
-                          );
-                        })}
-                      </div>
-                      <p className="mt-2 text-[9px] text-gray-400">
-                        When no years are selected, rankings include all
-                        available years (All Time).
-                      </p>
+                      </span>
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-app-tertiary text-app-secondary">
+                        Min comps: {filters.minCompetitions}
+                      </span>
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-app-tertiary text-app-secondary">
+                        Sorted by:{" "}
+                        {filters.sortBy === "lifter_name"
+                          ? "Name"
+                          : filters.sortBy === "competition_count"
+                            ? "Competition Count"
+                            : filters.sortBy === "best_snatch"
+                              ? "Best Snatch"
+                              : filters.sortBy === "best_cj"
+                                ? "Best C&J"
+                                : filters.sortBy === "best_qpoints"
+                                  ? "Best Q-Points"
+                                  : "Best Total"}{" ("}{filters.sortOrder === "asc" ? "Asc" : "Desc"}{")"}
+                      </span>
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-app-tertiary text-app-muted">
+                        Last updated: {new Date().toLocaleDateString()}
+                      </span>
                     </div>
-                  )}
+                  </div>
                 </div>
 
-                {/* Min Competitions */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
-                    Min Competitions
-                  </label>
-                  <input
-                    type="number"
-                    min={1}
-                    value={filters.minCompetitions}
-                    onChange={(e) =>
-                      handleFilterChange(
-                        "minCompetitions",
-                        parseInt(e.target.value, 10) || 1
-                      )
-                    }
-                    className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+
+                {/* Right: Actions */}
+                <div className="flex items-start md:items-center space-x-3 flex-shrink-0">
+                  <button
+                    onClick={() => setShowFilters(!showFilters)}
+                    className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                  >
+                    <Filter className="h-4 w-4" />
+                    <span>{showFilters ? "Hide Filters" : "Show Filters"}</span>
+                  </button>
+
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowExportMenu(!showExportMenu)}
+                      className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                    >
+                      <Download className="h-4 w-4" />
+                      <span>Export</span>
+                    </button>
+
+                    {showExportMenu && (
+                      <div className="absolute right-0 mt-2 w-52 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-20">
+                        <button
+                          onClick={() => {
+                            exportToCSV();
+                            setShowExportMenu(false);
+                          }}
+                          className="flex items-center space-x-2 w-full text-left px-4 py-2 text-xs text-white hover:bg-gray-700 rounded-t-lg"
+                        >
+                          <FileSpreadsheet className="h-4 w-4" />
+                          <span>Download CSV</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            printTable();
+                            setShowExportMenu(false);
+                          }}
+                          className="flex items-center space-x-2 w-full text-left px-4 py-2 text-xs text-white hover:bg-gray-700 rounded-b-lg"
+                        >
+                          <Printer className="h-4 w-4" />
+                          <span>Print Table</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
+              {/* Filters */}
+              {showFilters && (
+                <div className="mt-6 pt-6 border-t border-gray-700">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                    {/* Search */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Search
+                      </label>
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <input
+                          type="text"
+                          value={filters.searchTerm}
+                          onChange={(e) =>
+                            handleFilterChange(
+                              "searchTerm",
+                              e.target.value
+                            )
+                          }
+                          placeholder="Athlete name"
+                          className="w-full pl-10 pr-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
 
-              <div className="flex justify-between items-center">
-                <button
-                  onClick={clearFilters}
-                  className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
-                >
-                  <X className="h-4 w-4" />
-                  <span>Clear Filters</span>
-                </button>
-              </div>
+                    {/* Federation */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Federation
+                      </label>
+                      <select
+                        value={filters.federation}
+                        onChange={(e) =>
+                          handleFilterChange("federation", e.target.value)
+                        }
+                        className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="all">All Federations</option>
+                        <option value="usaw">USAW</option>
+                        <option value="iwf">IWF</option>
+                      </select>
+                    </div>
+
+                    {/* Gender */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Gender
+                      </label>
+                      <select
+                        value={filters.gender}
+                        onChange={(e) =>
+                          handleFilterChange("gender", e.target.value)
+                        }
+                        className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="all">All Genders</option>
+                        <option value="M">Male</option>
+                        <option value="F">Female</option>
+                      </select>
+                    </div>
+
+                    {/* Weight Class */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Weight Class
+                      </label>
+                      <select
+                        value={filters.weightClass}
+                        onChange={(e) =>
+                          handleFilterChange(
+                            "weightClass",
+                            e.target.value
+                          )
+                        }
+                        className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="all">
+                          All Weight Classes
+                        </option>
+                        {filterOptions.weightClasses.map((wc) => (
+                          <option key={wc} value={wc}>
+                            {wc}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Age Category */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Age Category
+                      </label>
+                      <select
+                        value={filters.ageCategory}
+                        onChange={(e) =>
+                          handleFilterChange(
+                            "ageCategory",
+                            e.target.value
+                          )
+                        }
+                        className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="all">
+                          All Age Categories
+                        </option>
+                        {filterOptions.ageCategories.map((ac) => (
+                          <option key={ac} value={ac}>
+                            {ac}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Rank By */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Rank By
+                      </label>
+                      <select
+                        value={filters.rankBy}
+                        onChange={(e) =>
+                          handleFilterChange(
+                            "rankBy",
+                            e.target.value
+                          )
+                        }
+                        className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="best_total">
+                          Best Total
+                        </option>
+                        <option value="best_snatch">
+                          Best Snatch
+                        </option>
+                        <option value="best_cj">
+                          Best Clean & Jerk
+                        </option>
+                        <option value="best_qpoints">
+                          Best Q-Points
+                        </option>
+                      </select>
+                    </div>
+
+                    {/* Sort By */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Sort By
+                      </label>
+                      <select
+                        value={filters.sortBy}
+                        onChange={(e) =>
+                          handleFilterChange(
+                            "sortBy",
+                            e.target.value
+                          )
+                        }
+                        className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="best_total">
+                          Best Total
+                        </option>
+                        <option value="best_snatch">
+                          Best Snatch
+                        </option>
+                        <option value="best_cj">
+                          Best Clean & Jerk
+                        </option>
+                        <option value="best_qpoints">
+                          Best Q-Points
+                        </option>
+                        <option value="lifter_name">
+                          Name
+                        </option>
+                        <option value="competition_count">
+                          Competition Count
+                        </option>
+                        <option value="trueRank">
+                          Rank
+                        </option>
+                      </select>
+                    </div>
+
+                    {/* Sort Order */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Order
+                      </label>
+                      <select
+                        value={filters.sortOrder}
+                        onChange={(e) =>
+                          handleFilterChange(
+                            "sortOrder",
+                            e.target.value
+                          )
+                        }
+                        className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="desc">
+                          Highest First
+                        </option>
+                        <option value="asc">
+                          Lowest First
+                        </option>
+                      </select>
+                    </div>
+
+                    {/* Years dropdown with multi-select checkboxes */}
+                    <div className="relative">
+                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Years
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setShowYearDropdown((prev) => !prev)}
+                        className="w-full flex items-center justify-between px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <span>
+                          {filters.selectedYears.length === 0
+                            ? "All Years (1998–" +
+                            new Date().getFullYear() +
+                            ")"
+                            : filters.selectedYears
+                              .slice()
+                              .sort((a, b) => b - a)
+                              .join(", ")}
+                        </span>
+                        <span className="ml-2 text-xs text-gray-300">
+                          {showYearDropdown ? "▲" : "▼"}
+                        </span>
+                      </button>
+
+                      {showYearDropdown && (
+                        <div className="absolute z-20 mt-1 w-64 max-h-64 overflow-y-auto bg-gray-800 border border-gray-600 rounded-lg shadow-lg p-2">
+                          <div className="flex justify-between items-center mb-2 text-[10px] text-gray-400">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const currentYear = new Date().getFullYear();
+                                const allYears = Array.from(
+                                  { length: currentYear - 1998 + 1 },
+                                  (_, i) => currentYear - i
+                                );
+                                setFilters((prev) => ({
+                                  ...prev,
+                                  selectedYears: allYears,
+                                }));
+                              }}
+                              className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600"
+                            >
+                              Select All
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setFilters((prev) => ({
+                                  ...prev,
+                                  selectedYears: [],
+                                }))
+                              }
+                              className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600"
+                            >
+                              Clear
+                            </button>
+                          </div>
+                          <div className="grid grid-cols-3 gap-1">
+                            {Array.from(
+                              { length: new Date().getFullYear() - 1998 + 1 },
+                              (_, i) => new Date().getFullYear() - i
+                            ).map((year) => {
+                              const checked =
+                                filters.selectedYears.includes(year);
+                              return (
+                                <label
+                                  key={year}
+                                  className="flex items-center space-x-1 text-[10px] text-gray-200 cursor-pointer"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={checked}
+                                    onChange={() => {
+                                      setFilters((prev) => {
+                                        const exists =
+                                          prev.selectedYears.includes(year);
+                                        return {
+                                          ...prev,
+                                          selectedYears: exists
+                                            ? prev.selectedYears.filter(
+                                              (y) => y !== year
+                                            )
+                                            : [...prev.selectedYears, year],
+                                        };
+                                      });
+                                    }}
+                                    className="h-3 w-3 accent-blue-500"
+                                  />
+                                  <span>{year}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                          <p className="mt-2 text-[9px] text-gray-400">
+                            When no years are selected, rankings include all
+                            available years (All Time).
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Min Competitions */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Min Competitions
+                      </label>
+                      <input
+                        type="number"
+                        min={1}
+                        value={filters.minCompetitions}
+                        onChange={(e) =>
+                          handleFilterChange(
+                            "minCompetitions",
+                            parseInt(e.target.value, 10) || 1
+                          )
+                        }
+                        className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <button
+                      onClick={clearFilters}
+                      className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
+                    >
+                      <X className="h-4 w-4" />
+                      <span>Clear Filters</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </div>
         </div>
       </div>
 
-        {/* Rankings Table */}
-        <div className="card-results results-table mx-auto">
+
+      {/* Rankings Table */}
+      <div className="max-w-[1200px] mx-auto">
+        <div className="card-results results-table">
           <div className="p-6">
             <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200">
-                <tr>
-                  <th className="px-2 py-2 text-xs font-semibold text-gray-900 dark:text-gray-200 cursor-pointer hover:bg-app-surface transition-colors" onClick={() => handleSort("trueRank")}>
-                    Rank {getSortIcon("trueRank")}
-                  </th>
-                  <th className="px-2 py-2 text-xs font-semibold text-gray-900 dark:text-gray-200 cursor-pointer hover:bg-app-surface transition-colors" onClick={() => handleSort("lifter_name")}>
-                    Athlete {getSortIcon("lifter_name")}
-                  </th>
-                  <th className="px-2 py-2 text-xs font-semibold text-gray-900 dark:text-gray-200 cursor-pointer hover:bg-app-surface transition-colors" onClick={() => handleSort("gender")}>
-                    Gender {getSortIcon("gender")}
-                  </th>
-                  <th className="px-2 py-2 text-xs font-semibold text-gray-900 dark:text-gray-200 cursor-pointer hover:bg-app-surface transition-colors" onClick={() => handleSort("weight_class")}>
-                    Weight Class {getSortIcon("weight_class")}
-                  </th>
-                  <th className="px-2 py-2 text-xs font-semibold text-gray-900 dark:text-gray-200">
-                    Age Category
-                  </th>
-                  <th className="px-2 py-2 text-xs font-semibold text-gray-900 dark:text-gray-200 cursor-pointer hover:bg-app-surface transition-colors" onClick={() => handleSort("last_competition")}>
-                    Date {getSortIcon("last_competition")}
-                  </th>
-                  <th className="px-2 py-2 text-xs font-semibold text-gray-900 dark:text-gray-200 cursor-pointer hover:bg-app-surface transition-colors" onClick={() => handleSort("last_meet_name")}>
-                    Meet Name {getSortIcon("last_meet_name")}
-                  </th>
-                  <th className="px-2 py-2 text-xs font-semibold text-gray-900 dark:text-gray-200 cursor-pointer hover:bg-app-surface transition-colors" onClick={() => handleSort("last_body_weight")}>
-                    Body Weight {getSortIcon("last_body_weight")}
-                  </th>
-                  <th className="px-2 py-2 text-xs font-semibold text-gray-900 dark:text-gray-200 cursor-pointer hover:bg-app-surface transition-colors" onClick={() => handleSort("competition_age")}>
-                    Comp Age {getSortIcon("competition_age")}
-                  </th>
-                  <th className="px-2 py-2 text-xs font-semibold text-gray-900 dark:text-gray-200 cursor-pointer hover:bg-app-surface transition-colors" onClick={() => handleSort("best_snatch")}>
-                    Best Snatch {getSortIcon("best_snatch")}
-                  </th>
-                  <th className="px-2 py-2 text-xs font-semibold text-gray-900 dark:text-gray-200 cursor-pointer hover:bg-app-surface transition-colors" onClick={() => handleSort("best_cj")}>
-                    Best C&J {getSortIcon("best_cj")}
-                  </th>
-                  <th className="px-2 py-2 text-xs font-semibold text-gray-900 dark:text-gray-200 cursor-pointer hover:bg-app-surface transition-colors" onClick={() => handleSort("best_total")}>
-                    Best Total {getSortIcon("best_total")}
-                  </th>
-                  <th className="px-2 py-2 text-xs font-semibold text-gray-900 dark:text-gray-200 cursor-pointer hover:bg-app-surface transition-colors" onClick={() => handleSort("best_qpoints")}>
-                    Q-Points {getSortIcon("best_qpoints")}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {displayResults.map((athlete, index) => (
-                  <tr
-                    key={`${athlete.federation || "usaw"}-${athlete.lifter_id}`}
-                    className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors"
-                    style={{ borderTopColor: 'var(--border-secondary)' }}
-                  >
-                    <td className="px-2 py-1 text-xs">
-                      {athlete.trueRank || index + 1}
-                    </td>
-                    <td className="px-2 py-1 text-xs">
-                      <div className="font-medium">
-                        {athlete.lifter_name}
-                      </div>
-                    </td>
-                    <td className="px-2 py-1 text-xs">
-                      {athlete.gender}
-                    </td>
-                    <td className="px-2 py-1 text-xs">
-                      {athlete.weight_class || "-"}
-                    </td>
-                    <td className="px-2 py-1 text-xs">
-                      {athlete.age_category || "-"}
-                    </td>
-                    <td className="px-2 py-1 text-xs">
-                      {athlete.last_competition ? new Date(athlete.last_competition).toLocaleDateString() : "-"}
-                    </td>
-                    <td className="px-2 py-1 text-xs">
-                      {athlete.last_meet_name || "-"}
-                    </td>
-                    <td className="px-2 py-1 text-xs">
-                      {athlete.last_body_weight ? `${athlete.last_body_weight}kg` : "-"}
-                    </td>
-                    <td className="px-2 py-1 text-xs">
-                      {athlete.competition_age || "-"}
-                    </td>
-                    <td className="px-2 py-1">
-                      <span className="font-medium whitespace-nowrap text-xs" style={{ color: 'var(--chart-snatch)' }}>
-                        {athlete.best_snatch || "-"}
-                        {athlete.best_snatch ? "kg" : ""}
-                      </span>
-                    </td>
-                    <td className="px-2 py-1">
-                      <span className="font-medium whitespace-nowrap text-xs" style={{ color: 'var(--chart-cleanjerk)' }}>
-                        {athlete.best_cj || "-"}
-                        {athlete.best_cj ? "kg" : ""}
-                      </span>
-                    </td>
-                    <td className="px-2 py-1">
-                      <span className="font-bold whitespace-nowrap text-xs" style={{ color: 'var(--chart-total)' }}>
-                        {athlete.best_total || "-"}
-                        {athlete.best_total ? "kg" : ""}
-                      </span>
-                    </td>
-                    <td className="px-2 py-1">
-                      {(() => {
-                        const bestQScore = getBestQScore(athlete);
-                        return (
-                          <span className="font-medium whitespace-nowrap text-xs" style={bestQScore.style}>
-                            {bestQScore.value ? bestQScore.value.toFixed(1) : "-"}
-                          </span>
-                        );
-                      })()}
-                    </td>
-
+              <table className="w-full text-left">
+                <thead className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200">
+                  <tr>
+                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("trueRank")}>
+                      Rank {getSortIcon("trueRank")}
+                    </th>
+                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("lifter_name")}>
+                      Athlete {getSortIcon("lifter_name")}
+                    </th>
+                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("gender")}>
+                      Gender {getSortIcon("gender")}
+                    </th>
+                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("weight_class")}>
+                      Weight Class {getSortIcon("weight_class")}
+                    </th>
+                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">
+                      Age Category
+                    </th>
+                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("last_competition")}>
+                      Date {getSortIcon("last_competition")}
+                    </th>
+                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("last_meet_name")}>
+                      Meet Name {getSortIcon("last_meet_name")}
+                    </th>
+                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("last_body_weight")}>
+                      Body Weight {getSortIcon("last_body_weight")}
+                    </th>
+                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("competition_age")}>
+                      Comp Age {getSortIcon("competition_age")}
+                    </th>
+                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("best_snatch")}>
+                      Best Sn {getSortIcon("best_snatch")}
+                    </th>
+                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("best_cj")}>
+                      Best CJ {getSortIcon("best_cj")}
+                    </th>
+                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("best_total")}>
+                      Total {getSortIcon("best_total")}
+                    </th>
+                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("best_qpoints")}>
+                      Q-Points {getSortIcon("best_qpoints")}
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {displayResults.map((athlete, index) => (
+                    <tr
+                      key={`${athlete.federation || "usaw"}-${athlete.lifter_id}`}
+                      className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors"
+                      style={{ borderTopColor: 'var(--border-secondary)' }}
+                    >
+                      <td className="px-2 py-1 whitespace-nowrap text-xs">
+                        {athlete.trueRank || index + 1}
+                      </td>
+                      <td className="px-2 py-1 whitespace-nowrap text-xs">
+                        <div className="font-medium">
+                          {athlete.lifter_name}
+                        </div>
+                      </td>
+                      <td className="px-2 py-1 whitespace-nowrap text-xs">
+                        {athlete.gender}
+                      </td>
+                      <td className="px-2 py-1 whitespace-nowrap text-xs">
+                        {athlete.weight_class || "-"}
+                      </td>
+                      <td className="px-2 py-1 whitespace-nowrap text-xs">
+                        {athlete.age_category || "-"}
+                      </td>
+                      <td className="px-2 py-1 whitespace-nowrap text-xs">
+                        {athlete.last_competition ? new Date(athlete.last_competition).toLocaleDateString() : "-"}
+                      </td>
+                      <td className="px-2 py-1 whitespace-nowrap text-xs max-w-[200px] truncate" title={athlete.last_meet_name || ""}>
+                        {athlete.last_meet_name || "-"}
+                      </td>
+                      <td className="px-2 py-1 whitespace-nowrap text-xs">
+                        {athlete.last_body_weight ? `${athlete.last_body_weight}kg` : "-"}
+                      </td>
+                      <td className="px-2 py-1 whitespace-nowrap text-xs">
+                        {athlete.competition_age || "-"}
+                      </td>
+                      <td className="px-2 py-1 whitespace-nowrap">
+                        <span className="font-medium text-xs" style={{ color: 'var(--chart-snatch)' }}>
+                          {athlete.best_snatch || "-"}
+                          {athlete.best_snatch ? "kg" : ""}
+                        </span>
+                      </td>
+                      <td className="px-2 py-1 whitespace-nowrap">
+                        <span className="font-medium text-xs" style={{ color: 'var(--chart-cleanjerk)' }}>
+                          {athlete.best_cj || "-"}
+                          {athlete.best_cj ? "kg" : ""}
+                        </span>
+                      </td>
+                      <td className="px-2 py-1 whitespace-nowrap">
+                        <span className="font-bold text-xs" style={{ color: 'var(--chart-total)' }}>
+                          {athlete.best_total || "-"}
+                          {athlete.best_total ? "kg" : ""}
+                        </span>
+                      </td>
+                      <td className="px-2 py-1 whitespace-nowrap text-xs">
+                        {getBestQScore(athlete).value ? getBestQScore(athlete).value.toFixed(1) : "-"}
+                      </td>
 
-            {filteredRankings.length === 0 && (
-              <div className="text-center py-12">
-                <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-400 text-lg">
-                  No athletes found matching your criteria
-                </p>
-                <button
-                  onClick={clearFilters}
-                  className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-                >
-                  Clear All Filters
-                </button>
-              </div>
-            )}
-          </div>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
 
-          {/* Pagination */}
-          {filteredRankings.length > 0 && totalPages > 1 && (
-            <div className="flex items-center justify-between mt-6">
-              <div className="text-sm text-app-muted">
-                Showing {((currentPage - 1) * resultsPerPage) + 1} to {Math.min(currentPage * resultsPerPage, filteredRankings.length)} of {filteredRankings.length} results
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                {currentPage > 1 && (
+              {filteredRankings.length === 0 && (
+                <div className="text-center py-12">
+                  <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-400 text-lg">
+                    No athletes found matching your criteria
+                  </p>
                   <button
-                    onClick={() => setCurrentPage(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className="flex items-center px-3 py-2 text-sm font-medium text-app-secondary bg-app-tertiary border border-app-secondary rounded-lg hover:bg-app-surface disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={clearFilters}
+                    className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
                   >
-                    <ChevronLeft className="h-4 w-4 mr-1" />
-                    Previous
+                    Clear All Filters
                   </button>
-                )}
+                </div>
+              )}
+            </div>
 
-                <div className="flex space-x-1">
-                  {(() => {
-                    const delta = 2;
-                    const pages = [];
-                    const start = Math.max(1, currentPage - delta);
-                    const end = Math.min(totalPages, currentPage + delta);
+            {/* Pagination */}
+            {filteredRankings.length > 0 && totalPages > 1 && (
+              <div className="flex items-center justify-between mt-6">
+                <div className="text-sm text-app-muted">
+                  Showing {((currentPage - 1) * resultsPerPage) + 1} to {Math.min(currentPage * resultsPerPage, filteredRankings.length)} of {filteredRankings.length} results
+                </div>
 
-                    if (start > 1) {
-                      pages.push(1);
-                      if (start > 2) pages.push('...');
-                    }
+                <div className="flex items-center space-x-2">
+                  {currentPage > 1 && (
+                    <button
+                      onClick={() => setCurrentPage(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className="flex items-center px-3 py-2 text-sm font-medium text-app-secondary bg-app-tertiary border border-app-secondary rounded-lg hover:bg-app-surface disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <ChevronLeft className="h-4 w-4 mr-1" />
+                      Previous
+                    </button>
+                  )}
 
-                    for (let i = start; i <= end; i++) {
-                      pages.push(i);
-                    }
+                  <div className="flex space-x-1">
+                    {(() => {
+                      const delta = 2;
+                      const pages = [];
+                      const start = Math.max(1, currentPage - delta);
+                      const end = Math.min(totalPages, currentPage + delta);
 
-                    if (end < totalPages) {
-                      if (end < totalPages - 1) pages.push('...');
-                      pages.push(totalPages);
-                    }
+                      if (start > 1) {
+                        pages.push(1);
+                        if (start > 2) pages.push('...');
+                      }
 
-                    return pages.map((page, index) => (
-                      <button
-                        key={index}
-                        onClick={() => typeof page === 'number' && setCurrentPage(page)}
-                        disabled={page === '...'}
-                        className={`px-3 py-2 text-sm font-medium rounded-lg ${
-                          page === currentPage
+                      for (let i = start; i <= end; i++) {
+                        pages.push(i);
+                      }
+
+                      if (end < totalPages) {
+                        if (end < totalPages - 1) pages.push('...');
+                        pages.push(totalPages);
+                      }
+
+                      return pages.map((page, index) => (
+                        <button
+                          key={index}
+                          onClick={() => typeof page === 'number' && setCurrentPage(page)}
+                          disabled={page === '...'}
+                          className={`px-3 py-2 text-sm font-medium rounded-lg ${page === currentPage
                             ? 'bg-accent-primary text-app-primary border border-accent-primary'
                             : page === '...'
                               ? 'text-app-muted cursor-default'
                               : 'text-app-secondary bg-app-tertiary border border-app-secondary hover:bg-app-surface'
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    ));
-                  })()}
-                </div>
+                            }`}
+                        >
+                          {page}
+                        </button>
+                      ));
+                    })()}
+                  </div>
 
-                {currentPage < totalPages && (
-                  <button
-                    onClick={() => setCurrentPage(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    className="flex items-center px-3 py-2 text-sm font-medium text-app-secondary bg-app-tertiary border border-app-secondary rounded-lg hover:bg-app-surface disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Next
-                    <ChevronRight className="h-4 w-4 ml-1" />
-                  </button>
-                )}
+                  {currentPage < totalPages && (
+                    <button
+                      onClick={() => setCurrentPage(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className="flex items-center px-3 py-2 text-sm font-medium text-app-secondary bg-app-tertiary border border-app-secondary rounded-lg hover:bg-app-surface disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
+          </div>
+
+          {/* Click outside handler for export menu */}
+          {showExportMenu && (
+            <div
+              className="fixed inset-0 z-5"
+              onClick={() => setShowExportMenu(false)}
+            />
+          )}
+
+          {showYearDropdown && (
+            <div
+              className="fixed inset-0 z-0"
+              onClick={() => setShowYearDropdown(false)}
+            />
           )}
         </div>
-
-
-
-        {/* Click outside handler for export menu */}
-        {showExportMenu && (
-          <div
-            className="fixed inset-0 z-5"
-            onClick={() => setShowExportMenu(false)}
-          />
-        )}
-
-        {showYearDropdown && (
-          <div
-            className="fixed inset-0 z-0"
-            onClick={() => setShowYearDropdown(false)}
-          />
-        )}
       </div>
     </div>
+
   );
 }
 
