@@ -104,33 +104,33 @@ export default function WeightliftingLandingPage() {
   const abortControllerRef = useRef<AbortController | null>(null);
   const meetAbortControllerRef = useRef<AbortController | null>(null);
   const router = useRouter();
-  
+
   const [placeholderName, setPlaceholderName] = useState('');
   const [placeholderMeet, setPlaceholderMeet] = useState('');
 
   const athleteNames = [
-  'Caine Wilkes',
-  'Jourdan Delacruz',
-  'Wes Kitts',
-  'Hampton Morris',
-  'Mary Theisen-Lappen',
-  'Olivia Reeves',
-  'Sarah Robles',
-  'Martha Rogers',
-  'Harrison Maurus',
-  'Katherine Vibert',
-  'Clarence Cummings',
-  'Jenny Arthur',
-  'Kendrick Farris',
-  'Holley Mangold',
-  'Christopher Yandle'
+    'Caine Wilkes',
+    'Jourdan Delacruz',
+    'Wes Kitts',
+    'Hampton Morris',
+    'Mary Theisen-Lappen',
+    'Olivia Reeves',
+    'Sarah Robles',
+    'Martha Rogers',
+    'Harrison Maurus',
+    'Katherine Vibert',
+    'Clarence Cummings',
+    'Jenny Arthur',
+    'Kendrick Farris',
+    'Holley Mangold',
+    'Christopher Yandle'
   ];
 
   const meetNames = [
     // TODO: Fill in with actual meet names
     'National Championships',
-	'International',
-	'2017',
+    'International',
+    '2017',
     'American Open',
     'University Championships',
     'Youth Championships',
@@ -139,7 +139,7 @@ export default function WeightliftingLandingPage() {
   ];
 
   const getSearchIcon = (resultType: string) => {
-    switch(resultType) {
+    switch (resultType) {
       case 'athlete': return User;
       case 'meet': return CalendarDays;      // for meet/competition results
       case 'wso': return MapPinned;         // for WSO/regional results  
@@ -152,12 +152,12 @@ export default function WeightliftingLandingPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedSearch = useCallback(
     debounce(async (query: string) => {
-    if (!query.trim() || query.length < 2) {
-      setIsSearching(false);
-      setSearchResults([]);
-      setShowResults(false);
-      return;
-    }
+      if (!query.trim() || query.length < 2) {
+        setIsSearching(false);
+        setSearchResults([]);
+        setShowResults(false);
+        return;
+      }
 
       // Cancel previous search if still running
       if (abortControllerRef.current) {
@@ -185,8 +185,8 @@ export default function WeightliftingLandingPage() {
                 .limit(100) as any,
               15000,
               `USAW Stage 1 (${term})`
-            ).then(res => ({ type: 'USAW_1', data: res.data, error: res.error }))
-             .catch(err => ({ type: 'USAW_1', data: null, error: err })),
+            ).then((res: any) => ({ type: 'USAW_1', data: res.data, error: res.error }))
+              .catch(err => ({ type: 'USAW_1', data: null, error: err })),
 
             // IWF Stage 1
             queryWithTimeout(
@@ -198,13 +198,13 @@ export default function WeightliftingLandingPage() {
                 .limit(100) as any,
               15000,
               `IWF Stage 1 (${term})`
-            ).then(res => ({ type: 'IWF_1', data: res.data, error: res.error }))
-             .catch(err => ({ type: 'IWF_1', data: null, error: err }))
+            ).then((res: any) => ({ type: 'IWF_1', data: res.data, error: res.error }))
+              .catch(err => ({ type: 'IWF_1', data: null, error: err }))
           ];
 
           // Wait for Stage 1 to complete
           const stage1Results = await Promise.all(stage1Promises);
-          
+
           // Process Stage 1 results
           stage1Results.forEach(result => {
             if (result.error) {
@@ -230,8 +230,8 @@ export default function WeightliftingLandingPage() {
                 .limit(200) as any,
               15000,
               `USAW Stage 2 (${term})`
-            ).then(res => ({ type: 'USAW_2', data: res.data, error: res.error }))
-             .catch(err => ({ type: 'USAW_2', data: null, error: err })),
+            ).then((res: any) => ({ type: 'USAW_2', data: res.data, error: res.error }))
+              .catch(err => ({ type: 'USAW_2', data: null, error: err })),
 
             // IWF Stage 2
             queryWithTimeout(
@@ -244,8 +244,8 @@ export default function WeightliftingLandingPage() {
                 .limit(200) as any,
               15000,
               `IWF Stage 2 (${term})`
-            ).then(res => ({ type: 'IWF_2', data: res.data, error: res.error }))
-             .catch(err => ({ type: 'IWF_2', data: null, error: err }))
+            ).then((res: any) => ({ type: 'IWF_2', data: res.data, error: res.error }))
+              .catch(err => ({ type: 'IWF_2', data: null, error: err }))
           ];
 
           // Wait for Stage 2 to complete
@@ -331,11 +331,11 @@ export default function WeightliftingLandingPage() {
         const deduplicatedAthletes = Array.from(
           new Map(
             allAthletes.map(athlete => {
-              const id = 'lifter_id' in athlete 
-                ? athlete.lifter_id 
-                : 'db_lifter_id' in athlete 
-                ? athlete.db_lifter_id 
-                : athlete.athlete_name?.replace(/[^a-zA-Z0-9]/g, '_');
+              const id = 'lifter_id' in athlete
+                ? athlete.lifter_id
+                : 'db_lifter_id' in athlete
+                  ? athlete.db_lifter_id
+                  : athlete.athlete_name?.replace(/[^a-zA-Z0-9]/g, '_');
               return [
                 `${String(id)}_${athlete.source}`,
                 athlete
@@ -421,7 +421,7 @@ export default function WeightliftingLandingPage() {
   const fuzzySearchTerms = (query: string) => {
     const terms = [stripPunctuation(query)];
     const cleaned = query.toLowerCase().trim();
-    
+
     // Add variations for common typos and abbreviations
     const variations: Record<string, string[]> = {
       'national': ['nationals', 'natl', 'nats'],
@@ -450,7 +450,7 @@ export default function WeightliftingLandingPage() {
       'university national championships': ['university nationals', 'university national', 'university championships'],
       'junior national championships': ['junior nationals', 'junior national', 'junior championships']
     };
-    
+
     // Add variations if any key words match
     Object.entries(variations).forEach(([key, alts]) => {
       // Use word boundary matching for more precise matching
@@ -463,7 +463,7 @@ export default function WeightliftingLandingPage() {
     });
 
 
-    
+
     return [...new Set(terms)]; // Remove duplicates
   };
 
@@ -471,14 +471,14 @@ export default function WeightliftingLandingPage() {
   const generateAthleteSearchTerms = (query: string) => {
     const terms = [query];
     const cleaned = query.toLowerCase().trim();
-    
+
     // Handle common typos in names
     let fuzzyQuery = cleaned;
-    
+
     // Remove extra letters (e.g., "Philllip" -> "Philip")
     fuzzyQuery = fuzzyQuery.replace(/([a-z])\1{2,}/g, '$1$1'); // Reduce 3+ repeated letters to 2
     fuzzyQuery = fuzzyQuery.replace(/([a-z])\1{1,}/g, '$1'); // Then reduce 2+ to single
-    
+
     // Add the cleaned version if it's different
     if (fuzzyQuery !== cleaned) {
       terms.push(query.replace(new RegExp(cleaned.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), fuzzyQuery));
@@ -508,7 +508,7 @@ export default function WeightliftingLandingPage() {
       'phillip': ['philip', 'filip', 'phil'],
       'filip': ['philip', 'phillip', 'phil'],
       'phil': ['philip', 'phillip', 'filip'],
-      
+
       // Catherine variations
       'catherine': ['katherine', 'kathryn', 'cathy', 'kate', 'katie', 'cat'],
       'katherine': ['catherine', 'kathryn', 'kathy', 'kate', 'katie', 'kat'],
@@ -517,7 +517,7 @@ export default function WeightliftingLandingPage() {
       'kathy': ['katherine', 'kathryn', 'cathy', 'kate'],
       'kate': ['katherine', 'kathryn', 'catherine', 'katie', 'cathy'],
       'katie': ['katherine', 'kathryn', 'catherine', 'kate'],
-      
+
       // John variations
       'john': ['jon', 'johnny', 'johnathan', 'jonathan', 'jack'],
       'jon': ['john', 'johnny', 'johnathan', 'jonathan'],
@@ -525,14 +525,14 @@ export default function WeightliftingLandingPage() {
       'johnathan': ['john', 'jon', 'jonathan'],
       'jonathan': ['john', 'jon', 'johnathan'],
       'jack': ['john', 'jackson'],
-      
+
       // Michael variations
       'michael': ['mike', 'mick', 'mickey', 'mikey'],
       'mike': ['michael', 'mick'],
       'mick': ['michael', 'mike'],
       'mickey': ['michael', 'mike'],
       'mikey': ['michael', 'mike'],
-      
+
       // William variations
       'william': ['bill', 'will', 'billy', 'willy', 'willie'],
       'bill': ['william', 'billy'],
@@ -540,7 +540,7 @@ export default function WeightliftingLandingPage() {
       'billy': ['william', 'bill'],
       'willy': ['william', 'will', 'willie'],
       'willie': ['william', 'will', 'willy'],
-      
+
       // Robert variations
       'robert': ['rob', 'bob', 'robbie', 'bobby', 'bert'],
       'rob': ['robert', 'robbie'],
@@ -548,7 +548,7 @@ export default function WeightliftingLandingPage() {
       'robbie': ['robert', 'rob'],
       'bobby': ['robert', 'bob'],
       'bert': ['robert', 'albert'],
-      
+
       // Richard variations
       'richard': ['rick', 'dick', 'rich', 'richie', 'ricky'],
       'rick': ['richard', 'ricky'],
@@ -556,47 +556,47 @@ export default function WeightliftingLandingPage() {
       'rich': ['richard', 'richie'],
       'richie': ['richard', 'rich'],
       'ricky': ['richard', 'rick'],
-      
+
       // Christopher variations
       'christopher': ['chris', 'christy', 'christie'],
       'chris': ['christopher', 'christian', 'christine'],
       'christy': ['christopher', 'christie'],
       'christie': ['christopher', 'christy'],
-      
+
       // Nicholas variations
       'nicholas': ['nick', 'nicky', 'nicolas'],
       'nick': ['nicholas', 'nicky'],
       'nicky': ['nicholas', 'nick'],
       'nicolas': ['nicholas', 'nick'],
-      
+
       // Anthony variations
       'anthony': ['tony', 'anton'],
       'tony': ['anthony', 'antonio'],
       'anton': ['anthony', 'antonio'],
       'antonio': ['anthony', 'tony', 'anton'],
-      
+
       // Matthew variations
       'matthew': ['matt', 'matty'],
       'matt': ['matthew', 'matty'],
       'matty': ['matthew', 'matt'],
-      
+
       // Andrew variations
       'andrew': ['andy', 'drew'],
       'andy': ['andrew', 'anderson'],
       'drew': ['andrew'],
-      
+
       // Daniel variations
       'daniel': ['dan', 'danny', 'dane'],
       'dan': ['daniel', 'danny'],
       'danny': ['daniel', 'dan'],
       'dane': ['daniel'],
-      
+
       // David variations
       'david': ['dave', 'davey', 'davy'],
       'dave': ['david', 'davey'],
       'davey': ['david', 'dave', 'davy'],
       'davy': ['david', 'davey'],
-      
+
       // Elizabeth variations
       'elizabeth': ['liz', 'beth', 'betsy', 'betty', 'eliza', 'lisa'],
       'liz': ['elizabeth', 'lisa'],
@@ -605,99 +605,99 @@ export default function WeightliftingLandingPage() {
       'betty': ['elizabeth', 'betsy'],
       'eliza': ['elizabeth'],
       'lisa': ['elizabeth', 'liz'],
-      
+
       // Jennifer variations
       'jennifer': ['jen', 'jenny', 'jenn'],
       'jen': ['jennifer', 'jenny'],
       'jenny': ['jennifer', 'jen'],
       'jenn': ['jennifer', 'jen'],
-      
+
       // Jessica variations
       'jessica': ['jess', 'jessie'],
       'jess': ['jessica', 'jessie'],
       'jessie': ['jessica', 'jess'],
-      
+
       // James variations
       'james': ['jim', 'jimmy', 'jamie'],
       'jim': ['james', 'jimmy'],
       'jimmy': ['james', 'jim'],
       'jamie': ['james'],
-      
+
       // Joseph variations
       'joseph': ['joe', 'joey', 'jos'],
       'joe': ['joseph', 'joey'],
       'joey': ['joseph', 'joe'],
       'jos': ['joseph'],
-      
+
       // Thomas variations
       'thomas': ['tom', 'tommy', 'thom'],
       'tom': ['thomas', 'tommy'],
       'tommy': ['thomas', 'tom'],
       'thom': ['thomas'],
-      
+
       // Charles variations
       'charles': ['charlie', 'chuck', 'chas'],
       'charlie': ['charles', 'charlotte'],
       'chuck': ['charles'],
       'chas': ['charles'],
-      
+
       // Patricia variations
       'patricia': ['pat', 'patty', 'trish', 'patsy'],
       'pat': ['patricia', 'patrick', 'patty'],
       'patty': ['patricia', 'pat'],
       'trish': ['patricia'],
       'patsy': ['patricia'],
-      
+
       // Patrick variations
       'patrick': ['pat', 'paddy', 'rick'],
       'paddy': ['patrick'],
-      
+
       // Additional common names
       'alexander': ['alex', 'xander', 'sandy'],
       'alex': ['alexander', 'alexandra', 'alexis'],
       'xander': ['alexander'],
       'sandy': ['alexander', 'sandra'],
-      
+
       'benjamin': ['ben', 'benny', 'benji'],
       'ben': ['benjamin', 'benny'],
       'benny': ['benjamin', 'ben'],
       'benji': ['benjamin'],
-      
+
       'gregory': ['greg', 'gregg'],
       'greg': ['gregory', 'gregg'],
       'gregg': ['gregory', 'greg'],
-      
+
       'joshua': ['josh'],
       'josh': ['joshua'],
-      
+
       'steven': ['steve', 'stevie'],
       'stephen': ['steve', 'stevie'],
       'steve': ['steven', 'stephen', 'stevie'],
       'stevie': ['steven', 'stephen', 'steve'],
-      
+
       'timothy': ['tim', 'timmy'],
       'tim': ['timothy', 'timmy'],
       'timmy': ['timothy', 'tim'],
-      
+
       'edward': ['ed', 'eddie', 'ted'],
       'ed': ['edward', 'eddie'],
       'eddie': ['edward', 'ed'],
       'ted': ['edward', 'theodore'],
-      
+
       'ronald': ['ron', 'ronnie'],
       'ron': ['ronald', 'ronnie'],
       'ronnie': ['ronald', 'ron'],
-      
+
       'harley': ['harv'],
       'harv': ['harley'],
-      
+
       'martha': ['mattie'],
       'mattie': ['martha'],
-      
+
       'wesley': ['wes'],
       'wes': ['wesley']
     };
-    
+
     // Athletes who competed under different names (former names, married names, etc.)
     // Check this BEFORE individual name variations to avoid conflicts
     const athleteNameChanges: Record<string, string[]> = {
@@ -734,17 +734,17 @@ export default function WeightliftingLandingPage() {
     }
 
 
-    
+
     // Also try partial matches for name changes (in case the exact name format is different)
     if (cleaned.includes('kate') && cleaned.includes('nye')) {
       // Add various combinations for Katherine Vibert specifically
       terms.push('vibert');
-      terms.push('katherine vibert'); 
+      terms.push('katherine vibert');
       terms.push('kate vibert');
       terms.push('vibert, katherine');
       terms.push('vibert, kate');
     }
-    
+
     return [...new Set(terms)]; // Remove duplicates
   };
 
@@ -856,7 +856,7 @@ export default function WeightliftingLandingPage() {
                 .from('iwf_meets')
                 .select('db_meet_id, meet, date, level, iwf_meet_id, iwf_meet_locations(city, country, location_text)')
                 .in('iwf_meet_id', iwfMeetIds);
-              
+
               if (matchedMeets) {
                 iwfResults.push(...matchedMeets);
               }
@@ -918,7 +918,7 @@ export default function WeightliftingLandingPage() {
                 .from('iwf_meets')
                 .select('db_meet_id, meet, date, level, iwf_meet_id, iwf_meet_locations(city, country, location_text)')
                 .in('iwf_meet_id', iwfMeetIds);
-              
+
               if (matchedMeets) {
                 iwfResults.push(...matchedMeets);
               }
@@ -998,8 +998,8 @@ export default function WeightliftingLandingPage() {
             Array.isArray(rawLoc) && rawLoc.length > 0
               ? rawLoc[0]
               : rawLoc && !Array.isArray(rawLoc)
-              ? rawLoc
-              : null;
+                ? rawLoc
+                : null;
 
           if (loc) {
             if (loc.location_text && loc.location_text.trim() !== '') {
@@ -1101,7 +1101,7 @@ export default function WeightliftingLandingPage() {
   useEffect(() => {
     const randomName = athleteNames[Math.floor(Math.random() * athleteNames.length)];
     setPlaceholderName(randomName);
-    
+
     const randomMeet = meetNames[Math.floor(Math.random() * meetNames.length)];
     setPlaceholderMeet(randomMeet);
   }, []);
@@ -1126,18 +1126,18 @@ export default function WeightliftingLandingPage() {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element;
-      
+
       // Don't close if clicking on a search result or its children
       const isClickingOnResult = target.closest('[data-search-result]');
       if (isClickingOnResult) {
         return;
       }
-      
+
       // Close athlete search dropdown if clicking outside
       if (showResults && searchInputRef.current && !searchInputRef.current.closest('.relative')?.contains(target)) {
         setShowResults(false);
       }
-      
+
       // Close meet search dropdown if clicking outside
       if (showMeetResults && meetSearchInputRef.current && !meetSearchInputRef.current.closest('.relative')?.contains(target)) {
         setShowMeetResults(false);
@@ -1249,7 +1249,7 @@ export default function WeightliftingLandingPage() {
                 <p className="text-sm text-app-tertiary">USA Weightlifting Results Database</p>
               </div>
             </Link>
-            
+
             {/* Add Theme Switcher and User Menu (only when logged in) */}
             <div className="flex items-center space-x-4">
               <ThemeSwitcher />
@@ -1267,7 +1267,7 @@ export default function WeightliftingLandingPage() {
             <span className="block text-blue-400">Results Database</span>
           </h2>
           <p className="text-lg text-app-secondary mb-12 max-w-2xl mx-auto">
-            Search through thousands of competition results and 
+            Search through thousands of competition results and
             analyze performance trends from USA Weightlifting athletes.
           </p>
 
@@ -1308,7 +1308,7 @@ export default function WeightliftingLandingPage() {
                   aria-busy={isSearching}
                   autoComplete="off"
                 />
-                
+
                 {/* Clear button */}
                 {searchQuery && (
                   <button
@@ -1339,51 +1339,51 @@ export default function WeightliftingLandingPage() {
                     </div>
                   ) : searchResults.length > 0 ? (
                     <div className="py-2">
-                          {searchResults.map((result) => {
+                      {searchResults.map((result) => {
                         const source: DataSource = result.source || 'USAW';
                         const sourceColors = getSourceColor(source);
                         const resultKey = `${source}_${source === 'USAW' ? result.lifter_id : result.db_lifter_id}`;
 
 
-  // Build display info based on source
-  const displayInfo = source === 'IWF'
-    ? [result.gender, result.country_name, result.iwf_lifter_id ? `#${result.iwf_lifter_id}` : (result.db_lifter_id ? `#${result.db_lifter_id}` : null)]
-    : [result.gender, result.club_name, result.membership_number ? `#${result.membership_number}` : null];
+                        // Build display info based on source
+                        const displayInfo = source === 'IWF'
+                          ? [result.gender, result.country_name, result.iwf_lifter_id ? `#${result.iwf_lifter_id}` : (result.db_lifter_id ? `#${result.db_lifter_id}` : null)]
+                          : [result.gender, result.club_name, result.membership_number ? `#${result.membership_number}` : null];
 
                         const athleteUrl = buildAthleteUrl(
-          result.source === 'IWF'
-            ? (result.iwf_lifter_id || result.db_lifter_id)!.toString()
-            : (result.membership_number?.toString() || result.athlete_name!
-                .toLowerCase()
-                .replace(/[^\w\s-]/g, '')
-                .replace(/\s+/g, '-')
-                .trim()),
-          result.source || 'USAW'
-        );
-        return (
-          <Link
-            key={resultKey}
-            href={athleteUrl}
-            data-search-result="athlete"
-            onClick={() => setShowResults(false)}
-            className="w-full px-4 py-3 text-left bg-interactive transition-colors flex items-center space-x-3 hover:bg-blue-500/10"
-          >
-            {React.createElement(getSearchIcon(result.type || 'athlete'), {
-              className: "h-5 w-5 text-app-muted"
-            })}
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <div className="text-app-primary font-medium">{result.athlete_name}</div>
-                <span className={`text-xs font-semibold px-2 py-1 rounded-full border ${sourceColors.bg} ${sourceColors.text} ${sourceColors.border}`}>
-                  {getSourceBadge(source)}
-                </span>
-              </div>
-              <div className="text-sm text-app-tertiary">
-                {displayInfo.filter(Boolean).join(' • ')}
-              </div>
-            </div>
-          </Link>
-        );
+                          result.source === 'IWF'
+                            ? (result.iwf_lifter_id || result.db_lifter_id)!.toString()
+                            : (result.membership_number?.toString() || result.athlete_name!
+                              .toLowerCase()
+                              .replace(/[^\w\s-]/g, '')
+                              .replace(/\s+/g, '-')
+                              .trim()),
+                          result.source || 'USAW'
+                        );
+                        return (
+                          <Link
+                            key={resultKey}
+                            href={athleteUrl}
+                            data-search-result="athlete"
+                            onClick={() => setShowResults(false)}
+                            className="w-full px-4 py-3 text-left bg-interactive transition-colors flex items-center space-x-3 hover:bg-blue-500/10"
+                          >
+                            {React.createElement(getSearchIcon(result.type || 'athlete'), {
+                              className: "h-5 w-5 text-app-muted"
+                            })}
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <div className="text-app-primary font-medium">{result.athlete_name}</div>
+                                <span className={`text-xs font-semibold px-2 py-1 rounded-full border ${sourceColors.bg} ${sourceColors.text} ${sourceColors.border}`}>
+                                  {getSourceBadge(source)}
+                                </span>
+                              </div>
+                              <div className="text-sm text-app-tertiary">
+                                {displayInfo.filter(Boolean).join(' • ')}
+                              </div>
+                            </div>
+                          </Link>
+                        );
                       })}
                     </div>
                   ) : searchQuery.length >= 2 ? (
@@ -1397,14 +1397,14 @@ export default function WeightliftingLandingPage() {
 
             {/* Meet Search Bar */}
             <div className="relative">
-              <form 
+              <form
                 onSubmit={(e) => {
                   e.preventDefault();
                   if (meetSearchQuery.trim().length >= 2 && !isMeetSearching) {
                     setIsMeetSearching(true);
                     debouncedMeetSearch(meetSearchQuery);
                   }
-                }} 
+                }}
                 className="relative"
               >
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2 w-6 h-6 flex items-center justify-center">
@@ -1439,7 +1439,7 @@ export default function WeightliftingLandingPage() {
                   aria-busy={isMeetSearching}
                   autoComplete="off"
                 />
-                
+
                 {/* Clear button */}
                 {meetSearchQuery && (
                   <button
@@ -1477,33 +1477,33 @@ export default function WeightliftingLandingPage() {
 
                         return (
                           <Link
-            key={resultKey}
-            href={buildMeetUrl((result.source === 'USAW' ? result.meet_id : result.db_meet_id)!.toString(), result.source || 'USAW')}
-            data-search-result="meet"
-            onClick={() => setShowMeetResults(false)}
-            className="w-full px-4 py-3 text-left bg-interactive transition-colors flex items-center space-x-3 hover:bg-blue-500/10"
-          >
-            <CalendarDays className="h-5 w-5 text-app-muted" />
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <div className="text-app-primary font-medium">{result.meet_name}</div>
-                <span className={`text-xs font-semibold px-2 py-1 rounded-full border ${sourceColors.bg} ${sourceColors.text} ${sourceColors.border}`}>
-                  {getSourceBadge(source)}
-                </span>
-              </div>
-              <div className="text-sm text-app-tertiary">
-                {[
-                  result.date ? new Date(result.date).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
-                  }) : null,
-                  result.level,
-                  result.location_text
-                ].filter(Boolean).join(' • ')}
-              </div>
-            </div>
-          </Link>
+                            key={resultKey}
+                            href={buildMeetUrl((result.source === 'USAW' ? result.meet_id : result.db_meet_id)!.toString(), result.source || 'USAW')}
+                            data-search-result="meet"
+                            onClick={() => setShowMeetResults(false)}
+                            className="w-full px-4 py-3 text-left bg-interactive transition-colors flex items-center space-x-3 hover:bg-blue-500/10"
+                          >
+                            <CalendarDays className="h-5 w-5 text-app-muted" />
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <div className="text-app-primary font-medium">{result.meet_name}</div>
+                                <span className={`text-xs font-semibold px-2 py-1 rounded-full border ${sourceColors.bg} ${sourceColors.text} ${sourceColors.border}`}>
+                                  {getSourceBadge(source)}
+                                </span>
+                              </div>
+                              <div className="text-sm text-app-tertiary">
+                                {[
+                                  result.date ? new Date(result.date).toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric'
+                                  }) : null,
+                                  result.level,
+                                  result.location_text
+                                ].filter(Boolean).join(' • ')}
+                              </div>
+                            </div>
+                          </Link>
                         );
                       })}
                     </div>
@@ -1658,9 +1658,9 @@ export default function WeightliftingLandingPage() {
       </footer>
 
       {/* Login Modal */}
-      <LoginModal 
-        isOpen={showLoginModal} 
-        onClose={() => setShowLoginModal(false)} 
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
       />
     </div>
   );
