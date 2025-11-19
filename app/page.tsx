@@ -171,96 +171,120 @@ export default function WeightliftingLandingPage() {
         const usawResults: any[] = [];
         const iwfResults: any[] = [];
 
-        // Search with each term variation using staged parallel strategy
-        for (const term of searchTerms.slice(0, 3)) {
-          // Batch 1: Stage 1 queries (Starts-with) - High relevance
-          const stage1Promises = [
-            // USAW Stage 1
-            queryWithTimeout(
-              supabase
-                .from('lifters')
-                .select('lifter_id, athlete_name, membership_number')
-                .ilike('athlete_name', `${term}%`)
-                .order('athlete_name')
-                .limit(100) as any,
-              15000,
-              `USAW Stage 1 (${term})`
-            ).then((res: any) => ({ type: 'USAW_1', data: res.data, error: res.error }))
-              .catch(err => ({ type: 'USAW_1', data: null, error: err })),
+        // Limit the number of terms to prevent excessive URL length, but allow more than before since we're batching
+        const activeTerms = searchTerms.slice(0, 10);
 
-            // IWF Stage 1
-            queryWithTimeout(
-              supabaseIWF
-                .from('iwf_lifters')
-                .select('db_lifter_id, athlete_name, gender, country_name, iwf_lifter_id')
-                .ilike('athlete_name', `${term}%`)
-                .order('athlete_name')
-                .limit(100) as any,
-              15000,
-              `IWF Stage 1 (${term})`
-            ).then((res: any) => ({ type: 'IWF_1', data: res.data, error: res.error }))
-              .catch(err => ({ type: 'IWF_1', data: null, error: err }))
-          ];
+        // Construct OR filters for Stage 1 (Starts with) and Stage 2 (Contains)
+        const stage1OrFilter = activeTerms.map(term => `athlete_name.ilike.${term}%`).join(',');
+        const stage2OrFilter = activeTerms.map(term => `athlete_name.ilike.%${term}%`).join(',');
 
-          // Wait for Stage 1 to complete
-          const stage1Results = await Promise.all(stage1Promises);
 
-          // Process Stage 1 results
-          stage1Results.forEach(result => {
-            if (result.error) {
-              console.error(`[SEARCH] ${result.type} error:`, result.error?.message || result.error);
-            } else if (result.data) {
-              if (result.type === 'USAW_1') usawResults.push(...result.data);
-              if (result.type === 'IWF_1') iwfResults.push(...result.data);
-            }
-          });
 
-          // Batch 2: Stage 2 queries (Contains) - Lower relevance
-          // Only run if we haven't found too many results yet to save resources? 
-          // For now, run unconditionally as per requirements, but parallelized
-          const stage2Promises = [
-            // USAW Stage 2
-            queryWithTimeout(
-              supabase
-                .from('lifters')
-                .select('lifter_id, athlete_name, membership_number')
-                .ilike('athlete_name', `%${term}%`)
-                .not('athlete_name', 'ilike', `${term}%`)
-                .order('athlete_name')
-                .limit(200) as any,
-              15000,
-              `USAW Stage 2 (${term})`
-            ).then((res: any) => ({ type: 'USAW_2', data: res.data, error: res.error }))
-              .catch(err => ({ type: 'USAW_2', data: null, error: err })),
+        // Batch 1: Stage 1 queries (Starts-with) - High relevance
+        const stage1Promises = [
+          // USAW Stage 1
+          queryWithTimeout(
+            supabase
+              .from('lifters')
+              .select('lifter_id, athlete_name, membership_number')
+              .or(stage1OrFilter)
+              .order('athlete_name')
+              .limit(100)
+              .abortSignal(abortControllerRef.current!.signal) as any,
+            15000,
+            `USAW Stage 1 (Batch)`
+          ).then((res: any) => ({ type: 'USAW_1', data: res.data, error: res.error }))
+            .catch(err => ({ type: 'USAW_1', data: null, error: err })),
 
-            // IWF Stage 2
-            queryWithTimeout(
-              supabaseIWF
-                .from('iwf_lifters')
-                .select('db_lifter_id, athlete_name, gender, country_name, iwf_lifter_id')
-                .ilike('athlete_name', `%${term}%`)
-                .not('athlete_name', 'ilike', `${term}%`)
-                .order('athlete_name')
-                .limit(200) as any,
-              15000,
-              `IWF Stage 2 (${term})`
-            ).then((res: any) => ({ type: 'IWF_2', data: res.data, error: res.error }))
-              .catch(err => ({ type: 'IWF_2', data: null, error: err }))
-          ];
+          // IWF Stage 1
+          queryWithTimeout(
+            supabaseIWF
+              .from('iwf_lifters')
+              .select('db_lifter_id, athlete_name, gender, country_name, iwf_lifter_id')
+              .or(stage1OrFilter)
+              .order('athlete_name')
+              .limit(100)
+              .abortSignal(abortControllerRef.current!.signal) as any,
+            15000,
+            `IWF Stage 1 (Batch)`
+          ).then((res: any) => ({ type: 'IWF_1', data: res.data, error: res.error }))
+            .catch(err => ({ type: 'IWF_1', data: null, error: err }))
+        ];
 
-          // Wait for Stage 2 to complete
-          const stage2Results = await Promise.all(stage2Promises);
+        // Wait for Stage 1 to complete
+        const stage1Results = await Promise.all(stage1Promises);
 
-          // Process Stage 2 results
-          stage2Results.forEach(result => {
-            if (result.error) {
-              console.error(`[SEARCH] ${result.type} error:`, result.error?.message || result.error);
-            } else if (result.data) {
-              if (result.type === 'USAW_2') usawResults.push(...result.data);
-              if (result.type === 'IWF_2') iwfResults.push(...result.data);
-            }
-          });
-        }
+        // Process Stage 1 results
+        stage1Results.forEach(result => {
+          if (result.error) {
+            console.error(`[SEARCH] ${result.type} error:`, result.error?.message || result.error);
+          } else if (result.data) {
+            if (result.type === 'USAW_1') usawResults.push(...result.data);
+            if (result.type === 'IWF_1') iwfResults.push(...result.data);
+          }
+        });
+
+        // Batch 2: Stage 2 queries (Contains) - Lower relevance
+        // Construct queries with exclusions for Stage 1 matches (starts with)
+
+        // USAW Stage 2 Query Construction
+        let usawStage2Query = supabase
+          .from('lifters')
+          .select('lifter_id, athlete_name, membership_number')
+          .or(stage2OrFilter);
+
+        // Exclude "starts with" matches to avoid duplicates from Stage 1
+        activeTerms.forEach(term => {
+          usawStage2Query = usawStage2Query.not('athlete_name', 'ilike', `${term}%`);
+        });
+
+        // IWF Stage 2 Query Construction
+        let iwfStage2Query = supabaseIWF
+          .from('iwf_lifters')
+          .select('db_lifter_id, athlete_name, gender, country_name, iwf_lifter_id')
+          .or(stage2OrFilter);
+
+        // Exclude "starts with" matches
+        activeTerms.forEach(term => {
+          iwfStage2Query = iwfStage2Query.not('athlete_name', 'ilike', `${term}%`);
+        });
+
+        const stage2Promises = [
+          // USAW Stage 2
+          queryWithTimeout(
+            usawStage2Query
+              .order('athlete_name')
+              .limit(200)
+              .abortSignal(abortControllerRef.current!.signal) as any,
+            15000,
+            `USAW Stage 2 (Batch)`
+          ).then((res: any) => ({ type: 'USAW_2', data: res.data, error: res.error }))
+            .catch(err => ({ type: 'USAW_2', data: null, error: err })),
+
+          // IWF Stage 2
+          queryWithTimeout(
+            iwfStage2Query
+              .order('athlete_name')
+              .limit(200)
+              .abortSignal(abortControllerRef.current!.signal) as any,
+            15000,
+            `IWF Stage 2 (Batch)`
+          ).then((res: any) => ({ type: 'IWF_2', data: res.data, error: res.error }))
+            .catch(err => ({ type: 'IWF_2', data: null, error: err }))
+        ];
+
+        // Wait for Stage 2 to complete
+        const stage2Results = await Promise.all(stage2Promises);
+
+        // Process Stage 2 results
+        stage2Results.forEach(result => {
+          if (result.error) {
+            console.error(`[SEARCH] ${result.type} error:`, result.error?.message || result.error);
+          } else if (result.data) {
+            if (result.type === 'USAW_2') usawResults.push(...result.data);
+            if (result.type === 'IWF_2') iwfResults.push(...result.data);
+          }
+        });
 
         // Remove USAW duplicates by lifter_id
         const uniqueUsawLifters = Array.from(
@@ -282,7 +306,8 @@ export default function WeightliftingLandingPage() {
             .from('meet_results')
             .select('lifter_id, wso, club_name, gender, date')
             .in('lifter_id', lifterIds)
-            .order('date', { ascending: false });
+            .order('date', { ascending: false })
+            .abortSignal(abortControllerRef.current!.signal);
 
           // Group results by lifter_id
           const resultsByLifter = new Map<number, any[]>();
@@ -759,6 +784,12 @@ export default function WeightliftingLandingPage() {
         return;
       }
 
+      // Cancel previous search if still running
+      if (meetAbortControllerRef.current) {
+        meetAbortControllerRef.current.abort();
+      }
+      meetAbortControllerRef.current = new AbortController();
+
       setIsMeetSearching(true);
       try {
         const searchTerms = fuzzySearchTerms(query);
@@ -785,7 +816,8 @@ export default function WeightliftingLandingPage() {
             const result = await queryWithTimeout(
               supabaseQuery
                 .order('Date', { ascending: false })
-                .limit(30) as any,
+                .limit(30)
+                .abortSignal(meetAbortControllerRef.current!.signal) as any,
               10000,
               'USAW meet exact match'
             ) as any;
@@ -817,7 +849,8 @@ export default function WeightliftingLandingPage() {
 
               const { data: fuzzyMatches, error: fuzzyError } = await fuzzyQuery
                 .order('Date', { ascending: false })
-                .limit(20);
+                .limit(20)
+                .abortSignal(meetAbortControllerRef.current!.signal);
 
               if (!fuzzyError && fuzzyMatches) {
                 usawResults.push(...fuzzyMatches);
@@ -836,7 +869,8 @@ export default function WeightliftingLandingPage() {
 
           const { data: iwfMatches, error: iwfError } = await iwfQuery
             .order('date', { ascending: false })
-            .limit(30);
+            .limit(30)
+            .abortSignal(meetAbortControllerRef.current!.signal);
 
           if (!iwfError && iwfMatches) {
             iwfResults.push(...iwfMatches);
@@ -848,14 +882,16 @@ export default function WeightliftingLandingPage() {
               .from('iwf_meet_locations')
               .select('iwf_meet_id')
               .or(`location_text.ilike.%${term}%,city.ilike.%${term}%,country.ilike.%${term}%`)
-              .limit(50);
+              .limit(50)
+              .abortSignal(meetAbortControllerRef.current!.signal);
 
             if (locationMatches && locationMatches.length > 0) {
               const iwfMeetIds = locationMatches.map(loc => loc.iwf_meet_id);
               const { data: matchedMeets } = await supabaseIWF
                 .from('iwf_meets')
                 .select('db_meet_id, meet, date, level, iwf_meet_id, iwf_meet_locations(city, country, location_text)')
-                .in('iwf_meet_id', iwfMeetIds);
+                .in('iwf_meet_id', iwfMeetIds)
+                .abortSignal(meetAbortControllerRef.current!.signal);
 
               if (matchedMeets) {
                 iwfResults.push(...matchedMeets);
@@ -870,7 +906,8 @@ export default function WeightliftingLandingPage() {
               .select('meet_id, Meet, Date, Level, city, state, address')
               .ilike('Meet', `%${term}%`)
               .order('Date', { ascending: false })
-              .limit(20);
+              .limit(20)
+              .abortSignal(meetAbortControllerRef.current!.signal);
 
             if (!meetsError && meets) {
               usawResults.push(...meets);
@@ -883,7 +920,8 @@ export default function WeightliftingLandingPage() {
               .from('meets')
               .select('meet_id, Meet, Date, Level, city, state, address')
               .or(`city.ilike.%${term}%,state.ilike.%${term}%,address.ilike.%${term}%`)
-              .limit(50);
+              .limit(50)
+              .abortSignal(meetAbortControllerRef.current!.signal);
 
             if (!locError && locationMatches) {
               usawResults.push(...locationMatches);
@@ -897,7 +935,8 @@ export default function WeightliftingLandingPage() {
               .select('db_meet_id, meet, date, level, iwf_meet_id, iwf_meet_locations(city, country, location_text)')
               .ilike('meet', `%${term}%`)
               .order('date', { ascending: false })
-              .limit(20);
+              .limit(20)
+              .abortSignal(meetAbortControllerRef.current!.signal);
 
             if (!iwfError && iwfMeets) {
               iwfResults.push(...iwfMeets);
@@ -910,14 +949,16 @@ export default function WeightliftingLandingPage() {
               .from('iwf_meet_locations')
               .select('iwf_meet_id')
               .or(`location_text.ilike.%${term}%,city.ilike.%${term}%,country.ilike.%${term}%`)
-              .limit(50);
+              .limit(50)
+              .abortSignal(meetAbortControllerRef.current!.signal);
 
             if (locationMatches && locationMatches.length > 0) {
               const iwfMeetIds = locationMatches.map(loc => loc.iwf_meet_id);
               const { data: matchedMeets } = await supabaseIWF
                 .from('iwf_meets')
                 .select('db_meet_id, meet, date, level, iwf_meet_id, iwf_meet_locations(city, country, location_text)')
-                .in('iwf_meet_id', iwfMeetIds);
+                .in('iwf_meet_id', iwfMeetIds)
+                .abortSignal(meetAbortControllerRef.current!.signal);
 
               if (matchedMeets) {
                 iwfResults.push(...matchedMeets);

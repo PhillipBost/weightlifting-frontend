@@ -7,16 +7,21 @@ export async function queryWithTimeout<T>(
   timeoutMs: number = 5000,
   queryName: string = 'Query'
 ): Promise<T> {
+  let timeoutId: NodeJS.Timeout
+
   const timeoutPromise = new Promise<T>((_, reject) => {
-    setTimeout(() => {
+    timeoutId = setTimeout(() => {
       console.warn(`[TIMEOUT] ${queryName} timed out after ${timeoutMs}ms`)
       reject(new Error(`${queryName} timed out after ${timeoutMs}ms`))
     }, timeoutMs)
   })
 
   try {
-    return await Promise.race([queryPromise, timeoutPromise])
+    const result = await Promise.race([queryPromise, timeoutPromise])
+    clearTimeout(timeoutId!)
+    return result
   } catch (err) {
+    clearTimeout(timeoutId!)
     console.error(`[TIMEOUT_ERROR] ${queryName}:`, err)
     throw err
   }
