@@ -1069,8 +1069,8 @@ function RankingsContent() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="max-w-[1200px] mx-auto">
-          <div className="card-primary mb-8">
-            <div className="p-6">
+          <div className="card-primary">
+            <div>
               <div className="flex flex-nowrap items-center justify-between gap-4">
                 {/* Left: Title and context */}
                 <div className="flex items-start space-x-4 flex-1 min-w-0">
@@ -1526,7 +1526,7 @@ function RankingsContent() {
 
       {/* Rankings Table */}
       <div className="max-w-[1200px] mx-auto">
-        <div className="card-results results-table">
+        <div className="card-results results-table mb-8">
           <div className="p-6">
             <div className="overflow-x-auto">
               <table className="w-full text-left">
