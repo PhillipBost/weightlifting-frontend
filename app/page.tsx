@@ -171,58 +171,56 @@ export default function WeightliftingLandingPage() {
         const usawResults: any[] = [];
         const iwfResults: any[] = [];
 
-        // Search with each term variation using sequential two-stage strategy (USAW 1 → IWF 1 → USAW 2 → IWF 2)
+        // Search with each term variation using staged parallel strategy
         for (const term of searchTerms.slice(0, 3)) {
-          // USAW - Stage 1: Starts-with matches (high relevance, no limit needed)
-          let usawStartsWith, usawStartsError;
-          try {
-            const result = await queryWithTimeout(
+          // Batch 1: Stage 1 queries (Starts-with) - High relevance
+          const stage1Promises = [
+            // USAW Stage 1
+            queryWithTimeout(
               supabase
                 .from('lifters')
                 .select('lifter_id, athlete_name, membership_number')
                 .ilike('athlete_name', `${term}%`)
                 .order('athlete_name')
                 .limit(100) as any,
-              10000,
+              15000,
               `USAW Stage 1 (${term})`
-            ) as any;
-            usawStartsWith = result.data;
-            usawStartsError = result.error;
-          } catch (err) {
-            usawStartsError = err;
-            usawStartsWith = null;
-          }
-          if (usawStartsError) {
-            console.error('[SEARCH] USAW Stage 1 error:', usawStartsError?.message || usawStartsError);
-          }
+            ).then(res => ({ type: 'USAW_1', data: res.data, error: res.error }))
+             .catch(err => ({ type: 'USAW_1', data: null, error: err })),
 
-          // IWF - Stage 1: Starts-with matches (high relevance, no limit needed)
-          let iwfStartsWith, iwfStartsError;
-          try {
-            const result = await queryWithTimeout(
+            // IWF Stage 1
+            queryWithTimeout(
               supabaseIWF
                 .from('iwf_lifters')
                 .select('db_lifter_id, athlete_name, gender, country_name, iwf_lifter_id')
                 .ilike('athlete_name', `${term}%`)
                 .order('athlete_name')
                 .limit(100) as any,
-              10000,
+              15000,
               `IWF Stage 1 (${term})`
-            ) as any;
-            iwfStartsWith = result.data;
-            iwfStartsError = result.error;
-          } catch (err) {
-            iwfStartsError = err;
-            iwfStartsWith = null;
-          }
-          if (iwfStartsError) {
-            console.error('[SEARCH] IWF Stage 1 error:', iwfStartsError?.message || iwfStartsError);
-          }
+            ).then(res => ({ type: 'IWF_1', data: res.data, error: res.error }))
+             .catch(err => ({ type: 'IWF_1', data: null, error: err }))
+          ];
 
-          // USAW - Stage 2: Contains matches (lower relevance, with limit)
-          let usawContains, usawContainsError;
-          try {
-            const result = await queryWithTimeout(
+          // Wait for Stage 1 to complete
+          const stage1Results = await Promise.all(stage1Promises);
+          
+          // Process Stage 1 results
+          stage1Results.forEach(result => {
+            if (result.error) {
+              console.error(`[SEARCH] ${result.type} error:`, result.error?.message || result.error);
+            } else if (result.data) {
+              if (result.type === 'USAW_1') usawResults.push(...result.data);
+              if (result.type === 'IWF_1') iwfResults.push(...result.data);
+            }
+          });
+
+          // Batch 2: Stage 2 queries (Contains) - Lower relevance
+          // Only run if we haven't found too many results yet to save resources? 
+          // For now, run unconditionally as per requirements, but parallelized
+          const stage2Promises = [
+            // USAW Stage 2
+            queryWithTimeout(
               supabase
                 .from('lifters')
                 .select('lifter_id, athlete_name, membership_number')
@@ -230,23 +228,13 @@ export default function WeightliftingLandingPage() {
                 .not('athlete_name', 'ilike', `${term}%`)
                 .order('athlete_name')
                 .limit(200) as any,
-              10000,
+              15000,
               `USAW Stage 2 (${term})`
-            ) as any;
-            usawContains = result.data;
-            usawContainsError = result.error;
-          } catch (err) {
-            usawContainsError = err;
-            usawContains = null;
-          }
-          if (usawContainsError) {
-            console.error('[SEARCH] USAW Stage 2 error:', usawContainsError?.message || usawContainsError);
-          }
+            ).then(res => ({ type: 'USAW_2', data: res.data, error: res.error }))
+             .catch(err => ({ type: 'USAW_2', data: null, error: err })),
 
-          // IWF - Stage 2: Contains matches (lower relevance, with limit)
-          let iwfContains, iwfContainsError;
-          try {
-            const result = await queryWithTimeout(
+            // IWF Stage 2
+            queryWithTimeout(
               supabaseIWF
                 .from('iwf_lifters')
                 .select('db_lifter_id, athlete_name, gender, country_name, iwf_lifter_id')
@@ -254,33 +242,24 @@ export default function WeightliftingLandingPage() {
                 .not('athlete_name', 'ilike', `${term}%`)
                 .order('athlete_name')
                 .limit(200) as any,
-              10000,
+              15000,
               `IWF Stage 2 (${term})`
-            ) as any;
-            iwfContains = result.data;
-            iwfContainsError = result.error;
-          } catch (err) {
-            iwfContainsError = err;
-            iwfContains = null;
-          }
-          if (iwfContainsError) {
-            console.error('[SEARCH] IWF Stage 2 error:', iwfContainsError?.message || iwfContainsError);
-          } else {
-            // IWF Stage 2 succeeded
-          }
+            ).then(res => ({ type: 'IWF_2', data: res.data, error: res.error }))
+             .catch(err => ({ type: 'IWF_2', data: null, error: err }))
+          ];
 
-          if (!usawStartsError && usawStartsWith) {
-            usawResults.push(...usawStartsWith);
-          }
-          if (!iwfStartsError && iwfStartsWith) {
-            iwfResults.push(...iwfStartsWith);
-          }
-          if (!usawContainsError && usawContains) {
-            usawResults.push(...usawContains);
-          }
-          if (!iwfContainsError && iwfContains) {
-            iwfResults.push(...iwfContains);
-          }
+          // Wait for Stage 2 to complete
+          const stage2Results = await Promise.all(stage2Promises);
+
+          // Process Stage 2 results
+          stage2Results.forEach(result => {
+            if (result.error) {
+              console.error(`[SEARCH] ${result.type} error:`, result.error?.message || result.error);
+            } else if (result.data) {
+              if (result.type === 'USAW_2') usawResults.push(...result.data);
+              if (result.type === 'IWF_2') iwfResults.push(...result.data);
+            }
+          });
         }
 
         // Remove USAW duplicates by lifter_id
