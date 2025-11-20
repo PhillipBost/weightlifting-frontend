@@ -7,6 +7,9 @@ on:
     - cron: '0 0 * * 0'  # Every Sunday at 00:00 UTC
   workflow_dispatch:  # Allow manual trigger
 
+permissions:
+  contents: write  # Allow pushing commits
+
 jobs:
   update-search-indexes:
     runs-on: ubuntu-latest
