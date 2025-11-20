@@ -6,7 +6,8 @@ import fs from 'fs/promises';
 import path from 'path';
 import dotenv from 'dotenv';
 
-// Load environment variables
+// Load environment variables from .env.local if it exists
+// If not (e.g., in GitHub Actions), environment variables are already set
 dotenv.config({ path: '.env.local' });
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
