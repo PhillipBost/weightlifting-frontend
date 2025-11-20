@@ -4,11 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "node scripts/generate-static-data.js",
+    "prebuild": "node scripts/generate-static-data.js && npm run generate-search",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "generate-static": "node scripts/generate-static-data.js"
+    "generate-static": "node scripts/generate-static-data.js",
+    "generate-search": "node scripts/generate-search-indexes.js"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
@@ -32,6 +33,7 @@
     "leaflet": "^1.9.4",
     "leaflet-defaulticon-compatibility": "^0.1.2",
     "lucide-react": "^0.536.0",
+    "minisearch": "^7.2.0",
     "next": "15.4.5",
     "papaparse": "^5.5.3",
     "react": "19.1.1",

@@ -1,3 +1,5 @@
+require('dotenv').config({ path: '.env.local' })
+require('dotenv').config()
 const { createClient } = require('@supabase/supabase-js')
 const fs = require('fs')
 const path = require('path')
@@ -17,7 +19,7 @@ const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
 
 async function generateWSOBoundaries() {
   console.log('Generating WSO boundaries data...')
-  
+
   try {
     const { data: wsoData, error } = await supabaseAdmin
       .from('wso_information')
@@ -63,7 +65,7 @@ async function generateWSOBoundaries() {
     const outputPath = path.join(process.cwd(), 'public', 'data', 'wso-boundaries.json')
     fs.mkdirSync(path.dirname(outputPath), { recursive: true })
     fs.writeFileSync(outputPath, JSON.stringify(combinedData, null, 2))
-    
+
     console.log(`✅ Generated WSO boundaries: ${combinedData.length} WSOs -> ${outputPath}`)
     return combinedData.length
 
@@ -75,7 +77,7 @@ async function generateWSOBoundaries() {
 
 async function generateClubLocations() {
   console.log('Generating club locations data...')
-  
+
   try {
     // Get club location data from clubs table
     const { data: clubsData, error: clubsError } = await supabaseAdmin
@@ -106,11 +108,11 @@ async function generateClubLocations() {
 
     // Process activity data by club
     const clubActivity = {}
-    
+
     if (activityData) {
       activityData.forEach(result => {
         if (!result.club_name || !result.lifter_id) return
-        
+
         const clubName = result.club_name.trim()
         if (!clubActivity[clubName]) {
           clubActivity[clubName] = new Set()
@@ -132,7 +134,7 @@ async function generateClubLocations() {
     }))
 
     // Filter out clubs with invalid coordinates
-    const validClubs = enrichedClubs.filter(club => 
+    const validClubs = enrichedClubs.filter(club =>
       !isNaN(club.latitude) && !isNaN(club.longitude) &&
       club.latitude >= -90 && club.latitude <= 90 &&
       club.longitude >= -180 && club.longitude <= 180
@@ -142,7 +144,7 @@ async function generateClubLocations() {
     const outputPath = path.join(process.cwd(), 'public', 'data', 'club-locations.json')
     fs.mkdirSync(path.dirname(outputPath), { recursive: true })
     fs.writeFileSync(outputPath, JSON.stringify(validClubs, null, 2))
-    
+
     console.log(`✅ Generated club locations: ${validClubs.length} clubs -> ${outputPath}`)
     return validClubs.length
 
@@ -154,7 +156,7 @@ async function generateClubLocations() {
 
 async function generateRecentMeets() {
   console.log('Generating recent meets data...')
-  
+
   try {
     // Calculate date 3 years ago
     const currentDate = new Date()
@@ -278,7 +280,7 @@ async function generateRecentMeets() {
     }
 
     // Filter out meets that don't have real geocoding
-    const meetsWithLocation = meets.filter(meet => 
+    const meetsWithLocation = meets.filter(meet =>
       meet.latitude && meet.longitude && !meet.uses_fallback_coordinates
     )
 
@@ -288,7 +290,7 @@ async function generateRecentMeets() {
     const meetsByWSO = {}
     meetsWithLocation.forEach(meet => {
       if (!meet.wso) return
-      
+
       const wsoKey = meet.wso.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-')
       if (!meetsByWSO[wsoKey]) {
         meetsByWSO[wsoKey] = []
@@ -305,7 +307,7 @@ async function generateRecentMeets() {
     const outputPath = path.join(process.cwd(), 'public', 'data', 'recent-meets.json')
     fs.mkdirSync(path.dirname(outputPath), { recursive: true })
     fs.writeFileSync(outputPath, JSON.stringify(meetsByWSO, null, 2))
-    
+
     const totalMeets = Object.values(meetsByWSO).reduce((sum, meets) => sum + meets.length, 0)
     console.log(`✅ Generated recent meets: ${totalMeets} meets across ${Object.keys(meetsByWSO).length} WSOs -> ${outputPath}`)
     return totalMeets
@@ -318,7 +320,7 @@ async function generateRecentMeets() {
 
 async function main() {
   console.log('🚀 Starting static data generation...')
-  
+
   try {
     const results = await Promise.all([
       generateWSOBoundaries(),
@@ -331,7 +333,7 @@ async function main() {
     console.log(`   - ${results[0]} WSO boundaries`)
     console.log(`   - ${results[1]} club locations`)
     console.log(`   - ${results[2]} recent meets`)
-    
+
   } catch (error) {
     console.error('\n❌ Static data generation failed:', error.message)
     process.exit(1)
