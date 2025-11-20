@@ -80,8 +80,7 @@ function RankingsContent() {
     federation: "all",
     sortBy: "best_total",
     sortOrder: "desc",
-    minCompetitions: 1,
-    selectedYears: [] as number[],
+    selectedYears: [2025, 2024, 2023] as number[],
   });
 
   // UI states
@@ -676,10 +675,7 @@ function RankingsContent() {
       });
     }
 
-    filtered = filtered.filter(
-      (athlete) =>
-        athlete.competition_count >= filters.minCompetitions
-    );
+
 
     if (filters.selectedYears && filters.selectedYears.length > 0) {
       filtered = filtered.filter((athlete) => {
@@ -899,7 +895,6 @@ function RankingsContent() {
       rankBy: "best_total",
       sortBy: "best_total",
       sortOrder: "desc",
-      minCompetitions: 1,
       selectedYears: [],
       federation: "all",
     });
@@ -909,6 +904,7 @@ function RankingsContent() {
     const headers = [
       "Rank",
       "Athlete Name",
+      "Resource",
       "Gender",
       "Weight Class",
       "Age Category",
@@ -923,6 +919,7 @@ function RankingsContent() {
     const csvData = filteredRankings.map((athlete) => [
       athlete.trueRank || "N/A",
       athlete.lifter_name,
+      athlete.federation === "iwf" ? "IWF" : "USAW",
       athlete.gender,
       athlete.weight_class || "",
       athlete.age_category || "",
@@ -980,6 +977,7 @@ function RankingsContent() {
               <tr>
                 <th>Rank</th>
                 <th>Athlete</th>
+                <th>Resource</th>
                 <th>Gender</th>
                 <th>Weight Class</th>
                 <th>Age Category</th>
@@ -996,6 +994,7 @@ function RankingsContent() {
                 <tr>
                   <td class="rank">${athlete.trueRank || "N/A"}</td>
                   <td>${athlete.lifter_name}</td>
+                  <td>${athlete.federation === "iwf" ? "IWF" : "USAW"}</td>
                   <td>${athlete.gender}</td>
                   <td>${athlete.weight_class || ""}</td>
                   <td>${athlete.age_category || ""}</td>
@@ -1107,9 +1106,7 @@ function RankingsContent() {
                             .sort((a, b) => b - a)
                             .join(", ")}
                       </span>
-                      <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-app-tertiary text-app-secondary">
-                        Min comps: {filters.minCompetitions}
-                      </span>
+
                       <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-app-tertiary text-app-secondary">
                         Sorted by:{" "}
                         {filters.sortBy === "lifter_name"
@@ -1488,23 +1485,7 @@ function RankingsContent() {
                     </div>
 
                     {/* Min Competitions */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-1">
-                        Min Competitions
-                      </label>
-                      <input
-                        type="number"
-                        min={1}
-                        value={filters.minCompetitions}
-                        onChange={(e) =>
-                          handleFilterChange(
-                            "minCompetitions",
-                            parseInt(e.target.value, 10) || 1
-                          )
-                        }
-                        className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
+
                   </div>
 
                   <div className="flex justify-between items-center">
@@ -1537,6 +1518,9 @@ function RankingsContent() {
                     </th>
                     <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("lifter_name")}>
                       Athlete {getSortIcon("lifter_name")}
+                    </th>
+                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">
+                      Resource
                     </th>
                     <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("gender")}>
                       Gender {getSortIcon("gender")}
@@ -1589,6 +1573,14 @@ function RankingsContent() {
                         </div>
                       </td>
                       <td className="px-2 py-1 whitespace-nowrap text-xs">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium ${athlete.federation === 'iwf'
+                          ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                          : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                          }`}>
+                          {athlete.federation === 'iwf' ? 'IWF' : 'USAW'}
+                        </span>
+                      </td>
+                      <td className="px-2 py-1 whitespace-nowrap text-xs">
                         {athlete.gender}
                       </td>
                       <td className="px-2 py-1 whitespace-nowrap text-xs">
@@ -1628,7 +1620,9 @@ function RankingsContent() {
                         </span>
                       </td>
                       <td className="px-2 py-1 whitespace-nowrap text-xs">
-                        {getBestQScore(athlete).value ? getBestQScore(athlete).value.toFixed(1) : "-"}
+                        <span className="font-bold" style={getBestQScore(athlete).style}>
+                          {getBestQScore(athlete).value ? getBestQScore(athlete).value.toFixed(1) : "-"}
+                        </span>
                       </td>
 
                     </tr>
