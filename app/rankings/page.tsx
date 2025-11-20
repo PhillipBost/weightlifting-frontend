@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { AuthGuard } from "../components/AuthGuard";
 import { ROLES } from "../../lib/roles";
 import { createClient } from "@/lib/supabase/client";
@@ -37,10 +38,13 @@ interface AthleteRanking {
   qpoints?: number;
   competition_count: number;
   last_competition: string;
-  last_meet_name?: string;
+  last_meet_name: string;
   last_body_weight?: string;
   competition_age?: number;
   trueRank?: number;
+  membership_number?: string;
+  meet_id?: number;
+  iwf_lifter_id?: number;
 }
 
 const getBestQScore = (result: any) => {
@@ -70,7 +74,6 @@ function RankingsContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Filter states
   const [filters, setFilters] = useState({
     searchTerm: "",
     gender: "all",
@@ -83,22 +86,18 @@ function RankingsContent() {
     selectedYears: [2025, 2024, 2023] as number[],
   });
 
-  // UI states
   const [showFilters, setShowFilters] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showYearDropdown, setShowYearDropdown] = useState(false);
 
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const resultsPerPage = 20;
 
-  // Get unique values for filter dropdowns
   const [filterOptions, setFilterOptions] = useState({
     weightClasses: [] as string[],
     ageCategories: [] as string[],
   });
 
-  // Store inactive weight classes from CSV
   const [inactiveWeightClasses, setInactiveWeightClasses] = useState<
     Set<string>
   >(new Set());
@@ -112,7 +111,6 @@ function RankingsContent() {
   }, [rankings, filters]);
 
   useEffect(() => {
-    // Reset to page 1 when filters change
     setCurrentPage(1);
   }, [filters]);
 
@@ -126,6 +124,7 @@ function RankingsContent() {
   }
 
   async function loadInactiveDivisions() {
+    // LOAD_INACTIVE_DIVISIONS_PLACEHOLDER
     const response = await fetch("/all-divisions.csv");
     if (!response.ok) {
       throw new Error("Failed to fetch divisions CSV");
@@ -178,6 +177,7 @@ function RankingsContent() {
           lifter_name,
           date,
           meet_name,
+          meet_id,
           weight_class,
           age_category,
           body_weight_kg,
@@ -195,6 +195,10 @@ function RankingsContent() {
 
       if (resultsError) throw resultsError;
 
+      if (resultsError) throw resultsError;
+
+      const lifterIds = Array.from(new Set((resultsData || []).map((r: any) => r.lifter_id)));
+
       const { data: liftersData, error: liftersError } = await supabase
         .from("lifters")
         .select(
@@ -205,7 +209,8 @@ function RankingsContent() {
           club_name,
           membership_number
         `
-        );
+        )
+        .in('lifter_id', lifterIds);
 
       if (liftersError) throw liftersError;
 
@@ -301,6 +306,8 @@ function RankingsContent() {
             last_body_weight: mostRecentResult?.body_weight_kg || "",
             competition_age:
               mostRecentResult?.competition_age || undefined,
+            membership_number: lifterInfo?.membership_number || "",
+            meet_id: mostRecentResult?.meet_id || 0,
           };
         }
       );
@@ -453,7 +460,6 @@ function RankingsContent() {
         ageCategories: sortedAgeCategories,
       });
 
-      // Fetch IWF rankings
       try {
         const { data: iwfResults, error: iwfError } = await supabaseIWF
           .from("iwf_meet_results")
@@ -463,6 +469,7 @@ function RankingsContent() {
             lifter_name,
             date,
             meet_name,
+            db_meet_id,
             weight_class,
             age_category,
             body_weight_kg,
@@ -473,7 +480,12 @@ function RankingsContent() {
             q_youth,
             q_masters,
             competition_age,
-            gender
+            q_masters,
+            competition_age,
+            gender,
+            iwf_lifters (
+              iwf_lifter_id
+            )
           `
           )
           .order("date", { ascending: false });
@@ -582,6 +594,8 @@ function RankingsContent() {
                 last_body_weight: mostRecentResult?.body_weight_kg || "",
                 competition_age:
                   mostRecentResult?.competition_age || undefined,
+                meet_id: mostRecentResult?.db_meet_id || 0,
+                iwf_lifter_id: mostRecentResult?.iwf_lifters?.iwf_lifter_id || 0,
               };
             })
             .filter(
@@ -592,14 +606,12 @@ function RankingsContent() {
         }
 
         setIwfRankings(iwfRankingsLocal);
-        // Default base rankings for "All Federations"
         setRankings([
           ...rankedAthletes.map((a) => ({ ...a, federation: "usaw" as const })),
           ...iwfRankingsLocal.map((a) => ({ ...a, federation: "iwf" as const })),
         ]);
       } catch (iwfErr: any) {
         console.error("Unexpected error fetching IWF rankings:", iwfErr);
-        // Fall back to USAW-only if IWF fails
         setIwfRankings([]);
         setRankings(rankedAthletes);
       }
@@ -674,8 +686,6 @@ function RankingsContent() {
         );
       });
     }
-
-
 
     if (filters.selectedYears && filters.selectedYears.length > 0) {
       filtered = filtered.filter((athlete) => {
@@ -852,11 +862,9 @@ function RankingsContent() {
 
   function handleSort(column: string) {
     let newSortOrder: 'asc' | 'desc' = 'asc';
-
     if (filters.sortBy === column && filters.sortOrder === 'asc') {
       newSortOrder = 'desc';
     }
-
     setFilters(prev => ({
       ...prev,
       sortBy: column,
@@ -914,6 +922,7 @@ function RankingsContent() {
       "Best Q-Points",
       "Competitions",
       "Last Competition",
+      "Meet Name",
     ];
 
     const csvData = filteredRankings.map((athlete) => [
@@ -929,6 +938,7 @@ function RankingsContent() {
       athlete.best_qpoints || "",
       athlete.competition_count,
       athlete.last_competition || "",
+      athlete.last_meet_name || "",
     ]);
 
     const csvContent = [headers, ...csvData]
@@ -985,6 +995,7 @@ function RankingsContent() {
                 <th>Best C&J</th>
                 <th>Best Total</th>
                 <th>Q-Points</th>
+                <th>Meet</th>
               </tr>
             </thead>
             <tbody>
@@ -1005,6 +1016,7 @@ function RankingsContent() {
               ? athlete.best_qpoints.toFixed(1)
               : "-"
             }</td>
+                  <td>${athlete.last_meet_name || "-"}</td>
                 </tr>
               `
         )
@@ -1054,13 +1066,11 @@ function RankingsContent() {
     );
   }
 
-  // Calculate paginated results
   const totalPages = Math.ceil(filteredRankings.length / resultsPerPage);
   const displayResults = filteredRankings.slice(
     (currentPage - 1) * resultsPerPage,
     currentPage * resultsPerPage
   );
-
 
   return (
     <div className="min-h-screen bg-app-primary">
@@ -1483,9 +1493,6 @@ function RankingsContent() {
                         </div>
                       )}
                     </div>
-
-                    {/* Min Competitions */}
-
                   </div>
 
                   <div className="flex justify-between items-center">
@@ -1569,7 +1576,16 @@ function RankingsContent() {
                       </td>
                       <td className="px-2 py-1 whitespace-nowrap text-xs">
                         <div className="font-medium">
-                          {athlete.lifter_name}
+                          <Link
+                            href={
+                              athlete.federation === "iwf"
+                                ? `/athlete/iwf/${athlete.iwf_lifter_id}`
+                                : `/athlete/${athlete.membership_number}`
+                            }
+                            className="text-blue-400 hover:text-blue-300 hover:underline"
+                          >
+                            {athlete.lifter_name}
+                          </Link>
                         </div>
                       </td>
                       <td className="px-2 py-1 whitespace-nowrap text-xs">
@@ -1593,7 +1609,16 @@ function RankingsContent() {
                         {athlete.last_competition ? new Date(athlete.last_competition).toLocaleDateString() : "-"}
                       </td>
                       <td className="px-2 py-1 whitespace-nowrap text-xs max-w-[200px] truncate" title={athlete.last_meet_name || ""}>
-                        {athlete.last_meet_name || "-"}
+                        <Link
+                          href={
+                            athlete.federation === "iwf"
+                              ? `/meet/iwf/${athlete.meet_id}`
+                              : `/meet/${athlete.meet_id}`
+                          }
+                          className="text-blue-400 hover:text-blue-300 hover:underline"
+                        >
+                          {athlete.last_meet_name || "-"}
+                        </Link>
                       </td>
                       <td className="px-2 py-1 whitespace-nowrap text-xs">
                         {athlete.last_body_weight ? `${athlete.last_body_weight}kg` : "-"}
@@ -1736,7 +1761,6 @@ function RankingsContent() {
         </div>
       </div>
     </div>
-
   );
 }
 
