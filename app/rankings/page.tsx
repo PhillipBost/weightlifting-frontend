@@ -1298,6 +1298,32 @@ function RankingsContent() {
                       </select>
                     </div>
 
+                    {/* Age Category */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Age Category
+                      </label>
+                      <select
+                        value={filters.ageCategory}
+                        onChange={(e) =>
+                          handleFilterChange(
+                            "ageCategory",
+                            e.target.value
+                          )
+                        }
+                        className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="all">
+                          All Age Categories
+                        </option>
+                        {filterOptions.ageCategories.map((ac) => (
+                          <option key={ac} value={ac}>
+                            {ac}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
                     {/* Current Weight Classes - Multi-select */}
                     <div className="relative">
                       <label className="block text-sm font-medium text-gray-300 mb-1">
@@ -1609,33 +1635,6 @@ function RankingsContent() {
                         </div>
                       )}
                     </div>
-
-                    {/* Age Category */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-1">
-                        Age Category
-                      </label>
-                      <select
-                        value={filters.ageCategory}
-                        onChange={(e) =>
-                          handleFilterChange(
-                            "ageCategory",
-                            e.target.value
-                          )
-                        }
-                        className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="all">
-                          All Age Categories
-                        </option>
-                        {filterOptions.ageCategories.map((ac) => (
-                          <option key={ac} value={ac}>
-                            {ac}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
 
                     {/* Years dropdown with multi-select checkboxes */}
                     <div className="relative">
