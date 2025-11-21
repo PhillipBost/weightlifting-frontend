@@ -371,7 +371,7 @@ function RankingsContent() {
         else if (ageCategory.includes("16-17"))
           extractedAgeCategories.add("16-17 Age Group");
         else if (ageCategory.includes("Junior"))
-          extractedAgeCategories.add("Junior");
+          extractedAgeCategories.add("Junior (15-20)");
         else if (ageCategory.includes("Masters (35-39)"))
           extractedAgeCategories.add("Masters (35-39)");
         else if (ageCategory.includes("Masters (40-44)"))
@@ -395,7 +395,7 @@ function RankingsContent() {
         else if (ageCategory.includes("Masters (80+)"))
           extractedAgeCategories.add("Masters (80+)");
         else if (ageCategory.includes("Open"))
-          extractedAgeCategories.add("Open");
+          extractedAgeCategories.add("Open / Senior (15+)");
       });
 
       function getWeightClassOrder(weightClass: string) {
@@ -452,8 +452,8 @@ function RankingsContent() {
         "13 Under Age Group",
         "14-15 Age Group",
         "16-17 Age Group",
-        "Junior",
-        "Open",
+        "Junior (15-20)",
+        "Open / Senior (15+)",
         "Masters (35-39)",
         "Masters (40-44)",
         "Masters (45-49)",
@@ -647,6 +647,33 @@ function RankingsContent() {
     }
   }
 
+  // Helper function to determine age categories from numeric age
+  function determineAgeCategoriesFromAge(age: number): string[] {
+    const categories: string[] = [];
+    
+    if (age <= 11) categories.push("11 Under Age Group");
+    if (age <= 13) categories.push("13 Under Age Group");
+    if (age >= 14 && age <= 15) categories.push("14-15 Age Group");
+    if (age >= 16 && age <= 17) categories.push("16-17 Age Group");
+    if (age >= 15 && age <= 20) categories.push("Junior (15-20)");
+    if (age >= 15) categories.push("Open / Senior (15+)");
+    
+    // Masters categories
+    if (age >= 35 && age <= 39) categories.push("Masters (35-39)");
+    if (age >= 40 && age <= 44) categories.push("Masters (40-44)");
+    if (age >= 45 && age <= 49) categories.push("Masters (45-49)");
+    if (age >= 50 && age <= 54) categories.push("Masters (50-54)");
+    if (age >= 55 && age <= 59) categories.push("Masters (55-59)");
+    if (age >= 60 && age <= 64) categories.push("Masters (60-64)");
+    if (age >= 65 && age <= 69) categories.push("Masters (65-69)");
+    if (age >= 70 && age <= 74) categories.push("Masters (70-74)");
+    if (age >= 75 && age <= 79) categories.push("Masters (75-79)");
+    if (age >= 75) categories.push("Masters (75+)");
+    if (age >= 80) categories.push("Masters (80+)");
+    
+    return categories;
+  }
+
   function applyFilters() {
     // Choose base dataset by federation
     let base: AthleteRanking[];
@@ -692,11 +719,20 @@ function RankingsContent() {
 
     if (filters.ageCategory !== "all") {
       filtered = filtered.filter((athlete) => {
-        const weightClass = athlete.weight_class || "";
-        return (
-          weightClass.includes(filters.ageCategory) ||
-          athlete.age_category === filters.ageCategory
-        );
+        // Use competition_age as primary source
+        if (athlete.competition_age !== null && athlete.competition_age !== undefined) {
+          const athleteCategories = determineAgeCategoriesFromAge(athlete.competition_age);
+          return athleteCategories.includes(filters.ageCategory);
+        }
+        
+        // Fallback to age_category string field if competition_age is missing
+        if (athlete.age_category) {
+          return athlete.age_category === filters.ageCategory || 
+                 athlete.age_category.includes(filters.ageCategory);
+        }
+        
+        // Exclude athletes with no age data from specific category filters
+        return false;
       });
     }
 
