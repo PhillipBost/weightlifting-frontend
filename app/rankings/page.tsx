@@ -20,6 +20,7 @@ import {
   FileSpreadsheet,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
 } from "lucide-react";
 
 interface AthleteRanking {
@@ -65,6 +66,18 @@ const getBestQScore = (result: any) => {
   return { value: null, type: 'none', style: { color: 'var(--chart-qpoints)' } };
 };
 
+// Weight class hierarchy for current/active weight classes
+const CURRENT_WEIGHT_CLASSES = {
+  Women: {
+    "Youth and below (ages 0-17)": ["36kg", "40kg", "44kg", "48kg", "53kg", "58kg", "63kg", "63+kg", "69kg", "69+kg", "77kg", "77+kg"],
+    "Junior / Senior / Open": ["48kg", "53kg", "58kg", "63kg", "69kg", "77kg", "86kg", "86+kg"],
+  },
+  Men: {
+    "Youth and below (ages 0-17)": ["40kg", "44kg", "48kg", "52kg", "56kg", "60kg", "65kg", "65+kg", "71kg", "79kg", "79+kg", "88kg", "94kg", "94+kg"],
+    "Junior / Senior / Open": ["60kg", "65kg", "71kg", "79kg", "88kg", "94kg", "110kg", "110+kg"],
+  },
+};
+
 function RankingsContent() {
   const supabase = createClient();
   const [usawRankings, setUsawRankings] = useState<AthleteRanking[]>([]);
@@ -77,7 +90,7 @@ function RankingsContent() {
   const [filters, setFilters] = useState({
     searchTerm: "",
     gender: "all",
-    weightClass: "all",
+    selectedWeightClasses: [] as string[],
     ageCategory: "all",
     rankBy: "best_total",
     federation: "all",
@@ -89,6 +102,7 @@ function RankingsContent() {
   const [showFilters, setShowFilters] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showYearDropdown, setShowYearDropdown] = useState(false);
+  const [showWeightClassDropdown, setShowWeightClassDropdown] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
   const resultsPerPage = 20;
@@ -652,28 +666,10 @@ function RankingsContent() {
       );
     }
 
-    if (filters.weightClass !== "all") {
+    if (filters.selectedWeightClasses.length > 0) {
       filtered = filtered.filter((athlete) => {
-        let gender = "";
-        if (
-          athlete.age_category &&
-          athlete.age_category.includes("Women's")
-        )
-          gender = "Women's";
-        else if (
-          athlete.age_category &&
-          athlete.age_category.includes("Men's")
-        )
-          gender = "Men's";
-
-        const genderWeightClass = `${gender} ${athlete.weight_class || ""
-          }`.trim();
-
-        return (
-          genderWeightClass === filters.weightClass ||
-          genderWeightClass ===
-          filters.weightClass.replace("(Inactive) ", "")
-        );
+        const weightClass = athlete.weight_class || "";
+        return filters.selectedWeightClasses.includes(weightClass);
       });
     }
 
@@ -898,7 +894,7 @@ function RankingsContent() {
     setFilters({
       searchTerm: "",
       gender: "all",
-      weightClass: "all",
+      selectedWeightClasses: [],
       ageCategory: "all",
       rankBy: "best_total",
       sortBy: "best_total",
@@ -1247,30 +1243,109 @@ function RankingsContent() {
                       </select>
                     </div>
 
-                    {/* Weight Class */}
-                    <div>
+                    {/* Current Weight Classes - Multi-select */}
+                    <div className="relative">
                       <label className="block text-sm font-medium text-gray-300 mb-1">
-                        Weight Class
+                        Current Weight Classes
                       </label>
-                      <select
-                        value={filters.weightClass}
-                        onChange={(e) =>
-                          handleFilterChange(
-                            "weightClass",
-                            e.target.value
-                          )
-                        }
-                        className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      <button
+                        type="button"
+                        onClick={() => setShowWeightClassDropdown(!showWeightClassDropdown)}
+                        className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex justify-between items-center"
                       >
-                        <option value="all">
-                          All Weight Classes
-                        </option>
-                        {filterOptions.weightClasses.map((wc) => (
-                          <option key={wc} value={wc}>
-                            {wc}
-                          </option>
-                        ))}
-                      </select>
+                        <span>
+                          {filters.selectedWeightClasses.length === 0
+                            ? "All Weight Classes"
+                            : `${filters.selectedWeightClasses.length} selected`}
+                        </span>
+                        <ChevronDown className={`h-4 w-4 transition-transform ${showWeightClassDropdown ? 'rotate-180' : ''}`} />
+                      </button>
+
+                      {showWeightClassDropdown && (
+                        <div className="absolute z-10 mt-1 w-full max-h-96 overflow-y-auto bg-gray-700 border border-gray-600 rounded-lg shadow-lg">
+                          {/* Select/Deselect All */}
+                          <div className="sticky top-0 bg-gray-700 border-b border-gray-600 p-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFilters(prev => ({
+                                  ...prev,
+                                  selectedWeightClasses: []
+                                }));
+                              }}
+                              className="text-xs text-blue-400 hover:text-blue-300"
+                            >
+                              Clear All
+                            </button>
+                          </div>
+
+                          {/* Women's Weight Classes */}
+                          {Object.entries(CURRENT_WEIGHT_CLASSES.Women).map(([ageGroup, weights]) => (
+                            <div key={`women-${ageGroup}`} className="border-b border-gray-600">
+                              <div className="px-3 py-2 bg-gray-600 text-xs font-semibold text-gray-300">
+                                Women - {ageGroup}
+                              </div>
+                              <div className="p-2">
+                                {weights.map((weight) => (
+                                  <label
+                                    key={`women-${ageGroup}-${weight}`}
+                                    className="flex items-center px-2 py-1.5 hover:bg-gray-600 rounded cursor-pointer"
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={filters.selectedWeightClasses.includes(weight)}
+                                      onChange={(e) => {
+                                        const newSelected = e.target.checked
+                                          ? [...filters.selectedWeightClasses, weight]
+                                          : filters.selectedWeightClasses.filter(w => w !== weight);
+                                        setFilters(prev => ({
+                                          ...prev,
+                                          selectedWeightClasses: newSelected
+                                        }));
+                                      }}
+                                      className="mr-2 accent-blue-500"
+                                    />
+                                    <span className="text-sm text-gray-200">{weight}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+
+                          {/* Men's Weight Classes */}
+                          {Object.entries(CURRENT_WEIGHT_CLASSES.Men).map(([ageGroup, weights]) => (
+                            <div key={`men-${ageGroup}`} className="border-b border-gray-600">
+                              <div className="px-3 py-2 bg-gray-600 text-xs font-semibold text-gray-300">
+                                Men - {ageGroup}
+                              </div>
+                              <div className="p-2">
+                                {weights.map((weight) => (
+                                  <label
+                                    key={`men-${ageGroup}-${weight}`}
+                                    className="flex items-center px-2 py-1.5 hover:bg-gray-600 rounded cursor-pointer"
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={filters.selectedWeightClasses.includes(weight)}
+                                      onChange={(e) => {
+                                        const newSelected = e.target.checked
+                                          ? [...filters.selectedWeightClasses, weight]
+                                          : filters.selectedWeightClasses.filter(w => w !== weight);
+                                        setFilters(prev => ({
+                                          ...prev,
+                                          selectedWeightClasses: newSelected
+                                        }));
+                                      }}
+                                      className="mr-2 accent-blue-500"
+                                    />
+                                    <span className="text-sm text-gray-200">{weight}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     {/* Age Category */}
