@@ -66,16 +66,10 @@ const getBestQScore = (result: any) => {
   return { value: null, type: 'none', style: { color: 'var(--chart-qpoints)' } };
 };
 
-// Weight class hierarchy for current/active weight classes
+// Current weight classes (all active weight classes regardless of age group)
 const CURRENT_WEIGHT_CLASSES = {
-  Women: {
-    "Youth and below (ages 0-17)": ["36kg", "40kg", "44kg", "48kg", "53kg", "58kg", "63kg", "63+kg", "69kg", "69+kg", "77kg", "77+kg"],
-    "Junior / Senior / Open": ["48kg", "53kg", "58kg", "63kg", "69kg", "77kg", "86kg", "86+kg"],
-  },
-  Men: {
-    "Youth and below (ages 0-17)": ["40kg", "44kg", "48kg", "52kg", "56kg", "60kg", "65kg", "65+kg", "71kg", "79kg", "79+kg", "88kg", "94kg", "94+kg"],
-    "Junior / Senior / Open": ["60kg", "65kg", "71kg", "79kg", "88kg", "94kg", "110kg", "110+kg"],
-  },
+  Women: ["36kg", "40kg", "44kg", "48kg", "53kg", "58kg", "63kg", "63+kg", "69kg", "69+kg", "77kg", "77+kg", "86kg", "86+kg"],
+  Men: ["40kg", "44kg", "48kg", "52kg", "56kg", "60kg", "65kg", "65+kg", "71kg", "79kg", "79+kg", "88kg", "94kg", "94+kg", "110kg", "110+kg"],
 };
 
 function RankingsContent() {
@@ -1279,16 +1273,17 @@ function RankingsContent() {
                             </button>
                           </div>
 
-                          {/* Women's Weight Classes */}
-                          {Object.entries(CURRENT_WEIGHT_CLASSES.Women).map(([ageGroup, weights]) => (
-                            <div key={`women-${ageGroup}`} className="border-b border-gray-600">
-                              <div className="px-3 py-2 bg-gray-600 text-xs font-semibold text-gray-300">
-                                Women - {ageGroup}
+                          {/* Two-column layout: Women | Men */}
+                          <div className="grid grid-cols-2 gap-0 divide-x divide-gray-600">
+                            {/* Women's Column */}
+                            <div>
+                              <div className="px-3 py-2 bg-gray-600 text-xs font-semibold text-gray-300 text-center">
+                                Women
                               </div>
                               <div className="p-2">
-                                {weights.map((weight) => (
+                                {CURRENT_WEIGHT_CLASSES.Women.map((weight) => (
                                   <label
-                                    key={`women-${ageGroup}-${weight}`}
+                                    key={`women-${weight}`}
                                     className="flex items-center px-2 py-1.5 hover:bg-gray-600 rounded cursor-pointer"
                                   >
                                     <input
@@ -1310,18 +1305,16 @@ function RankingsContent() {
                                 ))}
                               </div>
                             </div>
-                          ))}
 
-                          {/* Men's Weight Classes */}
-                          {Object.entries(CURRENT_WEIGHT_CLASSES.Men).map(([ageGroup, weights]) => (
-                            <div key={`men-${ageGroup}`} className="border-b border-gray-600">
-                              <div className="px-3 py-2 bg-gray-600 text-xs font-semibold text-gray-300">
-                                Men - {ageGroup}
+                            {/* Men's Column */}
+                            <div>
+                              <div className="px-3 py-2 bg-gray-600 text-xs font-semibold text-gray-300 text-center">
+                                Men
                               </div>
                               <div className="p-2">
-                                {weights.map((weight) => (
+                                {CURRENT_WEIGHT_CLASSES.Men.map((weight) => (
                                   <label
-                                    key={`men-${ageGroup}-${weight}`}
+                                    key={`men-${weight}`}
                                     className="flex items-center px-2 py-1.5 hover:bg-gray-600 rounded cursor-pointer"
                                   >
                                     <input
@@ -1343,7 +1336,7 @@ function RankingsContent() {
                                 ))}
                               </div>
                             </div>
-                          ))}
+                          </div>
                         </div>
                       )}
                     </div>
