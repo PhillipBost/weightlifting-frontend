@@ -72,6 +72,18 @@ const CURRENT_WEIGHT_CLASSES = {
   Men: ["40kg", "44kg", "48kg", "52kg", "56kg", "60kg", "65kg", "65+kg", "71kg", "79kg", "79+kg", "88kg", "94kg", "94+kg", "110kg", "110+kg"],
 };
 
+// Historical weight classes (November 2018-May 2025)
+const HISTORICAL_2018_2025_WEIGHT_CLASSES = {
+  Women: ["30kg", "33kg", "36kg", "40kg", "45kg", "49kg", "55kg", "59kg", "64kg", "64+kg", "71kg", "76kg", "76+kg", "81kg", "81+kg", "87kg", "87+kg"],
+  Men: ["32kg", "36kg", "39kg", "44kg", "49kg", "55kg", "61kg", "67kg", "73kg", "73+kg", "81kg", "89kg", "89+kg", "96kg", "102kg", "102+kg", "109kg", "109+kg"],
+};
+
+// Historical weight classes (January 1998-October 2018)
+const HISTORICAL_1998_2018_WEIGHT_CLASSES = {
+  Women: ["31kg", "35kg", "39kg", "44kg", "48kg", "53kg", "58kg", "58+kg", "63kg", "69kg", "69+kg", "75kg", "75+kg", "90kg", "90+kg"],
+  Men: ["31kg", "35kg", "39kg", "44kg", "50kg", "56kg", "62kg", "69kg", "69+kg", "77kg", "85kg", "85+kg", "94kg", "94+kg", "105kg", "105+kg"],
+};
+
 function RankingsContent() {
   const supabase = createClient();
   const [usawRankings, setUsawRankings] = useState<AthleteRanking[]>([]);
@@ -85,6 +97,8 @@ function RankingsContent() {
     searchTerm: "",
     gender: "all",
     selectedWeightClasses: [] as string[],
+    selectedHistorical2018: [] as string[],
+    selectedHistorical1998: [] as string[],
     ageCategory: "all",
     rankBy: "best_total",
     federation: "all",
@@ -97,6 +111,8 @@ function RankingsContent() {
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showYearDropdown, setShowYearDropdown] = useState(false);
   const [showWeightClassDropdown, setShowWeightClassDropdown] = useState(false);
+  const [showHistorical2018Dropdown, setShowHistorical2018Dropdown] = useState(false);
+  const [showHistorical1998Dropdown, setShowHistorical1998Dropdown] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
   const resultsPerPage = 20;
@@ -660,10 +676,17 @@ function RankingsContent() {
       );
     }
 
-    if (filters.selectedWeightClasses.length > 0) {
+    // Combine all weight class selections (current + both historical periods)
+    const allSelectedWeightClasses = [
+      ...filters.selectedWeightClasses,
+      ...filters.selectedHistorical2018,
+      ...filters.selectedHistorical1998,
+    ];
+
+    if (allSelectedWeightClasses.length > 0) {
       filtered = filtered.filter((athlete) => {
         const weightClass = athlete.weight_class || "";
-        return filters.selectedWeightClasses.includes(weightClass);
+        return allSelectedWeightClasses.includes(weightClass);
       });
     }
 
@@ -889,6 +912,8 @@ function RankingsContent() {
       searchTerm: "",
       gender: "all",
       selectedWeightClasses: [],
+      selectedHistorical2018: [],
+      selectedHistorical1998: [],
       ageCategory: "all",
       rankBy: "best_total",
       sortBy: "best_total",
@@ -1327,6 +1352,214 @@ function RankingsContent() {
                                         setFilters(prev => ({
                                           ...prev,
                                           selectedWeightClasses: newSelected
+                                        }));
+                                      }}
+                                      className="mr-2 accent-blue-500"
+                                    />
+                                    <span className="text-sm text-gray-200">{weight}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Historical Weight Classes (2018-2025) - Multi-select */}
+                    <div className="relative">
+                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Historical Weight Classes (2018-2025)
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setShowHistorical2018Dropdown(!showHistorical2018Dropdown)}
+                        className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex justify-between items-center"
+                      >
+                        <span>
+                          {filters.selectedHistorical2018.length === 0
+                            ? "All Weight Classes"
+                            : `${filters.selectedHistorical2018.length} selected`}
+                        </span>
+                        <ChevronDown className={`h-4 w-4 transition-transform ${showHistorical2018Dropdown ? 'rotate-180' : ''}`} />
+                      </button>
+
+                      {showHistorical2018Dropdown && (
+                        <div className="absolute z-10 mt-1 w-full max-h-96 overflow-y-auto bg-gray-700 border border-gray-600 rounded-lg shadow-lg">
+                          {/* Select/Deselect All */}
+                          <div className="sticky top-0 bg-gray-700 border-b border-gray-600 p-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFilters(prev => ({
+                                  ...prev,
+                                  selectedHistorical2018: []
+                                }));
+                              }}
+                              className="text-xs text-blue-400 hover:text-blue-300"
+                            >
+                              Clear All
+                            </button>
+                          </div>
+
+                          {/* Two-column layout: Women | Men */}
+                          <div className="grid grid-cols-2 gap-0 divide-x divide-gray-600">
+                            {/* Women's Column */}
+                            <div>
+                              <div className="px-3 py-2 bg-gray-600 text-xs font-semibold text-gray-300 text-center">
+                                Women
+                              </div>
+                              <div className="p-2">
+                                {HISTORICAL_2018_2025_WEIGHT_CLASSES.Women.map((weight) => (
+                                  <label
+                                    key={`hist2018-women-${weight}`}
+                                    className="flex items-center px-2 py-1.5 hover:bg-gray-600 rounded cursor-pointer"
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={filters.selectedHistorical2018.includes(weight)}
+                                      onChange={(e) => {
+                                        const newSelected = e.target.checked
+                                          ? [...filters.selectedHistorical2018, weight]
+                                          : filters.selectedHistorical2018.filter(w => w !== weight);
+                                        setFilters(prev => ({
+                                          ...prev,
+                                          selectedHistorical2018: newSelected
+                                        }));
+                                      }}
+                                      className="mr-2 accent-blue-500"
+                                    />
+                                    <span className="text-sm text-gray-200">{weight}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* Men's Column */}
+                            <div>
+                              <div className="px-3 py-2 bg-gray-600 text-xs font-semibold text-gray-300 text-center">
+                                Men
+                              </div>
+                              <div className="p-2">
+                                {HISTORICAL_2018_2025_WEIGHT_CLASSES.Men.map((weight) => (
+                                  <label
+                                    key={`hist2018-men-${weight}`}
+                                    className="flex items-center px-2 py-1.5 hover:bg-gray-600 rounded cursor-pointer"
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={filters.selectedHistorical2018.includes(weight)}
+                                      onChange={(e) => {
+                                        const newSelected = e.target.checked
+                                          ? [...filters.selectedHistorical2018, weight]
+                                          : filters.selectedHistorical2018.filter(w => w !== weight);
+                                        setFilters(prev => ({
+                                          ...prev,
+                                          selectedHistorical2018: newSelected
+                                        }));
+                                      }}
+                                      className="mr-2 accent-blue-500"
+                                    />
+                                    <span className="text-sm text-gray-200">{weight}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Historical Weight Classes (1998-2018) - Multi-select */}
+                    <div className="relative">
+                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Historical Weight Classes (1998-2018)
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setShowHistorical1998Dropdown(!showHistorical1998Dropdown)}
+                        className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex justify-between items-center"
+                      >
+                        <span>
+                          {filters.selectedHistorical1998.length === 0
+                            ? "All Weight Classes"
+                            : `${filters.selectedHistorical1998.length} selected`}
+                        </span>
+                        <ChevronDown className={`h-4 w-4 transition-transform ${showHistorical1998Dropdown ? 'rotate-180' : ''}`} />
+                      </button>
+
+                      {showHistorical1998Dropdown && (
+                        <div className="absolute z-10 mt-1 w-full max-h-96 overflow-y-auto bg-gray-700 border border-gray-600 rounded-lg shadow-lg">
+                          {/* Select/Deselect All */}
+                          <div className="sticky top-0 bg-gray-700 border-b border-gray-600 p-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFilters(prev => ({
+                                  ...prev,
+                                  selectedHistorical1998: []
+                                }));
+                              }}
+                              className="text-xs text-blue-400 hover:text-blue-300"
+                            >
+                              Clear All
+                            </button>
+                          </div>
+
+                          {/* Two-column layout: Women | Men */}
+                          <div className="grid grid-cols-2 gap-0 divide-x divide-gray-600">
+                            {/* Women's Column */}
+                            <div>
+                              <div className="px-3 py-2 bg-gray-600 text-xs font-semibold text-gray-300 text-center">
+                                Women
+                              </div>
+                              <div className="p-2">
+                                {HISTORICAL_1998_2018_WEIGHT_CLASSES.Women.map((weight) => (
+                                  <label
+                                    key={`hist1998-women-${weight}`}
+                                    className="flex items-center px-2 py-1.5 hover:bg-gray-600 rounded cursor-pointer"
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={filters.selectedHistorical1998.includes(weight)}
+                                      onChange={(e) => {
+                                        const newSelected = e.target.checked
+                                          ? [...filters.selectedHistorical1998, weight]
+                                          : filters.selectedHistorical1998.filter(w => w !== weight);
+                                        setFilters(prev => ({
+                                          ...prev,
+                                          selectedHistorical1998: newSelected
+                                        }));
+                                      }}
+                                      className="mr-2 accent-blue-500"
+                                    />
+                                    <span className="text-sm text-gray-200">{weight}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* Men's Column */}
+                            <div>
+                              <div className="px-3 py-2 bg-gray-600 text-xs font-semibold text-gray-300 text-center">
+                                Men
+                              </div>
+                              <div className="p-2">
+                                {HISTORICAL_1998_2018_WEIGHT_CLASSES.Men.map((weight) => (
+                                  <label
+                                    key={`hist1998-men-${weight}`}
+                                    className="flex items-center px-2 py-1.5 hover:bg-gray-600 rounded cursor-pointer"
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={filters.selectedHistorical1998.includes(weight)}
+                                      onChange={(e) => {
+                                        const newSelected = e.target.checked
+                                          ? [...filters.selectedHistorical1998, weight]
+                                          : filters.selectedHistorical1998.filter(w => w !== weight);
+                                        setFilters(prev => ({
+                                          ...prev,
+                                          selectedHistorical1998: newSelected
                                         }));
                                       }}
                                       className="mr-2 accent-blue-500"
