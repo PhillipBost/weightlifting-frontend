@@ -49,6 +49,48 @@ interface AthleteRanking {
   iwf_lifter_id?: number;
 }
 
+interface USAWRankingResult {
+  result_id: number;
+  meet_id: number;
+  lifter_id: number;
+  membership_number: number | null;
+  lifter_name: string;
+  gender: string;
+  weight_class: string;
+  age_category: string;
+  date: string;
+  meet_name: string;
+  body_weight_kg: string;
+  competition_age: number | null;
+  best_snatch: number;
+  best_cj: number;
+  total: number;
+  qpoints: number;
+  q_youth: number | null;
+  q_masters: number | null;
+}
+
+interface IWFRankingResult {
+  db_result_id: number;
+  db_meet_id: number | null;
+  db_lifter_id: number;
+  iwf_lifter_id: number | null;
+  lifter_name: string;
+  gender: string;
+  weight_class: string;
+  age_category: string;
+  date: string;
+  meet_name: string;
+  body_weight_kg: string;
+  competition_age: number | null;
+  best_snatch: number;
+  best_cj: number;
+  total: number;
+  qpoints: number;
+  q_youth: number | null;
+  q_masters: number | null;
+}
+
 const getBestQScore = (result: any) => {
   const qYouth = result.q_youth || 0;
   const qPoints = result.qpoints || 0;
@@ -195,6 +237,54 @@ function RankingsContent() {
     return inactiveSet; // Return the Set for immediate use
   }
 
+  async function loadUSAWRankingsFile(year: number): Promise<USAWRankingResult[]> {
+    const response = await fetch(`/data/usaw-rankings-${year}.json.gz`);
+    if (!response.ok) throw new Error(`Failed to fetch USAW ${year}: ${response.statusText}`);
+
+    let json;
+    const contentEncoding = response.headers.get('Content-Encoding');
+    if (contentEncoding === 'gzip') {
+      json = await response.text();
+    } else {
+      try {
+        const ds = new DecompressionStream('gzip');
+        const decompressedStream = response.body?.pipeThrough(ds);
+        json = decompressedStream ? await new Response(decompressedStream).text() : await response.text();
+      } catch (e) {
+        console.warn('USAW decompression failed', e);
+        json = await response.text();
+      }
+    }
+
+    const data: USAWRankingResult[] = JSON.parse(json);
+    console.log(`Loaded ${data.length} USAW results for ${year}`);
+    return data;
+  }
+
+  async function loadIWFRankingsFile(year: number): Promise<IWFRankingResult[]> {
+    const response = await fetch(`/data/iwf-rankings-${year}.json.gz`);
+    if (!response.ok) throw new Error(`Failed to fetch IWF ${year}: ${response.statusText}`);
+
+    let json;
+    const contentEncoding = response.headers.get('Content-Encoding');
+    if (contentEncoding === 'gzip') {
+      json = await response.text();
+    } else {
+      try {
+        const ds = new DecompressionStream('gzip');
+        const decompressedStream = response.body?.pipeThrough(ds);
+        json = decompressedStream ? await new Response(decompressedStream).text() : await response.text();
+      } catch (e) {
+        console.warn('IWF decompression failed', e);
+        json = await response.text();
+      }
+    }
+
+    const data: IWFRankingResult[] = JSON.parse(json);
+    console.log(`Loaded ${data.length} IWF results for ${year}`);
+    return data;
+  }
+
   // Helper function to fetch all results with pagination
   async function fetchAllInBatches(baseQuery: any, label: string) {
     const BATCH_SIZE = 1000;
@@ -244,213 +334,174 @@ function RankingsContent() {
         return;
       }
 
-      // Build USAW query with optional year filtering
-      let usawQuery = supabase
-        .from("meet_results")
-        .select(
-          `
-          result_id,
-          lifter_id,
-          lifter_name,
-          date,
-          meet_name,
-          meet_id,
-          weight_class,
-          age_category,
-          body_weight_kg,
-          best_snatch,
-          best_cj,
-          total,
-          qpoints,
-          q_youth,
-          q_masters,
-          competition_age,
-          gender
-        `
-        );
+      // --- USAW DATA LOADING ---
+      let usawResults: USAWRankingResult[] = [];
+      let lifterInfoMap = new Map<number, any>();
+      let usawDbFallbackNeeded = false;
 
-      // Add year filtering at database level when years are selected
-      if (filters.selectedYears && filters.selectedYears.length > 0) {
-        const minYear = Math.min(...filters.selectedYears);
-        const maxYear = Math.max(...filters.selectedYears);
-        usawQuery = usawQuery
-          .gte('date', `${minYear}-01-01`)
-          .lte('date', `${maxYear}-12-31`);
+      try {
+        const usawPromises = filters.selectedYears
+          .filter(year => year >= 2012 && year <= 2025)
+          .map(year => loadUSAWRankingsFile(year));
+
+        if (usawPromises.length > 0) {
+          const usawYearData = await Promise.all(usawPromises);
+          usawResults = usawYearData.flat();
+          console.log(`USAW: Loaded ${usawResults.length} total results from files`);
+        }
+      } catch (err) {
+        console.error('USAW file load failed, fallback to database:', err);
+        usawDbFallbackNeeded = true;
       }
 
-      usawQuery = usawQuery.order("date", { ascending: false });
+      // Fallback to Database if file load failed or no files loaded (but years selected)
+      // Note: If selected years are outside 2012-2025, we might need DB fallback too, 
+      // but currently the UI restricts or files cover the range. 
+      // If usawResults is empty but we have selected years, and we didn't fail, 
+      // it might mean we selected years with no files? 
+      // The plan assumes files cover 2012-2025.
 
-      // Fetch all results using pagination
-      const resultsData = await fetchAllInBatches(usawQuery, "USAW");
-      const resultsError = null;
-
-      if (resultsError) throw resultsError;
-
-      if (resultsError) throw resultsError;
-
-      // Extract unique lifter IDs
-      const lifterIds = Array.from(new Set((resultsData || []).map((r: any) => r.lifter_id)));
-
-      // Batch fetch lifter details to avoid .in() limit of ~1000 values
-      const LIFTER_BATCH_SIZE = 900;
-      const lifterInfoMap = new Map<number, any>();
-
-      console.log(`USAW: Fetching details for ${lifterIds.length} unique lifters...`);
-
-      for (let i = 0; i < lifterIds.length; i += LIFTER_BATCH_SIZE) {
-        const batch = lifterIds.slice(i, i + LIFTER_BATCH_SIZE);
-        const batchNum = Math.floor(i / LIFTER_BATCH_SIZE) + 1;
-
-        console.log(`USAW: Fetching lifter details batch ${batchNum}...`);
-
-        const { data: liftersData, error: liftersError } = await supabase
-          .from("lifters")
+      if (usawDbFallbackNeeded) {
+        console.log("USAW: Falling back to database...");
+        // Build USAW query with optional year filtering
+        let usawQuery = supabase
+          .from("meet_results")
           .select(
             `
+            result_id,
             lifter_id,
-            athlete_name,
-            wso,
-            club_name,
-            membership_number
+            lifter_name,
+            date,
+            meet_name,
+            meet_id,
+            weight_class,
+            age_category,
+            body_weight_kg,
+            best_snatch,
+            best_cj,
+            total,
+            qpoints,
+            q_youth,
+            q_masters,
+            competition_age,
+            gender
           `
-          )
-          .in('lifter_id', batch);
+          );
 
-        if (liftersError) throw liftersError;
+        if (filters.selectedYears && filters.selectedYears.length > 0) {
+          const minYear = Math.min(...filters.selectedYears);
+          const maxYear = Math.max(...filters.selectedYears);
+          usawQuery = usawQuery
+            .gte('date', `${minYear}-01-01`)
+            .lte('date', `${maxYear}-12-31`);
+        }
 
-        (liftersData || []).forEach((lifter: any) => {
-          lifterInfoMap.set(lifter.lifter_id, lifter);
-        });
+        usawQuery = usawQuery.order("date", { ascending: false });
+
+        const resultsData = await fetchAllInBatches(usawQuery, "USAW");
+
+        // Extract unique lifter IDs
+        const lifterIds = Array.from(new Set((resultsData || []).map((r: any) => r.lifter_id)));
+
+        // Batch fetch lifter details
+        const LIFTER_BATCH_SIZE = 900;
+
+        console.log(`USAW: Fetching details for ${lifterIds.length} unique lifters...`);
+
+        for (let i = 0; i < lifterIds.length; i += LIFTER_BATCH_SIZE) {
+          const batch = lifterIds.slice(i, i + LIFTER_BATCH_SIZE);
+          const { data: liftersData, error: liftersError } = await supabase
+            .from("lifters")
+            .select(`lifter_id, athlete_name, wso, club_name, membership_number`)
+            .in('lifter_id', batch);
+
+          if (liftersError) throw liftersError;
+
+          (liftersData || []).forEach((lifter: any) => {
+            lifterInfoMap.set(lifter.lifter_id, lifter);
+          });
+        }
+
+        // Cast to USAWRankingResult (some fields might be missing/null but handled in aggregation)
+        usawResults = resultsData as unknown as USAWRankingResult[];
       }
 
-      console.log(`USAW: Loaded ${lifterInfoMap.size} lifter profiles`);
-
-      // Group by (lifter_id, year) with validation
+      // Group by (lifter_id, year)
       const DELIMITER = '|||';
-      const lifterYearGroups = (resultsData || []).reduce(
-        (groups: { [key: string]: any[] }, result: any) => {
+      const lifterYearGroups = usawResults.reduce(
+        (groups: { [key: string]: USAWRankingResult[] }, result) => {
           const lifterId = result.lifter_id;
+          if (!lifterId) return groups;
 
-          // Validate lifter_id exists
-          if (!lifterId) {
-            console.warn('USAW: Missing lifter_id for result:', result);
-            return groups;
-          }
-
-          // Validate and parse date
           const resultDate = new Date(result.date);
           const year = resultDate.getFullYear();
-          if (isNaN(year)) {
-            console.warn('USAW: Invalid date for result:', result.date);
-            return groups;
-          }
+          if (isNaN(year)) return groups;
 
           const compositeKey = `${lifterId}${DELIMITER}${year}`;
-
-          if (!groups[compositeKey]) {
-            groups[compositeKey] = [];
-          }
+          if (!groups[compositeKey]) groups[compositeKey] = [];
           groups[compositeKey].push(result);
           return groups;
         },
         {}
       );
 
-      console.log('USAW: Results fetched:', resultsData?.length);
-      console.log('USAW: Athlete-year groups created:', Object.keys(lifterYearGroups).length);
-
       const athleteRankings: AthleteRanking[] = Object.entries(lifterYearGroups).map(
-        ([compositeKey, athleteResultsAny]) => {
-          const athleteResults = athleteResultsAny as any[];
+        ([compositeKey, athleteResults]) => {
           const [lifterId, yearStr] = compositeKey.split(DELIMITER);
           const year = parseInt(yearStr, 10);
           const lifterInfo = lifterInfoMap.get(Number(lifterId));
 
           const validSnatches = athleteResults
-            .map((r) => {
-              const value = r.best_snatch;
-              if (!value || value === "0" || value === "") return 0;
-              const parsed = parseInt(String(value), 10);
-              return isNaN(parsed) ? 0 : Math.abs(parsed);
-            })
-            .filter((v: number) => v > 0);
+            .map((r) => r.best_snatch || 0)
+            .filter((v) => v > 0);
 
           const validCJs = athleteResults
-            .map((r) => {
-              const value = r.best_cj;
-              if (!value || value === "0" || value === "") return 0;
-              const parsed = parseInt(String(value), 10);
-              return isNaN(parsed) ? 0 : Math.abs(parsed);
-            })
-            .filter((v: number) => v > 0);
+            .map((r) => r.best_cj || 0)
+            .filter((v) => v > 0);
 
           const validTotals = athleteResults
-            .map((r) => {
-              const value = r.total;
-              if (!value || value === "0" || value === "") return 0;
-              const parsed = parseInt(String(value), 10);
-              return isNaN(parsed) ? 0 : parsed;
-            })
-            .filter((v: number) => v > 0);
+            .map((r) => r.total || 0)
+            .filter((v) => v > 0);
 
           const validQPoints = athleteResults
-            .map((r) => {
-              const qpoints = r.qpoints ? parseFloat(String(r.qpoints)) : 0;
-              const qYouth = r.q_youth ? parseFloat(String(r.q_youth)) : 0;
-              const qMasters = r.q_masters ? parseFloat(String(r.q_masters)) : 0;
-              return Math.max(qpoints, qYouth, qMasters);
-            })
-            .filter((v: number) => v > 0);
+            .map((r) => Math.max(r.qpoints || 0, r.q_youth || 0, r.q_masters || 0))
+            .filter((v) => v > 0);
 
           const mostRecentResult = athleteResults[0];
 
-          const gender =
-            mostRecentResult?.gender &&
-              typeof mostRecentResult.gender === "string"
-              ? mostRecentResult.gender
-              : "";
-
           return {
             lifter_id: lifterId,
-            lifter_name:
-              lifterInfo?.athlete_name ||
-              mostRecentResult?.lifter_name ||
-              "Unknown",
-            gender,
+            lifter_name: lifterInfo?.athlete_name || mostRecentResult.lifter_name || "Unknown",
+            gender: mostRecentResult.gender || "",
             federation: "usaw" as const,
             year,
-            weight_class: mostRecentResult?.weight_class || "",
-            age_category: mostRecentResult?.age_category || "",
-            best_snatch:
-              validSnatches.length > 0 ? Math.max(...validSnatches) : 0,
+            weight_class: mostRecentResult.weight_class || "",
+            age_category: mostRecentResult.age_category || "",
+            best_snatch: validSnatches.length > 0 ? Math.max(...validSnatches) : 0,
             best_cj: validCJs.length > 0 ? Math.max(...validCJs) : 0,
-            best_total:
-              validTotals.length > 0 ? Math.max(...validTotals) : 0,
-            best_qpoints:
-              validQPoints.length > 0 ? Math.max(...validQPoints) : 0,
-            q_youth: mostRecentResult?.q_youth ? parseFloat(String(mostRecentResult.q_youth)) : undefined,
-            q_masters: mostRecentResult?.q_masters ? parseFloat(String(mostRecentResult.q_masters)) : undefined,
-            qpoints: mostRecentResult?.qpoints ? parseFloat(String(mostRecentResult.qpoints)) : undefined,
+            best_total: validTotals.length > 0 ? Math.max(...validTotals) : 0,
+            best_qpoints: validQPoints.length > 0 ? Math.max(...validQPoints) : 0,
+            q_youth: mostRecentResult.q_youth || undefined,
+            q_masters: mostRecentResult.q_masters || undefined,
+            qpoints: mostRecentResult.qpoints || undefined,
             competition_count: athleteResults.length,
-            last_competition: mostRecentResult?.date || "",
-            last_meet_name: mostRecentResult?.meet_name || "",
-            last_body_weight: mostRecentResult?.body_weight_kg || "",
-            competition_age:
-              mostRecentResult?.competition_age || undefined,
-            membership_number: lifterInfo?.membership_number || "",
-            meet_id: mostRecentResult?.meet_id || 0,
+            last_competition: mostRecentResult.date || "",
+            last_meet_name: mostRecentResult.meet_name || "",
+            last_body_weight: mostRecentResult.body_weight_kg || "",
+            competition_age: mostRecentResult.competition_age || undefined,
+            membership_number: lifterInfo?.membership_number || mostRecentResult.membership_number || "",
+            meet_id: mostRecentResult.meet_id || 0,
           };
         }
       );
 
       const rankedAthletes = athleteRankings.filter(
-        (athlete) =>
-          athlete.competition_count > 0 &&
-          athlete.best_total > 0
+        (athlete) => athlete.competition_count > 0 && athlete.best_total > 0
       );
 
       setUsawRankings(rankedAthletes);
 
+      // --- FILTER OPTION EXTRACTION (Keep existing logic) ---
       const weightClassCombinations = new Set<string>();
       rankedAthletes.forEach((athlete) => {
         if (athlete.age_category && athlete.weight_class) {
@@ -459,8 +510,7 @@ function RankingsContent() {
           else if (athlete.age_category.includes("Men's")) gender = "Men's";
 
           if (gender) {
-            const weightClassOnly = `${gender} ${athlete.weight_class}`;
-            weightClassCombinations.add(weightClassOnly);
+            weightClassCombinations.add(`${gender} ${athlete.weight_class}`);
           }
         }
       });
@@ -468,41 +518,23 @@ function RankingsContent() {
       const extractedAgeCategories = new Set<string>();
       rankedAthletes.forEach((athlete) => {
         const ageCategory = athlete.age_category || "";
-
-        if (ageCategory.includes("11 Under"))
-          extractedAgeCategories.add("11 Under Age Group");
-        else if (ageCategory.includes("13 Under"))
-          extractedAgeCategories.add("13 Under Age Group");
-        else if (ageCategory.includes("14-15"))
-          extractedAgeCategories.add("14-15 Age Group");
-        else if (ageCategory.includes("16-17"))
-          extractedAgeCategories.add("16-17 Age Group");
-        else if (ageCategory.includes("Junior"))
-          extractedAgeCategories.add("Junior (15-20)");
-        else if (ageCategory.includes("Masters (35-39)"))
-          extractedAgeCategories.add("Masters (35-39)");
-        else if (ageCategory.includes("Masters (40-44)"))
-          extractedAgeCategories.add("Masters (40-44)");
-        else if (ageCategory.includes("Masters (45-49)"))
-          extractedAgeCategories.add("Masters (45-49)");
-        else if (ageCategory.includes("Masters (50-54)"))
-          extractedAgeCategories.add("Masters (50-54)");
-        else if (ageCategory.includes("Masters (55-59)"))
-          extractedAgeCategories.add("Masters (55-59)");
-        else if (ageCategory.includes("Masters (60-64)"))
-          extractedAgeCategories.add("Masters (60-64)");
-        else if (ageCategory.includes("Masters (65-69)"))
-          extractedAgeCategories.add("Masters (65-69)");
-        else if (ageCategory.includes("Masters (70-74)"))
-          extractedAgeCategories.add("Masters (70-74)");
-        else if (ageCategory.includes("Masters (75-79)"))
-          extractedAgeCategories.add("Masters (75-79)");
-        else if (ageCategory.includes("Masters (75+)"))
-          extractedAgeCategories.add("Masters (75+)");
-        else if (ageCategory.includes("Masters (80+)"))
-          extractedAgeCategories.add("Masters (80+)");
-        else if (ageCategory.includes("Open"))
-          extractedAgeCategories.add("Open / Senior (15+)");
+        if (ageCategory.includes("11 Under")) extractedAgeCategories.add("11 Under Age Group");
+        else if (ageCategory.includes("13 Under")) extractedAgeCategories.add("13 Under Age Group");
+        else if (ageCategory.includes("14-15")) extractedAgeCategories.add("14-15 Age Group");
+        else if (ageCategory.includes("16-17")) extractedAgeCategories.add("16-17 Age Group");
+        else if (ageCategory.includes("Junior")) extractedAgeCategories.add("Junior (15-20)");
+        else if (ageCategory.includes("Masters (35-39)")) extractedAgeCategories.add("Masters (35-39)");
+        else if (ageCategory.includes("Masters (40-44)")) extractedAgeCategories.add("Masters (40-44)");
+        else if (ageCategory.includes("Masters (45-49)")) extractedAgeCategories.add("Masters (45-49)");
+        else if (ageCategory.includes("Masters (50-54)")) extractedAgeCategories.add("Masters (50-54)");
+        else if (ageCategory.includes("Masters (55-59)")) extractedAgeCategories.add("Masters (55-59)");
+        else if (ageCategory.includes("Masters (60-64)")) extractedAgeCategories.add("Masters (60-64)");
+        else if (ageCategory.includes("Masters (65-69)")) extractedAgeCategories.add("Masters (65-69)");
+        else if (ageCategory.includes("Masters (70-74)")) extractedAgeCategories.add("Masters (70-74)");
+        else if (ageCategory.includes("Masters (75-79)")) extractedAgeCategories.add("Masters (75-79)");
+        else if (ageCategory.includes("Masters (75+)")) extractedAgeCategories.add("Masters (75+)");
+        else if (ageCategory.includes("Masters (80+)")) extractedAgeCategories.add("Masters (80+)");
+        else if (ageCategory.includes("Open")) extractedAgeCategories.add("Open / Senior (15+)");
       });
 
       function getWeightClassOrder(weightClass: string) {
@@ -526,77 +558,63 @@ function RankingsContent() {
         return classes.sort((a, b) => {
           const cleanA = a.replace("(Inactive) ", "");
           const cleanB = b.replace("(Inactive) ", "");
-
           const aOrder = getWeightClassOrder(cleanA);
           const bOrder = getWeightClassOrder(cleanB);
-
           if (aOrder !== bOrder) return aOrder - bOrder;
-
-          const aWeight =
-            parseFloat(
-              cleanA.split(" ").pop()?.replace(/[^\d.]/g, "") || "0"
-            ) || 0;
-          const bWeight =
-            parseFloat(
-              cleanB.split(" ").pop()?.replace(/[^\d.]/g, "") || "0"
-            ) || 0;
-
+          const aWeight = parseFloat(cleanA.split(" ").pop()?.replace(/[^\d.]/g, "") || "0") || 0;
+          const bWeight = parseFloat(cleanB.split(" ").pop()?.replace(/[^\d.]/g, "") || "0") || 0;
           return aWeight - bWeight;
         });
       };
 
-      const sortedActiveWeightClasses = sortWeightClasses(activeWeightClasses);
-      const sortedInactiveWeightClasses = sortWeightClasses(
-        inactiveWeightClassesList
-      );
       const sortedWeightClasses = [
-        ...sortedActiveWeightClasses,
-        ...sortedInactiveWeightClasses,
+        ...sortWeightClasses(activeWeightClasses),
+        ...sortWeightClasses(inactiveWeightClassesList),
       ];
 
       const ageCategoryOrder = [
-        "11 Under Age Group",
-        "13 Under Age Group",
-        "14-15 Age Group",
-        "16-17 Age Group",
-        "Junior (15-20)",
-        "Open / Senior (15+)",
-        "Masters (35-39)",
-        "Masters (40-44)",
-        "Masters (45-49)",
-        "Masters (50-54)",
-        "Masters (55-59)",
-        "Masters (60-64)",
-        "Masters (65-69)",
-        "Masters (70-74)",
-        "Masters (75-79)",
-        "Masters (75+)",
-        "Masters (80+)",
+        "11 Under Age Group", "13 Under Age Group", "14-15 Age Group", "16-17 Age Group",
+        "Junior (15-20)", "Open / Senior (15+)",
+        "Masters (35-39)", "Masters (40-44)", "Masters (45-49)", "Masters (50-54)",
+        "Masters (55-59)", "Masters (60-64)", "Masters (65-69)", "Masters (70-74)",
+        "Masters (75-79)", "Masters (75+)", "Masters (80+)",
       ];
 
-      const sortedAgeCategories = Array.from(extractedAgeCategories).sort(
-        (a, b) => {
-          const aIndex = ageCategoryOrder.indexOf(a);
-          const bIndex = ageCategoryOrder.indexOf(b);
-
-          if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
-          if (aIndex !== -1) return -1;
-          if (bIndex !== -1) return 1;
-          return a.localeCompare(b);
-        }
-      );
+      const sortedAgeCategories = Array.from(extractedAgeCategories).sort((a, b) => {
+        const aIndex = ageCategoryOrder.indexOf(a);
+        const bIndex = ageCategoryOrder.indexOf(b);
+        if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+        if (aIndex !== -1) return -1;
+        if (bIndex !== -1) return 1;
+        return a.localeCompare(b);
+      });
 
       setFilterOptions({
         weightClasses: sortedWeightClasses,
         ageCategories: sortedAgeCategories,
       });
 
-      try {
-        console.log('IWF: Starting query...');
-        console.log('IWF: supabaseIWF client exists?', !!supabaseIWF);
-        console.log('IWF: Selected years:', filters.selectedYears);
+      // --- IWF DATA LOADING ---
+      let iwfResults: IWFRankingResult[] = [];
+      let iwfDbFallbackNeeded = false;
 
-        // Build IWF query with optional year filtering
+      try {
+        const iwfPromises = filters.selectedYears
+          .filter(year => year >= 1998 && year <= 2025)
+          .map(year => loadIWFRankingsFile(year));
+
+        if (iwfPromises.length > 0) {
+          const iwfYearData = await Promise.all(iwfPromises);
+          iwfResults = iwfYearData.flat();
+          console.log(`IWF: Loaded ${iwfResults.length} total results from files`);
+        }
+      } catch (err) {
+        console.error('IWF file load failed, fallback to database:', err);
+        iwfDbFallbackNeeded = true;
+      }
+
+      if (iwfDbFallbackNeeded) {
+        console.log("IWF: Falling back to database...");
         let iwfQuery = supabaseIWF
           .from("iwf_meet_results")
           .select(
@@ -616,8 +634,6 @@ function RankingsContent() {
             q_youth,
             q_masters,
             competition_age,
-            q_masters,
-            competition_age,
             gender,
             iwf_lifters (
               iwf_lifter_id
@@ -625,184 +641,92 @@ function RankingsContent() {
           `
           );
 
-        // Add year filtering at database level when years are selected
-        // IWF dates are in "MMM DD, YYYY" format (e.g., "Nov 10, 1998")
-        // For single year, use .ilike() pattern match
-        // For multiple years, filter in JavaScript (pattern contains comma which breaks .or())
         if (filters.selectedYears && filters.selectedYears.length === 1) {
           iwfQuery = iwfQuery.ilike('date', `%, ${filters.selectedYears[0]}`);
         }
 
         iwfQuery = iwfQuery.order("date", { ascending: false });
 
-        // Fetch all IWF results using pagination
-        let iwfResults: any[] = [];
-        let iwfError = null;
-
         try {
-          iwfResults = await fetchAllInBatches(iwfQuery, "IWF");
-        } catch (err: any) {
-          iwfError = err;
-          console.error("Error fetching IWF results:", err);
-        }
+          const results = await fetchAllInBatches(iwfQuery, "IWF");
 
-        let iwfRankingsLocal: AthleteRanking[] = [];
-
-        if (iwfResults && Array.isArray(iwfResults)) {
-          // Filter by year in JavaScript for multiple years (or all years if no filter)
-          // This avoids Supabase .or() syntax issues with comma in date pattern
+          // Filter by year in JS if multiple years
           if (filters.selectedYears && filters.selectedYears.length > 1) {
-            iwfResults = iwfResults.filter((r: any) => {
+            iwfResults = results.filter((r: any) => {
               const resultDate = new Date(r.date);
-              const year = resultDate.getFullYear();
-              return filters.selectedYears.includes(year);
-            });
-            console.log(`IWF: Filtered to ${iwfResults.length} results for years:`, filters.selectedYears);
+              return filters.selectedYears.includes(resultDate.getFullYear());
+            }) as unknown as IWFRankingResult[];
+          } else {
+            iwfResults = results as unknown as IWFRankingResult[];
           }
-
-          // Group IWF results by (lifter_id, year) with validation
-          const IWF_DELIMITER = '|||';
-          const iwfYearGroups = iwfResults.reduce(
-            (groups: { [key: string]: any[] }, r: any) => {
-              const lifterId = r.db_lifter_id;
-
-              // Validate lifter_id exists
-              if (!lifterId) {
-                console.warn('IWF: Missing db_lifter_id for result:', r);
-                return groups;
-              }
-
-              // Validate and parse date
-              const resultDate = new Date(r.date);
-              const year = resultDate.getFullYear();
-              if (isNaN(year)) {
-                console.warn('IWF: Invalid date for result:', r.date);
-                return groups;
-              }
-
-              const compositeKey = `${lifterId}${IWF_DELIMITER}${year}`;
-
-              if (!groups[compositeKey]) groups[compositeKey] = [];
-              groups[compositeKey].push(r);
-              return groups;
-            },
-            {}
-          );
-
-          console.log('IWF: Results fetched:', iwfResults?.length);
-          console.log('IWF: Athlete-year groups created:', Object.keys(iwfYearGroups).length);
-
-          iwfRankingsLocal = Object.entries(iwfYearGroups)
-            .map(([compositeKey, resultsAny]) => {
-              const results = resultsAny as any[];
-              const [lifterId, yearStr] = compositeKey.split(IWF_DELIMITER);
-              const year = parseInt(yearStr, 10);
-
-              const validSnatches = results
-                .map((r) => {
-                  const value = r.best_snatch;
-                  if (!value || value === "0" || value === "") return 0;
-                  const parsed = parseInt(String(value), 10);
-                  return isNaN(parsed) ? 0 : Math.abs(parsed);
-                })
-                .filter((v: number) => v > 0);
-
-              const validCJs = results
-                .map((r) => {
-                  const value = r.best_cj;
-                  if (!value || value === "0" || value === "") return 0;
-                  const parsed = parseInt(String(value), 10);
-                  return isNaN(parsed) ? 0 : Math.abs(parsed);
-                })
-                .filter((v: number) => v > 0);
-
-              const validTotals = results
-                .map((r) => {
-                  const value = r.total;
-                  if (!value || value === "0" || value === "") return 0;
-                  const parsed = parseInt(String(value), 10);
-                  return isNaN(parsed) ? 0 : parsed;
-                })
-                .filter((v: number) => v > 0);
-
-              const validQPoints = results
-                .map((r) => {
-                  const qpoints = r.qpoints
-                    ? parseFloat(String(r.qpoints))
-                    : 0;
-                  const qYouth = r.q_youth
-                    ? parseFloat(String(r.q_youth))
-                    : 0;
-                  const qMasters = r.q_masters
-                    ? parseFloat(String(r.q_masters))
-                    : 0;
-                  return Math.max(qpoints, qYouth, qMasters);
-                })
-                .filter((v: number) => v > 0);
-
-              const mostRecentResult = results[0];
-
-              const gender =
-                mostRecentResult?.gender &&
-                  typeof mostRecentResult.gender === "string"
-                  ? mostRecentResult.gender
-                  : "";
-
-              return {
-                lifter_id: String(lifterId),
-                lifter_name:
-                  mostRecentResult?.lifter_name || "Unknown",
-                gender,
-                federation: "iwf" as const,
-                year,
-                weight_class: mostRecentResult?.weight_class || "",
-                age_category: mostRecentResult?.age_category || "",
-                best_snatch:
-                  validSnatches.length > 0
-                    ? Math.max(...validSnatches)
-                    : 0,
-                best_cj:
-                  validCJs.length > 0
-                    ? Math.max(...validCJs)
-                    : 0,
-                best_total:
-                  validTotals.length > 0
-                    ? Math.max(...validTotals)
-                    : 0,
-                best_qpoints:
-                  validQPoints.length > 0
-                    ? Math.max(...validQPoints)
-                    : 0,
-                q_youth: mostRecentResult?.q_youth ? parseFloat(String(mostRecentResult.q_youth)) : undefined,
-                q_masters: mostRecentResult?.q_masters ? parseFloat(String(mostRecentResult.q_masters)) : undefined,
-                qpoints: mostRecentResult?.qpoints ? parseFloat(String(mostRecentResult.qpoints)) : undefined,
-                competition_count: results.length,
-                last_competition: mostRecentResult?.date || "",
-                last_meet_name: mostRecentResult?.meet_name || "",
-                last_body_weight: mostRecentResult?.body_weight_kg || "",
-                competition_age:
-                  mostRecentResult?.competition_age || undefined,
-                meet_id: mostRecentResult?.db_meet_id || 0,
-                iwf_lifter_id: mostRecentResult?.iwf_lifters?.iwf_lifter_id || 0,
-              };
-            })
-            .filter(
-              (athlete) =>
-                athlete.competition_count > 0 &&
-                athlete.best_total > 0
-            );
+        } catch (err) {
+          console.error("Error fetching IWF results from DB:", err);
         }
-
-        setIwfRankings(iwfRankingsLocal);
-        setRankings([
-          ...rankedAthletes.map((a) => ({ ...a, federation: "usaw" as const })),
-          ...iwfRankingsLocal.map((a) => ({ ...a, federation: "iwf" as const })),
-        ]);
-      } catch (iwfErr: any) {
-        console.error("Unexpected error fetching IWF rankings:", iwfErr);
-        setIwfRankings([]);
-        setRankings(rankedAthletes);
       }
+
+      // Group IWF results
+      const IWF_DELIMITER = '|||';
+      const iwfYearGroups = iwfResults.reduce(
+        (groups: { [key: string]: IWFRankingResult[] }, r) => {
+          const lifterId = r.db_lifter_id;
+          if (!lifterId) return groups;
+
+          const resultDate = new Date(r.date);
+          const year = resultDate.getFullYear();
+          if (isNaN(year)) return groups;
+
+          const compositeKey = `${lifterId}${IWF_DELIMITER}${year}`;
+          if (!groups[compositeKey]) groups[compositeKey] = [];
+          groups[compositeKey].push(r);
+          return groups;
+        },
+        {}
+      );
+
+      const iwfRankingsLocal: AthleteRanking[] = Object.entries(iwfYearGroups)
+        .map(([compositeKey, results]) => {
+          const [lifterId, yearStr] = compositeKey.split(IWF_DELIMITER);
+          const year = parseInt(yearStr, 10);
+
+          const validSnatches = results.map(r => r.best_snatch || 0).filter(v => v > 0);
+          const validCJs = results.map(r => r.best_cj || 0).filter(v => v > 0);
+          const validTotals = results.map(r => r.total || 0).filter(v => v > 0);
+          const validQPoints = results.map(r => Math.max(r.qpoints || 0, r.q_youth || 0, r.q_masters || 0)).filter(v => v > 0);
+
+          const mostRecentResult = results[0];
+
+          return {
+            lifter_id: String(lifterId),
+            lifter_name: mostRecentResult.lifter_name || "Unknown",
+            gender: mostRecentResult.gender || "",
+            federation: "iwf" as const,
+            year,
+            weight_class: mostRecentResult.weight_class || "",
+            age_category: mostRecentResult.age_category || "",
+            best_snatch: validSnatches.length > 0 ? Math.max(...validSnatches) : 0,
+            best_cj: validCJs.length > 0 ? Math.max(...validCJs) : 0,
+            best_total: validTotals.length > 0 ? Math.max(...validTotals) : 0,
+            best_qpoints: validQPoints.length > 0 ? Math.max(...validQPoints) : 0,
+            q_youth: mostRecentResult.q_youth || undefined,
+            q_masters: mostRecentResult.q_masters || undefined,
+            qpoints: mostRecentResult.qpoints || undefined,
+            competition_count: results.length,
+            last_competition: mostRecentResult.date || "",
+            last_meet_name: mostRecentResult.meet_name || "",
+            last_body_weight: mostRecentResult.body_weight_kg || "",
+            competition_age: mostRecentResult.competition_age || undefined,
+            meet_id: mostRecentResult.db_meet_id || 0,
+            iwf_lifter_id: mostRecentResult.iwf_lifter_id || 0,
+          };
+        })
+        .filter(athlete => athlete.competition_count > 0 && athlete.best_total > 0);
+
+      setIwfRankings(iwfRankingsLocal);
+      setRankings([
+        ...rankedAthletes.map((a) => ({ ...a, federation: "usaw" as const })),
+        ...iwfRankingsLocal.map((a) => ({ ...a, federation: "iwf" as const })),
+      ]);
+
     } catch (err: any) {
       setError(err.message);
       console.error("Error fetching rankings data:", err);
