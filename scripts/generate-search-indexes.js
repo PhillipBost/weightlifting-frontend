@@ -5,7 +5,9 @@ const scripts = [
     'generate-iwf-search-index.ts',
     'generate-usaw-search-index.ts',
     'generate-usaw-meet-search-index.ts',
-    'generate-iwf-meet-search-index.ts'
+    'generate-iwf-meet-search-index.ts',
+    'generate-usaw-rankings.ts',
+    'generate-iwf-rankings.ts'
 ];
 
 console.log('🚀 Starting master search index generation...');
@@ -26,4 +28,4 @@ for (const script of scripts) {
     }
 }
 
-console.log('\n🎉 All search indexes generated successfully!');
+console.log('\n🎉 All search indexes and rankings generated successfully!');

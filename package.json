@@ -9,7 +9,10 @@
     "start": "next start",
     "lint": "next lint",
     "generate-static": "node scripts/generate-static-data.js",
-    "generate-search": "node scripts/generate-search-indexes.js"
+    "generate-search": "node scripts/generate-search-indexes.js",
+    "generate-rankings": "npx tsx scripts/generate-usaw-rankings.ts && npx tsx scripts/generate-iwf-rankings.ts",
+    "generate-rankings-current": "npx tsx scripts/generate-current-year-rankings.ts",
+    "generate-all": "npm run generate-static && npm run generate-search && npm run generate-rankings"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",

@@ -1,0 +1,50 @@
+name: Update Current Year Rankings
+
+on:
+  schedule:
+    # Run weekly on Sundays at 00:30 UTC (30 minutes after search indexes)
+    - cron: '30 0 * * 0'
+  workflow_dispatch: # Allow manual triggering from Actions tab
+
+permissions:
+  contents: write
+
+jobs:
+  update-rankings:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate current year rankings
+        run: npm run generate-rankings-current
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_SUPABASE_IWF_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_IWF_URL }}
+          NEXT_PUBLIC_SUPABASE_IWF_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_IWF_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Check for changes
+        id: verify_diff
+        run: |
+          git diff --quiet public/data/*-rankings-*.json.gz || echo "changed=true" >> $GITHUB_OUTPUT
+
+      - name: Commit and push if changed
+        if: steps.verify_diff.outputs.changed == 'true'
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+          git add public/data/*-rankings-*.json.gz
+          git commit -m "chore: update current year rankings [automated]"
+          git push
