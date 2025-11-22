@@ -202,16 +202,16 @@ function RankingsContent() {
     let start = 0;
     let hasMore = true;
     let batchCount = 0;
-    
+
     while (hasMore) {
       batchCount++;
       console.log(`${label}: Fetching batch ${batchCount} (rows ${start}-${start + BATCH_SIZE - 1})...`);
-      
+
       const { data, error } = await baseQuery
         .range(start, start + BATCH_SIZE - 1);
-      
+
       if (error) throw error;
-      
+
       if (data && data.length > 0) {
         allResults = allResults.concat(data);
         start += BATCH_SIZE;
@@ -220,7 +220,7 @@ function RankingsContent() {
         hasMore = false;
       }
     }
-    
+
     console.log(`${label}: Fetched ${allResults.length} total results in ${batchCount} batches`);
     return allResults;
   }
@@ -300,9 +300,9 @@ function RankingsContent() {
       for (let i = 0; i < lifterIds.length; i += LIFTER_BATCH_SIZE) {
         const batch = lifterIds.slice(i, i + LIFTER_BATCH_SIZE);
         const batchNum = Math.floor(i / LIFTER_BATCH_SIZE) + 1;
-        
+
         console.log(`USAW: Fetching lifter details batch ${batchNum}...`);
-        
+
         const { data: liftersData, error: liftersError } = await supabase
           .from("lifters")
           .select(
@@ -330,13 +330,13 @@ function RankingsContent() {
       const lifterYearGroups = (resultsData || []).reduce(
         (groups: { [key: string]: any[] }, result: any) => {
           const lifterId = result.lifter_id;
-          
+
           // Validate lifter_id exists
           if (!lifterId) {
             console.warn('USAW: Missing lifter_id for result:', result);
             return groups;
           }
-          
+
           // Validate and parse date
           const resultDate = new Date(result.date);
           const year = resultDate.getFullYear();
@@ -344,9 +344,9 @@ function RankingsContent() {
             console.warn('USAW: Invalid date for result:', result.date);
             return groups;
           }
-          
+
           const compositeKey = `${lifterId}${DELIMITER}${year}`;
-          
+
           if (!groups[compositeKey]) {
             groups[compositeKey] = [];
           }
@@ -595,7 +595,7 @@ function RankingsContent() {
         console.log('IWF: Starting query...');
         console.log('IWF: supabaseIWF client exists?', !!supabaseIWF);
         console.log('IWF: Selected years:', filters.selectedYears);
-        
+
         // Build IWF query with optional year filtering
         let iwfQuery = supabaseIWF
           .from("iwf_meet_results")
@@ -679,9 +679,9 @@ function RankingsContent() {
                 console.warn('IWF: Invalid date for result:', r.date);
                 return groups;
               }
-              
+
               const compositeKey = `${lifterId}${IWF_DELIMITER}${year}`;
-              
+
               if (!groups[compositeKey]) groups[compositeKey] = [];
               groups[compositeKey].push(r);
               return groups;
@@ -814,14 +814,14 @@ function RankingsContent() {
   // Helper function to determine age categories from numeric age
   function determineAgeCategoriesFromAge(age: number): string[] {
     const categories: string[] = [];
-    
+
     if (age <= 11) categories.push("11 Under Age Group");
     if (age <= 13) categories.push("13 Under Age Group");
     if (age >= 14 && age <= 15) categories.push("14-15 Age Group");
     if (age >= 16 && age <= 17) categories.push("16-17 Age Group");
     if (age >= 15 && age <= 20) categories.push("Junior (15-20)");
     if (age >= 15) categories.push("Open / Senior (15+)");
-    
+
     // Masters categories
     if (age >= 35 && age <= 39) categories.push("Masters (35-39)");
     if (age >= 40 && age <= 44) categories.push("Masters (40-44)");
@@ -834,7 +834,7 @@ function RankingsContent() {
     if (age >= 75 && age <= 79) categories.push("Masters (75-79)");
     if (age >= 75) categories.push("Masters (75+)");
     if (age >= 80) categories.push("Masters (80+)");
-    
+
     return categories;
   }
 
@@ -888,13 +888,13 @@ function RankingsContent() {
           const athleteCategories = determineAgeCategoriesFromAge(athlete.competition_age);
           return athleteCategories.includes(filters.ageCategory);
         }
-        
+
         // Fallback to age_category string field if competition_age is missing
         if (athlete.age_category) {
-          return athlete.age_category === filters.ageCategory || 
-                 athlete.age_category.includes(filters.ageCategory);
+          return athlete.age_category === filters.ageCategory ||
+            athlete.age_category.includes(filters.ageCategory);
         }
-        
+
         // Exclude athletes with no age data from specific category filters
         return false;
       });
@@ -1247,18 +1247,7 @@ function RankingsContent() {
     printWindow.print();
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-app-primary flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-400 mx-auto mb-4"></div>
-          <p className="text-lg text-gray-300">
-            Loading rankings data...
-          </p>
-        </div>
-      </div>
-    );
-  }
+
 
   if (error) {
     return (
@@ -1293,7 +1282,7 @@ function RankingsContent() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="max-w-[1200px] mx-auto">
-          <div className="card-primary">
+          <div className={`card-primary transition-opacity duration-200 ${loading ? 'pointer-events-none opacity-60' : ''}`}>
             <div>
               <div className="flex flex-nowrap items-center justify-between gap-4">
                 {/* Left: Title and context */}
@@ -1973,97 +1962,110 @@ function RankingsContent() {
                   </tr>
                 </thead>
                 <tbody>
-                  {displayResults.map((athlete, index) => (
-                    <tr
-                      key={`${athlete.federation || "usaw"}-${athlete.lifter_id}-${athlete.year}`}
-                      className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors"
-                      style={{ borderTopColor: 'var(--border-secondary)' }}
-                    >
-                      <td className="px-2 py-1 whitespace-nowrap text-xs">
-                        {athlete.trueRank || index + 1}
-                      </td>
-                      <td className="px-2 py-1 whitespace-nowrap text-xs">
-                        <div className="font-medium">
+                  {loading ? (
+                    Array.from({ length: 15 }).map((_, i) => (
+                      <tr key={`skeleton-${i}`} className="border-t border-gray-700/50 animate-pulse">
+                        {Array.from({ length: 14 }).map((_, j) => (
+                          <td key={j} className="px-2 py-3">
+                            <div className="h-4 bg-gray-700/50 rounded w-full"></div>
+                          </td>
+                        ))}
+                      </tr>
+                    ))
+                  ) : (
+                    displayResults.map((athlete, index) => (
+                      <tr
+                        key={`${athlete.federation || "usaw"}-${athlete.lifter_id}-${athlete.year}`}
+                        className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors"
+                        style={{ borderTopColor: 'var(--border-secondary)' }}
+                      >
+                        <td className="px-2 py-1 whitespace-nowrap text-xs">
+                          {athlete.trueRank || index + 1}
+                        </td>
+                        <td className="px-2 py-1 whitespace-nowrap text-xs">
+                          <div className="font-medium">
+                            <Link
+                              href={
+                                athlete.federation === "iwf"
+                                  ? `/athlete/iwf/${athlete.iwf_lifter_id}`
+                                  : `/athlete/${athlete.membership_number}`
+                              }
+                              className="text-blue-400 hover:text-blue-300 hover:underline"
+                            >
+                              {athlete.lifter_name}
+                            </Link>
+                          </div>
+                        </td>
+                        <td className="px-2 py-1 whitespace-nowrap text-xs">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium ${athlete.federation === 'iwf'
+                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                            }`}>
+                            {athlete.federation === 'iwf' ? 'IWF' : 'USAW'}
+                          </span>
+                        </td>
+                        <td className="px-2 py-1 whitespace-nowrap text-xs">
+                          {athlete.gender}
+                        </td>
+                        <td className="px-2 py-1 whitespace-nowrap text-xs">
+                          {athlete.weight_class || "-"}
+                        </td>
+                        <td className="px-2 py-1 whitespace-nowrap text-xs">
+                          {athlete.age_category || "-"}
+                        </td>
+                        <td className="px-2 py-1 whitespace-nowrap text-xs">
+                          {athlete.last_competition ? new Date(athlete.last_competition).toLocaleDateString() : "-"}
+                        </td>
+                        <td className="px-2 py-1 whitespace-nowrap text-xs max-w-[200px] truncate" title={athlete.last_meet_name || ""}>
                           <Link
                             href={
                               athlete.federation === "iwf"
-                                ? `/athlete/iwf/${athlete.iwf_lifter_id}`
-                                : `/athlete/${athlete.membership_number}`
+                                ? `/meet/iwf/${athlete.meet_id}`
+                                : `/meet/${athlete.meet_id}`
                             }
                             className="text-blue-400 hover:text-blue-300 hover:underline"
                           >
-                            {athlete.lifter_name}
+                            {athlete.last_meet_name || "-"}
                           </Link>
-                        </div>
-                      </td>
-                      <td className="px-2 py-1 whitespace-nowrap text-xs">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium ${athlete.federation === 'iwf'
-                          ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                          : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                          }`}>
-                          {athlete.federation === 'iwf' ? 'IWF' : 'USAW'}
-                        </span>
-                      </td>
-                      <td className="px-2 py-1 whitespace-nowrap text-xs">
-                        {athlete.gender}
-                      </td>
-                      <td className="px-2 py-1 whitespace-nowrap text-xs">
-                        {athlete.weight_class || "-"}
-                      </td>
-                      <td className="px-2 py-1 whitespace-nowrap text-xs">
-                        {athlete.age_category || "-"}
-                      </td>
-                      <td className="px-2 py-1 whitespace-nowrap text-xs">
-                        {athlete.last_competition ? new Date(athlete.last_competition).toLocaleDateString() : "-"}
-                      </td>
-                      <td className="px-2 py-1 whitespace-nowrap text-xs max-w-[200px] truncate" title={athlete.last_meet_name || ""}>
-                        <Link
-                          href={
-                            athlete.federation === "iwf"
-                              ? `/meet/iwf/${athlete.meet_id}`
-                              : `/meet/${athlete.meet_id}`
-                          }
-                          className="text-blue-400 hover:text-blue-300 hover:underline"
-                        >
-                          {athlete.last_meet_name || "-"}
-                        </Link>
-                      </td>
-                      <td className="px-2 py-1 whitespace-nowrap text-xs">
-                        {athlete.last_body_weight ? `${athlete.last_body_weight}kg` : "-"}
-                      </td>
-                      <td className="px-2 py-1 whitespace-nowrap text-xs">
-                        {athlete.competition_age || "-"}
-                      </td>
-                      <td className="px-2 py-1 whitespace-nowrap">
-                        <span className="font-medium text-xs" style={{ color: 'var(--chart-snatch)' }}>
-                          {athlete.best_snatch || "-"}
-                          {athlete.best_snatch ? "kg" : ""}
-                        </span>
-                      </td>
-                      <td className="px-2 py-1 whitespace-nowrap">
-                        <span className="font-medium text-xs" style={{ color: 'var(--chart-cleanjerk)' }}>
-                          {athlete.best_cj || "-"}
-                          {athlete.best_cj ? "kg" : ""}
-                        </span>
-                      </td>
-                      <td className="px-2 py-1 whitespace-nowrap">
-                        <span className="font-bold text-xs" style={{ color: 'var(--chart-total)' }}>
-                          {athlete.best_total || "-"}
-                          {athlete.best_total ? "kg" : ""}
-                        </span>
-                      </td>
-                      <td className="px-2 py-1 whitespace-nowrap text-xs">
-                        <span className="font-bold" style={getBestQScore(athlete).style}>
-                          {getBestQScore(athlete).value ? getBestQScore(athlete).value.toFixed(1) : "-"}
-                        </span>
-                      </td>
+                        </td>
+                        <td className="px-2 py-1 whitespace-nowrap text-xs">
+                          {athlete.last_body_weight ? `${athlete.last_body_weight}kg` : "-"}
+                        </td>
+                        <td className="px-2 py-1 whitespace-nowrap text-xs">
+                          {athlete.competition_age || "-"}
+                        </td>
+                        <td className="px-2 py-1 whitespace-nowrap">
+                          <span className="font-medium text-xs" style={{ color: 'var(--chart-snatch)' }}>
+                            {athlete.best_snatch || "-"}
+                            {athlete.best_snatch ? "kg" : ""}
+                          </span>
+                        </td>
+                        <td className="px-2 py-1 whitespace-nowrap">
+                          <span className="font-medium text-xs" style={{ color: 'var(--chart-cleanjerk)' }}>
+                            {athlete.best_cj || "-"}
+                            {athlete.best_cj ? "kg" : ""}
+                          </span>
+                        </td>
+                        <td className="px-2 py-1 whitespace-nowrap">
+                          <span className="font-bold text-xs" style={{ color: 'var(--chart-total)' }}>
+                            {athlete.best_total || "-"}
+                            {athlete.best_total ? "kg" : ""}
+                          </span>
+                        </td>
+                        <td className="px-2 py-1 whitespace-nowrap text-xs">
+                          <span className="font-bold" style={getBestQScore(athlete).style}>
+                            {getBestQScore(athlete).value ? getBestQScore(athlete).value.toFixed(1) : "-"}
+                          </span>
+                        </td>
 
-                    </tr>
-                  ))}
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
 
-              {filteredRankings.length === 0 && (
+
+              {!loading && filteredRankings.length === 0 && (
                 <div className="text-center py-12">
                   <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-400 text-lg">
@@ -2168,7 +2170,7 @@ function RankingsContent() {
           )}
         </div>
       </div>
-    </div>
+    </div >
   );
 }
 
