@@ -48,6 +48,7 @@ interface AthleteRanking {
   meet_id?: number;
   iwf_lifter_id?: number;
   result_id?: number;
+  unique_id: string;
 }
 
 interface USAWRankingResult {
@@ -429,7 +430,7 @@ function RankingsContent() {
 
       // --- USAW DATA MAPPING ---
       // Map directly to AthleteRanking without grouping
-      const usawRankingsLocal: AthleteRanking[] = usawResults.map((result) => {
+      const usawRankingsLocal: AthleteRanking[] = usawResults.map((result, index) => {
         const lifterInfo = lifterInfoMap.get(result.lifter_id);
         const resultDate = new Date(result.date);
         const year = resultDate.getFullYear();
@@ -449,13 +450,15 @@ function RankingsContent() {
           q_youth: result.q_youth || undefined,
           q_masters: result.q_masters || undefined,
           qpoints: result.qpoints || undefined,
-          competition_count: 1, // Not used but kept for interface compatibility
+          competition_count: 1,
           last_competition: result.date || "",
           last_meet_name: result.meet_name || "",
           last_body_weight: result.body_weight_kg || "",
           competition_age: result.competition_age || undefined,
           membership_number: lifterInfo?.membership_number || result.membership_number || "",
           meet_id: result.meet_id || 0,
+          result_id: result.result_id || 0,
+          unique_id: result.result_id ? `usaw-${result.result_id}-${index}` : `usaw-gen-${year}-${index}`,
         };
       }).filter(athlete => athlete.best_total > 0);
 
@@ -626,7 +629,7 @@ function RankingsContent() {
 
       // --- IWF DATA MAPPING ---
       // Map directly to AthleteRanking without grouping
-      const iwfRankingsLocal: AthleteRanking[] = iwfResults.map((result) => {
+      const iwfRankingsLocal: AthleteRanking[] = iwfResults.map((result, index) => {
         const resultDate = new Date(result.date);
         const year = resultDate.getFullYear();
 
@@ -652,6 +655,7 @@ function RankingsContent() {
           competition_age: result.competition_age || undefined,
           meet_id: result.db_meet_id || 0,
           iwf_lifter_id: result.iwf_lifter_id || 0,
+          unique_id: result.db_result_id ? `iwf-${result.db_result_id}-${index}` : `iwf-gen-${year}-${index}`,
         };
       }).filter(athlete => athlete.best_total > 0);
 
@@ -1831,7 +1835,7 @@ function RankingsContent() {
                   ) : (
                     displayResults.map((athlete, index) => (
                       <tr
-                        key={athlete.result_id ? `rank-${athlete.result_id}` : `${athlete.federation || "usaw"}-${athlete.lifter_id}-${athlete.meet_id}-${athlete.last_competition}`}
+                        key={athlete.unique_id}
                         className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors"
                         style={{ borderTopColor: 'var(--border-secondary)' }}
                       >
