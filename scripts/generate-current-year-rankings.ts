@@ -100,6 +100,7 @@ async function generateUSAWCurrentYear() {
                 `)
                 .gte('date', `${CURRENT_YEAR}-01-01`)
                 .lte('date', `${CURRENT_YEAR}-12-31`)
+                .order('result_id', { ascending: true })
                 .range(page * pageSize, (page + 1) * pageSize - 1);
 
             if (error) {
@@ -236,6 +237,7 @@ async function generateIWFCurrentYear() {
                     q_youth,
                     q_masters
                 `)
+                .order('db_result_id', { ascending: true })
                 .range(page * pageSize, (page + 1) * pageSize - 1);
 
             if (error) {

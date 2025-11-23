@@ -460,7 +460,7 @@ function RankingsContent() {
           result_id: result.result_id || 0,
           unique_id: result.result_id ? `usaw-${result.result_id}-${index}` : `usaw-gen-${year}-${index}`,
         };
-      }).filter(athlete => athlete.best_total > 0);
+      });
 
       setUsawRankings(usawRankingsLocal);
 
@@ -657,7 +657,7 @@ function RankingsContent() {
           iwf_lifter_id: result.iwf_lifter_id || 0,
           unique_id: result.db_result_id ? `iwf-${result.db_result_id}-${index}` : `iwf-gen-${year}-${index}`,
         };
-      }).filter(athlete => athlete.best_total > 0);
+      });
 
       setIwfRankings(iwfRankingsLocal);
       setRankings([
