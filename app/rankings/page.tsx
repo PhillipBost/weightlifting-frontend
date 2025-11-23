@@ -795,17 +795,20 @@ function RankingsContent() {
     });
 
     // Assign ranks based on the sorted list
-    // Only the first occurrence of a lifter gets a rank
-    const rankMap = new Map<AthleteRanking, number>();
+    // For each lifter, only their best result gets a rank
+    // We use unique_id to identify which specific results should have ranks
+    const rankMap = new Map<string, number>(); // Maps unique_id to rank
     let currentRank = 1;
     const rankedLifters = new Set<string>();
 
     rankedForTrueRank.forEach((athlete) => {
       if (!rankedLifters.has(athlete.lifter_id)) {
-        rankMap.set(athlete, currentRank);
+        // This is the best result for this lifter - assign it a rank
+        rankMap.set(athlete.unique_id, currentRank);
         rankedLifters.add(athlete.lifter_id);
         currentRank++;
       }
+      // All other results for this lifter will not have a rank
     });
 
     // Handle trueRank sorting separately since it's calculated
@@ -820,7 +823,7 @@ function RankingsContent() {
 
       const rankedFiltered = sortedResult.map((athlete) => ({
         ...athlete,
-        trueRank: rankMap.get(athlete),
+        trueRank: rankMap.get(athlete.unique_id),
       }));
 
       console.log('Final filtered count (rankBy mode):', rankedFiltered.length);
@@ -941,7 +944,7 @@ function RankingsContent() {
 
     const rankedFiltered = filtered.map((athlete) => ({
       ...athlete,
-      trueRank: rankMap.get(athlete),
+      trueRank: rankMap.get(athlete.unique_id),
     }));
 
     // No hard cap: show all matching athletes
@@ -1853,7 +1856,7 @@ function RankingsContent() {
                         style={{ borderTopColor: 'var(--border-secondary)' }}
                       >
                         <td className="px-2 py-1 whitespace-nowrap text-xs">
-                          {athlete.trueRank}
+                          {athlete.trueRank ?? ""}
                         </td>
                         <td className="px-2 py-1 whitespace-nowrap text-xs">
                           <div className="font-medium">

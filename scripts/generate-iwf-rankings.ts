@@ -79,6 +79,7 @@ async function generateIWFRankingsForYear(year: number) {
                     q_masters,
                     iwf_lifters!inner(iwf_lifter_id)
                 `)
+                .order('db_result_id', { ascending: true })
                 .range(page * pageSize, (page + 1) * pageSize - 1);
 
             if (error) {

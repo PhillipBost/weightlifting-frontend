@@ -8,10 +8,10 @@ import dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!SUPABASE_URL || !SUPABASE_KEY) {
-    console.error('Missing Supabase environment variables (NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY)');
+    console.error('Missing Supabase environment variables (NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)');
     process.exit(1);
 }
 
@@ -52,7 +52,7 @@ async function generateUSAWRankingsForYear(year: number) {
         const pageSize = 1000;
         let hasMore = true;
 
-        // Fetch all meet_results for this year
+        // Fetch all meet_results for this year (WITHOUT JOIN for performance)
         while (hasMore) {
             const { data, error } = await supabase
                 .from('meet_results')
@@ -73,11 +73,11 @@ async function generateUSAWRankingsForYear(year: number) {
                     total,
                     qpoints,
                     q_youth,
-                    q_masters,
-                    lifters!inner(membership_number)
+                    q_masters
                 `)
                 .gte('date', `${year}-01-01`)
                 .lte('date', `${year}-12-31`)
+                .order('result_id', { ascending: true })
                 .range(page * pageSize, (page + 1) * pageSize - 1);
 
             if (error) {
@@ -101,10 +101,29 @@ async function generateUSAWRankingsForYear(year: number) {
             return;
         }
 
+        // Fetch membership numbers separately in batches
+        console.log('  Fetching membership numbers...');
+        const uniqueLifterIds = [...new Set(allResults.map(r => r.lifter_id))];
+        const lifterMap = new Map<number, number | null>();
+
+        for (let i = 0; i < uniqueLifterIds.length; i += 1000) {
+            const batch = uniqueLifterIds.slice(i, i + 1000);
+            const { data: lifters, error } = await supabase
+                .from('lifters')
+                .select('lifter_id, membership_number')
+                .in('lifter_id', batch);
+
+            if (!error && lifters) {
+                lifters.forEach(l => lifterMap.set(l.lifter_id, l.membership_number));
+            }
+        }
+
+        console.log(`  Fetched membership data for ${lifterMap.size} lifters`);
+
         // Process and clean up data
         const processedResults: USAWRankingResult[] = allResults.map(result => {
-            // Handle nested lifters object
-            const membershipNumber = result.lifters?.membership_number || null;
+            // Get membership number from the lifterMap
+            const membershipNumber = lifterMap.get(result.lifter_id) || null;
 
             return {
                 result_id: result.result_id,
