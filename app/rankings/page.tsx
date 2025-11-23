@@ -700,6 +700,18 @@ function RankingsContent() {
     return categories;
   }
 
+  // Helper to normalize weight class strings for comparison
+  // Removes "kg", trims whitespace, and ensures "+" is at the end
+  function normalizeWeightClass(wc: string): string {
+    if (!wc) return "";
+    let normalized = wc.toLowerCase().replace(/kg/g, "").trim();
+    // Standardize super heavyweights to have "+" at the end (e.g. "+109" -> "109+")
+    if (normalized.startsWith("+")) {
+      normalized = normalized.substring(1) + "+";
+    }
+    return normalized;
+  }
+
   function applyFilters() {
     // Choose base dataset by federation
     let base: AthleteRanking[];
@@ -730,15 +742,16 @@ function RankingsContent() {
     }
 
     // Combine all weight class selections (current + both historical periods)
+    // Normalize filters for comparison
     const allSelectedWeightClasses = [
       ...filters.selectedWeightClasses,
       ...filters.selectedHistorical2018,
       ...filters.selectedHistorical1998,
-    ];
+    ].map(normalizeWeightClass);
 
     if (allSelectedWeightClasses.length > 0) {
       filtered = filtered.filter((athlete) => {
-        const weightClass = athlete.weight_class || "";
+        const weightClass = normalizeWeightClass(athlete.weight_class || "");
         return allSelectedWeightClasses.includes(weightClass);
       });
     }
