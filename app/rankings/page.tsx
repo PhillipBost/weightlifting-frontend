@@ -47,6 +47,7 @@ interface AthleteRanking {
   membership_number?: string;
   meet_id?: number;
   iwf_lifter_id?: number;
+  result_id?: number;
 }
 
 interface USAWRankingResult {
@@ -1741,10 +1742,7 @@ function RankingsContent() {
                               );
                             })}
                           </div>
-                          <p className="mt-2 text-[9px] text-gray-400">
-                            When no years are selected, rankings include all
-                            available years (All Time).
-                          </p>
+
                         </div>
                       )}
                     </div>
@@ -1833,7 +1831,7 @@ function RankingsContent() {
                   ) : (
                     displayResults.map((athlete, index) => (
                       <tr
-                        key={`${athlete.federation || "usaw"}-${athlete.lifter_id}-${athlete.meet_id}-${athlete.last_competition}`}
+                        key={athlete.result_id ? `rank-${athlete.result_id}` : `${athlete.federation || "usaw"}-${athlete.lifter_id}-${athlete.meet_id}-${athlete.last_competition}`}
                         className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors"
                         style={{ borderTopColor: 'var(--border-secondary)' }}
                       >
