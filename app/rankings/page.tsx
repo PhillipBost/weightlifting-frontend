@@ -426,84 +426,43 @@ function RankingsContent() {
         usawResults = resultsData as unknown as USAWRankingResult[];
       }
 
-      // Group by (lifter_id, year)
-      const DELIMITER = '|||';
-      const lifterYearGroups = usawResults.reduce(
-        (groups: { [key: string]: USAWRankingResult[] }, result) => {
-          const lifterId = result.lifter_id;
-          if (!lifterId) return groups;
+      // --- USAW DATA MAPPING ---
+      // Map directly to AthleteRanking without grouping
+      const usawRankingsLocal: AthleteRanking[] = usawResults.map((result) => {
+        const lifterInfo = lifterInfoMap.get(result.lifter_id);
+        const resultDate = new Date(result.date);
+        const year = resultDate.getFullYear();
 
-          const resultDate = new Date(result.date);
-          const year = resultDate.getFullYear();
-          if (isNaN(year)) return groups;
+        return {
+          lifter_id: String(result.lifter_id),
+          lifter_name: lifterInfo?.athlete_name || result.lifter_name || "Unknown",
+          gender: result.gender || "",
+          federation: "usaw" as const,
+          year: isNaN(year) ? 0 : year,
+          weight_class: result.weight_class || "",
+          age_category: result.age_category || "",
+          best_snatch: result.best_snatch || 0,
+          best_cj: result.best_cj || 0,
+          best_total: result.total || 0,
+          best_qpoints: Math.max(result.qpoints || 0, result.q_youth || 0, result.q_masters || 0),
+          q_youth: result.q_youth || undefined,
+          q_masters: result.q_masters || undefined,
+          qpoints: result.qpoints || undefined,
+          competition_count: 1, // Not used but kept for interface compatibility
+          last_competition: result.date || "",
+          last_meet_name: result.meet_name || "",
+          last_body_weight: result.body_weight_kg || "",
+          competition_age: result.competition_age || undefined,
+          membership_number: lifterInfo?.membership_number || result.membership_number || "",
+          meet_id: result.meet_id || 0,
+        };
+      }).filter(athlete => athlete.best_total > 0);
 
-          const compositeKey = `${lifterId}${DELIMITER}${year}`;
-          if (!groups[compositeKey]) groups[compositeKey] = [];
-          groups[compositeKey].push(result);
-          return groups;
-        },
-        {}
-      );
-
-      const athleteRankings: AthleteRanking[] = Object.entries(lifterYearGroups).map(
-        ([compositeKey, athleteResults]) => {
-          const [lifterId, yearStr] = compositeKey.split(DELIMITER);
-          const year = parseInt(yearStr, 10);
-          const lifterInfo = lifterInfoMap.get(Number(lifterId));
-
-          const validSnatches = athleteResults
-            .map((r) => r.best_snatch || 0)
-            .filter((v) => v > 0);
-
-          const validCJs = athleteResults
-            .map((r) => r.best_cj || 0)
-            .filter((v) => v > 0);
-
-          const validTotals = athleteResults
-            .map((r) => r.total || 0)
-            .filter((v) => v > 0);
-
-          const validQPoints = athleteResults
-            .map((r) => Math.max(r.qpoints || 0, r.q_youth || 0, r.q_masters || 0))
-            .filter((v) => v > 0);
-
-          const mostRecentResult = athleteResults[0];
-
-          return {
-            lifter_id: lifterId,
-            lifter_name: lifterInfo?.athlete_name || mostRecentResult.lifter_name || "Unknown",
-            gender: mostRecentResult.gender || "",
-            federation: "usaw" as const,
-            year,
-            weight_class: mostRecentResult.weight_class || "",
-            age_category: mostRecentResult.age_category || "",
-            best_snatch: validSnatches.length > 0 ? Math.max(...validSnatches) : 0,
-            best_cj: validCJs.length > 0 ? Math.max(...validCJs) : 0,
-            best_total: validTotals.length > 0 ? Math.max(...validTotals) : 0,
-            best_qpoints: validQPoints.length > 0 ? Math.max(...validQPoints) : 0,
-            q_youth: mostRecentResult.q_youth || undefined,
-            q_masters: mostRecentResult.q_masters || undefined,
-            qpoints: mostRecentResult.qpoints || undefined,
-            competition_count: athleteResults.length,
-            last_competition: mostRecentResult.date || "",
-            last_meet_name: mostRecentResult.meet_name || "",
-            last_body_weight: mostRecentResult.body_weight_kg || "",
-            competition_age: mostRecentResult.competition_age || undefined,
-            membership_number: lifterInfo?.membership_number || mostRecentResult.membership_number || "",
-            meet_id: mostRecentResult.meet_id || 0,
-          };
-        }
-      );
-
-      const rankedAthletes = athleteRankings.filter(
-        (athlete) => athlete.competition_count > 0 && athlete.best_total > 0
-      );
-
-      setUsawRankings(rankedAthletes);
+      setUsawRankings(usawRankingsLocal);
 
       // --- FILTER OPTION EXTRACTION (Keep existing logic) ---
       const weightClassCombinations = new Set<string>();
-      rankedAthletes.forEach((athlete) => {
+      usawRankingsLocal.forEach((athlete) => {
         if (athlete.age_category && athlete.weight_class) {
           let gender = "";
           if (athlete.age_category.includes("Women's")) gender = "Women's";
@@ -516,7 +475,7 @@ function RankingsContent() {
       });
 
       const extractedAgeCategories = new Set<string>();
-      rankedAthletes.forEach((athlete) => {
+      usawRankingsLocal.forEach((athlete) => {
         const ageCategory = athlete.age_category || "";
         if (ageCategory.includes("11 Under")) extractedAgeCategories.add("11 Under Age Group");
         else if (ageCategory.includes("13 Under")) extractedAgeCategories.add("13 Under Age Group");
@@ -664,66 +623,40 @@ function RankingsContent() {
         }
       }
 
-      // Group IWF results
-      const IWF_DELIMITER = '|||';
-      const iwfYearGroups = iwfResults.reduce(
-        (groups: { [key: string]: IWFRankingResult[] }, r) => {
-          const lifterId = r.db_lifter_id;
-          if (!lifterId) return groups;
+      // --- IWF DATA MAPPING ---
+      // Map directly to AthleteRanking without grouping
+      const iwfRankingsLocal: AthleteRanking[] = iwfResults.map((result) => {
+        const resultDate = new Date(result.date);
+        const year = resultDate.getFullYear();
 
-          const resultDate = new Date(r.date);
-          const year = resultDate.getFullYear();
-          if (isNaN(year)) return groups;
-
-          const compositeKey = `${lifterId}${IWF_DELIMITER}${year}`;
-          if (!groups[compositeKey]) groups[compositeKey] = [];
-          groups[compositeKey].push(r);
-          return groups;
-        },
-        {}
-      );
-
-      const iwfRankingsLocal: AthleteRanking[] = Object.entries(iwfYearGroups)
-        .map(([compositeKey, results]) => {
-          const [lifterId, yearStr] = compositeKey.split(IWF_DELIMITER);
-          const year = parseInt(yearStr, 10);
-
-          const validSnatches = results.map(r => r.best_snatch || 0).filter(v => v > 0);
-          const validCJs = results.map(r => r.best_cj || 0).filter(v => v > 0);
-          const validTotals = results.map(r => r.total || 0).filter(v => v > 0);
-          const validQPoints = results.map(r => Math.max(r.qpoints || 0, r.q_youth || 0, r.q_masters || 0)).filter(v => v > 0);
-
-          const mostRecentResult = results[0];
-
-          return {
-            lifter_id: String(lifterId),
-            lifter_name: mostRecentResult.lifter_name || "Unknown",
-            gender: mostRecentResult.gender || "",
-            federation: "iwf" as const,
-            year,
-            weight_class: mostRecentResult.weight_class || "",
-            age_category: mostRecentResult.age_category || "",
-            best_snatch: validSnatches.length > 0 ? Math.max(...validSnatches) : 0,
-            best_cj: validCJs.length > 0 ? Math.max(...validCJs) : 0,
-            best_total: validTotals.length > 0 ? Math.max(...validTotals) : 0,
-            best_qpoints: validQPoints.length > 0 ? Math.max(...validQPoints) : 0,
-            q_youth: mostRecentResult.q_youth || undefined,
-            q_masters: mostRecentResult.q_masters || undefined,
-            qpoints: mostRecentResult.qpoints || undefined,
-            competition_count: results.length,
-            last_competition: mostRecentResult.date || "",
-            last_meet_name: mostRecentResult.meet_name || "",
-            last_body_weight: mostRecentResult.body_weight_kg || "",
-            competition_age: mostRecentResult.competition_age || undefined,
-            meet_id: mostRecentResult.db_meet_id || 0,
-            iwf_lifter_id: mostRecentResult.iwf_lifter_id || 0,
-          };
-        })
-        .filter(athlete => athlete.competition_count > 0 && athlete.best_total > 0);
+        return {
+          lifter_id: String(result.db_lifter_id),
+          lifter_name: result.lifter_name || "Unknown",
+          gender: result.gender || "",
+          federation: "iwf" as const,
+          year: isNaN(year) ? 0 : year,
+          weight_class: result.weight_class || "",
+          age_category: result.age_category || "",
+          best_snatch: result.best_snatch || 0,
+          best_cj: result.best_cj || 0,
+          best_total: result.total || 0,
+          best_qpoints: Math.max(result.qpoints || 0, result.q_youth || 0, result.q_masters || 0),
+          q_youth: result.q_youth || undefined,
+          q_masters: result.q_masters || undefined,
+          qpoints: result.qpoints || undefined,
+          competition_count: 1,
+          last_competition: result.date || "",
+          last_meet_name: result.meet_name || "",
+          last_body_weight: result.body_weight_kg || "",
+          competition_age: result.competition_age || undefined,
+          meet_id: result.db_meet_id || 0,
+          iwf_lifter_id: result.iwf_lifter_id || 0,
+        };
+      }).filter(athlete => athlete.best_total > 0);
 
       setIwfRankings(iwfRankingsLocal);
       setRankings([
-        ...rankedAthletes.map((a) => ({ ...a, federation: "usaw" as const })),
+        ...usawRankingsLocal.map((a) => ({ ...a, federation: "usaw" as const })),
         ...iwfRankingsLocal.map((a) => ({ ...a, federation: "iwf" as const })),
       ]);
 
@@ -833,42 +766,43 @@ function RankingsContent() {
     }
 
     const rankingCriteria = filters.rankBy as keyof AthleteRanking;
-    const rankedForTrueRank = [...filtered];
 
+    // Create a sorted list to determine ranks
+    // We sort by the ranking criteria (e.g. best_total desc) to establish the "True Rank" order
+    const rankedForTrueRank = [...filtered];
     rankedForTrueRank.sort((a, b) => {
       const aValue = a[rankingCriteria] as number;
       const bValue = b[rankingCriteria] as number;
       return bValue - aValue;
     });
 
-    const athleteRanks = new Map<string, number>();
-    rankedForTrueRank.forEach((athlete, index) => {
-      athleteRanks.set(athlete.lifter_id, index + 1);
+    // Assign ranks based on the sorted list
+    // Only the first occurrence of a lifter gets a rank
+    const rankMap = new Map<AthleteRanking, number>();
+    let currentRank = 1;
+    const rankedLifters = new Set<string>();
+
+    rankedForTrueRank.forEach((athlete) => {
+      if (!rankedLifters.has(athlete.lifter_id)) {
+        rankMap.set(athlete, currentRank);
+        rankedLifters.add(athlete.lifter_id);
+        currentRank++;
+      }
     });
 
     // Handle trueRank sorting separately since it's calculated
     if (filters.sortBy === "trueRank") {
-      // First rank by the rankingCriteria, then apply the table sort direction
-      rankedForTrueRank.sort((a, b) => {
-        const aValue = a[rankingCriteria] as number;
-        const bValue = b[rankingCriteria] as number;
-        return bValue - aValue;
-      });
+      // rankedForTrueRank is already sorted by performance (Rank ASC)
+      // If sortOrder is 'desc', we reverse it
+      let sortedResult = [...rankedForTrueRank];
 
-      const athleteRanks = new Map<string, number>();
-      rankedForTrueRank.forEach((athlete, index) => {
-        athleteRanks.set(athlete.lifter_id, index + 1);
-      });
+      if (filters.sortOrder === "desc") {
+        sortedResult.reverse();
+      }
 
-      filtered.sort((a, b) => {
-        const rankA = athleteRanks.get(a.lifter_id) || Number.MAX_SAFE_INTEGER;
-        const rankB = athleteRanks.get(b.lifter_id) || Number.MAX_SAFE_INTEGER;
-        return filters.sortOrder === "asc" ? rankA - rankB : rankB - rankA;
-      });
-
-      const rankedFiltered = filtered.map((athlete) => ({
+      const rankedFiltered = sortedResult.map((athlete) => ({
         ...athlete,
-        trueRank: athleteRanks.get(athlete.lifter_id),
+        trueRank: rankMap.get(athlete),
       }));
 
       console.log('Final filtered count (rankBy mode):', rankedFiltered.length);
@@ -989,7 +923,7 @@ function RankingsContent() {
 
     const rankedFiltered = filtered.map((athlete) => ({
       ...athlete,
-      trueRank: athleteRanks.get(athlete.lifter_id),
+      trueRank: rankMap.get(athlete),
     }));
 
     // No hard cap: show all matching athletes
@@ -1899,12 +1833,12 @@ function RankingsContent() {
                   ) : (
                     displayResults.map((athlete, index) => (
                       <tr
-                        key={`${athlete.federation || "usaw"}-${athlete.lifter_id}-${athlete.year}`}
+                        key={`${athlete.federation || "usaw"}-${athlete.lifter_id}-${athlete.meet_id}-${athlete.last_competition}`}
                         className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors"
                         style={{ borderTopColor: 'var(--border-secondary)' }}
                       >
                         <td className="px-2 py-1 whitespace-nowrap text-xs">
-                          {athlete.trueRank || index + 1}
+                          {athlete.trueRank}
                         </td>
                         <td className="px-2 py-1 whitespace-nowrap text-xs">
                           <div className="font-medium">
