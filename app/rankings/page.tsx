@@ -37,6 +37,7 @@ import {
   Va, Vc, Ve, Vg, Vi, Vn, Vu, Wf, Ws, Xk, Ye, Yt, Za, Zm, Zw,
   GbEng, GbSct, GbWls
 } from 'react-flag-icons';
+import { matchesAthleteName } from "../../lib/search/searchUtils";
 
 // Custom ROC (Russian Olympic Committee) flag component
 const RocFlag: React.FC<{ style?: React.CSSProperties }> = ({ style }) => (
@@ -870,9 +871,7 @@ function RankingsContent() {
 
     if (filters.searchTerm) {
       filtered = filtered.filter((athlete) =>
-        athlete.lifter_name
-          .toLowerCase()
-          .includes(filters.searchTerm.toLowerCase())
+        matchesAthleteName(athlete.lifter_name, filters.searchTerm)
       );
     }
 

@@ -148,13 +148,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Initialize auth state and listen for changes
   useEffect(() => {
-    // Get initial session
+    // Get initial session with timeout protection
     const initializeAuth = async () => {
+      const timeout = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Auth initialization timeout')), 10000)
+      );
+
       try {
-        const { data: { session }, error } = await supabase.auth.getSession()
+        console.log('[AUTH] Initializing auth...')
+        const sessionPromise = supabase.auth.getSession()
+        const { data: { session }, error } = await Promise.race([sessionPromise, timeout]) as any
+
         if (error) {
-          console.error('Error getting session:', error)
+          console.error('[AUTH] Error getting session:', error)
+          setSession(null)
+          setUser(null)
         } else {
+          console.log('[AUTH] Session retrieved:', session ? 'active' : 'none')
           setSession(session)
           if (session?.user) {
             const extendedUser = await fetchUserProfile(session.user)
@@ -164,8 +174,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
           }
         }
       } catch (error) {
-        console.error('Failed to initialize auth:', error)
+        console.error('[AUTH] Failed to initialize auth:', error instanceof Error ? error.message : error)
+        setSession(null)
+        setUser(null)
       } finally {
+        console.log('[AUTH] Initialization complete, setting isLoading to false')
         setIsLoading(false)
       }
     }

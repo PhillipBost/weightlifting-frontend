@@ -20,6 +20,49 @@ Project is currently deployed here: https://weightlifting-db.vercel.app/
 |Backend / Database|Supabase (PostgreSQL)|
 |Raw data resources|USA Weightlifting's Sport80 tables|
 
+## Development Workflow
+
+### First Time Setup
+Before running the dev server for the first time, generate all static data files:
+```bash
+npm install
+npm run generate-all  # Takes ~2 minutes, generates 52 data files
+```
+
+### Daily Development
+Start the dev server with fast startup (no prebuild):
+```bash
+npm run dev  # Starts in ~3 seconds with Turbopack
+```
+
+The `predev` script automatically validates that required static data files exist. If they're missing, you'll see a helpful error message.
+
+### Available Commands
+| Command | Purpose |
+|---------|---------|
+| `npm run dev` | Start dev server with Turbopack (fast startup) |
+| `npm run dev:clean` | Clean cache and start dev server (use if experiencing build issues) |
+| `npm run build` | Build for production (includes automatic data generation) |
+| `npm run clean` | Manually clean `.next` and `node_modules/.cache` |
+| `npm run generate-all` | Regenerate all static data files (run after database changes) |
+| `npm run generate-static` | Generate static data files only |
+| `npm run generate-search` | Generate search indexes only |
+| `npm run generate-rankings` | Generate rankings data only |
+
+### When to Regenerate Data
+Run `npm run generate-all` when:
+- Database schema or data has changed
+- Search indexes need updating
+- Rankings data is stale
+
+### Troubleshooting Build Cache Issues
+If you encounter "Uncaught SyntaxError" or other build errors on initial load:
+```bash
+npm run dev:clean
+```
+
+This clears the build cache and starts fresh. The new workflow prevents the race condition that previously caused recurring cache corruption.
+
 ## Data Pipeline
 Competition results are automatically scraped and processed via a separate Node.js service. Data is updated daily and includes four distinct scraping tasks:
 - Meets (daily)

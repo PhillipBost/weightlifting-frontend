@@ -7,11 +7,31 @@ if (!IWF_URL || !IWF_KEY) {
   throw new Error('Missing IWF Supabase environment variables (NEXT_PUBLIC_SUPABASE_IWF_URL, NEXT_PUBLIC_SUPABASE_IWF_ANON_KEY)')
 }
 
-export const supabaseIWF = createClient(IWF_URL, IWF_KEY, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-    detectSessionInUrl: false
+// No-op storage to completely isolate IWF client from browser storage
+const noopStorage = {
+  getItem: () => null,
+  setItem: () => {},
+  removeItem: () => {}
+}
+
+// Lazy singleton - only create when first accessed
+let _supabaseIWF: ReturnType<typeof createClient> | null = null
+
+export const supabaseIWF = new Proxy({} as ReturnType<typeof createClient>, {
+  get: (target, prop) => {
+    // Lazy initialization on first property access
+    if (!_supabaseIWF) {
+      _supabaseIWF = createClient(IWF_URL, IWF_KEY, {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+          detectSessionInUrl: false,
+          storageKey: 'supabase-iwf-auth',
+          storage: noopStorage
+        }
+      })
+    }
+    return (_supabaseIWF as any)[prop]
   }
 })
 
