@@ -50,101 +50,185 @@ export function usePopulationStats(filter?: DemographicFilter) {
       }, 10000); // 10 second timeout
       
       const dataSource = filter?.dataSource || 'usaw';
-      const client = dataSource === 'iwf' ? supabaseIWF : supabase;
-      const tableName = dataSource === 'iwf' ? 'iwf_meet_results' : 'meet_results';
-      const lifterIdField = dataSource === 'iwf' ? 'db_lifter_id' : 'lifter_id';
 
       // Debug logging for data source selection
-      console.log('PopulationStats: Using dataSource=', dataSource, 'client=', dataSource === 'iwf' ? 'IWF' : 'USAW', 'table=', tableName, 'lifterField=', lifterIdField);
-
-      // Query unique athletes (most recent result per athlete) for proper population stats
-      // First, get count to determine sampling strategy
-      let countQuery = client
-        .from(tableName)
-        .select('*', { count: 'exact', head: true })
-        .not('total', 'is', null)
-        .not('best_snatch', 'is', null)
-        .not('best_cj', 'is', null);
+      console.log('PopulationStats: Using dataSource=', dataSource, 'client=', dataSource === 'iwf' ? 'IWF' : 'USAW');
 
       try {
         setLoading(true);
         setError(null);
 
-
-        console.log('Count query SQL (approx):', countQuery.toString ? countQuery.toString() : 'No toString method');
-
-        // Apply demographic filters for count
-        if (filter?.gender) {
-          countQuery = countQuery.eq('gender', filter.gender);
-        }
-        if (filter?.ageCategory) {
-          countQuery = countQuery.eq('age_category', filter.ageCategory);
-        }
-
-        const { count: totalResults, error: countError } = await countQuery;
-        
-        if (countError) throw countError;
-
-        // Determine sampling strategy based on population size
-        let sampleLimit: number | undefined;
+        // Branch based on data source for TypeScript type safety
+        let rawData: any[];
+        let totalResults: number | null;
         let confidence: 'high' | 'moderate' | 'low' = 'high';
 
-        if (!totalResults || totalResults < 100) {
-          confidence = 'low';
-          sampleLimit = undefined; // Use all available data
-        } else if (totalResults < 1000) {
-          confidence = 'moderate';  
-          sampleLimit = undefined; // Use all available data
-        } else if (totalResults < 5000) {
-          confidence = 'high';
-          sampleLimit = undefined; // Use all available data
+        if (dataSource === 'iwf') {
+          // IWF branch - use supabaseIWF client with 'iwf_meet_results' table
+          // First, get count to determine sampling strategy
+          let countQuery = supabaseIWF
+            .from('iwf_meet_results')
+            .select('*', { count: 'exact', head: true })
+            .not('total', 'is', null)
+            .not('best_snatch', 'is', null)
+            .not('best_cj', 'is', null);
+
+          console.log('Count query SQL (approx):', countQuery.toString ? countQuery.toString() : 'No toString method');
+
+          // Apply demographic filters for count
+          if (filter?.gender) {
+            countQuery = countQuery.eq('gender', filter.gender);
+          }
+          if (filter?.ageCategory) {
+            countQuery = countQuery.eq('age_category', filter.ageCategory);
+          }
+
+          const { count, error: countError } = await countQuery;
+          if (countError) throw countError;
+          totalResults = count;
+
+          // Determine sampling strategy based on population size
+          let sampleLimit: number | undefined;
+
+          if (!totalResults || totalResults < 100) {
+            confidence = 'low';
+            sampleLimit = undefined;
+          } else if (totalResults < 1000) {
+            confidence = 'moderate';
+            sampleLimit = undefined;
+          } else if (totalResults < 5000) {
+            confidence = 'high';
+            sampleLimit = undefined;
+          } else {
+            confidence = 'high';
+            sampleLimit = 2500;
+          }
+
+          // Query for actual data with adaptive sampling
+          let dataQuery = supabaseIWF
+            .from('iwf_meet_results')
+            .select('db_lifter_id,snatch_lift_1,snatch_lift_2,snatch_lift_3,best_snatch,cj_lift_1,cj_lift_2,cj_lift_3,best_cj,total,date,age_category,gender,qpoints,q_youth,q_masters')
+            .not('total', 'is', null)
+            .not('best_snatch', 'is', null)
+            .not('best_cj', 'is', null)
+            .order('date', { ascending: false });
+
+          console.log('Data query SQL (approx):', dataQuery.toString ? dataQuery.toString() : 'No toString method');
+
+          // Apply demographic filters
+          if (filter?.gender) {
+            dataQuery = dataQuery.eq('gender', filter.gender);
+          }
+          if (filter?.ageCategory) {
+            dataQuery = dataQuery.eq('age_category', filter.ageCategory);
+          }
+
+          // Apply adaptive sampling limit
+          if (sampleLimit) {
+            dataQuery = dataQuery.limit(sampleLimit);
+          }
+
+          console.log('Executing population stats query with filters:', filter, 'dataSource:', dataSource);
+          console.log('Sample limit:', sampleLimit, 'Expected total results:', totalResults);
+          console.log('Data query SQL:', dataQuery.toString());
+
+          const { data, error: queryError } = await dataQuery;
+          if (queryError) {
+            console.error('Supabase query error details:', {
+              message: queryError.message,
+              code: queryError.code,
+              details: queryError.details,
+              hint: queryError.hint,
+              table: 'iwf_meet_results'
+            });
+            throw queryError;
+          }
+          rawData = data || [];
+
         } else {
-          confidence = 'high';
-          sampleLimit = 2500; // Use stratified sample for very large populations
+          // USAW branch - use supabase client with 'meet_results' table
+          // First, get count to determine sampling strategy
+          let countQuery = supabase
+            .from('meet_results')
+            .select('*', { count: 'exact', head: true })
+            .not('total', 'is', null)
+            .not('best_snatch', 'is', null)
+            .not('best_cj', 'is', null);
+
+          console.log('Count query SQL (approx):', countQuery.toString ? countQuery.toString() : 'No toString method');
+
+          // Apply demographic filters for count
+          if (filter?.gender) {
+            countQuery = countQuery.eq('gender', filter.gender);
+          }
+          if (filter?.ageCategory) {
+            countQuery = countQuery.eq('age_category', filter.ageCategory);
+          }
+
+          const { count, error: countError } = await countQuery;
+          if (countError) throw countError;
+          totalResults = count;
+
+          // Determine sampling strategy based on population size
+          let sampleLimit: number | undefined;
+
+          if (!totalResults || totalResults < 100) {
+            confidence = 'low';
+            sampleLimit = undefined;
+          } else if (totalResults < 1000) {
+            confidence = 'moderate';
+            sampleLimit = undefined;
+          } else if (totalResults < 5000) {
+            confidence = 'high';
+            sampleLimit = undefined;
+          } else {
+            confidence = 'high';
+            sampleLimit = 2500;
+          }
+
+          // Query for actual data with adaptive sampling
+          let dataQuery = supabase
+            .from('meet_results')
+            .select('lifter_id,snatch_lift_1,snatch_lift_2,snatch_lift_3,best_snatch,cj_lift_1,cj_lift_2,cj_lift_3,best_cj,total,date,age_category,gender,qpoints,q_youth,q_masters')
+            .not('total', 'is', null)
+            .not('best_snatch', 'is', null)
+            .not('best_cj', 'is', null)
+            .order('date', { ascending: false });
+
+          console.log('Data query SQL (approx):', dataQuery.toString ? dataQuery.toString() : 'No toString method');
+
+          // Apply demographic filters
+          if (filter?.gender) {
+            dataQuery = dataQuery.eq('gender', filter.gender);
+          }
+          if (filter?.ageCategory) {
+            dataQuery = dataQuery.eq('age_category', filter.ageCategory);
+          }
+
+          // Apply adaptive sampling limit
+          if (sampleLimit) {
+            dataQuery = dataQuery.limit(sampleLimit);
+          }
+
+          console.log('Executing population stats query with filters:', filter, 'dataSource:', dataSource);
+          console.log('Sample limit:', sampleLimit, 'Expected total results:', totalResults);
+          console.log('Data query SQL:', dataQuery.toString());
+
+          const { data, error: queryError } = await dataQuery;
+          if (queryError) {
+            console.error('Supabase query error details:', {
+              message: queryError.message,
+              code: queryError.code,
+              details: queryError.details,
+              hint: queryError.hint,
+              table: 'meet_results'
+            });
+            throw queryError;
+          }
+          rawData = data || [];
         }
 
-        // Query for actual data with adaptive sampling (simplified to avoid join issues)
-        let dataQuery = client
-          .from(tableName)
-          .select(`${lifterIdField},snatch_lift_1,snatch_lift_2,snatch_lift_3,best_snatch,cj_lift_1,cj_lift_2,cj_lift_3,best_cj,total,date,age_category,gender,qpoints,q_youth,q_masters`)
-          .not('total', 'is', null)
-          .not('best_snatch', 'is', null)
-          .not('best_cj', 'is', null)
-          .order('date', { ascending: false }); // Get most recent results first
-
-        console.log('Data query SQL (approx):', dataQuery.toString ? dataQuery.toString() : 'No toString method');
-
-        // Apply demographic filters
-        if (filter?.gender) {
-          dataQuery = dataQuery.eq('gender', filter.gender);
-        }
-        if (filter?.ageCategory) {
-          dataQuery = dataQuery.eq('age_category', filter.ageCategory);
-        }
-        // Skip competition level filter for now to avoid join issues
-
-        // Apply adaptive sampling limit
-        if (sampleLimit) {
-          dataQuery = dataQuery.limit(sampleLimit);
-        }
-
-        console.log('Executing population stats query with filters:', filter, 'dataSource:', dataSource);
-        console.log('Sample limit:', sampleLimit, 'Expected total results:', totalResults);
-        console.log('Data query SQL:', dataQuery.toString());
-        
-        const { data: rawData, error: queryError } = await dataQuery;
-
-        if (queryError) {
-          console.error('Supabase query error details:', {
-            message: queryError.message,
-            code: queryError.code,
-            details: queryError.details,
-            hint: queryError.hint,
-            table: tableName
-          });
-          throw queryError;
-        }
-        
+        // Continue with shared logic for both data sources
         console.log('Population query returned:', rawData?.length || 0, 'results');
         if (rawData && rawData.length > 0) {
           console.log('Sample raw data keys:', Object.keys(rawData[0] as any));
@@ -466,7 +550,7 @@ export function usePopulationStats(filter?: DemographicFilter) {
         };
         
         console.error('Detailed error info:', errorDetails);
-        console.error('Data source at error:', dataSource, 'table:', tableName);
+        console.error('Data source at error:', dataSource, 'table:', dataSource === 'iwf' ? 'iwf_meet_results' : 'meet_results');
         
         // Construct comprehensive error message
         let errorMessage = 'Population statistics loading failed';

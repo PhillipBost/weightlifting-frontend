@@ -291,11 +291,11 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         }
 
         setMeet({
-          meet_name: meetData.meet,
-          date: meetData.date,
+          meet_name: meetData.meet || 'Unknown Meet',
+          date: meetData.date || 'Unknown Date',
           location: locationStr,
           level: meetData.level || 'International',
-          elevation: locationData && locationData.length > 0 ? locationData[0].elevation_meters : null,
+          elevation: null, // elevation_meters not available in IWF location data
           iwf_url: meetData.url || null,
           latitude: locationData && locationData.length > 0 ? locationData[0].latitude : null,
           longitude: locationData && locationData.length > 0 ? locationData[0].longitude : null
@@ -365,7 +365,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
           meet_name: meetData?.meet || '',
           date: meetData?.date || '',
           level: meetData?.level || 'International',
-          country: result.country || result.country_name || '',
+          // country_code and country_name are already included via ...result spread
           birth_year: result.birth_year || 0,
           manual_override: result.manual_override || false
         })) as IWFMeetResult[];

@@ -112,24 +112,24 @@ export function adaptIWFAthlete(iwfLifter: IWFLifter): AdaptedAthlete {
     // Basic info
     athlete_name: iwfLifter.athlete_name,
     membership_number: null, // N/A for international athletes
-    gender: iwfLifter.gender,
-    birth_year: iwfLifter.birth_year,
+    gender: iwfLifter.gender ?? undefined, // Convert null to undefined for type compatibility
+    birth_year: iwfLifter.birth_year ?? undefined, // Convert null to undefined for type compatibility
 
     // Map country → club/WSO (for display compatibility)
-    club: iwfLifter.country_name, // Full country name as requested
-    wso: iwfLifter.country_code,
+    club: iwfLifter.country_name ?? undefined, // Convert null to undefined for type compatibility
+    wso: iwfLifter.country_code ?? undefined, // Convert null to undefined for type compatibility
 
     // Preserve original country data
-    country_name: iwfLifter.country_name,
-    country_code: iwfLifter.country_code,
+    country_name: iwfLifter.country_name ?? undefined, // Convert null to undefined for type compatibility
+    country_code: iwfLifter.country_code ?? undefined, // Convert null to undefined for type compatibility
 
     // External links
     internal_id: null, // N/A for IWF
-    iwf_athlete_url: iwfLifter.iwf_athlete_url,
+    iwf_athlete_url: iwfLifter.iwf_athlete_url ?? undefined, // Convert null to undefined for type compatibility
 
     // System fields
-    created_at: iwfLifter.created_at,
-    updated_at: iwfLifter.updated_at,
+    created_at: iwfLifter.created_at ?? undefined, // Convert null to undefined for type compatibility
+    updated_at: iwfLifter.updated_at ?? undefined, // Convert null to undefined for type compatibility
   };
 }
 
@@ -144,66 +144,66 @@ export function adaptIWFResult(iwfResult: IWFMeetResult): AdaptedResult {
     // Map primary IDs
     result_id: iwfResult.db_result_id,
     lifter_id: iwfResult.db_lifter_id,
-    lifter_name: iwfResult.lifter_name,
+    lifter_name: iwfResult.lifter_name ?? '',
 
     // Meet info
-    date: iwfResult.date,
-    meet_name: iwfResult.meet_name,
-    meet_id: iwfResult.db_meet_id,
-    meets: iwfResult.level ? { Level: iwfResult.level } : undefined,
+    date: iwfResult.date ?? '',
+    meet_name: iwfResult.meet_name ?? '',
+    meet_id: iwfResult.db_meet_id ?? undefined,
+    meets: undefined, // level not available on IWFMeetResult, only on IWFMeet
 
     // Lift attempts (all fields match directly)
-    snatch_lift_1: iwfResult.snatch_lift_1,
-    snatch_lift_2: iwfResult.snatch_lift_2,
-    snatch_lift_3: iwfResult.snatch_lift_3,
-    best_snatch: iwfResult.best_snatch,
+    snatch_lift_1: iwfResult.snatch_lift_1 ?? null,
+    snatch_lift_2: iwfResult.snatch_lift_2 ?? null,
+    snatch_lift_3: iwfResult.snatch_lift_3 ?? null,
+    best_snatch: iwfResult.best_snatch ?? null,
 
-    cj_lift_1: iwfResult.cj_lift_1,
-    cj_lift_2: iwfResult.cj_lift_2,
-    cj_lift_3: iwfResult.cj_lift_3,
-    best_cj: iwfResult.best_cj,
+    cj_lift_1: iwfResult.cj_lift_1 ?? null,
+    cj_lift_2: iwfResult.cj_lift_2 ?? null,
+    cj_lift_3: iwfResult.cj_lift_3 ?? null,
+    best_cj: iwfResult.best_cj ?? null,
 
-    total: iwfResult.total,
+    total: iwfResult.total ?? null,
 
     // Analytics (all fields match directly)
-    snatch_successful_attempts: iwfResult.snatch_successful_attempts,
-    cj_successful_attempts: iwfResult.cj_successful_attempts,
-    total_successful_attempts: iwfResult.total_successful_attempts,
+    snatch_successful_attempts: iwfResult.snatch_successful_attempts ?? undefined,
+    cj_successful_attempts: iwfResult.cj_successful_attempts ?? undefined,
+    total_successful_attempts: iwfResult.total_successful_attempts ?? undefined,
 
-    bounce_back_snatch_2: iwfResult.bounce_back_snatch_2,
-    bounce_back_snatch_3: iwfResult.bounce_back_snatch_3,
-    bounce_back_cj_2: iwfResult.bounce_back_cj_2,
-    bounce_back_cj_3: iwfResult.bounce_back_cj_3,
+    bounce_back_snatch_2: iwfResult.bounce_back_snatch_2 ?? undefined,
+    bounce_back_snatch_3: iwfResult.bounce_back_snatch_3 ?? undefined,
+    bounce_back_cj_2: iwfResult.bounce_back_cj_2 ?? undefined,
+    bounce_back_cj_3: iwfResult.bounce_back_cj_3 ?? undefined,
 
     // Q-scores (available for IWF as per user confirmation)
-    qpoints: iwfResult.qpoints,
-    q_youth: iwfResult.q_youth,
-    q_masters: iwfResult.q_masters,
+    qpoints: iwfResult.qpoints ?? undefined,
+    q_youth: iwfResult.q_youth ?? undefined,
+    q_masters: iwfResult.q_masters ?? undefined,
 
     // Year-to-date bests
-    best_snatch_ytd: iwfResult.best_snatch_ytd,
-    best_cj_ytd: iwfResult.best_cj_ytd,
-    best_total_ytd: iwfResult.best_total_ytd,
+    best_snatch_ytd: iwfResult.best_snatch_ytd ?? undefined,
+    best_cj_ytd: iwfResult.best_cj_ytd ?? undefined,
+    best_total_ytd: iwfResult.best_total_ytd ?? undefined,
 
     // Athlete context
-    gender: iwfResult.gender,
-    age_category: iwfResult.age_category,
-    competition_age: iwfResult.competition_age,
-    weight_class: iwfResult.weight_class,
-    body_weight_kg: iwfResult.body_weight_kg,
+    gender: iwfResult.gender ?? '',
+    age_category: iwfResult.age_category ?? '',
+    competition_age: iwfResult.competition_age ?? undefined,
+    weight_class: iwfResult.weight_class ?? '',
+    body_weight_kg: iwfResult.body_weight_kg ?? undefined,
 
     // Map country → club/WSO for display compatibility
-    club_name: iwfResult.country_name, // Full country name
-    wso: iwfResult.country_code,
+    club_name: iwfResult.country_name ?? '', // Full country name
+    wso: iwfResult.country_code ?? '',
 
     // Preserve original country data
-    country_name: iwfResult.country_name,
-    country_code: iwfResult.country_code,
+    country_name: iwfResult.country_name ?? undefined,
+    country_code: iwfResult.country_code ?? undefined,
 
     // IWF-specific fields
     iwf_lifter_id: iwfResult.iwf_lifters?.iwf_lifter_id ?? null,
-    competition_group: iwfResult.competition_group,
-    rank: iwfResult.rank,
+    competition_group: iwfResult.competition_group ?? undefined,
+    rank: iwfResult.rank ?? undefined,
   };
 }
 
