@@ -41,6 +41,8 @@ interface IWFRankingResult {
     qpoints: number;
     q_youth: number | null;
     q_masters: number | null;
+    country_code?: string;
+    country_name?: string;
 }
 
 async function generateIWFRankingsForYear(year: number) {
@@ -77,6 +79,8 @@ async function generateIWFRankingsForYear(year: number) {
                     qpoints,
                     q_youth,
                     q_masters,
+                    country_code,
+                    country_name,
                     iwf_lifters!inner(iwf_lifter_id)
                 `)
                 .order('db_result_id', { ascending: true })
@@ -136,7 +140,9 @@ async function generateIWFRankingsForYear(year: number) {
                 total: parseFloat(result.total) || 0,
                 qpoints: parseFloat(result.qpoints) || 0,
                 q_youth: result.q_youth ? parseFloat(result.q_youth) : null,
-                q_masters: result.q_masters ? parseFloat(result.q_masters) : null
+                q_masters: result.q_masters ? parseFloat(result.q_masters) : null,
+                country_code: result.country_code,
+                country_name: result.country_name
             };
         });
 
