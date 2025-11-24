@@ -108,9 +108,8 @@ export interface IWFMeetResult {
   gender: 'M' | 'F'
   birth_year: number
   competition_age: number
-  country: string
-  country_code: string
-  country_name: string
+  country_code: string | null
+  country_name: string | null
   body_weight_kg: string
 
   // Competition Categories
