@@ -1952,14 +1952,8 @@ function RankingsContent() {
                     <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("weight_class")}>
                       Weight Class {getSortIcon("weight_class")}
                     </th>
-                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("last_competition")}>
-                      Date {getSortIcon("last_competition")}
-                    </th>
                     <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("last_body_weight")}>
                       Body Weight {getSortIcon("last_body_weight")}
-                    </th>
-                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("competition_age")}>
-                      Comp Age {getSortIcon("competition_age")}
                     </th>
                     <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("best_snatch")}>
                       Best Sn {getSortIcon("best_snatch")}
@@ -1973,8 +1967,14 @@ function RankingsContent() {
                     <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("best_qpoints")}>
                       Q-Points {getSortIcon("best_qpoints")}
                     </th>
+                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("competition_age")}>
+                      Comp Age {getSortIcon("competition_age")}
+                    </th>
                     <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">
                       Age Category
+                    </th>
+                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("last_competition")}>
+                      Date {getSortIcon("last_competition")}
                     </th>
                     <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("last_meet_name")}>
                       Meet Name {getSortIcon("last_meet_name")}
@@ -2040,13 +2040,7 @@ function RankingsContent() {
                           {athlete.weight_class || "-"}
                         </td>
                         <td className="px-2 py-1 whitespace-nowrap text-xs">
-                          {athlete.last_competition ? new Date(athlete.last_competition).toLocaleDateString() : "-"}
-                        </td>
-                        <td className="px-2 py-1 whitespace-nowrap text-xs">
                           {athlete.last_body_weight ? `${athlete.last_body_weight}kg` : "-"}
-                        </td>
-                        <td className="px-2 py-1 whitespace-nowrap text-xs">
-                          {athlete.competition_age || "-"}
                         </td>
                         <td className="px-2 py-1 whitespace-nowrap">
                           <span className="font-medium text-xs" style={{ color: 'var(--chart-snatch)' }}>
@@ -2072,7 +2066,13 @@ function RankingsContent() {
                           </span>
                         </td>
                         <td className="px-2 py-1 whitespace-nowrap text-xs">
+                          {athlete.competition_age || "-"}
+                        </td>
+                        <td className="px-2 py-1 whitespace-nowrap text-xs">
                           {athlete.age_category || "-"}
+                        </td>
+                        <td className="px-2 py-1 whitespace-nowrap text-xs">
+                          {athlete.last_competition ? new Date(athlete.last_competition).toLocaleDateString() : "-"}
                         </td>
                         <td className="px-2 py-1 whitespace-nowrap text-xs max-w-[200px] truncate" title={athlete.last_meet_name || ""}>
                           <Link
