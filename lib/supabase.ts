@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import type { Database } from './database-usaw.types'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -8,12 +9,12 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 // Lazy singleton - only create when first accessed
-let _supabase: ReturnType<typeof createClient> | null = null
+let _supabase: ReturnType<typeof createClient<Database>> | null = null
 
-export const supabase = new Proxy({} as ReturnType<typeof createClient>, {
+export const supabase = new Proxy({} as ReturnType<typeof createClient<Database>>, {
   get: (target, prop) => {
     if (!_supabase) {
-      _supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      _supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
         auth: {
           autoRefreshToken: true,
           persistSession: true,

@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import type { Database } from './database-iwf.types'
 
 const IWF_URL = process.env.NEXT_PUBLIC_SUPABASE_IWF_URL
 const IWF_KEY = process.env.NEXT_PUBLIC_SUPABASE_IWF_ANON_KEY
@@ -15,13 +16,13 @@ const noopStorage = {
 }
 
 // Lazy singleton - only create when first accessed
-let _supabaseIWF: ReturnType<typeof createClient> | null = null
+let _supabaseIWF: ReturnType<typeof createClient<Database>> | null = null
 
-export const supabaseIWF = new Proxy({} as ReturnType<typeof createClient>, {
+export const supabaseIWF = new Proxy({} as ReturnType<typeof createClient<Database>>, {
   get: (target, prop) => {
     // Lazy initialization on first property access
     if (!_supabaseIWF) {
-      _supabaseIWF = createClient(IWF_URL, IWF_KEY, {
+      _supabaseIWF = createClient<Database>(IWF_URL, IWF_KEY, {
         auth: {
           autoRefreshToken: false,
           persistSession: false,
@@ -52,12 +53,12 @@ export interface IWFLifter {
   iwf_lifter_id: number | null
   iwf_athlete_url: string | null
   athlete_name: string
-  gender: 'M' | 'F'
-  birth_year: number
-  country_code: string
-  country_name: string
-  created_at: string
-  updated_at: string
+  gender: string | null
+  birth_year: number | null
+  country_code: string | null
+  country_name: string | null
+  created_at: string | null
+  updated_at: string | null
 }
 
 /**
