@@ -96,45 +96,44 @@ export interface IWFMeet {
 export interface IWFMeetResult {
   db_result_id: number
   db_lifter_id: number
-  db_meet_id: number
+  db_meet_id: number | null
 
   // Meet Context
-  meet_name: string
-  date: string
-  level?: string
+  meet_name: string | null
+  date: string | null
 
   // Athlete Context
-  lifter_name: string
-  gender: 'M' | 'F'
-  birth_year: number
-  competition_age: number
+  lifter_name: string | null
+  gender: string | null
+  birth_year: number | null
+  competition_age: number | null
   country_code: string | null
   country_name: string | null
-  body_weight_kg: string
+  body_weight_kg: string | null
 
   // Competition Categories
-  age_category: string
-  weight_class: string
-  competition_group: string
-  rank: number
+  age_category: string | null
+  weight_class: string | null
+  competition_group: string | null
+  rank: number | null
 
   // Lift Attempts (positive = success, negative = miss)
-  snatch_lift_1: string | number | null
-  snatch_lift_2: string | number | null
-  snatch_lift_3: string | number | null
-  best_snatch: string | number | null
+  snatch_lift_1: string | null
+  snatch_lift_2: string | null
+  snatch_lift_3: string | null
+  best_snatch: string | null
 
-  cj_lift_1: string | number | null
-  cj_lift_2: string | number | null
-  cj_lift_3: string | number | null
-  best_cj: string | number | null
+  cj_lift_1: string | null
+  cj_lift_2: string | null
+  cj_lift_3: string | null
+  best_cj: string | null
 
-  total: string | number | null
+  total: string | null
 
   // Analytics (Pre-calculated)
-  snatch_successful_attempts: number
-  cj_successful_attempts: number
-  total_successful_attempts: number
+  snatch_successful_attempts: number | null
+  cj_successful_attempts: number | null
+  total_successful_attempts: number | null
 
   // Bounce-back Metrics
   bounce_back_snatch_2: boolean | null
@@ -153,9 +152,9 @@ export interface IWFMeetResult {
   best_total_ytd: number | null
 
   // System Fields
-  created_at: string
-  updated_at: string
-  manual_override: boolean
+  created_at: string | null
+  updated_at: string | null
+  manual_override: boolean | null
 
   // Optional joined lifter data
   iwf_lifters?: {

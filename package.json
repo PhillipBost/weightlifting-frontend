@@ -6,7 +6,6 @@
     "predev": "node scripts/check-static-data.js",
     "dev": "next dev --turbo",
     "dev:clean": "npm run clean && npm run dev",
-    "prebuild": "node scripts/generate-static-data.js && npm run generate-search",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
