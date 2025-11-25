@@ -98,24 +98,35 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   // Fetch user profile data including role
-  const fetchUserProfile = async (authUser: User): Promise<ExtendedUser> => {
+  const fetchUserProfile = async (authUser: User, retryCount = 0): Promise<ExtendedUser | null> => {
     try {
-      console.log('Fetching profile for user ID:', authUser.id)
+      console.log(`[AUTH] Fetching profile for user ID: ${authUser.id} (attempt ${retryCount + 1})`)
 
-      const { data: profile, error } = await supabase
+      // SKIP getSession check here to prevent deadlocks. 
+      // We rely on the passed authUser and handle DB errors if the session is invalid.
+
+      // Add timeout to the DB query
+      const dbPromise = supabase
         .from('profiles')
         .select('name, role')
         .eq('id', authUser.id)
         .single()
 
-      if (error) {
-        console.error('Error fetching user profile:', error)
-        console.log('User ID being queried:', authUser.id)
-        console.log('Auth user email:', authUser.email)
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
+      )
 
-        // Try to create the profile if it doesn't exist
+      const { data: profile, error } = await Promise.race([
+        dbPromise,
+        timeoutPromise
+      ]) as any
+
+      if (error) {
+        console.error('[AUTH] Error fetching user profile:', error.message)
+
+        // Handle specific error codes
         if (error.code === 'PGRST116') {
-          console.log('Profile not found, creating new profile...')
+          console.log('[AUTH] Profile not found, creating new profile...')
           const { data: newProfile, error: insertError } = await supabase
             .from('profiles')
             .insert({
@@ -128,7 +139,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             .single()
 
           if (insertError) {
-            console.error('Error creating profile:', insertError)
+            console.error('[AUTH] Error creating profile:', insertError)
             return { ...authUser, role: 'default' }
           }
 
@@ -139,10 +150,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
           }
         }
 
-        return { ...authUser, role: 'default' }
+        // If it's a potential auth error (like 401/403 equivalent in Supabase/PostgREST), try to refresh session
+        if (retryCount < 2 && (error.message.includes('JWT') || error.message.includes('token'))) {
+          console.log('[AUTH] Potential stale token detected, refreshing session...')
+          const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
+          if (!refreshError && refreshData.session) {
+            console.log('[AUTH] Session refreshed, retrying profile fetch...')
+            return fetchUserProfile(refreshData.session.user, retryCount + 1)
+          }
+        }
+
+        return null
       }
 
-      console.log('Profile fetched successfully:', profile)
+      console.log('[AUTH] Profile fetched successfully:', profile)
 
       return {
         ...authUser,
@@ -150,8 +171,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         name: profile?.name || authUser.user_metadata?.name
       }
     } catch (error) {
-      console.error('Failed to fetch user profile:', error)
-      return { ...authUser, role: 'default' }
+      console.error('[AUTH] Failed to fetch user profile:', error)
+      return null
     }
   }
 
@@ -202,8 +223,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
             // We don't await this, so the UI can render immediately
             fetchUserProfile(session.user)
               .then(extendedUser => {
-                console.log('[AUTH] Profile loaded:', extendedUser.role)
-                setUser(extendedUser)
+                if (extendedUser) {
+                  console.log('[AUTH] Profile loaded:', extendedUser.role)
+                  setUser(extendedUser)
+                }
               })
               .catch(err => {
                 console.error('[AUTH] Profile fetch failed:', err.message)
@@ -230,6 +253,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log(`[AUTH] Auth state change: ${event}`)
+
+      // If the session is the same as what we have, don't do anything drastic
+      // This helps prevent loops if onAuthStateChange fires redundantly
+      if (event === 'INITIAL_SESSION' && session?.access_token === session?.access_token) {
+        // We already handled initial session in initializeAuth, but we update state just in case
+      }
+
       setSession(session)
 
       if (session?.user) {
@@ -240,7 +271,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
           name: cachedProfile?.name || session.user.email?.split('@')[0] || 'User',
           role: cachedProfile?.role || 'default'
         }
-        setUser(immediateUser)
+
+        // Only update user if it's different to avoid re-renders
+        setUser(prev => {
+          if (prev?.id === immediateUser.id && prev?.role === immediateUser.role) return prev;
+          return immediateUser;
+        })
+
         setIsLoading(false)
 
         // Only show loading profile if we don't have a cached role
@@ -250,40 +287,30 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         // Then fetch fresh profile with retry logic in the background
         try {
-          const extendedUser = await queryWithRetry(
-            async () => {
-              const result = await fetchUserProfile(session.user)
-              // Only throw if we actually got an error, not if we got default values
-              if (!result.role || result.role === 'default') {
-                throw new Error('Profile not loaded yet')
-              }
-              return result
-            },
-            {
-              maxRetries: 4,
-              initialDelayMs: 100,
-              maxDelayMs: 2000,
-              queryName: 'fetchUserProfile'
-            }
-          )
+          // Use a simpler retry logic that respects auth errors
+          const extendedUser = await fetchUserProfile(session.user)
 
-          // Cache the successful profile fetch
-          if (extendedUser.name || extendedUser.role) {
-            setCachedProfile(session.user.id, {
-              name: extendedUser.name,
-              role: extendedUser.role
-            })
+          if (extendedUser) {
+            // Cache the successful profile fetch
+            if (extendedUser.name || extendedUser.role) {
+              setCachedProfile(session.user.id, {
+                name: extendedUser.name,
+                role: extendedUser.role
+              })
+            }
+
+            // Update user with fresh profile data
+            setUser(extendedUser)
+            console.log('[AUTH] Profile loaded successfully:', extendedUser.role)
+          } else {
+            console.warn('[AUTH] Profile fetch failed, keeping existing profile if available')
+            // Do NOT overwrite user with null or default if we already have a profile
           }
 
-          // Update user with fresh profile data
-          setUser(extendedUser)
           setIsLoadingProfile(false)
-          console.log('[AUTH] Profile loaded successfully:', extendedUser)
         } catch (error) {
-          console.error('[AUTH] Profile fetch failed after retries:', error instanceof Error ? error.message : error)
-          // Keep the immediate user with cached/session data
+          console.error('[AUTH] Profile fetch failed:', error)
           setIsLoadingProfile(false)
-          console.log('[AUTH] Using fallback user data:', immediateUser)
         }
       } else {
         setUser(null)
@@ -421,7 +448,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setSession(session)
         if (session?.user) {
           const extendedUser = await fetchUserProfile(session.user)
-          setUser(extendedUser)
+          if (extendedUser) {
+            setUser(extendedUser)
+          }
         } else {
           setUser(null)
         }

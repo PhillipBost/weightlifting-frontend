@@ -2144,6 +2144,7 @@ function RankingsContent() {
                                   ? `/athlete/iwf/${athlete.iwf_lifter_id}`
                                   : `/athlete/${athlete.membership_number}`
                               }
+                              prefetch={false}
                               className="text-blue-400 hover:text-blue-300 hover:underline"
                             >
                               {athlete.lifter_name}
@@ -2215,6 +2216,7 @@ function RankingsContent() {
                                 ? `/meet/iwf/${athlete.meet_id}`
                                 : `/meet/${athlete.meet_id}`
                             }
+                            prefetch={false}
                             className="text-blue-400 hover:text-blue-300 hover:underline"
                           >
                             {athlete.last_meet_name || "-"}
