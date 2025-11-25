@@ -1197,6 +1197,11 @@ function RankingsContent() {
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
 
+    // Limit rows to prevent browser crash
+    const MAX_PRINT_ROWS = 1000;
+    const rowsToPrint = filteredRankings.slice(0, MAX_PRINT_ROWS);
+    const isTruncated = filteredRankings.length > MAX_PRINT_ROWS;
+
     const tableHTML = `
       <!DOCTYPE html>
       <html>
@@ -1210,12 +1215,14 @@ function RankingsContent() {
             th { background-color: #f5f5f5; font-weight: bold; }
             tr:nth-child(even) { background-color: #f9f9f9; }
             .rank { font-weight: bold; }
+            .warning { color: #666; font-style: italic; text-align: center; margin-top: 10px; }
             @media print { body { margin: 0; } }
           </style>
         </head>
         <body>
           <h1>Weightlifting Rankings</h1>
           <p>Generated on: ${new Date().toLocaleDateString()}</p>
+          ${isTruncated ? `<p class="warning">Note: Output limited to top ${MAX_PRINT_ROWS} results for performance. Please filter data to see specific results.</p>` : ''}
           <table>
             <thead>
               <tr>
@@ -1233,7 +1240,7 @@ function RankingsContent() {
               </tr>
             </thead>
             <tbody>
-              ${filteredRankings
+              ${rowsToPrint
         .map(
           (athlete) => `
                 <tr>
@@ -1257,13 +1264,17 @@ function RankingsContent() {
         .join("")}
             </tbody>
           </table>
+          ${isTruncated ? `<p class="warning">End of top ${MAX_PRINT_ROWS} results.</p>` : ''}
         </body>
       </html>
     `;
 
     printWindow.document.write(tableHTML);
     printWindow.document.close();
-    printWindow.print();
+    // Small delay to ensure styles are loaded before printing
+    setTimeout(() => {
+      printWindow.print();
+    }, 500);
   }
 
 
