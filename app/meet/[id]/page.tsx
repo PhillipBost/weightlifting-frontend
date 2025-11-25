@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { createClient } from '../../../lib/supabase/client';
+import { createPublicClient } from '../../../lib/supabase/client';
 import { ArrowLeft, Calendar, MapPin, Trophy, Users, ExternalLink, ChevronDown, ChevronRight, Mountain, Database, Medal } from 'lucide-react';
 import { ThemeSwitcher } from '../../components/ThemeSwitcher';
 import { useMeetClubLocations } from '../../hooks/useMeetClubLocations';
@@ -78,7 +78,7 @@ const SortIcon = ({ column, sortConfig, division }: {
 
 export default function MeetPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = createPublicClient();
   const [meet, setMeet] = useState<Meet | null>(null);
   const [results, setResults] = useState<MeetResult[]>([]);
   const [loading, setLoading] = useState(true);
@@ -88,7 +88,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
     division: string;
     key: keyof MeetResult | 'place';
     direction: 'asc' | 'desc';
-    } | null>(null);
+  } | null>(null);
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
 
   // Hook to fetch club/spoke data for the map
@@ -104,11 +104,11 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
 
   useEffect(() => {
     if (!resolvedParams) return;
-    
+
     const fetchMeetData = async () => {
       try {
         setLoading(true);
-        
+
         // First, fetch meet information (convert string ID to integer)
         const { data: meetData, error: meetError } = await supabase
           .from('meets')
@@ -191,10 +191,10 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
 
   const getAgeAppropriateDivision = (result: MeetResult, officialWeightClass: string): string | null => {
     if (!result.competition_age || !officialWeightClass) return null;
-    
+
     const age = result.competition_age;
     const weightClass = officialWeightClass; // Use the same weight class as official division
-    
+
     // Better gender detection - check for "Women's" first, then fallback to gender field or assume male
     let isMale = true;
     if (result.age_category?.toLowerCase().includes("women's")) {
@@ -202,16 +202,16 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
     } else if (result.gender === 'F') {
       isMale = false;
     }
-    
+
     const genderPrefix = isMale ? "Men's" : "Women's";
-    
+
     // Youth (13-17) - ONLY show youth division, don't compete against adults
     if (age <= 17) {
       if (age >= 16 && age <= 17) return `${genderPrefix} 16-17 Age Group ${weightClass}`;
       if (age >= 14 && age <= 15) return `${genderPrefix} 14-15 Age Group ${weightClass}`;
       if (age <= 13) return `${genderPrefix} 13 Under Age Group ${weightClass}`;
     }
-    
+
     // Masters (35+) - additional division for masters athletes competing in Open
     if (age >= 35) {
       if (age >= 35 && age <= 39) return `${genderPrefix} Masters (35-39) ${weightClass}`;
@@ -225,10 +225,10 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
       if (age >= 75 && age <= 79) return `${genderPrefix} Masters (75-79) ${weightClass}`;
       if (age >= 80) return `${genderPrefix} Masters (80+) ${weightClass}`;
     }
-    
+
     // Junior (15-20) - additional division for junior athletes competing in Open
     if (age >= 15 && age <= 20) return `Junior ${genderPrefix} ${weightClass}`;
-    
+
     // Open/Senior (18+) - primary category, no additional division needed
     return null;
   };
@@ -236,23 +236,23 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
   const groupResultsByDivision = (results: MeetResult[]) => {
     const uniqueCategories = [...new Set(results.map(r => r.age_category))];
     const isMastersOnlyMeet = uniqueCategories.every(cat => cat?.includes('Masters'));
-    
+
     if (isMastersOnlyMeet) {
       // For Masters-only meets, create synthetic Open divisions as parents
       const syntheticOpenGroups: Record<string, MeetResult[]> = {};
       const mastersDivisions: Record<string, MeetResult[]> = {};
-      
+
       results.forEach(result => {
         const weightClass = result.weight_class || 'Unknown';
         const isFemale = result.age_category?.toLowerCase().includes("women's") || result.gender === 'F';
         const syntheticOpenKey = `Open ${isFemale ? "Women's" : "Men's"} ${weightClass}`;
-        
+
         // Add to synthetic open division
         if (!syntheticOpenGroups[syntheticOpenKey]) {
           syntheticOpenGroups[syntheticOpenKey] = [];
         }
         syntheticOpenGroups[syntheticOpenKey].push(result);
-        
+
         // Also track the original Masters division as a sub-division
         const originalKey = `${result.age_category} ${weightClass}`;
         if (!mastersDivisions[originalKey]) {
@@ -264,66 +264,66 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
           ageAppropriateDivisionName: originalKey
         });
       });
-      
+
       // Create ordered structure: Open division + its Masters sub-divisions
       const orderedGroups: Record<string, MeetResult[]> = {};
-      
+
       Object.entries(syntheticOpenGroups).forEach(([openKey, openResults]) => {
         // Add synthetic open division
         orderedGroups[openKey] = openResults;
-        
+
         // Find and add corresponding Masters divisions
         Object.entries(mastersDivisions).forEach(([mastersKey, mastersResults]) => {
           const mastersWeightClass = mastersKey.split(' ').pop();
           const openWeightClass = openKey.split(' ').pop();
           const mastersGender = mastersKey.toLowerCase().includes("women's") ? "women" : "men";
           const openGender = openKey.toLowerCase().includes("women's") ? "women" : "men";
-          
+
           if (mastersWeightClass === openWeightClass && mastersGender === openGender) {
             orderedGroups[mastersKey] = mastersResults;
           }
         });
       });
-      
+
       // Sort athletes within each division by total (highest first)  
       Object.keys(orderedGroups).forEach(divisionKey => {
         orderedGroups[divisionKey].sort((a, b) => {
           const aTotal = parseFloat(a.total || '0');
           const bTotal = parseFloat(b.total || '0');
-          
+
           // If totals are equal, use bodyweight as tiebreaker (lighter wins)
           if (aTotal === bTotal) {
             const aBodyweight = parseFloat(a.body_weight_kg || '999');
             const bBodyweight = parseFloat(b.body_weight_kg || '999');
             return aBodyweight - bBodyweight;
           }
-          
+
           return bTotal - aTotal; // Higher total first
         });
       });
-      
+
       // Sort the ordered groups by gender and weight class
       return sortDivisionsByPattern(orderedGroups);
     }
-    
+
     // New logic: Establish proper Open parent → child hierarchy
     const allGroups: Record<string, MeetResult[]> = {};
     const ageAppropriateGroups: Record<string, MeetResult[]> = {};
-    
+
     // Helper function to determine age-appropriate division from age
     const getDefaultDivisionFromAge = (age: number | null, gender: string): string => {
       if (!age) return 'Open'; // Default to Open if no age
-      
+
       const genderPrefix = gender === 'F' ? "Women's" : "Men's";
-      
+
       // Youth categories
       if (age <= 13) return `${genderPrefix} 13 Under Age Group`;
       if (age >= 14 && age <= 15) return `${genderPrefix} 14-15 Age Group`;
       if (age >= 16 && age <= 17) return `${genderPrefix} 16-17 Age Group`;
-      
+
       // Junior (15-20)
       if (age >= 15 && age <= 20) return `Junior ${genderPrefix}`;
-      
+
       // Masters (35+)
       if (age >= 35) {
         if (age >= 35 && age <= 39) return `${genderPrefix} Masters (35-39)`;
@@ -337,7 +337,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         if (age >= 75 && age <= 79) return `${genderPrefix} Masters (75-79)`;
         if (age >= 80) return `${genderPrefix} Masters (80+)`;
       }
-      
+
       // Default to Open for adults
       return `Open ${genderPrefix}`;
     };
@@ -346,13 +346,13 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
     results.forEach(result => {
       let officialCategory = result.age_category?.trim();
       let weightClass = result.weight_class?.trim();
-      
+
       // Debug Grant specifically
 
-      
+
       // Fill in missing data using age-appropriate defaults
       let updatedResult = { ...result };
-      
+
       // Check for invalid age_category values
       if (!officialCategory || officialCategory === 'Unknown' || officialCategory === '-' || officialCategory === 'null') {
         const defaultCategory = getDefaultDivisionFromAge(result.competition_age, result.gender);
@@ -360,7 +360,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         updatedResult.age_category = defaultCategory; // Update the result object
 
       }
-      
+
       // Check for invalid weight_class values  
       if (!weightClass || weightClass === 'Unknown' || weightClass === '-' || weightClass === 'null') {
         // For now, use a default weight class - could be improved with body weight logic
@@ -368,14 +368,14 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         updatedResult.weight_class = weightClass; // Update the result object
 
       }
-      
+
       const officialKey = `${officialCategory} ${weightClass}`;
-      
+
       if (!allGroups[officialKey]) {
         allGroups[officialKey] = [];
       }
       allGroups[officialKey].push(updatedResult); // Use updated result
-      
+
       // Create age-appropriate divisions for athletes competing in Open
       const ageAppropriateDivision = getAgeAppropriateDivision(updatedResult, weightClass);
 
@@ -390,11 +390,11 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         });
       }
     });
-    
+
     // Second pass: Establish parent-child relationships
     const combinedGroups: Record<string, MeetResult[]> = {};
     const processedWeightClasses = new Set<string>();
-    
+
     // Extract weight class from division key and normalize for comparison
     const getWeightClassFromDivision = (divisionKey: string): string => {
       const weightMatch = divisionKey.match(/(\+?\d+\+?)\s*[Kk]g$/i);
@@ -404,7 +404,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
       }
       return 'Unknown';
     };
-    
+
     // Find all weight classes that have Open divisions
     const openDivisions = new Set<string>();
     Object.keys(allGroups).forEach(divisionKey => {
@@ -413,41 +413,41 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         openDivisions.add(weightClass);
       }
     });
-    
+
     // Helper function to check if lifters from one division also appear in another
     const getDivisionLifterIds = (divisionKey: string): Set<number> => {
       const division = allGroups[divisionKey];
       return new Set(division ? division.map(result => result.lifter_id) : []);
     };
-    
+
     // Process in two phases: 1) Open parents and their eligible children, 2) Standalone divisions
     const assignedAsChildren = new Set<string>();
-    
+
     // Phase 1: Process ONLY Open divisions first (force priority)
     const openDivisionKeys = Object.keys(allGroups).filter(key => key.includes('Open'));
-    
+
     openDivisionKeys.forEach(divisionKey => {
       const results = allGroups[divisionKey];
       // Open divisions are always parents
       combinedGroups[divisionKey] = results;
       const weightClass = getWeightClassFromDivision(divisionKey);
       processedWeightClasses.add(weightClass);
-      
 
-      
+
+
       // Find all OTHER divisions with same weight class and check for lifter overlap
       Object.entries(allGroups).forEach(([otherDivisionKey, otherResults]) => {
-        if (otherDivisionKey !== divisionKey && 
-            !otherDivisionKey.includes('Open') && // Don't process other Open divisions as children
-            getWeightClassFromDivision(otherDivisionKey) === weightClass &&
-            !assignedAsChildren.has(otherDivisionKey)) { // Don't reassign already assigned children
-          
+        if (otherDivisionKey !== divisionKey &&
+          !otherDivisionKey.includes('Open') && // Don't process other Open divisions as children
+          getWeightClassFromDivision(otherDivisionKey) === weightClass &&
+          !assignedAsChildren.has(otherDivisionKey)) { // Don't reassign already assigned children
+
           const openLifterIds = getDivisionLifterIds(divisionKey);
           const otherLifterIds = getDivisionLifterIds(otherDivisionKey);
-          
+
           // Check if any lifters appear in both divisions
           const hasOverlap = [...otherLifterIds].some(id => openLifterIds.has(id));
-          
+
           if (hasOverlap) {
             // Some lifters competed in both - this becomes a child of the Open division
 
@@ -463,7 +463,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         }
       });
     });
-    
+
     // Phase 2: Process remaining divisions as standalone parents (no children allowed)
     Object.entries(allGroups).forEach(([divisionKey, results]) => {
       if (!divisionKey.includes('Open') && !assignedAsChildren.has(divisionKey)) {
@@ -473,7 +473,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
 
       }
     });
-    
+
     // Add age-appropriate groups - but ONLY if they're not already processed
     Object.entries(ageAppropriateGroups).forEach(([divisionKey, results]) => {
       if (!combinedGroups[divisionKey]) {
@@ -481,43 +481,43 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
 
       }
     });
-    
 
 
-    
+
+
     // Sort athletes within each division by total (highest first)
     Object.keys(combinedGroups).forEach(divisionKey => {
       combinedGroups[divisionKey].sort((a, b) => {
         const aTotal = parseFloat(a.total || '0');
         const bTotal = parseFloat(b.total || '0');
-        
+
         // If totals are equal, use bodyweight as tiebreaker (lighter wins)
         if (aTotal === bTotal) {
           const aBodyweight = parseFloat(a.body_weight_kg || '999');
           const bBodyweight = parseFloat(b.body_weight_kg || '999');
           return aBodyweight - bBodyweight;
         }
-        
+
         return bTotal - aTotal; // Higher total first
       });
     });
-    
+
     // Don't use sortDivisionsByPattern as it destroys parent-child relationships
     // Instead, we already have the correct structure from our grouping logic
     const orderedGroups: Record<string, MeetResult[]> = combinedGroups;
-    
+
     // Sort the division keys manually while preserving parent-child relationships
     const parentDivisions: string[] = [];
     const childDivisions: Record<string, string[]> = {}; // parent -> children mapping
-    
+
     // Identify parents and children
     Object.keys(orderedGroups).forEach(divisionKey => {
       try {
         const results = orderedGroups[divisionKey];
         const hasChildrenMarked = results && results.some && results.some(result => result && result.isDuplicateForAge);
-        
 
-        
+
+
         if (hasChildrenMarked) {
           // This is a child division
           // Find its parent (should be an Open division with same weight class AND gender)
@@ -530,9 +530,9 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
             const sameGender = isFemaleChild === isFemaleParent;
             return isOpen && sameWeightClass && sameGender;
           });
-          
 
-          
+
+
           if (parentKey) {
             if (!childDivisions[parentKey]) {
               childDivisions[parentKey] = [];
@@ -550,38 +550,38 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         parentDivisions.push(divisionKey);
       }
     });
-    
+
     // Sort parents by weight class and gender (simplified sorting)
     const sortedParents = parentDivisions.sort((a, b) => {
       // Extract basic sorting info without getSortKey
       const aFemale = a.toLowerCase().includes("women's");
       const bFemale = b.toLowerCase().includes("women's");
-      
+
       // Gender first (men before women)
       if (aFemale !== bFemale) {
         return aFemale ? 1 : -1;
       }
-      
+
       // Then by weight class (heaviest first)
       const aWeightMatch = a.match(/(\+?\d+\+?)\s*[Kk]g$/i);
       const bWeightMatch = b.match(/(\+?\d+\+?)\s*[Kk]g$/i);
-      
+
       if (aWeightMatch && bWeightMatch) {
         const aWeight = parseFloat(aWeightMatch[1].replace('+', '')) + (aWeightMatch[0].includes('+') ? 0.1 : 0);
         const bWeight = parseFloat(bWeightMatch[1].replace('+', '')) + (bWeightMatch[0].includes('+') ? 0.1 : 0);
         return bWeight - aWeight; // Descending (heaviest first)
       }
-      
+
       return 0;
     });
-    
+
     // Rebuild ordered structure: parent followed by its children
     const finalOrderedGroups: Record<string, MeetResult[]> = {};
-    
+
     sortedParents.forEach(parentKey => {
       // Add parent
       finalOrderedGroups[parentKey] = orderedGroups[parentKey];
-      
+
       // Add its children (if any) in sorted order
       if (childDivisions[parentKey]) {
         const sortedChildren = childDivisions[parentKey].sort((a, b) => {
@@ -590,22 +590,22 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
           if (a > b) return 1;
           return 0;
         });
-        
+
         sortedChildren.forEach(childKey => {
           finalOrderedGroups[childKey] = orderedGroups[childKey];
         });
       }
     });
-    
 
 
-    
+
+
     return finalOrderedGroups;
   };
 
   const sortDivisionsByPattern = (groups: Record<string, MeetResult[]>): Record<string, MeetResult[]> => {
 
-    
+
     // Parse weight class to numeric value for sorting (heaviest to lightest)
     const parseWeightClass = (weightClass: string): number => {
       // Handle plus symbol - these are always the heaviest (unlimited) weight classes
@@ -613,43 +613,43 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         const weight = parseFloat(weightClass.substring(1).replace('kg', ''));
         return weight + 1000; // Add 1000 to ensure plus classes sort first (heaviest)
       }
-      
+
       // Handle regular weight classes - extract numeric value
       const weight = parseFloat(weightClass.replace('kg', ''));
       return isNaN(weight) ? -1 : weight; // Unknown weights go to end
     };
-    
+
     const getWeightClassValue = (weightClass: string): number => {
       const weight = parseWeightClass(weightClass);
 
       return weight === -1 ? 9999 : -weight; // Negative for descending sort (heaviest first), unknown at end
     };
-    
+
     const getSortKey = (divisionKey: string) => {
       const isFemale = divisionKey.toLowerCase().includes("women's");
-      
+
       // Extract weight class - handle all variations: 63+kg, 110+kg, +58 Kg, +105 kg, +87kg, etc.
       const weightMatch = divisionKey.match(/(\+?\d+\+?)\s*[Kk]g$/i);
       const weightClass = weightMatch ? weightMatch[0] : 'Unknown';
-      
+
       // Parse weight class directly for sorting
       let weightValue = 0;
       if (weightClass !== 'Unknown') {
         // Extract just the numeric part and check for plus signs
         const numericPart = weightClass.match(/(\d+)/);
         const hasPlus = weightClass.includes('+');
-        
+
         if (numericPart) {
           const baseWeight = parseFloat(numericPart[1]);
           // Plus classes are slightly heavier than their base weight
           weightValue = hasPlus ? baseWeight + 0.1 : baseWeight;
         }
       }
-      
+
       // Determine division type priority: Open < Junior < Masters age groups
       let divisionPriority = 0;
       let ageGroup = 0;
-      
+
       if (divisionKey.includes('Open') || (!divisionKey.includes('Masters') && !divisionKey.includes('Junior'))) {
         divisionPriority = 0; // Open/main divisions first
       } else if (divisionKey.includes('Junior')) {
@@ -668,48 +668,48 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         else if (divisionKey.includes('(40-44)')) ageGroup = 8;
         else if (divisionKey.includes('(35-39)')) ageGroup = 9;
       }
-      
+
       const sortKey = {
         gender: isFemale ? 1 : 0, // Men first (0), then Women (1)
         weight: -weightValue, // Negative for descending sort (heaviest first)
         divisionType: divisionPriority, // Open, then Junior, then Masters
         ageGroup: ageGroup // For Masters: oldest to youngest
       };
-      
+
 
       return sortKey;
     };
-    
+
     // Sort division keys according to pattern
     const sortedKeys = Object.keys(groups).sort((a, b) => {
       const aKey = getSortKey(a);
       const bKey = getSortKey(b);
-      
+
       // First sort by gender (men first)
       if (aKey.gender !== bKey.gender) {
         return aKey.gender - bKey.gender;
       }
-      
+
       // Then by weight class (heaviest first)
       if (aKey.weight !== bKey.weight) {
         return aKey.weight - bKey.weight;
       }
-      
+
       // Then by division type (Open, Junior, Masters)
       if (aKey.divisionType !== bKey.divisionType) {
         return aKey.divisionType - bKey.divisionType;
       }
-      
+
       // Finally by age group for Masters (oldest to youngest)
       return aKey.ageGroup - bKey.ageGroup;
     });
-    
+
     // Rebuild the ordered object
     const sortedGroups: Record<string, MeetResult[]> = {};
     sortedKeys.forEach(key => {
       sortedGroups[key] = groups[key];
     });
-    
+
     return sortedGroups;
   };
 
@@ -749,10 +749,10 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
 
   const getAthleteUrl = (result: MeetResult) => {
     // First choice: membership number if available
-    const membershipNumber = Array.isArray(result.lifters) 
-      ? result.lifters[0]?.membership_number 
+    const membershipNumber = Array.isArray(result.lifters)
+      ? result.lifters[0]?.membership_number
       : result.lifters?.membership_number;
-    
+
     if (membershipNumber) {
       return `/athlete/${membershipNumber}`;
     }
@@ -763,11 +763,11 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
 
   const handleSort = (division: string, key: keyof MeetResult | 'place') => {
     let direction: 'asc' | 'desc' = 'asc';
-    
+
     if (sortConfig && sortConfig.division === division && sortConfig.key === key && sortConfig.direction === 'asc') {
       direction = 'desc';
     }
-    
+
     setSortConfig({ division, key, direction });
   };
 
@@ -826,7 +826,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         <div className="text-center">
           <h1 className="text-2xl font-bold text-app-primary mb-4">Error Loading Meet</h1>
           <p className="text-app-secondary mb-4">{error || 'Meet not found'}</p>
-          <button 
+          <button
             onClick={() => router.back()}
             className="bg-accent-primary hover:bg-accent-primary-hover text-app-primary px-6 py-2 rounded-lg transition-colors"
           >
@@ -842,7 +842,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
 
   return (
     <div className="min-h-screen bg-app-gradient">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Meet Header */}
         <div className="card-primary mb-8">
           <div className="flex items-start justify-between mb-6">
@@ -853,10 +853,10 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
               <div className="flex flex-wrap gap-4 text-sm text-app-secondary">
                 <div className="flex items-center space-x-2">
                   <Calendar className="h-4 w-4" />
-                  <span>{new Date(meet.date).toLocaleDateString('en-US', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
+                  <span>{new Date(meet.date).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
                   })}</span>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -914,7 +914,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         {Object.entries(genderGroupedResults).map(([genderSection, divisionsInSection]) => {
           const isCollapsed = collapsedSections.has(genderSection);
           const hasDivisions = Object.keys(divisionsInSection).length > 0;
-          
+
           if (!hasDivisions) return null;
 
           return (
@@ -939,10 +939,10 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
               {!isCollapsed && Object.entries(divisionsInSection).map(([division, divisionResults]) => {
                 const isAgeAppropriate = divisionResults.some(result => result.isDuplicateForAge);
                 const isDivisionCollapsed = collapsedSections.has(division);
-                
+
                 return (
                   <div key={division} className={`card-primary mb-2 ${isAgeAppropriate ? 'ml-6 border-l-4 border-accent-primary bg-app-tertiary' : ''}`}>
-                    <div 
+                    <div
                       onClick={() => toggleSection(division)}
                       className="cursor-pointer hover:bg-app-hover transition-colors"
                     >
@@ -958,16 +958,16 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                         <span className="ml-auto text-sm text-app-muted">{divisionResults.length} athletes</span>
                       </h3>
                     </div>
-                    
+
                     {!isDivisionCollapsed && (
                       <div className="overflow-x-auto">
-                        <table className="border-separate" style={{borderSpacing: 0, width: 'auto'}}>
+                        <table className="border-separate" style={{ borderSpacing: 0, width: 'auto' }}>
                           <thead className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200">
                             <tr className="border-b-2 border-gray-400 dark:border-gray-500">
                               <th
                                 onClick={() => handleSort(division, 'place')}
                                 className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
-                                style={{width: '60px'}}
+                                style={{ width: '60px' }}
                               >
                                 <div className="flex items-center justify-start space-x-1">
                                   <span>Place</span>
@@ -977,7 +977,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                               <th
                                 onClick={() => handleSort(division, 'lifter_name')}
                                 className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
-                                style={{minWidth: '200px'}}
+                                style={{ minWidth: '200px' }}
                               >
                                 <div className="flex items-center justify-start space-x-1">
                                   <span>Athlete</span>
@@ -987,7 +987,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                               <th
                                 onClick={() => handleSort(division, 'club_name')}
                                 className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
-                                style={{minWidth: '120px'}}
+                                style={{ minWidth: '120px' }}
                               >
                                 <div className="flex items-center justify-start space-x-1">
                                   <span>Club</span>
@@ -998,7 +998,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                               <th
                                 onClick={() => handleSort(division, 'best_snatch')}
                                 className="px-2 py-1 text-right text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
-                                style={{width: '80px'}}
+                                style={{ width: '80px' }}
                               >
                                 <div className="flex items-center justify-end space-x-1">
                                   <span>Snatch</span>
@@ -1008,7 +1008,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                               <th
                                 onClick={() => handleSort(division, 'best_cj')}
                                 className="px-2 py-1 text-right text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
-                                style={{width: '80px'}}
+                                style={{ width: '80px' }}
                               >
                                 <div className="flex items-center justify-end space-x-1">
                                   <span>C&J</span>
@@ -1018,7 +1018,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                               <th
                                 onClick={() => handleSort(division, 'total')}
                                 className="px-2 py-1 text-right text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
-                                style={{width: '80px'}}
+                                style={{ width: '80px' }}
                               >
                                 <div className="flex items-center justify-end space-x-1">
                                   <span>Total</span>
@@ -1028,7 +1028,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                               <th
                                 onClick={() => handleSort(division, 'body_weight_kg')}
                                 className="px-2 py-1 text-right text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
-                                style={{width: '100px'}}
+                                style={{ width: '100px' }}
                               >
                                 <div className="flex items-center justify-end space-x-1">
                                   <span>Bodyweight</span>
@@ -1041,84 +1041,84 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                             {getSortedResults(divisionResults, division).map((result, index) => {
                               const originalIndex = divisionResults.indexOf(result);
                               const displayPlace = originalIndex + 1;
-                              
+
                               return (
-                              <tr key={result.result_id} className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors group" style={{ borderTopColor: 'var(--border-secondary)' }}>
-                                <td className="px-2 py-1 whitespace-nowrap text-sm font-medium text-app-primary">
-                                  <div className="flex items-center gap-1">
-                                    <span>{displayPlace}</span>
-                                    {displayPlace === 1 && <Medal className="h-4 w-4" style={{ color: '#FFD700' }} />}
-                                    {displayPlace === 2 && <Medal className="h-4 w-4" style={{ color: '#C0C0C0' }} />}
-                                    {displayPlace === 3 && <Medal className="h-4 w-4" style={{ color: '#CD7F32' }} />}
-                                  </div>
-                                </td>
-                                <td className="px-2 py-1 whitespace-nowrap">
-                                  <Link
-                                    href={getAthleteUrl(result)}
-                                    className="flex items-center space-x-1 text-accent-primary group-hover:text-accent-primary-hover transition-colors hover:underline"
-                                  >
-                                    <span className="font-medium text-sm">{result.lifter_name}</span>
-                                    <ExternalLink className="h-3 w-3" />
-                                  </Link>
-                                  <div className="text-xs text-app-muted">
-                                    {result.competition_age && `Age ${result.competition_age}`}
-                                    {(() => {
-                                      const membershipNumber = Array.isArray(result.lifters) 
-                                        ? result.lifters[0]?.membership_number 
-                                        : result.lifters?.membership_number;
-                                      return (
-                                        <>
-                                          {membershipNumber && result.competition_age && " • "}
-                                          {membershipNumber && `#${membershipNumber}`}
-                                        </>
-                                      );
-                                    })()}
-                                  </div>
-                                </td>
-                                <td className="px-2 py-1 whitespace-nowrap text-sm text-app-secondary">
-                                  <div className="text-sm">{result.club_name || '-'}</div>
-                                  <div className="text-xs text-app-muted">{result.wso}</div>
-                                </td>
-                                <td></td>
-                                <td className="px-2 py-1 whitespace-nowrap text-sm text-left" style={{ color: 'var(--chart-snatch)' }}>
-                                  <div className="font-medium">{result.best_snatch ? `${result.best_snatch}kg` : '-'}</div>
-                                  <div className="text-xs text-app-muted">
-                                    {[result.snatch_lift_1, result.snatch_lift_2, result.snatch_lift_3]
-                                      .filter(attempt => attempt && attempt !== '0')
-                                      .map((attempt, i) => {
-                                        const weight = parseInt(attempt!);
+                                <tr key={result.result_id} className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors group" style={{ borderTopColor: 'var(--border-secondary)' }}>
+                                  <td className="px-2 py-1 whitespace-nowrap text-sm font-medium text-app-primary">
+                                    <div className="flex items-center gap-1">
+                                      <span>{displayPlace}</span>
+                                      {displayPlace === 1 && <Medal className="h-4 w-4" style={{ color: '#FFD700' }} />}
+                                      {displayPlace === 2 && <Medal className="h-4 w-4" style={{ color: '#C0C0C0' }} />}
+                                      {displayPlace === 3 && <Medal className="h-4 w-4" style={{ color: '#CD7F32' }} />}
+                                    </div>
+                                  </td>
+                                  <td className="px-2 py-1 whitespace-nowrap">
+                                    <Link
+                                      href={getAthleteUrl(result)}
+                                      className="flex items-center space-x-1 text-accent-primary group-hover:text-accent-primary-hover transition-colors hover:underline"
+                                    >
+                                      <span className="font-medium text-sm">{result.lifter_name}</span>
+                                      <ExternalLink className="h-3 w-3" />
+                                    </Link>
+                                    <div className="text-xs text-app-muted">
+                                      {result.competition_age && `Age ${result.competition_age}`}
+                                      {(() => {
+                                        const membershipNumber = Array.isArray(result.lifters)
+                                          ? result.lifters[0]?.membership_number
+                                          : result.lifters?.membership_number;
                                         return (
-                                          <span key={i} className={weight > 0 ? '' : 'text-red-500'} style={weight > 0 ? { color: 'var(--chart-snatch)' } : {}}>
-                                            {Math.abs(weight)}
-                                            {i < 2 ? '/' : ''}
-                                          </span>
+                                          <>
+                                            {membershipNumber && result.competition_age && " • "}
+                                            {membershipNumber && `#${membershipNumber}`}
+                                          </>
                                         );
-                                      })}
-                                  </div>
-                                </td>
-                                <td className="px-2 py-1 whitespace-nowrap text-sm text-left" style={{ color: 'var(--chart-cleanjerk)' }}>
-                                  <div className="font-medium">{result.best_cj ? `${result.best_cj}kg` : '-'}</div>
-                                  <div className="text-xs text-app-muted">
-                                    {[result.cj_lift_1, result.cj_lift_2, result.cj_lift_3]
-                                      .filter(attempt => attempt && attempt !== '0')
-                                      .map((attempt, i) => {
-                                        const weight = parseInt(attempt!);
-                                        return (
-                                          <span key={i} className={weight > 0 ? '' : 'text-red-500'} style={weight > 0 ? { color: 'var(--chart-cleanjerk)' } : {}}>
-                                            {Math.abs(weight)}
-                                            {i < 2 ? '/' : ''}
-                                          </span>
-                                        );
-                                      })}
-                                  </div>
-                                </td>
-                                <td className="px-2 py-1 whitespace-nowrap text-sm font-bold text-left" style={{ color: 'var(--chart-total)' }}>
-                                  {result.total ? `${result.total}kg` : '-'}
-                                </td>
-                                <td className="px-2 py-1 whitespace-nowrap text-sm text-app-secondary text-left">
-                                  {result.body_weight_kg ? `${result.body_weight_kg}kg` : '-'}
-                                </td>
-                              </tr>
+                                      })()}
+                                    </div>
+                                  </td>
+                                  <td className="px-2 py-1 whitespace-nowrap text-sm text-app-secondary">
+                                    <div className="text-sm">{result.club_name || '-'}</div>
+                                    <div className="text-xs text-app-muted">{result.wso}</div>
+                                  </td>
+                                  <td></td>
+                                  <td className="px-2 py-1 whitespace-nowrap text-sm text-left" style={{ color: 'var(--chart-snatch)' }}>
+                                    <div className="font-medium">{result.best_snatch ? `${result.best_snatch}kg` : '-'}</div>
+                                    <div className="text-xs text-app-muted">
+                                      {[result.snatch_lift_1, result.snatch_lift_2, result.snatch_lift_3]
+                                        .filter(attempt => attempt && attempt !== '0')
+                                        .map((attempt, i) => {
+                                          const weight = parseInt(attempt!);
+                                          return (
+                                            <span key={i} className={weight > 0 ? '' : 'text-red-500'} style={weight > 0 ? { color: 'var(--chart-snatch)' } : {}}>
+                                              {Math.abs(weight)}
+                                              {i < 2 ? '/' : ''}
+                                            </span>
+                                          );
+                                        })}
+                                    </div>
+                                  </td>
+                                  <td className="px-2 py-1 whitespace-nowrap text-sm text-left" style={{ color: 'var(--chart-cleanjerk)' }}>
+                                    <div className="font-medium">{result.best_cj ? `${result.best_cj}kg` : '-'}</div>
+                                    <div className="text-xs text-app-muted">
+                                      {[result.cj_lift_1, result.cj_lift_2, result.cj_lift_3]
+                                        .filter(attempt => attempt && attempt !== '0')
+                                        .map((attempt, i) => {
+                                          const weight = parseInt(attempt!);
+                                          return (
+                                            <span key={i} className={weight > 0 ? '' : 'text-red-500'} style={weight > 0 ? { color: 'var(--chart-cleanjerk)' } : {}}>
+                                              {Math.abs(weight)}
+                                              {i < 2 ? '/' : ''}
+                                            </span>
+                                          );
+                                        })}
+                                    </div>
+                                  </td>
+                                  <td className="px-2 py-1 whitespace-nowrap text-sm font-bold text-left" style={{ color: 'var(--chart-total)' }}>
+                                    {result.total ? `${result.total}kg` : '-'}
+                                  </td>
+                                  <td className="px-2 py-1 whitespace-nowrap text-sm text-app-secondary text-left">
+                                    {result.body_weight_kg ? `${result.body_weight_kg}kg` : '-'}
+                                  </td>
+                                </tr>
                               );
                             })}
                           </tbody>

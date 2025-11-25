@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { createClient } from '../../../lib/supabase/client';
+import { createPublicClient } from '../../../lib/supabase/client';
 import { Trophy, Calendar, Weight, TrendingUp, Medal, User, Building, MapPin, ExternalLink, ArrowLeft, BarChart3, Dumbbell, ChevronLeft, ChevronRight, Database } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, AreaChart, Area, ScatterChart, Scatter, Brush, ReferenceLine } from 'recharts';
 import jsPDF from 'jspdf';
@@ -18,7 +18,7 @@ import { ROLES } from '../../../lib/roles';
 const getBestQScore = (result: any) => {
   const qYouth = result.q_youth || 0;
   const qPoints = result.qpoints || 0;
-  const qMasters = result.q_masters || 0;  
+  const qMasters = result.q_masters || 0;
 
   if (qPoints >= qYouth && qPoints >= qMasters && qPoints > 0) {
     return { value: qPoints, type: 'qpoints', style: { color: 'var(--chart-qpoints)' } };
@@ -36,11 +36,11 @@ const getBestQScore = (result: any) => {
 // Improved export functions
 const exportChartToPDF = async (chartRef: React.RefObject<HTMLDivElement>, filename: string) => {
   if (!chartRef.current) return;
-  
+
   try {
     const element = chartRef.current;
     const rect = element.getBoundingClientRect();
-    
+
     const canvas = await html2canvas(element, {
       backgroundColor: '#1f2937', // Use a fixed color for exports
       scale: 1,
@@ -55,17 +55,17 @@ const exportChartToPDF = async (chartRef: React.RefObject<HTMLDivElement>, filen
       x: 0,
       y: 0,
     });
-    
+
     const imgData = canvas.toDataURL('image/png', 1.0);
     const imgWidth = canvas.width;
     const imgHeight = canvas.height;
-    
+
     const pdf = new jsPDF({
       orientation: 'landscape',
       unit: 'mm',
-      format: 'a3' 
+      format: 'a3'
     });
-    
+
     pdf.addImage(imgData, 'PNG', 20, 20, imgWidth, imgHeight);
     pdf.save(filename);
   } catch (error: any) {
@@ -76,7 +76,7 @@ const exportChartToPDF = async (chartRef: React.RefObject<HTMLDivElement>, filen
 
 const exportTableToPDF = async (tableRef: React.RefObject<HTMLDivElement>, filename: string, athleteName: string) => {
   if (!tableRef.current) return;
-  
+
   try {
     const element = tableRef.current;
     const table = element.querySelector('table');
@@ -84,25 +84,25 @@ const exportTableToPDF = async (tableRef: React.RefObject<HTMLDivElement>, filen
       alert('No table found to export');
       return;
     }
-    
+
     const originalStyles = {
       width: table.style.width,
       fontSize: table.style.fontSize,
       transform: table.style.transform,
       transformOrigin: table.style.transformOrigin
     };
-    
+
     const tableWidth = table.scrollWidth;
     const viewportWidth = window.innerWidth - 100;
     const scale = Math.min(1, viewportWidth / tableWidth);
-    
+
     table.style.transform = `scale(${scale})`;
     table.style.transformOrigin = 'top left';
     table.style.width = `${tableWidth}px`;
     table.style.fontSize = '10px';
-    
+
     await new Promise(resolve => setTimeout(resolve, 100));
-    
+
     const canvas = await html2canvas(element, {
       backgroundColor: '#1f2937', // Use fixed color for exports
       scale: 1,
@@ -115,20 +115,20 @@ const exportTableToPDF = async (tableRef: React.RefObject<HTMLDivElement>, filen
       width: tableWidth * scale + 40,
       height: element.scrollHeight,
     });
-    
+
     // Restore original styles
     Object.assign(table.style, originalStyles);
-    
+
     const imgData = canvas.toDataURL('image/png', 1.0);
     const imgWidth = canvas.width;
     const imgHeight = canvas.height;
-    
+
     const pdf = new jsPDF({
       orientation: 'landscape',
       unit: 'px',
       format: [imgWidth + 40, imgHeight + 80]
     });
-    
+
     pdf.setFontSize(16);
     pdf.setTextColor(0, 0, 0);
     pdf.text(`${athleteName} - Competition Results`, 20, 40);
@@ -147,7 +147,7 @@ const exportTableToCSV = (results: any[], athleteName: string, showAllColumns: b
         return {
           'Date': new Date(result.date).toLocaleDateString('en-US'),
           'Meet': result.meet_name || '',
-		  'Level': result.meets?.Level || '',
+          'Level': result.meets?.Level || '',
           'WSO': result.wso || '',
           'Club': result.club_name || '',
           'Age Category': result.age_category || '',
@@ -184,7 +184,7 @@ const exportTableToCSV = (results: any[], athleteName: string, showAllColumns: b
     const csv = Papa.unparse(csvData);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
-    
+
     if (link.download !== undefined) {
       const url = URL.createObjectURL(blob);
       link.setAttribute('href', url);
@@ -208,7 +208,7 @@ const LiftAttempts = ({ lift1, lift2, lift3, best, type }: {
   type: string;
 }) => {
   const attempts = [lift1, lift2, lift3];
-  
+
   return (
     <div className="space-y-1">
       <div className="text-sm font-medium text-app-tertiary">{type}</div>
@@ -218,24 +218,23 @@ const LiftAttempts = ({ lift1, lift2, lift3, best, type }: {
           const isGood = value > 0;
           const isBest = attempt === best;
           const attemptWeight = Math.abs(value);
-          
+
           return (
             <span
               key={index}
-              className={`px-2 py-1 rounded text-xs font-mono ${
-                isBest 
-                  ? 'bg-green-600 text-app-primary' 
-                  : isGood 
-                    ? 'bg-app-surface text-app-primary'
-                    : value < 0
-                      ? 'bg-red-900 text-red-300'
-                      : 'bg-app-tertiary text-app-muted'
-              }`}
+              className={`px-2 py-1 rounded text-xs font-mono ${isBest
+                ? 'bg-green-600 text-app-primary'
+                : isGood
+                  ? 'bg-app-surface text-app-primary'
+                  : value < 0
+                    ? 'bg-red-900 text-red-300'
+                    : 'bg-app-tertiary text-app-muted'
+                }`}
             >
-              {value === 0 
-                ? '-' 
-                : isGood 
-                  ? `${value}kg` 
+              {value === 0
+                ? '-'
+                : isGood
+                  ? `${value}kg`
                   : `${attemptWeight}kg X`
               }
             </span>
@@ -257,7 +256,7 @@ const Pagination = ({ currentPage, totalPages, totalResults, onPageChange }: {
   onPageChange: (page: number) => void;
 }) => {
   if (totalPages <= 1) return null;
-  
+
   const resultsPerPage = 20;
   const startResult = (currentPage - 1) * resultsPerPage + 1;
   const endResult = Math.min(currentPage * resultsPerPage, totalResults);
@@ -290,18 +289,18 @@ const Pagination = ({ currentPage, totalPages, totalResults, onPageChange }: {
       <div className="text-sm text-app-muted">
         Showing {startResult} to {endResult} of {totalResults} results
       </div>
-      
+
       <div className="flex items-center space-x-2">
-		{currentPage > 1 && (
-		  <button
-			onClick={() => onPageChange(currentPage - 1)}
-			disabled={currentPage === 1}
-			className="flex items-center px-3 py-2 text-sm font-medium text-app-secondary bg-app-tertiary border border-app-secondary rounded-lg hover:bg-app-surface disabled:opacity-50 disabled:cursor-not-allowed"
-		  >
-			<ChevronLeft className="h-4 w-4 mr-1" />
-			Previous
-		  </button>
-		)}
+        {currentPage > 1 && (
+          <button
+            onClick={() => onPageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="flex items-center px-3 py-2 text-sm font-medium text-app-secondary bg-app-tertiary border border-app-secondary rounded-lg hover:bg-app-surface disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Previous
+          </button>
+        )}
 
         <div className="flex space-x-1">
           {getPageNumbers().map((page, index) => (
@@ -309,43 +308,42 @@ const Pagination = ({ currentPage, totalPages, totalResults, onPageChange }: {
               key={index}
               onClick={() => typeof page === 'number' && onPageChange(page)}
               disabled={page === '...'}
-              className={`px-3 py-2 text-sm font-medium rounded-lg ${
-                page === currentPage
-                  ? 'bg-accent-primary text-app-primary border border-accent-primary'
-                  : page === '...'
-                    ? 'text-app-muted cursor-default'
-                    : 'text-app-secondary bg-app-tertiary border border-app-secondary hover:bg-app-surface'
-              }`}
+              className={`px-3 py-2 text-sm font-medium rounded-lg ${page === currentPage
+                ? 'bg-accent-primary text-app-primary border border-accent-primary'
+                : page === '...'
+                  ? 'text-app-muted cursor-default'
+                  : 'text-app-secondary bg-app-tertiary border border-app-secondary hover:bg-app-surface'
+                }`}
             >
               {page}
             </button>
           ))}
         </div>
 
-		{currentPage < totalPages && (
-		  <button
-			onClick={() => onPageChange(currentPage + 1)}
-			disabled={currentPage === totalPages}
-			className="flex items-center px-3 py-2 text-sm font-medium text-app-secondary bg-app-tertiary border border-app-secondary rounded-lg hover:bg-app-surface disabled:opacity-50 disabled:cursor-not-allowed"
-		  >
-			Next
-			<ChevronRight className="h-4 w-4 ml-1" />
-		  </button>
-		)}
+        {currentPage < totalPages && (
+          <button
+            onClick={() => onPageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="flex items-center px-3 py-2 text-sm font-medium text-app-secondary bg-app-tertiary border border-app-secondary rounded-lg hover:bg-app-surface disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+            <ChevronRight className="h-4 w-4 ml-1" />
+          </button>
+        )}
       </div>
     </div>
   );
 };
 
 // Sort Icon Component
-const SortIcon = ({ column, sortConfig }: { 
-  column: string; 
-  sortConfig: { key: string | null; direction: 'asc' | 'desc' } 
+const SortIcon = ({ column, sortConfig }: {
+  column: string;
+  sortConfig: { key: string | null; direction: 'asc' | 'desc' }
 }) => {
   if (sortConfig.key !== column) {
     return <span className="text-app-disabled ml-1">↕</span>;
   }
-  
+
   return (
     <span className="text-accent-primary ml-1">
       {sortConfig.direction === 'asc' ? '↑' : '↓'}
@@ -355,7 +353,7 @@ const SortIcon = ({ column, sortConfig }: {
 
 export default function AthletePage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = createPublicClient();
   const [selectedTab, setSelectedTab] = useState('overview');
   const [athlete, setAthlete] = useState<any>(null);
   const [results, setResults] = useState<any[]>([]);
@@ -378,13 +376,13 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
   const [showQMasters, setShowQMasters] = useState(false);
   const [performanceMouseX, setPerformanceMouseX] = useState<number | null>(null);
   const [qScoresMouseX, setQScoresMouseX] = useState<number | null>(null);
-  
+
   // Add sorting state
   const [sortConfig, setSortConfig] = useState<{
     key: string | null;
     direction: 'asc' | 'desc';
   }>({ key: null, direction: 'asc' });
-  
+
   const resultsPerPage = 20;
 
   // Refs for export functionality
@@ -395,11 +393,11 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
   // Sorting functions
   const handleSort = (key: string) => {
     let direction: 'asc' | 'desc' = 'asc';
-    
+
     if (sortConfig.key === key && sortConfig.direction === 'asc') {
       direction = 'desc';
     }
-    
+
     setSortConfig({ key, direction });
     setCurrentPage(1); // Reset to first page when sorting
   };
@@ -448,13 +446,13 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 
   const { displayResults, totalPages } = useMemo(() => {
     let sortedResults = [...results];
-    
+
     // Apply sorting if a sort config exists
     if (sortConfig.key) {
       sortedResults.sort((a, b) => {
         const aValue = getSortableValue(a, sortConfig.key!);
         const bValue = getSortableValue(b, sortConfig.key!);
-        
+
         if (aValue < bValue) {
           return sortConfig.direction === 'asc' ? -1 : 1;
         }
@@ -464,10 +462,10 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
         return 0;
       });
     }
-    
+
     const startIndex = (currentPage - 1) * resultsPerPage;
     const endIndex = startIndex + resultsPerPage;
-    
+
     return {
       displayResults: sortedResults.slice(startIndex, endIndex),
       totalPages: Math.ceil(sortedResults.length / resultsPerPage)
@@ -497,15 +495,15 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
             .select('lifter_id, athlete_name, membership_number, created_at, updated_at, internal_id, internal_id_2, internal_id_3, internal_id_4, internal_id_5, internal_id_6, internal_id_7, internal_id_8')
             .eq('membership_number', parseInt(resolvedParams.id))
             .single();
-          
+
           athleteData = result.data;
           athleteError = result.error;
-        } 
-        
+        }
+
         if (!athleteData) {
           // Handle both hyphenated and space-separated names in URLs
           let decodedName = decodeURIComponent(resolvedParams.id);
-          
+
           // First, try searching with the decoded name as-is (preserves legitimate hyphens)
           const formattedName1 = decodedName
             .split(/\s+/) // Split on spaces only
@@ -516,9 +514,9 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
             .from('lifters')
             .select('lifter_id, athlete_name, membership_number, created_at, updated_at, internal_id, internal_id_2, internal_id_3, internal_id_4, internal_id_5, internal_id_6, internal_id_7, internal_id_8')
             .ilike('athlete_name', formattedName1);
-          
+
           let matchingAthletes = result.data || [];
-          
+
           // If not found and no spaces in original, try converting hyphens to spaces
           if (matchingAthletes.length === 0 && !decodedName.includes(' ')) {
             const formattedName2 = decodedName
@@ -531,10 +529,10 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
               .from('lifters')
               .select('lifter_id, athlete_name, membership_number, created_at, updated_at, internal_id, internal_id_2, internal_id_3, internal_id_4, internal_id_5, internal_id_6, internal_id_7, internal_id_8')
               .ilike('athlete_name', formattedName2);
-            
+
             matchingAthletes = result.data || [];
           }
-          
+
           // Handle results: single match, multiple matches, or no matches
           if (matchingAthletes.length === 1) {
             athleteData = matchingAthletes[0];
@@ -560,7 +558,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                 };
               })
             );
-            
+
             setDuplicateAthletes(athletesWithRecentInfo);
             return; // Exit early to show disambiguation
           } else {
@@ -573,13 +571,13 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
         }
 
         const { data: resultsData, error: resultsError } = await supabase
-		  .from('meet_results')
-		  .select(`
+          .from('meet_results')
+          .select(`
 			*,
 			meets!inner("Level")
 		  `)
-		  .eq('lifter_id', athleteData.lifter_id)
-		  .order('date', { ascending: false });
+          .eq('lifter_id', athleteData.lifter_id)
+          .order('date', { ascending: false });
 
         if (resultsError) throw resultsError;
 
@@ -607,7 +605,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
     best_total: Math.max(...results.map(r => parseInt(r.total || '0')).filter(v => v > 0)),
     best_qpoints: Math.max(...results.map(r => r.qpoints || 0).filter(v => v > 0))
   } : { best_snatch: 0, best_cj: 0, best_total: 0, best_qpoints: 0 };
-  
+
   const getRecentInfo = () => {
     const sortedResults = [...results].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     const recentWso = sortedResults.find(r => r.wso && typeof r.wso === 'string' && r.wso.trim() !== '')?.wso;
@@ -645,12 +643,12 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
         qpoints: r.qpoints || null,
         qYouth: r.q_youth || null,
         qMasters: r.q_masters || null,
-		qpointsBackground: r.qpoints || null,
+        qpointsBackground: r.qpoints || null,
         qYouthBackground: r.q_youth || null,
         qMastersBackground: r.q_masters || null,
         shortDate: new Date(r.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
         competitionAge: r.competition_age || null,
-        dateWithAge: r.competition_age 
+        dateWithAge: r.competition_age
           ? `${new Date(r.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} (${r.competition_age})`
           : new Date(r.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
         timestamp: new Date(r.date).getTime()
@@ -687,15 +685,15 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
     });
 
   const legendFlags = useMemo(() => ({
-	hasQYouth: chartData?.some(d => d.qYouth && d.qYouth > 0) || false,
-	hasQMasters: chartData?.some(d => d.qMasters && d.qMasters > 0) || false
+    hasQYouth: chartData?.some(d => d.qYouth && d.qYouth > 0) || false,
+    hasQMasters: chartData?.some(d => d.qMasters && d.qMasters > 0) || false
   }), [chartData]);
-  
+
   useEffect(() => {
     setShowQYouth(legendFlags.hasQYouth);
     setShowQMasters(legendFlags.hasQMasters);
   }, [legendFlags.hasQYouth, legendFlags.hasQMasters]);
-  
+
   if (loading) {
     return (
       <div className="min-h-screen bg-app-gradient flex items-center justify-center">
@@ -706,14 +704,14 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
       </div>
     );
   }
-  
+
   // Show disambiguation page if multiple athletes found
   if (duplicateAthletes.length > 1) {
     const searchName = decodeURIComponent(resolvedParams.id).replace(/-/g, ' ');
-    
+
     return (
       <div className="min-h-screen bg-app-gradient">
-      <div className="max-w-[1248px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-[1248px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="card-primary mb-8">
             <h1 className="text-2xl font-bold text-app-primary mb-4">
               Multiple athletes found for "{searchName}"
@@ -721,7 +719,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
             <p className="text-app-secondary mb-6">
               Please select the athlete you're looking for:
             </p>
-            
+
             <div className="space-y-4">
               {duplicateAthletes.map((athlete, index) => (
                 <Link
@@ -764,7 +762,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
         <div className="text-center">
           <h1 className="text-2xl font-bold text-app-primary mb-4">Error Loading Athlete</h1>
           <p className="text-app-secondary mb-4">{error || 'Athlete not found'}</p>
-          <button 
+          <button
             onClick={() => window.history.back()}
             className="bg-accent-primary hover:bg-accent-primary-hover text-app-primary px-6 py-2 rounded-lg transition-colors"
           >
@@ -850,858 +848,858 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
         {chartData.length > 1 && (
           <div className="max-w-[1200px]">
             <div className="space-y-8 mb-8">
-            {/* Progress Over Time Chart */}
-			<div className="chart-container" ref={performanceChartRef}>
-				<div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-4">
-				  <h3 className="text-lg font-semibold text-app-primary flex items-center">
-					<TrendingUp className="h-5 w-5 mr-2" />
-					{athlete.athlete_name} Performance Progress
-				  </h3>
-				  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-					{/* Performance toggles in their own bordered group */}
-					<div className="flex gap-1 border border-app-secondary rounded-lg p-1 w-fit">
-					  <button 
-						onClick={() => setShowSnatch(!showSnatch)}
-						className={`
+              {/* Progress Over Time Chart */}
+              <div className="chart-container" ref={performanceChartRef}>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-4">
+                  <h3 className="text-lg font-semibold text-app-primary flex items-center">
+                    <TrendingUp className="h-5 w-5 mr-2" />
+                    {athlete.athlete_name} Performance Progress
+                  </h3>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                    {/* Performance toggles in their own bordered group */}
+                    <div className="flex gap-1 border border-app-secondary rounded-lg p-1 w-fit">
+                      <button
+                        onClick={() => setShowSnatch(!showSnatch)}
+                        className={`
 						  px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
-						  ${showSnatch 
-							? 'bg-accent-primary text-app-primary' 
-							: 'bg-app-surface text-app-secondary hover:bg-app-hover'
-						  }
+						  ${showSnatch
+                            ? 'bg-accent-primary text-app-primary'
+                            : 'bg-app-surface text-app-secondary hover:bg-app-hover'
+                          }
 						`}
-					  >
-						Snatch
-					  </button>
-					  <button 
-						onClick={() => setShowCleanJerk(!showCleanJerk)}
-						className={`
+                      >
+                        Snatch
+                      </button>
+                      <button
+                        onClick={() => setShowCleanJerk(!showCleanJerk)}
+                        className={`
 						  px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
-						  ${showCleanJerk 
-							? 'bg-accent-primary text-app-primary' 
-							: 'bg-app-surface text-app-secondary hover:bg-app-hover'
-						  }
+						  ${showCleanJerk
+                            ? 'bg-accent-primary text-app-primary'
+                            : 'bg-app-surface text-app-secondary hover:bg-app-hover'
+                          }
 						`}
-					  >
-						C&J
-					  </button>
-					  <button 
-						onClick={() => setShowTotal(!showTotal)}
-						className={`
+                      >
+                        C&J
+                      </button>
+                      <button
+                        onClick={() => setShowTotal(!showTotal)}
+                        className={`
 						  px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
-						  ${showTotal 
-							? 'bg-accent-primary text-app-primary' 
-							: 'bg-app-surface text-app-secondary hover:bg-app-hover'
-						  }
+						  ${showTotal
+                            ? 'bg-accent-primary text-app-primary'
+                            : 'bg-app-surface text-app-secondary hover:bg-app-hover'
+                          }
 						`}
-					  >
-						Total
-					  </button>
-					  <button 
-						onClick={() => setShowAttempts(!showAttempts)}
-						className={`
+                      >
+                        Total
+                      </button>
+                      <button
+                        onClick={() => setShowAttempts(!showAttempts)}
+                        className={`
 						  px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
-						  ${showAttempts 
-							? 'bg-accent-primary text-app-primary' 
-							: 'bg-app-surface text-app-secondary hover:bg-app-hover'
-						  }
+						  ${showAttempts
+                            ? 'bg-accent-primary text-app-primary'
+                            : 'bg-app-surface text-app-secondary hover:bg-app-hover'
+                          }
 						`}
-					  >
-						Attempts
-					  </button>
-					  <button 
-						onClick={() => setShowBodyweight(!showBodyweight)}
-						className={`
+                      >
+                        Attempts
+                      </button>
+                      <button
+                        onClick={() => setShowBodyweight(!showBodyweight)}
+                        className={`
 						  px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
-						  ${showBodyweight 
-							? 'bg-accent-primary text-app-primary' 
-							: 'bg-app-surface text-app-secondary hover:bg-app-hover'
-						  }
+						  ${showBodyweight
+                            ? 'bg-accent-primary text-app-primary'
+                            : 'bg-app-surface text-app-secondary hover:bg-app-hover'
+                          }
 						`}
-					  >
-						Bodyweight
-					  </button>
-					</div>
-					
-					{/* Chart controls in their own separate group */}
-					<div className="flex gap-2">
-					<div className="flex space-x-2">
-					<div className="flex space-x-1 border-app-secondary rounded-lg p-1">
-					  <button 
-						onClick={() => setAutoScalePerformance(!autoScalePerformance)}
-						className={`
-						  px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
-						  ${autoScalePerformance 
-						  ? 'bg-accent-primary text-app-primary'           // Blue when ON
-						  : 'bg-app-surface text-app-secondary hover:bg-app-hover'  // Gray when OFF
-						  }
-						`}
-					  >
-						Auto Scale
-					  </button>
-					  <button
-						onClick={() => setShowPerformanceBrush(!showPerformanceBrush)}
-						className={`
-						  px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
-						  ${showPerformanceBrush 
-						  ? 'bg-accent-primary text-app-primary'           // Blue when ON
-						  : 'bg-app-surface text-app-secondary hover:bg-app-hover'  // Gray when OFF
-						  }
-						`}
-					  >
-						Zoom
-					  </button>
-					</div>
-					</div>
-					</div>
-				  </div>
-				</div>
-			  
-			  <p className="text-sm text-app-muted mb-4">
-				Lifting performance over time.
-			  </p>
-			  
-              <ResponsiveContainer width="100%" height={500}>
-			    <LineChart 
-				  data={chartData} 
-				  margin={{ top: 20, right: 50, left: 20, bottom: 20 }}
-				  onMouseMove={(e) => {
-				    if (e && e.activeLabel && !showPerformanceBrush) {
-					  setPerformanceMouseX(Number(e.activeLabel));
-				    }
-				  }}
-				  onMouseLeave={() => setPerformanceMouseX(null)}
-			    >
-				  {performanceMouseX && !showPerformanceBrush && (
-				    <ReferenceLine 
-					  x={performanceMouseX} 
-					  stroke="var(--text-muted)" 
-					  strokeWidth={1}
-					  strokeDasharray="2 2"
-					  strokeOpacity={0.6}
-				    />
-				  )}
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" />
-                  <XAxis 
-                    type="number"
-                    dataKey="timestamp"
-                    scale="time"
-                    domain={['dataMin', 'dataMax']}
-                    stroke="var(--chart-axis)"
-                    fontSize={11}
-                    tickFormatter={(timestamp) => {
-                      const date = new Date(timestamp);
-                      const year = date.getFullYear().toString().slice(-2);
-                      return `Jan '${year}`;
-                    }}
-                    padding={{ left: 10, right: 10 }}
-                    ticks={(() => {
-                      if (chartData.length === 0) return [];
-                      const minYear = new Date(Math.min(...chartData.map(d => d.timestamp))).getFullYear();
-                      const maxYear = new Date(Math.max(...chartData.map(d => d.timestamp))).getFullYear();
-                      const ticks = [];
-                      for (let year = minYear - 1; year <= maxYear + 1; year++) {
-                        ticks.push(new Date(year, 0, 1).getTime());
-                      }
-                      return ticks;
-                    })()}
-                    allowDataOverflow={true}
-                    label={{ 
-                      value: 'Competition Date (Competition Age)', 
-                      position: 'insideBottom', 
-                      offset: -5, 
-                      style: { 
-                        textAnchor: 'middle', 
-                        fill: 'var(--chart-axis)',
-                        fontSize: '12px'
-                      } 
-                    }}
-                  />
-                  <YAxis 
-                    stroke="var(--chart-axis)"
-                    fontSize={12}
-                    domain={autoScalePerformance ? ['dataMin - 10', 'dataMax + 10'] : [0, 'dataMax + 5']}
-                    allowDataOverflow={true}
-                    label={{ 
-                      value: 'Weight (kg)', 
-                      angle: -90, 
-                      position: 'insideLeft', 
-                      style: { 
-                        textAnchor: 'middle', 
-                        fill: 'var(--chart-axis)',
-                        fontSize: '12px'
-                      } 
-                    }}
-                  />
-                  {!showPerformanceBrush && (
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'var(--chart-tooltip-bg)', 
-                        border: '1px solid var(--chart-tooltip-border)',
-                      borderRadius: '8px',
-                      color: 'var(--text-primary)',
-                      fontSize: '14px',
-                      padding: '12px',
-					  zIndex: 9999,
-                    }}
-                    content={({ active, payload, label }) => {
-                      if (active && payload && payload.length) {
-                        const data = payload[0].payload;
-                        
-                        return (
-                          <div className="bg-app-secondary border border-app-primary rounded-lg p-3">
-                            <p className="text-app-primary font-medium mb-2">{`${data.meet} - ${data.dateWithAge}`}</p>
-                            
-                            {data.total && (
-                              <p style={{ color: 'var(--chart-total)' }}>
-                                Total: {data.total}kg
-                              </p>
-                            )}
-							
-                            <p style={{ color: 'var(--chart-cleanjerk)' }}>
-                              Best Clean & Jerk: {data.cleanJerk ? `${data.cleanJerk}kg` : '-'}
-                            </p>
-                            
-                            {[1, 2, 3].map(num => {
-                              const good = data[`cjGood${num}`];
-                              const miss = data[`cjMiss${num}`];
-                              if (good || miss) {
-                                return (
-                                  <p key={`cj-${num}`} style={{ color: 'var(--text-primary)' }}>
-                                    C&J Attempt {num} {good ? '✓' : '✗'}: {good || miss}kg
-                                  </p>
-                                );
-                              }
-                              return null;
-                            })}
-                            
-                            <p style={{ color: 'var(--chart-snatch)' }}>
-                              Best Snatch: {data.snatch ? `${data.snatch}kg` : '-'}
-                            </p>
-                            
-                            {[1, 2, 3].map(num => {
-                              const good = data[`snatchGood${num}`];
-                              const miss = data[`snatchMiss${num}`];
-                              if (good || miss) {
-                                return (
-                                  <p key={`snatch-${num}`} style={{ color: 'var(--text-primary)' }}>
-                                    Snatch Attempt {num} {good ? '✓' : '✗'}: {good || miss}kg
-                                  </p>
-                                );
-                              }
-                              return null;
-                            })}
-                            
-                            {data.bodyweight && (
-                              <p style={{ color: 'var(--chart-bodyweight)' }}>
-                                Bodyweight: {data.bodyweight}kg
-                              </p>
-                            )}
-                          </div>
-                        );
-                      }
-                      return null;
-                    }}
-                    cursor={false}
-                    animationDuration={150}
-                    allowEscapeViewBox={{ x: false, y: true }}
-                    position={{ x: undefined, y: undefined }}
-                  />
-                  )}
+                      >
+                        Bodyweight
+                      </button>
+                    </div>
 
-                  {showSnatch && (
-				  <>
-				  <Line 
-					dataKey="snatch"
-					stroke="var(--chart-stroke)" 
-					strokeWidth={3}
-					dot={false}
-					activeDot={false}
-					legendType="none"
-				  />
-				  <Line 
-					dataKey="snatch" 
-					stroke="var(--chart-snatch)" 
-					strokeWidth={2.5}
-                    dot={{ 
-                      fill: 'var(--chart-snatch)',
-					  stroke: 'var(--chart-stroke)',
-                      strokeWidth: 0.5, 
-                      r: 5,
-                      style: { cursor: 'pointer' }
+                    {/* Chart controls in their own separate group */}
+                    <div className="flex gap-2">
+                      <div className="flex space-x-2">
+                        <div className="flex space-x-1 border-app-secondary rounded-lg p-1">
+                          <button
+                            onClick={() => setAutoScalePerformance(!autoScalePerformance)}
+                            className={`
+						  px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
+						  ${autoScalePerformance
+                                ? 'bg-accent-primary text-app-primary'           // Blue when ON
+                                : 'bg-app-surface text-app-secondary hover:bg-app-hover'  // Gray when OFF
+                              }
+						`}
+                          >
+                            Auto Scale
+                          </button>
+                          <button
+                            onClick={() => setShowPerformanceBrush(!showPerformanceBrush)}
+                            className={`
+						  px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
+						  ${showPerformanceBrush
+                                ? 'bg-accent-primary text-app-primary'           // Blue when ON
+                                : 'bg-app-surface text-app-secondary hover:bg-app-hover'  // Gray when OFF
+                              }
+						`}
+                          >
+                            Zoom
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-sm text-app-muted mb-4">
+                  Lifting performance over time.
+                </p>
+
+                <ResponsiveContainer width="100%" height={500}>
+                  <LineChart
+                    data={chartData}
+                    margin={{ top: 20, right: 50, left: 20, bottom: 20 }}
+                    onMouseMove={(e) => {
+                      if (e && e.activeLabel && !showPerformanceBrush) {
+                        setPerformanceMouseX(Number(e.activeLabel));
+                      }
                     }}
-                    activeDot={{ 
-                      r: 8, 
-                      stroke: 'var(--chart-stroke)', 
-                      strokeWidth: 2, 
-                      fill: 'var(--chart-snatch)',
-                      style: { cursor: 'pointer' }
-                    }}
-                    name="snatch"
-                    connectNulls={false}
-                  />
-				  {showAttempts && (
-				  <>
-                  {[1, 2, 3].map(attemptNum => (
-                    <Line
-                      key={`snatch-good-${attemptNum}`}
-                      type="monotone"
-                      dataKey={`snatchGood${attemptNum}`}
-                      stroke="none"
-                      dot={{
-                        fill: 'none',
-                        stroke: 'var(--chart-snatch)',
-                        strokeWidth: 1,
-                        r: 2.5
-                      }}
-                      activeDot={false}
-					  connectNulls={false}
-                      legendType="none"
-                    />
-                  ))}
-                  {[1, 2, 3].map(attemptNum => (
-                    <Line
-                      key={`snatch-miss-${attemptNum}`}
-                      type="monotone"
-                      dataKey={`snatchMiss${attemptNum}`}
-                      stroke="none"
-                      dot={{
-                        fill: 'none',
-                        stroke: 'var(--chart-failed)',
-                        strokeWidth: 1,
-                        r: 2.5
-                      }}
-                      activeDot={false}
-					  connectNulls={false}
-                      legendType="none"
-                    />
-				  ))}
-				  </>
-				  )}
-				  </>
-				  )}
-				  
-                  {showPerformanceBrush && (
-                    <Brush 
-                      key="performance-brush"
-                      dataKey="timestamp" 
-                      height={20}
-                      y={500 - 20}
-                      stroke="var(--text-disabled)"
-                      fill="var(--chart-grid)"
-                      fillOpacity={0.6}
+                    onMouseLeave={() => setPerformanceMouseX(null)}
+                  >
+                    {performanceMouseX && !showPerformanceBrush && (
+                      <ReferenceLine
+                        x={performanceMouseX}
+                        stroke="var(--text-muted)"
+                        strokeWidth={1}
+                        strokeDasharray="2 2"
+                        strokeOpacity={0.6}
+                      />
+                    )}
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" />
+                    <XAxis
+                      type="number"
+                      dataKey="timestamp"
+                      scale="time"
+                      domain={['dataMin', 'dataMax']}
+                      stroke="var(--chart-axis)"
+                      fontSize={11}
                       tickFormatter={(timestamp) => {
                         const date = new Date(timestamp);
-                        const year = date.getFullYear().toString().slice(-0);
-                        return year;
+                        const year = date.getFullYear().toString().slice(-2);
+                        return `Jan '${year}`;
+                      }}
+                      padding={{ left: 10, right: 10 }}
+                      ticks={(() => {
+                        if (chartData.length === 0) return [];
+                        const minYear = new Date(Math.min(...chartData.map(d => d.timestamp))).getFullYear();
+                        const maxYear = new Date(Math.max(...chartData.map(d => d.timestamp))).getFullYear();
+                        const ticks = [];
+                        for (let year = minYear - 1; year <= maxYear + 1; year++) {
+                          ticks.push(new Date(year, 0, 1).getTime());
+                        }
+                        return ticks;
+                      })()}
+                      allowDataOverflow={true}
+                      label={{
+                        value: 'Competition Date (Competition Age)',
+                        position: 'insideBottom',
+                        offset: -5,
+                        style: {
+                          textAnchor: 'middle',
+                          fill: 'var(--chart-axis)',
+                          fontSize: '12px'
+                        }
                       }}
                     />
-                  )}
-				  
-				  {showCleanJerk && (
-				  <>
-                  <Line 
-					dataKey="cleanJerk" 
-					stroke="var(--chart-stroke)" 
-					strokeWidth={3}
-					dot={false}
-					activeDot={false}
-				  />
-                  <Line 
-					dataKey="cleanJerk" 
-					stroke="var(--chart-cleanjerk)" 
-					strokeWidth={2.5}  
-					dot={{ 
-                      fill: 'var(--chart-cleanjerk)', 
-					  stroke: 'var(--chart-stroke)',
-                      strokeWidth: 0.5, 
-                      r: 5,
-                      style: { cursor: 'pointer' }
-                    }}
-                    activeDot={{ 
-                      r: 8, 
-                      stroke: 'var(--chart-stroke)', 
-                      strokeWidth: 2, 
-                      fill: 'var(--chart-cleanjerk)',
-                      style: { cursor: 'pointer' }
-                    }}
-                    name="cleanJerk"
-                    connectNulls={false}
-                  />
-				  {showAttempts && (
-				  <>
-                  {[1, 2, 3].map(attemptNum => (
-                    <Line
-                      key={`cj-good-${attemptNum}`}
-                      type="monotone"
-                      dataKey={`cjGood${attemptNum}`}
-                      stroke="none"
-                      dot={{
-                        fill: 'none',
-                        stroke: 'var(--chart-cleanjerk)',
-                        strokeWidth: 1,
-                        r: 2.5
+                    <YAxis
+                      stroke="var(--chart-axis)"
+                      fontSize={12}
+                      domain={autoScalePerformance ? ['dataMin - 10', 'dataMax + 10'] : [0, 'dataMax + 5']}
+                      allowDataOverflow={true}
+                      label={{
+                        value: 'Weight (kg)',
+                        angle: -90,
+                        position: 'insideLeft',
+                        style: {
+                          textAnchor: 'middle',
+                          fill: 'var(--chart-axis)',
+                          fontSize: '12px'
+                        }
                       }}
-                      activeDot={false}
-					  connectNulls={false}
-                      legendType="none"
                     />
-                  ))}
-                  {[1, 2, 3].map(attemptNum => (
-                    <Line
-                      key={`cj-miss-${attemptNum}`}
-                      type="monotone"
-                      dataKey={`cjMiss${attemptNum}`}
-                      stroke="none"
-                      dot={{
-                        fill: 'none',
-                        stroke: 'var(--chart-failed)',
-                        strokeWidth: 1,
-                        r: 2.5
-                      }}
-                      activeDot={false}
-					  connectNulls={false}
-                      legendType="none"
-                    />
-				  ))}
-				  </>
-				  )}
-				  </>
-				  )}
-				  
-				  {showTotal && (
-				  <>
-                  <Line 
-					dataKey="total" 
-					stroke="var(--chart-stroke)" 
-					strokeWidth={3}
-					dot={false}
-					activeDot={false}
-				  />
-				  
-                  <Line 
-					dataKey="total" 
-					stroke="var(--chart-total)" 
-					strokeWidth={2.5}  
-					dot={{ 
-                      fill: 'var(--chart-total)', 
-					  stroke: 'var(--chart-stroke)',
-                      strokeWidth: 0.5, 
-                      r: 5,
-                      style: { cursor: 'pointer' }
-                    }}
-                    activeDot={{ 
-                      r: 8, 
-                      stroke: 'var(--chart-stroke)', 
-                      strokeWidth: 2, 
-                      fill: 'var(--chart-total)',
-                      style: { cursor: 'pointer' }
-                    }}
-                    name="total"
-                    connectNulls={false}
-                  />
-				  </>
-  				  )}
-				  
-                  {showBodyweight && (
-				  <>
-				  <Line 
-					dataKey="bodyweight" 
-					stroke="var(--chart-stroke)" 
-					strokeWidth={3}
-					dot={false}
-					activeDot={false}
-				  />
-                  <Line 
-					dataKey="bodyweight" 
-					stroke="var(--chart-bodyweight)" 
-					strokeWidth={2.5}  
-					dot={{ 
-                      fill: 'var(--chart-bodyweight)', 
-					  stroke: 'var(--chart-stroke)',
-                      strokeWidth: 0.5, 
-                      r: 5,
-                      style: { cursor: 'pointer' }
-                    }}
-                    activeDot={{ 
-                      r: 8, 
-                      stroke: 'var(--chart-stroke)', 
-                      strokeWidth: 2, 
-                      fill: 'var(--chart-bodyweight)',
-                      style: { cursor: 'pointer' }
-                    }}
-                    name="bodyweight"
-                    connectNulls={false}
-                  />
-				  </>
-				  )}
-                </LineChart>
-              </ResponsiveContainer>
-			  
-			  <div className="flex flex-wrap justify-center gap-6 mt-4 pt-4 border-t border-app-secondary">
-				  <div className="flex items-center space-x-2">
-					<div className="w-4 h-0.5 bg-[var(--chart-snatch)]"></div>
-					<span className="text-sm text-app-secondary">Snatch</span>
-				  </div>
-				  <div className="flex items-center space-x-2">
-					<div className="w-4 h-0.5 bg-[var(--chart-cleanjerk)]"></div>
-					<span className="text-sm text-app-secondary">Clean & Jerk</span>
-				  </div>
-				  <div className="flex items-center space-x-2">
-					<div className="w-4 h-0.5 bg-[var(--chart-total)]"></div>
-					<span className="text-sm text-app-secondary">Total</span>
-				  </div>
-				  <div className="flex items-center space-x-2">
-					<div className="w-4 h-0.5 bg-[var(--chart-bodyweight)]"></div>
-					<span className="text-sm text-app-secondary">Bodyweight</span>
-				  </div>
-				  <div className="flex items-center space-x-2">
-					<div className="w-3 h-3 rounded-full bg-[var(--chart-snatch)] opacity-100 border border-[var(--chart-stroke)] border-opacity-50"></div>
-					<span className="text-sm text-app-secondary">Best Snatch</span>
-				  </div>
-				  <div className="flex items-center space-x-2">
-					<div className="w-3 h-3 rounded-full bg-[var(--chart-cleanjerk)] opacity-100 border border-[var(--chart-stroke)] border-opacity-50"></div>
-					<span className="text-sm text-app-secondary">Best C&J</span>
-				  </div>
-			  </div>
-			  
-			  <div className="flex flex-wrap justify-center gap-4 mt-2 text-sm">
-				  <div className="flex items-center space-x-2">
-					<div className="w-1.5 h-1.5 rounded-full bg-[var(--chart-snatch)]/50 border border-[var(--chart-snatch)]"></div>
-					<span className="text-app-secondary">Snatch attempts</span>
-				  </div>
-				  <div className="flex items-center space-x-2">
-					<div className="w-1.5 h-1.5 rounded-full bg-[var(--chart-cleanjerk)]/50 border border-[var(--chart-cleanjerk)]"></div>
-					<span className="text-app-secondary">C&J attempts</span>
-				  </div>
-				  <div className="flex items-center space-x-2">
-					<div className="w-1.5 h-1.5 rounded-full bg-[var(--chart-failed)]/50 border border-[var(--chart-failed)]"></div>
-					<span className="text-app-secondary">Failed attempts</span>
-				  </div>
-			  </div>
-			</div>
+                    {!showPerformanceBrush && (
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'var(--chart-tooltip-bg)',
+                          border: '1px solid var(--chart-tooltip-border)',
+                          borderRadius: '8px',
+                          color: 'var(--text-primary)',
+                          fontSize: '14px',
+                          padding: '12px',
+                          zIndex: 9999,
+                        }}
+                        content={({ active, payload, label }) => {
+                          if (active && payload && payload.length) {
+                            const data = payload[0].payload;
 
-            {/* Q-Points Chart */}
-            <div className="chart-container" ref={qScoresChartRef}>
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-4">
-				<h3 className="text-lg font-semibold text-app-primary flex items-center">
-				  <BarChart3 className="h-5 w-5 mr-2" />
-                  {athlete.athlete_name} Q-Scores Over Time
-                </h3>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-				 {/* Q-score toggles */}
-				 <div className="flex gap-1 border border-app-secondary rounded-lg p-1 w-fit">
-				  <button 
-					  onClick={() => setShowQPoints(!showQPoints)}
-					  className={`
-						  px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
-						  ${showQPoints 
-							? 'bg-accent-primary text-app-primary' 
-							: 'bg-app-surface text-app-secondary hover:bg-app-hover'
-					  }`}
-				  >
-					  Q-Points
-				  </button>
-				  {legendFlags.hasQYouth && (
-				    <button 
-						onClick={() => setShowQYouth(!showQYouth)}
-						className={`
-						  px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
-						  ${showQYouth 
-							? 'bg-accent-primary text-app-primary' 
-							: 'bg-app-surface text-app-secondary hover:bg-app-hover'
-						  }
-						`}
-				    >
-						Q-Youth
-				    </button>
-				  )}
-				  {legendFlags.hasQMasters && (
-					<button 
-						onClick={() => setShowQMasters(!showQMasters)}
-						className={`
-						  px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
-						  ${showQMasters 
-							? 'bg-accent-primary text-app-primary' 
-							: 'bg-app-surface text-app-secondary hover:bg-app-hover'
-						  }
-						`}
-					>
-						Q-Masters
-					</button>
-				  )}
+                            return (
+                              <div className="bg-app-secondary border border-app-primary rounded-lg p-3">
+                                <p className="text-app-primary font-medium mb-2">{`${data.meet} - ${data.dateWithAge}`}</p>
 
-                 </div>
-				 {/* Chart controls */}
-				 <div className="flex gap-2">
-				 <div className="flex space-x-1 border-app-secondary rounded-lg p-1">
-				  <button 
-					  onClick={() => setAutoScaleQScores(!autoScaleQScores)}
-					  className={`
-						px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
-						${autoScaleQScores 
-						  ? 'bg-accent-primary text-app-primary'           // Blue when ON
-						  : 'bg-app-surface text-app-secondary hover:bg-app-hover'  // Gray when OFF
-						}
-					  `}
-				  >
-					  Auto Scale
-				  </button>
+                                {data.total && (
+                                  <p style={{ color: 'var(--chart-total)' }}>
+                                    Total: {data.total}kg
+                                  </p>
+                                )}
 
-				  <button 
-					  onClick={() => setShowQScoresBrush(!showQScoresBrush)}
-					  className={`
-						px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
-						${showQScoresBrush
-						  ? 'bg-accent-primary text-app-primary'           // Blue when ON
-						  : 'bg-app-surface text-app-secondary hover:bg-app-hover'  // Gray when OFF
-						}
-					  `}
-				  >
-					  Zoom
-                  </button>
-				 </div>
-				 </div>
+                                <p style={{ color: 'var(--chart-cleanjerk)' }}>
+                                  Best Clean & Jerk: {data.cleanJerk ? `${data.cleanJerk}kg` : '-'}
+                                </p>
+
+                                {[1, 2, 3].map(num => {
+                                  const good = data[`cjGood${num}`];
+                                  const miss = data[`cjMiss${num}`];
+                                  if (good || miss) {
+                                    return (
+                                      <p key={`cj-${num}`} style={{ color: 'var(--text-primary)' }}>
+                                        C&J Attempt {num} {good ? '✓' : '✗'}: {good || miss}kg
+                                      </p>
+                                    );
+                                  }
+                                  return null;
+                                })}
+
+                                <p style={{ color: 'var(--chart-snatch)' }}>
+                                  Best Snatch: {data.snatch ? `${data.snatch}kg` : '-'}
+                                </p>
+
+                                {[1, 2, 3].map(num => {
+                                  const good = data[`snatchGood${num}`];
+                                  const miss = data[`snatchMiss${num}`];
+                                  if (good || miss) {
+                                    return (
+                                      <p key={`snatch-${num}`} style={{ color: 'var(--text-primary)' }}>
+                                        Snatch Attempt {num} {good ? '✓' : '✗'}: {good || miss}kg
+                                      </p>
+                                    );
+                                  }
+                                  return null;
+                                })}
+
+                                {data.bodyweight && (
+                                  <p style={{ color: 'var(--chart-bodyweight)' }}>
+                                    Bodyweight: {data.bodyweight}kg
+                                  </p>
+                                )}
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                        cursor={false}
+                        animationDuration={150}
+                        allowEscapeViewBox={{ x: false, y: true }}
+                        position={{ x: undefined, y: undefined }}
+                      />
+                    )}
+
+                    {showSnatch && (
+                      <>
+                        <Line
+                          dataKey="snatch"
+                          stroke="var(--chart-stroke)"
+                          strokeWidth={3}
+                          dot={false}
+                          activeDot={false}
+                          legendType="none"
+                        />
+                        <Line
+                          dataKey="snatch"
+                          stroke="var(--chart-snatch)"
+                          strokeWidth={2.5}
+                          dot={{
+                            fill: 'var(--chart-snatch)',
+                            stroke: 'var(--chart-stroke)',
+                            strokeWidth: 0.5,
+                            r: 5,
+                            style: { cursor: 'pointer' }
+                          }}
+                          activeDot={{
+                            r: 8,
+                            stroke: 'var(--chart-stroke)',
+                            strokeWidth: 2,
+                            fill: 'var(--chart-snatch)',
+                            style: { cursor: 'pointer' }
+                          }}
+                          name="snatch"
+                          connectNulls={false}
+                        />
+                        {showAttempts && (
+                          <>
+                            {[1, 2, 3].map(attemptNum => (
+                              <Line
+                                key={`snatch-good-${attemptNum}`}
+                                type="monotone"
+                                dataKey={`snatchGood${attemptNum}`}
+                                stroke="none"
+                                dot={{
+                                  fill: 'none',
+                                  stroke: 'var(--chart-snatch)',
+                                  strokeWidth: 1,
+                                  r: 2.5
+                                }}
+                                activeDot={false}
+                                connectNulls={false}
+                                legendType="none"
+                              />
+                            ))}
+                            {[1, 2, 3].map(attemptNum => (
+                              <Line
+                                key={`snatch-miss-${attemptNum}`}
+                                type="monotone"
+                                dataKey={`snatchMiss${attemptNum}`}
+                                stroke="none"
+                                dot={{
+                                  fill: 'none',
+                                  stroke: 'var(--chart-failed)',
+                                  strokeWidth: 1,
+                                  r: 2.5
+                                }}
+                                activeDot={false}
+                                connectNulls={false}
+                                legendType="none"
+                              />
+                            ))}
+                          </>
+                        )}
+                      </>
+                    )}
+
+                    {showPerformanceBrush && (
+                      <Brush
+                        key="performance-brush"
+                        dataKey="timestamp"
+                        height={20}
+                        y={500 - 20}
+                        stroke="var(--text-disabled)"
+                        fill="var(--chart-grid)"
+                        fillOpacity={0.6}
+                        tickFormatter={(timestamp) => {
+                          const date = new Date(timestamp);
+                          const year = date.getFullYear().toString().slice(-0);
+                          return year;
+                        }}
+                      />
+                    )}
+
+                    {showCleanJerk && (
+                      <>
+                        <Line
+                          dataKey="cleanJerk"
+                          stroke="var(--chart-stroke)"
+                          strokeWidth={3}
+                          dot={false}
+                          activeDot={false}
+                        />
+                        <Line
+                          dataKey="cleanJerk"
+                          stroke="var(--chart-cleanjerk)"
+                          strokeWidth={2.5}
+                          dot={{
+                            fill: 'var(--chart-cleanjerk)',
+                            stroke: 'var(--chart-stroke)',
+                            strokeWidth: 0.5,
+                            r: 5,
+                            style: { cursor: 'pointer' }
+                          }}
+                          activeDot={{
+                            r: 8,
+                            stroke: 'var(--chart-stroke)',
+                            strokeWidth: 2,
+                            fill: 'var(--chart-cleanjerk)',
+                            style: { cursor: 'pointer' }
+                          }}
+                          name="cleanJerk"
+                          connectNulls={false}
+                        />
+                        {showAttempts && (
+                          <>
+                            {[1, 2, 3].map(attemptNum => (
+                              <Line
+                                key={`cj-good-${attemptNum}`}
+                                type="monotone"
+                                dataKey={`cjGood${attemptNum}`}
+                                stroke="none"
+                                dot={{
+                                  fill: 'none',
+                                  stroke: 'var(--chart-cleanjerk)',
+                                  strokeWidth: 1,
+                                  r: 2.5
+                                }}
+                                activeDot={false}
+                                connectNulls={false}
+                                legendType="none"
+                              />
+                            ))}
+                            {[1, 2, 3].map(attemptNum => (
+                              <Line
+                                key={`cj-miss-${attemptNum}`}
+                                type="monotone"
+                                dataKey={`cjMiss${attemptNum}`}
+                                stroke="none"
+                                dot={{
+                                  fill: 'none',
+                                  stroke: 'var(--chart-failed)',
+                                  strokeWidth: 1,
+                                  r: 2.5
+                                }}
+                                activeDot={false}
+                                connectNulls={false}
+                                legendType="none"
+                              />
+                            ))}
+                          </>
+                        )}
+                      </>
+                    )}
+
+                    {showTotal && (
+                      <>
+                        <Line
+                          dataKey="total"
+                          stroke="var(--chart-stroke)"
+                          strokeWidth={3}
+                          dot={false}
+                          activeDot={false}
+                        />
+
+                        <Line
+                          dataKey="total"
+                          stroke="var(--chart-total)"
+                          strokeWidth={2.5}
+                          dot={{
+                            fill: 'var(--chart-total)',
+                            stroke: 'var(--chart-stroke)',
+                            strokeWidth: 0.5,
+                            r: 5,
+                            style: { cursor: 'pointer' }
+                          }}
+                          activeDot={{
+                            r: 8,
+                            stroke: 'var(--chart-stroke)',
+                            strokeWidth: 2,
+                            fill: 'var(--chart-total)',
+                            style: { cursor: 'pointer' }
+                          }}
+                          name="total"
+                          connectNulls={false}
+                        />
+                      </>
+                    )}
+
+                    {showBodyweight && (
+                      <>
+                        <Line
+                          dataKey="bodyweight"
+                          stroke="var(--chart-stroke)"
+                          strokeWidth={3}
+                          dot={false}
+                          activeDot={false}
+                        />
+                        <Line
+                          dataKey="bodyweight"
+                          stroke="var(--chart-bodyweight)"
+                          strokeWidth={2.5}
+                          dot={{
+                            fill: 'var(--chart-bodyweight)',
+                            stroke: 'var(--chart-stroke)',
+                            strokeWidth: 0.5,
+                            r: 5,
+                            style: { cursor: 'pointer' }
+                          }}
+                          activeDot={{
+                            r: 8,
+                            stroke: 'var(--chart-stroke)',
+                            strokeWidth: 2,
+                            fill: 'var(--chart-bodyweight)',
+                            style: { cursor: 'pointer' }
+                          }}
+                          name="bodyweight"
+                          connectNulls={false}
+                        />
+                      </>
+                    )}
+                  </LineChart>
+                </ResponsiveContainer>
+
+                <div className="flex flex-wrap justify-center gap-6 mt-4 pt-4 border-t border-app-secondary">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-0.5 bg-[var(--chart-snatch)]"></div>
+                    <span className="text-sm text-app-secondary">Snatch</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-0.5 bg-[var(--chart-cleanjerk)]"></div>
+                    <span className="text-sm text-app-secondary">Clean & Jerk</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-0.5 bg-[var(--chart-total)]"></div>
+                    <span className="text-sm text-app-secondary">Total</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-0.5 bg-[var(--chart-bodyweight)]"></div>
+                    <span className="text-sm text-app-secondary">Bodyweight</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 rounded-full bg-[var(--chart-snatch)] opacity-100 border border-[var(--chart-stroke)] border-opacity-50"></div>
+                    <span className="text-sm text-app-secondary">Best Snatch</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 rounded-full bg-[var(--chart-cleanjerk)] opacity-100 border border-[var(--chart-stroke)] border-opacity-50"></div>
+                    <span className="text-sm text-app-secondary">Best C&J</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap justify-center gap-4 mt-2 text-sm">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-[var(--chart-snatch)]/50 border border-[var(--chart-snatch)]"></div>
+                    <span className="text-app-secondary">Snatch attempts</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-[var(--chart-cleanjerk)]/50 border border-[var(--chart-cleanjerk)]"></div>
+                    <span className="text-app-secondary">C&J attempts</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-[var(--chart-failed)]/50 border border-[var(--chart-failed)]"></div>
+                    <span className="text-app-secondary">Failed attempts</span>
+                  </div>
                 </div>
               </div>
-			  
-			  <p className="text-sm text-app-muted mb-4">
-			    <a
-				  href="https://www.usaweightlifting.org/news/2024/november/19/q-points-q-youth-to-be-used-in-2025-to-determine-best-lifters"
-				  target="_blank" 
-				  rel="noopener noreferrer"
-				  className="text-accent-primary hover:text-accent-primary-hover underline decoration-1 underline-offset-2"
-				>
-				  Q-Scores
-				</a> normalize performance across age groups and weight classes. Higher scores indicate better performance.
-			  </p>
-			  
-              <ResponsiveContainer width="100%" height={500}>
-			    <LineChart 
-				  data={chartData} 
-				  margin={{ top: 20, right: 50, left: 20, bottom: 20 }}
-				  onMouseMove={(e) => {
-				    if (e && e.activeLabel && !showQScoresBrush) {
-					  setQScoresMouseX(Number(e.activeLabel));
-				    }
-				  }}
-				  onMouseLeave={() => setQScoresMouseX(null)}
-			    >
-				  {qScoresMouseX && !showQScoresBrush && (
-				    <ReferenceLine 
-					  x={qScoresMouseX} 
-					  stroke="var(--text-muted)" 
-					  strokeWidth={1}
-					  strokeDasharray="2 2"
-					  strokeOpacity={0.6}
-				    />
-				  )}
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" />
-                  <XAxis 
-                    type="number"
-                    dataKey="timestamp"
-                    scale="time"
-                    domain={['dataMin', 'dataMax']}
-                    stroke="var(--chart-axis)"
-                    fontSize={11}
-                    tickFormatter={(timestamp) => {
-                      const date = new Date(timestamp);
-                      const year = date.getFullYear().toString().slice(-2);
-                      return `Jan '${year}`;
-                    }}
-                    padding={{ left: 10, right: 10 }}
-                    ticks={(() => {
-                      if (chartData.length === 0) return [];
-                      const minYear = new Date(Math.min(...chartData.map(d => d.timestamp))).getFullYear();
-                      const maxYear = new Date(Math.max(...chartData.map(d => d.timestamp))).getFullYear();
-                      const ticks = [];
-                      for (let year = minYear - 1; year <= maxYear + 1; year++) {
-                        ticks.push(new Date(year, 0, 1).getTime());
-                      }
-                      return ticks;
-                    })()}
-                    allowDataOverflow={true}
-                    label={{ 
-                      value: 'Competition Date (Competition Age)', 
-                      position: 'insideBottom', 
-                      offset: -5, 
-                      style: { 
-                        textAnchor: 'middle', 
-                        fill: 'var(--chart-axis)',
-                        fontSize: '12px'
-                      } 
-                    }}
-                  />
-                  <YAxis 
-                    stroke="var(--chart-axis)"
-                    fontSize={12}
-                    domain={autoScaleQScores ? ['dataMin - 10', 'dataMax + 10'] : [0, 'dataMax + 5']}
-                    allowDataOverflow={true}
-                    label={{ 
-                      value: 'Q-Score', 
-                      angle: -90, 
-                      position: 'insideLeft', 
-                      style: { 
-                        textAnchor: 'middle', 
-                        fill: 'var(--chart-axis)',
-                        fontSize: '12px'
-                      } 
-                    }}
-                  />
-                  {!showQScoresBrush && (
-                    <Tooltip 
-					  contentStyle={{ 
-						backgroundColor: 'var(--chart-tooltip-bg)', 
-						border: '1px solid var(--chart-tooltip-border)',
-						borderRadius: '8px',
-						color: 'var(--text-primary)',
-						fontSize: '14px',
-						padding: '12px',
-						boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)', // Add shadow to create separation
-						backdropFilter: 'blur(8px)', // Blur what's behind it
-					}}
-					wrapperStyle={{
-						zIndex: 9999,
-						backgroundColor: 'rgba(0, 0, 0, 0.1)', // Semi-transparent backdrop
-						borderRadius: '12px',
-						padding: '4px' // Padding around the tooltip
-					}}
-                    formatter={(value: any, name: string) => {
-                      if (!value && value !== 0) return ['-', name];
-                      if (typeof value === 'number') {
-                        if (name === 'qpoints') return [value.toFixed(1), 'Q-Points'];
-                        if (name === 'qYouth') return [value.toFixed(1), 'Q-Youth'];
-                        if (name === 'qMasters') return [value.toFixed(1), 'Q-Masters'];
-                        return [value.toFixed(1), name];
-                      } else {
-                        return [String(value), name];
-                      }
-                    }}
-                    labelFormatter={(label, payload) => {
-                      if (payload && payload[0] && payload[0].payload) {
-                        const data = payload[0].payload;
-                        return `${data.meet} - ${data.dateWithAge}`;
-                      }
-                      return `Competition: ${new Date(label).toLocaleDateString()}`;
-                    }}
-                    cursor={false}
-                    animationDuration={150}
-                    allowEscapeViewBox={{ x: false, y: true }}
-                    position={{ x: undefined, y: undefined }}
-                  />
-                  )}
-                  {showQPoints && (
-					  <>
-						<Line 
-						  dataKey="qpointsBackground"
-						  stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} legendType="none" hide={true} />
-						<Line dataKey="qpoints" stroke="var(--chart-qpoints)" strokeWidth={2.5} dot={{ 
-						  fill: 'var(--chart-qpoints)', 
-						  stroke: 'var(--chart-stroke)',
-						  strokeWidth: 0.5, 
-						  r: 5,
-						  style: { cursor: 'pointer' }
-						}}
-						activeDot={{ 
-						  r: 8, 
-						  stroke: 'var(--chart-stroke)', 
-						  strokeWidth: 2, 
-						  fill: 'var(--chart-qpoints)',
-						  style: { cursor: 'pointer' }
-						}}
-						name="qpoints"
-						connectNulls={false}
-                        />
-					  </>
-					)}
 
-					{showQYouth && chartData.some(d => d.qYouth) && (
-					  <>
-						<Line 
-						  dataKey="qYouthBackground"
-						  stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} legendType="none" hide={true} />
-						<Line dataKey="qYouth" stroke="var(--chart-qyouth)" strokeWidth={2.5} dot={{ 
-							  fill: 'var(--chart-qyouth)', 
-							  stroke: 'var(--chart-stroke)',
-							  strokeWidth: 0.5, 
-							  r: 5,
-							  style: { cursor: 'pointer' }
-							}}
-							activeDot={{ 
-							  r: 8, 
-							  stroke: 'var(--chart-stroke)', 
-							  strokeWidth: 2, 
-							  fill: 'var(--chart-qyouth)',
-							  style: { cursor: 'pointer' }
-							}}
-							name="qYouth"
-							connectNulls={false}
-						/>
-					  </>
-					)}
+              {/* Q-Points Chart */}
+              <div className="chart-container" ref={qScoresChartRef}>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-4">
+                  <h3 className="text-lg font-semibold text-app-primary flex items-center">
+                    <BarChart3 className="h-5 w-5 mr-2" />
+                    {athlete.athlete_name} Q-Scores Over Time
+                  </h3>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                    {/* Q-score toggles */}
+                    <div className="flex gap-1 border border-app-secondary rounded-lg p-1 w-fit">
+                      <button
+                        onClick={() => setShowQPoints(!showQPoints)}
+                        className={`
+						  px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
+						  ${showQPoints
+                            ? 'bg-accent-primary text-app-primary'
+                            : 'bg-app-surface text-app-secondary hover:bg-app-hover'
+                          }`}
+                      >
+                        Q-Points
+                      </button>
+                      {legendFlags.hasQYouth && (
+                        <button
+                          onClick={() => setShowQYouth(!showQYouth)}
+                          className={`
+						  px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
+						  ${showQYouth
+                              ? 'bg-accent-primary text-app-primary'
+                              : 'bg-app-surface text-app-secondary hover:bg-app-hover'
+                            }
+						`}
+                        >
+                          Q-Youth
+                        </button>
+                      )}
+                      {legendFlags.hasQMasters && (
+                        <button
+                          onClick={() => setShowQMasters(!showQMasters)}
+                          className={`
+						  px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
+						  ${showQMasters
+                              ? 'bg-accent-primary text-app-primary'
+                              : 'bg-app-surface text-app-secondary hover:bg-app-hover'
+                            }
+						`}
+                        >
+                          Q-Masters
+                        </button>
+                      )}
 
-					{showQMasters && chartData.some(d => d.qMasters) && (
-					  <>
-						<Line 
-						  dataKey="qMastersBackground"
-						  stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} legendType="none" hide={true} />
-						<Line dataKey="qMasters" stroke="var(--chart-qmasters)" strokeWidth={2.5} dot={{ 
-							  fill: 'var(--chart-qmasters)', 
-							  stroke: 'var(--chart-stroke)',
-							  strokeWidth: 0.5, 
-							  r: 5,
-							  style: { cursor: 'pointer' }
-							}}
-							activeDot={{ 
-							  r: 8, 
-							  stroke: 'var(--chart-stroke)', 
-							  strokeWidth: 2, 
-							  fill: 'var(--chart-qmasters)',
-							  style: { cursor: 'pointer' }
-							}}
-							name="qMasters"
-							connectNulls={false}
-						/>
-					  </>
-				    )}
-                  {showQScoresBrush && (
-                    <Brush 
-                      key="q-scores-brush"
-                      dataKey="timestamp" 
-                      height={20}
-                      y={500 - 20}
-                      stroke="var(--text-disabled)"
-                      fill="var(--chart-grid)"
-                      fillOpacity={0.6}
+                    </div>
+                    {/* Chart controls */}
+                    <div className="flex gap-2">
+                      <div className="flex space-x-1 border-app-secondary rounded-lg p-1">
+                        <button
+                          onClick={() => setAutoScaleQScores(!autoScaleQScores)}
+                          className={`
+						px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
+						${autoScaleQScores
+                              ? 'bg-accent-primary text-app-primary'           // Blue when ON
+                              : 'bg-app-surface text-app-secondary hover:bg-app-hover'  // Gray when OFF
+                            }
+					  `}
+                        >
+                          Auto Scale
+                        </button>
+
+                        <button
+                          onClick={() => setShowQScoresBrush(!showQScoresBrush)}
+                          className={`
+						px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
+						${showQScoresBrush
+                              ? 'bg-accent-primary text-app-primary'           // Blue when ON
+                              : 'bg-app-surface text-app-secondary hover:bg-app-hover'  // Gray when OFF
+                            }
+					  `}
+                        >
+                          Zoom
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-sm text-app-muted mb-4">
+                  <a
+                    href="https://www.usaweightlifting.org/news/2024/november/19/q-points-q-youth-to-be-used-in-2025-to-determine-best-lifters"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-accent-primary hover:text-accent-primary-hover underline decoration-1 underline-offset-2"
+                  >
+                    Q-Scores
+                  </a> normalize performance across age groups and weight classes. Higher scores indicate better performance.
+                </p>
+
+                <ResponsiveContainer width="100%" height={500}>
+                  <LineChart
+                    data={chartData}
+                    margin={{ top: 20, right: 50, left: 20, bottom: 20 }}
+                    onMouseMove={(e) => {
+                      if (e && e.activeLabel && !showQScoresBrush) {
+                        setQScoresMouseX(Number(e.activeLabel));
+                      }
+                    }}
+                    onMouseLeave={() => setQScoresMouseX(null)}
+                  >
+                    {qScoresMouseX && !showQScoresBrush && (
+                      <ReferenceLine
+                        x={qScoresMouseX}
+                        stroke="var(--text-muted)"
+                        strokeWidth={1}
+                        strokeDasharray="2 2"
+                        strokeOpacity={0.6}
+                      />
+                    )}
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" />
+                    <XAxis
+                      type="number"
+                      dataKey="timestamp"
+                      scale="time"
+                      domain={['dataMin', 'dataMax']}
+                      stroke="var(--chart-axis)"
+                      fontSize={11}
                       tickFormatter={(timestamp) => {
                         const date = new Date(timestamp);
-                        const year = date.getFullYear().toString().slice(-0);
-                        return year;
+                        const year = date.getFullYear().toString().slice(-2);
+                        return `Jan '${year}`;
+                      }}
+                      padding={{ left: 10, right: 10 }}
+                      ticks={(() => {
+                        if (chartData.length === 0) return [];
+                        const minYear = new Date(Math.min(...chartData.map(d => d.timestamp))).getFullYear();
+                        const maxYear = new Date(Math.max(...chartData.map(d => d.timestamp))).getFullYear();
+                        const ticks = [];
+                        for (let year = minYear - 1; year <= maxYear + 1; year++) {
+                          ticks.push(new Date(year, 0, 1).getTime());
+                        }
+                        return ticks;
+                      })()}
+                      allowDataOverflow={true}
+                      label={{
+                        value: 'Competition Date (Competition Age)',
+                        position: 'insideBottom',
+                        offset: -5,
+                        style: {
+                          textAnchor: 'middle',
+                          fill: 'var(--chart-axis)',
+                          fontSize: '12px'
+                        }
                       }}
                     />
+                    <YAxis
+                      stroke="var(--chart-axis)"
+                      fontSize={12}
+                      domain={autoScaleQScores ? ['dataMin - 10', 'dataMax + 10'] : [0, 'dataMax + 5']}
+                      allowDataOverflow={true}
+                      label={{
+                        value: 'Q-Score',
+                        angle: -90,
+                        position: 'insideLeft',
+                        style: {
+                          textAnchor: 'middle',
+                          fill: 'var(--chart-axis)',
+                          fontSize: '12px'
+                        }
+                      }}
+                    />
+                    {!showQScoresBrush && (
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'var(--chart-tooltip-bg)',
+                          border: '1px solid var(--chart-tooltip-border)',
+                          borderRadius: '8px',
+                          color: 'var(--text-primary)',
+                          fontSize: '14px',
+                          padding: '12px',
+                          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)', // Add shadow to create separation
+                          backdropFilter: 'blur(8px)', // Blur what's behind it
+                        }}
+                        wrapperStyle={{
+                          zIndex: 9999,
+                          backgroundColor: 'rgba(0, 0, 0, 0.1)', // Semi-transparent backdrop
+                          borderRadius: '12px',
+                          padding: '4px' // Padding around the tooltip
+                        }}
+                        formatter={(value: any, name: string) => {
+                          if (!value && value !== 0) return ['-', name];
+                          if (typeof value === 'number') {
+                            if (name === 'qpoints') return [value.toFixed(1), 'Q-Points'];
+                            if (name === 'qYouth') return [value.toFixed(1), 'Q-Youth'];
+                            if (name === 'qMasters') return [value.toFixed(1), 'Q-Masters'];
+                            return [value.toFixed(1), name];
+                          } else {
+                            return [String(value), name];
+                          }
+                        }}
+                        labelFormatter={(label, payload) => {
+                          if (payload && payload[0] && payload[0].payload) {
+                            const data = payload[0].payload;
+                            return `${data.meet} - ${data.dateWithAge}`;
+                          }
+                          return `Competition: ${new Date(label).toLocaleDateString()}`;
+                        }}
+                        cursor={false}
+                        animationDuration={150}
+                        allowEscapeViewBox={{ x: false, y: true }}
+                        position={{ x: undefined, y: undefined }}
+                      />
+                    )}
+                    {showQPoints && (
+                      <>
+                        <Line
+                          dataKey="qpointsBackground"
+                          stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} legendType="none" hide={true} />
+                        <Line dataKey="qpoints" stroke="var(--chart-qpoints)" strokeWidth={2.5} dot={{
+                          fill: 'var(--chart-qpoints)',
+                          stroke: 'var(--chart-stroke)',
+                          strokeWidth: 0.5,
+                          r: 5,
+                          style: { cursor: 'pointer' }
+                        }}
+                          activeDot={{
+                            r: 8,
+                            stroke: 'var(--chart-stroke)',
+                            strokeWidth: 2,
+                            fill: 'var(--chart-qpoints)',
+                            style: { cursor: 'pointer' }
+                          }}
+                          name="qpoints"
+                          connectNulls={false}
+                        />
+                      </>
+                    )}
+
+                    {showQYouth && chartData.some(d => d.qYouth) && (
+                      <>
+                        <Line
+                          dataKey="qYouthBackground"
+                          stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} legendType="none" hide={true} />
+                        <Line dataKey="qYouth" stroke="var(--chart-qyouth)" strokeWidth={2.5} dot={{
+                          fill: 'var(--chart-qyouth)',
+                          stroke: 'var(--chart-stroke)',
+                          strokeWidth: 0.5,
+                          r: 5,
+                          style: { cursor: 'pointer' }
+                        }}
+                          activeDot={{
+                            r: 8,
+                            stroke: 'var(--chart-stroke)',
+                            strokeWidth: 2,
+                            fill: 'var(--chart-qyouth)',
+                            style: { cursor: 'pointer' }
+                          }}
+                          name="qYouth"
+                          connectNulls={false}
+                        />
+                      </>
+                    )}
+
+                    {showQMasters && chartData.some(d => d.qMasters) && (
+                      <>
+                        <Line
+                          dataKey="qMastersBackground"
+                          stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} legendType="none" hide={true} />
+                        <Line dataKey="qMasters" stroke="var(--chart-qmasters)" strokeWidth={2.5} dot={{
+                          fill: 'var(--chart-qmasters)',
+                          stroke: 'var(--chart-stroke)',
+                          strokeWidth: 0.5,
+                          r: 5,
+                          style: { cursor: 'pointer' }
+                        }}
+                          activeDot={{
+                            r: 8,
+                            stroke: 'var(--chart-stroke)',
+                            strokeWidth: 2,
+                            fill: 'var(--chart-qmasters)',
+                            style: { cursor: 'pointer' }
+                          }}
+                          name="qMasters"
+                          connectNulls={false}
+                        />
+                      </>
+                    )}
+                    {showQScoresBrush && (
+                      <Brush
+                        key="q-scores-brush"
+                        dataKey="timestamp"
+                        height={20}
+                        y={500 - 20}
+                        stroke="var(--text-disabled)"
+                        fill="var(--chart-grid)"
+                        fillOpacity={0.6}
+                        tickFormatter={(timestamp) => {
+                          const date = new Date(timestamp);
+                          const year = date.getFullYear().toString().slice(-0);
+                          return year;
+                        }}
+                      />
+                    )}
+                  </LineChart>
+                </ResponsiveContainer>
+
+                <div className="flex flex-wrap justify-center gap-6 mt-4 pt-4 border-t border-app-secondary">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-0.5 bg-[var(--chart-qpoints)]"></div>
+                    <span className="text-sm text-app-secondary">Q-Points</span>
+                  </div>
+                  {legendFlags.hasQYouth && (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-0.5 bg-[var(--chart-qyouth)]"></div>
+                      <span className="text-sm text-app-secondary">Q-Youth</span>
+                    </div>
                   )}
-                </LineChart>
-              </ResponsiveContainer>
-			  
-			  <div className="flex flex-wrap justify-center gap-6 mt-4 pt-4 border-t border-app-secondary">
-				  <div className="flex items-center space-x-2">
-					<div className="w-4 h-0.5 bg-[var(--chart-qpoints)]"></div>
-					<span className="text-sm text-app-secondary">Q-Points</span>
-				  </div>
-				  {legendFlags.hasQYouth && (
-					<div className="flex items-center space-x-2">
-					  <div className="w-4 h-0.5 bg-[var(--chart-qyouth)]"></div>
-					  <span className="text-sm text-app-secondary">Q-Youth</span>
-					</div>
-				  )}
-				  {legendFlags.hasQMasters && (
-					<div className="flex items-center space-x-2">
-					  <div className="w-4 h-0.5 bg-[var(--chart-qmasters)]"></div>
-					  <span className="text-sm text-app-secondary">Q-Masters</span>
-					</div>
-				  )}
-			  </div>
-			  
-            </div>
+                  {legendFlags.hasQMasters && (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-0.5 bg-[var(--chart-qmasters)]"></div>
+                      <span className="text-sm text-app-secondary">Q-Masters</span>
+                    </div>
+                  )}
+                </div>
+
+              </div>
             </div>
           </div>
         )}
@@ -1723,44 +1721,44 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
         {/* Personal Bests Cards */}
         <div className="max-w-[1200px]">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="card-secondary">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-label">Best Snatch</h3>
-              <Weight className="h-5 w-5" style={{ color: 'var(--chart-snatch)' }} />
+            <div className="card-secondary">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-label">Best Snatch</h3>
+                <Weight className="h-5 w-5" style={{ color: 'var(--chart-snatch)' }} />
+              </div>
+              <div className="text-2xl text-heading">
+                {personalBests.best_snatch > 0 ? `${personalBests.best_snatch}kg` : 'N/A'}
+              </div>
             </div>
-            <div className="text-2xl text-heading">
-              {personalBests.best_snatch > 0 ? `${personalBests.best_snatch}kg` : 'N/A'}
+
+            <div className="card-secondary">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-label">Best C&J</h3>
+                <Weight className="h-5 w-5" style={{ color: 'var(--chart-cleanjerk)' }} />
+              </div>
+              <div className="text-2xl text-heading">
+                {personalBests.best_cj > 0 ? `${personalBests.best_cj}kg` : 'N/A'}
+              </div>
             </div>
-          </div>
-        
-          <div className="card-secondary">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-label">Best C&J</h3>
-              <Weight className="h-5 w-5" style={{ color: 'var(--chart-cleanjerk)' }} />
+
+            <div className="card-secondary">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-label">Best Total</h3>
+                <Trophy className="h-5 w-5" style={{ color: 'var(--chart-total)' }} />
+              </div>
+              <div className="text-2xl text-heading">
+                {personalBests.best_total > 0 ? `${personalBests.best_total}kg` : 'N/A'}
+              </div>
             </div>
-            <div className="text-2xl text-heading">
-              {personalBests.best_cj > 0 ? `${personalBests.best_cj}kg` : 'N/A'}
-            </div>
-          </div>
-        
-          <div className="card-secondary">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-label">Best Total</h3>
-              <Trophy className="h-5 w-5" style={{ color: 'var(--chart-total)' }} />
-            </div>
-            <div className="text-2xl text-heading">
-              {personalBests.best_total > 0 ? `${personalBests.best_total}kg` : 'N/A'}
-            </div>
-          </div>
-        
-          <div className="card-secondary">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-label">Best Q-Points</h3>
-              <TrendingUp className="h-5 w-5" style={{ color: 'var(--chart-qpoints)' }} />
-            </div>
-            <div className="text-2xl text-heading">
-              {personalBests.best_qpoints > 0 ? personalBests.best_qpoints.toFixed(1) : 'N/A'}
-            </div>
+
+            <div className="card-secondary">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-label">Best Q-Points</h3>
+                <TrendingUp className="h-5 w-5" style={{ color: 'var(--chart-qpoints)' }} />
+              </div>
+              <div className="text-2xl text-heading">
+                {personalBests.best_qpoints > 0 ? personalBests.best_qpoints.toFixed(1) : 'N/A'}
+              </div>
             </div>
           </div>
         </div>
@@ -1789,7 +1787,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
               </div>
             </div>
           </div>
-          
+
           <div className="p-6" ref={resultsTableRef}>
             {results.length === 0 ? (
               <div className="text-center py-8">
@@ -2010,7 +2008,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                                     {result.meet_name}
                                   </Link>
                                 </td>
-								<td className="px-2 py-1 whitespace-nowrap text-xs">{result.meets?.Level || '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs">{result.meets?.Level || '-'}</td>
                                 <td className="px-2 py-1 whitespace-nowrap text-xs">{result.wso || '-'}</td>
                                 <td className="px-2 py-1 whitespace-nowrap text-xs">{result.club_name || '-'}</td>
                                 <td className="px-2 py-1 whitespace-nowrap text-xs">{result.age_category || '-'}</td>
@@ -2055,11 +2053,11 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                     </tbody>
                   </table>
                 </div>
-                
-                <Pagination 
+
+                <Pagination
                   currentPage={currentPage}
                   totalPages={totalPages}
-				  totalResults={results.length}
+                  totalResults={results.length}
                   onPageChange={handlePageChange}
                 />
               </>
