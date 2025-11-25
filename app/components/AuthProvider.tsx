@@ -92,7 +92,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const fetchUserProfile = async (authUser: User): Promise<ExtendedUser> => {
     try {
       console.log('Fetching profile for user ID:', authUser.id)
-      
+
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('name, role')
@@ -103,7 +103,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         console.error('Error fetching user profile:', error)
         console.log('User ID being queried:', authUser.id)
         console.log('Auth user email:', authUser.email)
-        
+
         // Try to create the profile if it doesn't exist
         if (error.code === 'PGRST116') {
           console.log('Profile not found, creating new profile...')
@@ -117,24 +117,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
             })
             .select()
             .single()
-            
+
           if (insertError) {
             console.error('Error creating profile:', insertError)
             return { ...authUser, role: 'default' }
           }
-          
+
           return {
             ...authUser,
             role: newProfile?.role || 'default',
             name: newProfile?.name || authUser.user_metadata?.name
           }
         }
-        
+
         return { ...authUser, role: 'default' }
       }
 
       console.log('Profile fetched successfully:', profile)
-      
+
       return {
         ...authUser,
         role: profile?.role || 'default',
@@ -340,33 +340,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Clear cached profile immediately
       clearCachedProfile()
 
-      // Wrap with timeout to detect hanging promises
-      const result = await queryWithTimeout(
-        supabase.auth.signOut(),
-        15000,
-        'supabase.auth.signOut()'
-      )
+      // Aggressively clear all client-side storage
+      if (typeof window !== 'undefined') {
+        // Clear local and session storage
+        localStorage.clear()
+        sessionStorage.clear()
 
-      const { error } = result
-      if (error) {
-        throw new Error(error.message)
+        // Clear all cookies accessible to JS
+        document.cookie.split(";").forEach((c) => {
+          document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+        });
       }
-      // Session will be cleared via the onAuthStateChange listener
+
+      // Call server-side logout route to clear cookies
+      await fetch('/auth/signout', { method: 'POST' })
+
+      // Force a hard reload to ensure all client state is reset and new cookies (empty) are respected
+      window.location.href = '/'
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error'
-      console.error('[AUTH] Logout failed:', errorMsg)
-
-      // Check health when logout fails
-      try {
-        const health = await checkSupabaseHealth()
-        if (!health.healthy) {
-          console.error('[AUTH] Supabase health check failed:', health)
-        }
-      } catch (healthErr) {
-        console.error('[AUTH] Health check error:', healthErr instanceof Error ? healthErr.message : healthErr)
-      }
-
-      throw error
+      console.error('[AUTH] Logout failed:', error)
+      // Fallback to home page even if error
+      window.location.href = '/'
     }
   }
 
