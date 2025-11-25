@@ -63,25 +63,27 @@ export async function middleware(request: NextRequest) {
   )
 
   // Refresh session if expired - required for Server Components
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+  // Check cookies directly instead of calling getSession()
+  const authCookieName = request.cookies.getAll()
+    .find(c => c.name.startsWith('sb-') && c.name.endsWith('-auth-token'))?.name;
+  const hasAuthToken = !!authCookieName;
+
+  console.log('[MIDDLEWARE] Cookie check:', hasAuthToken ? 'Found auth token' : 'No auth token');
 
   // Protected routes that require authentication
-  const protectedRoutes = ['/admin', '/rankings']
+  const protectedRoutes = ['/admin', '/rankings'];
   const isProtectedRoute = protectedRoutes.some(route =>
     request.nextUrl.pathname.startsWith(route)
-  )
+  );
 
-  // If accessing a protected route without a session, redirect to home
-  if (isProtectedRoute && !session) {
-    const redirectUrl = request.nextUrl.clone()
-    redirectUrl.pathname = '/'
-    redirectUrl.searchParams.set('auth', 'required')
-    return NextResponse.redirect(redirectUrl)
+  if (isProtectedRoute && !hasAuthToken) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = '/';
+    redirectUrl.searchParams.set('auth', 'required');
+    return NextResponse.redirect(redirectUrl);
   }
 
-  return response
+  return response;
 }
 
 export const config = {

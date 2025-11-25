@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { User, Session } from '@supabase/supabase-js'
 import { queryWithTimeout, queryWithRetry } from '@/lib/supabase-utils'
@@ -37,12 +37,21 @@ interface AuthProviderProps {
   children: ReactNode
 }
 
+// Move client outside component to ensure singleton usage
+const authClient = createClient()
+
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<ExtendedUser | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isLoadingProfile, setIsLoadingProfile] = useState(false)
-  const supabase = createClient()
+
+  // Use the singleton client
+  const supabase = authClient
+
+  // Refs to prevent double initialization in React Strict Mode
+  const hasInitialized = useRef(false)
+  const initPromise = useRef<Promise<void> | null>(null)
 
   // Profile caching helpers
   const PROFILE_CACHE_KEY = 'user_profile_cache'
@@ -148,42 +157,74 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Initialize auth state and listen for changes
   useEffect(() => {
-    // Get initial session with timeout protection
+    // Prevent double initialization
+    if (hasInitialized.current) {
+      console.log('[AUTH] Already initialized, skipping')
+      return
+    }
+
+    hasInitialized.current = true
+    console.log('[AUTH] First initialization')
+
+    // Get initial session
     const initializeAuth = async () => {
+      // 10s timeout for initial session check
       const timeout = new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Auth initialization timeout')), 10000)
-      );
+      )
 
       try {
-        console.log('[AUTH] Initializing auth...')
-        const sessionPromise = supabase.auth.getSession()
-        const { data: { session }, error } = await Promise.race([sessionPromise, timeout]) as any
+        console.log('[AUTH] Getting session...')
+        // Race between getSession and timeout
+        const { data: { session }, error } = await Promise.race([
+          supabase.auth.getSession(),
+          timeout
+        ]) as any
 
         if (error) {
-          console.error('[AUTH] Error getting session:', error)
+          console.error('[AUTH] Session error:', error)
           setSession(null)
           setUser(null)
         } else {
           console.log('[AUTH] Session retrieved:', session ? 'active' : 'none')
           setSession(session)
+
           if (session?.user) {
-            const extendedUser = await fetchUserProfile(session.user)
-            setUser(extendedUser)
+            // Set user IMMEDIATELY with basic data
+            const basicUser: ExtendedUser = {
+              ...session.user,
+              role: 'default',
+              name: session.user.email?.split('@')[0] || 'User'
+            }
+            setUser(basicUser)
+
+            // Fetch profile ASYNC without blocking
+            // We don't await this, so the UI can render immediately
+            fetchUserProfile(session.user)
+              .then(extendedUser => {
+                console.log('[AUTH] Profile loaded:', extendedUser.role)
+                setUser(extendedUser)
+              })
+              .catch(err => {
+                console.error('[AUTH] Profile fetch failed:', err.message)
+              })
           } else {
             setUser(null)
           }
         }
       } catch (error) {
-        console.error('[AUTH] Failed to initialize auth:', error instanceof Error ? error.message : error)
+        console.error('[AUTH] Init failed:', error)
         setSession(null)
         setUser(null)
       } finally {
-        console.log('[AUTH] Initialization complete, setting isLoading to false')
+        console.log('[AUTH] Init complete, isLoading = false')
         setIsLoading(false)
       }
     }
 
-    initializeAuth()
+    if (!initPromise.current) {
+      initPromise.current = initializeAuth()
+    }
 
     // Listen for auth changes
     const {
@@ -340,27 +381,33 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Clear cached profile immediately
       clearCachedProfile()
 
-      // Aggressively clear all client-side storage
-      if (typeof window !== 'undefined') {
-        // Clear local and session storage
-        localStorage.clear()
-        sessionStorage.clear()
+      // Wrap with timeout to detect hanging promises
+      const result = await queryWithTimeout(
+        supabase.auth.signOut(),
+        15000,
+        'supabase.auth.signOut()'
+      )
 
-        // Clear all cookies accessible to JS
-        document.cookie.split(";").forEach((c) => {
-          document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-        });
+      const { error } = result
+      if (error) {
+        throw new Error(error.message)
+      }
+      // Session will be cleared via the onAuthStateChange listener
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+      console.error('[AUTH] Logout failed:', errorMsg)
+
+      // Check health when logout fails
+      try {
+        const health = await checkSupabaseHealth()
+        if (!health.healthy) {
+          console.error('[AUTH] Supabase health check failed:', health)
+        }
+      } catch (healthErr) {
+        console.error('[AUTH] Health check error:', healthErr instanceof Error ? healthErr.message : healthErr)
       }
 
-      // Call server-side logout route to clear cookies
-      await fetch('/auth/signout', { method: 'POST' })
-
-      // Force a hard reload to ensure all client state is reset and new cookies (empty) are respected
-      window.location.href = '/'
-    } catch (error) {
-      console.error('[AUTH] Logout failed:', error)
-      // Fallback to home page even if error
-      window.location.href = '/'
+      throw error
     }
   }
 

@@ -1,49 +1,20 @@
 import { createBrowserClient } from '@supabase/ssr'
 import { Database } from '@/types/database'
 
-// Singleton instance
-let client: ReturnType<typeof createBrowserClient<Database>> | undefined
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-export function createClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Missing Supabase environment variables')
-  }
-
-  // Return existing client if already created
-  if (client) {
-    return client
-  }
-
-  // Create and cache the client
-  client = createBrowserClient<Database>(
-    supabaseUrl,
-    supabaseAnonKey
-  )
-
-  return client
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables')
 }
 
-export function createPublicClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+// Create singleton ONCE at module load time
+const browserClient = createBrowserClient<Database>(
+  supabaseUrl,
+  supabaseAnonKey
+)
 
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Missing Supabase environment variables')
-  }
-
-  // Always create a new client with no persistence to ensure anonymous access
-  return createBrowserClient<Database>(
-    supabaseUrl,
-    supabaseAnonKey,
-    {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-        detectSessionInUrl: false
-      }
-    }
-  )
+// Export simple getter
+export function createClient() {
+  return browserClient
 }
