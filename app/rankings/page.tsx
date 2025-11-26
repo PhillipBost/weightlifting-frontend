@@ -38,6 +38,7 @@ import {
   GbEng, GbSct, GbWls
 } from 'react-flag-icons';
 import { matchesAthleteName } from "../../lib/search/searchUtils";
+import { MetricTooltip } from "../components/MetricTooltip";
 
 // Custom ROC (Russian Olympic Committee) flag component
 const RocFlag: React.FC<{ style?: React.CSSProperties }> = ({ style }) => (
@@ -285,6 +286,7 @@ function RankingsContent() {
     sortBy: "best_total",
     sortOrder: "desc",
     selectedYears: [2025] as number[], // Default to current year
+    selectedCountries: [] as string[],
   });
 
   const [showFilters, setShowFilters] = useState(false);
@@ -293,6 +295,8 @@ function RankingsContent() {
   const [showWeightClassDropdown, setShowWeightClassDropdown] = useState(false);
   const [showHistorical2018Dropdown, setShowHistorical2018Dropdown] = useState(false);
   const [showHistorical1998Dropdown, setShowHistorical1998Dropdown] = useState(false);
+  const [showFederationDropdown, setShowFederationDropdown] = useState(false);
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
   const resultsPerPage = 20;
@@ -300,6 +304,7 @@ function RankingsContent() {
   const [filterOptions, setFilterOptions] = useState({
     weightClasses: [] as string[],
     ageCategories: [] as string[],
+    countries: [] as { code: string; name: string }[],
   });
 
   const [inactiveWeightClasses, setInactiveWeightClasses] = useState<
@@ -802,6 +807,24 @@ function RankingsContent() {
       });
 
       setIwfRankings(iwfRankingsLocal);
+
+      // Populate countries for the filter dropdown
+      const uniqueCountries = new Map<string, string>();
+      [...usawRankingsLocal, ...iwfRankingsLocal].forEach(athlete => {
+        if (athlete.country_code && athlete.country_name) {
+          uniqueCountries.set(athlete.country_code, athlete.country_name);
+        }
+      });
+
+      const sortedCountries = Array.from(uniqueCountries.entries())
+        .map(([code, name]) => ({ code, name }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+      setFilterOptions(prev => ({
+        ...prev,
+        countries: sortedCountries
+      }));
+
       setRankings([
         ...usawRankingsLocal.map((a) => ({ ...a, federation: "usaw" as const })),
         ...iwfRankingsLocal.map((a) => ({ ...a, federation: "iwf" as const })),
@@ -859,7 +882,7 @@ function RankingsContent() {
     let base: AthleteRanking[];
     if (filters.federation === "usaw") {
       base = usawRankings;
-    } else if (filters.federation === "iwf") {
+    } else if (filters.federation === "iwf" || filters.federation === "iwf_one_per_country") {
       base = iwfRankings;
     } else {
       base = rankings.length
@@ -921,6 +944,48 @@ function RankingsContent() {
       filtered = filtered.filter((athlete) => {
         return filters.selectedYears.includes(athlete.year);
       });
+    }
+
+    // Filter by selected countries
+    if (filters.selectedCountries && filters.selectedCountries.length > 0) {
+      filtered = filtered.filter((athlete) => {
+        return athlete.country_code && filters.selectedCountries.includes(athlete.country_code);
+      });
+    }
+
+    // If "IWF 1/MF" is selected, keep only the best athlete per country
+    if (filters.federation === "iwf_one_per_country") {
+      const countryBestMap = new Map<string, AthleteRanking>();
+      const rankingCriteriaForFilter = filters.rankBy as keyof AthleteRanking;
+
+      filtered.forEach((athlete) => {
+        const countryCode = athlete.country_code || "";
+        const existingBest = countryBestMap.get(countryCode);
+
+        if (!existingBest) {
+          countryBestMap.set(countryCode, athlete);
+        } else {
+          // Compare based on ranking criteria
+          const currentValue = athlete[rankingCriteriaForFilter] as number;
+          const existingValue = existingBest[rankingCriteriaForFilter] as number;
+
+          if (currentValue > existingValue) {
+            // Current athlete is better - replace
+            countryBestMap.set(countryCode, athlete);
+          } else if (currentValue === existingValue) {
+            // Tie - use most recent competition date
+            const currentDate = new Date(athlete.last_competition).getTime();
+            const existingDate = new Date(existingBest.last_competition).getTime();
+
+            if (currentDate > existingDate) {
+              countryBestMap.set(countryCode, athlete);
+            }
+          }
+        }
+      });
+
+      // Replace filtered array with only the best per country
+      filtered = Array.from(countryBestMap.values());
     }
 
     const rankingCriteria = filters.rankBy as keyof AthleteRanking;
@@ -1139,6 +1204,7 @@ function RankingsContent() {
       sortOrder: "desc",
       selectedYears: [],
       federation: "all",
+      selectedCountries: [],
     });
   }
 
@@ -1328,7 +1394,9 @@ function RankingsContent() {
                           ? "All Federations"
                           : filters.federation === "usaw"
                             ? "USAW"
-                            : "IWF"}
+                            : filters.federation === "iwf_one_per_country"
+                              ? "IWF 1/MF"
+                              : "IWF"}
                       </span>
                       <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-app-tertiary text-app-secondary">
                         Years:{" "}
@@ -1429,27 +1497,88 @@ function RankingsContent() {
                             )
                           }
                           placeholder="Athlete name"
-                          className="w-full pl-10 pr-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full h-10 pl-10 pr-3 bg-gray-600 border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                     </div>
 
                     {/* Federation */}
-                    <div>
+                    <div className="relative">
                       <label className="block text-sm font-medium text-gray-300 mb-1">
                         Federation
                       </label>
-                      <select
-                        value={filters.federation}
-                        onChange={(e) =>
-                          handleFilterChange("federation", e.target.value)
-                        }
-                        className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      <button
+                        type="button"
+                        onClick={() => setShowFederationDropdown(!showFederationDropdown)}
+                        className="w-full h-10 px-3 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex justify-between items-center"
                       >
-                        <option value="all">All Federations</option>
-                        <option value="usaw">USAW</option>
-                        <option value="iwf">IWF</option>
-                      </select>
+                        <span>
+                          {filters.federation === "all" && "All Federations"}
+                          {filters.federation === "usaw" && "USAW"}
+                          {filters.federation === "iwf" && "IWF"}
+                          {filters.federation === "iwf_one_per_country" && "IWF 1/MF"}
+                        </span>
+                        <ChevronDown className={`h-4 w-4 transition-transform ${showFederationDropdown ? 'rotate-180' : ''}`} />
+                      </button>
+
+                      {showFederationDropdown && (
+                        <div className="absolute z-10 mt-1 w-full bg-gray-700 border border-gray-600 rounded-lg shadow-lg">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              handleFilterChange("federation", "all");
+                              setShowFederationDropdown(false);
+                            }}
+                            className={`w-full px-3 py-2 text-left hover:bg-gray-600 first:rounded-t-lg ${
+                              filters.federation === "all" ? "bg-gray-600" : ""
+                            }`}
+                          >
+                            All Federations
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              handleFilterChange("federation", "usaw");
+                              setShowFederationDropdown(false);
+                            }}
+                            className={`w-full px-3 py-2 text-left hover:bg-gray-600 ${
+                              filters.federation === "usaw" ? "bg-gray-600" : ""
+                            }`}
+                          >
+                            USAW
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              handleFilterChange("federation", "iwf");
+                              setShowFederationDropdown(false);
+                            }}
+                            className={`w-full px-3 py-2 text-left hover:bg-gray-600 ${
+                              filters.federation === "iwf" ? "bg-gray-600" : ""
+                            }`}
+                          >
+                            IWF
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              handleFilterChange("federation", "iwf_one_per_country");
+                              setShowFederationDropdown(false);
+                            }}
+                            className={`w-full px-3 py-2 text-left hover:bg-gray-600 last:rounded-b-lg flex items-center justify-between ${
+                              filters.federation === "iwf_one_per_country" ? "bg-gray-600" : ""
+                            }`}
+                          >
+                            <span>IWF 1/MF</span>
+                            <MetricTooltip
+                              title="IWF 1/MF"
+                              description="Show one athlete per country - displays only the best performing athlete from each Member Federation."
+                            >
+                              <span></span>
+                            </MetricTooltip>
+                          </button>
+                        </div>
+                      )}
                     </div>
 
                     {/* Gender */}
@@ -1462,7 +1591,7 @@ function RankingsContent() {
                         onChange={(e) =>
                           handleFilterChange("gender", e.target.value)
                         }
-                        className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full h-10 px-3 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
                         <option value="all">All Genders</option>
                         <option value="M">Male</option>
@@ -1483,7 +1612,7 @@ function RankingsContent() {
                             e.target.value
                           )
                         }
-                        className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full h-10 px-3 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
                         <option value="all">
                           All Age Categories
@@ -1504,7 +1633,7 @@ function RankingsContent() {
                       <button
                         type="button"
                         onClick={() => setShowWeightClassDropdown(!showWeightClassDropdown)}
-                        className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex justify-between items-center"
+                        className="w-full h-10 px-3 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex justify-between items-center"
                       >
                         <span>
                           {filters.selectedWeightClasses.length === 0
@@ -1608,7 +1737,7 @@ function RankingsContent() {
                       <button
                         type="button"
                         onClick={() => setShowHistorical2018Dropdown(!showHistorical2018Dropdown)}
-                        className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex justify-between items-center"
+                        className="w-full h-10 px-3 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex justify-between items-center"
                       >
                         <span>
                           {filters.selectedHistorical2018.length === 0
@@ -1712,7 +1841,7 @@ function RankingsContent() {
                       <button
                         type="button"
                         onClick={() => setShowHistorical1998Dropdown(!showHistorical1998Dropdown)}
-                        className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex justify-between items-center"
+                        className="w-full h-10 px-3 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex justify-between items-center"
                       >
                         <span>
                           {filters.selectedHistorical1998.length === 0
@@ -1808,6 +1937,102 @@ function RankingsContent() {
                       )}
                     </div>
 
+                    {/* Countries Filter */}
+                    <div className="relative">
+                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Countries
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setShowCountryDropdown((prev) => !prev)}
+                        className="w-full flex items-center justify-between h-10 px-3 bg-gray-600 border border-gray-500 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <span>
+                          {filters.selectedCountries.length === 0
+                            ? "All Countries"
+                            : `${filters.selectedCountries.length} selected`}
+                        </span>
+                        <span className="ml-2 text-xs text-gray-300">
+                          {showCountryDropdown ? "▲" : "▼"}
+                        </span>
+                      </button>
+
+                      {showCountryDropdown && (
+                        <div className="absolute z-20 mt-1 w-64 max-h-64 overflow-y-auto bg-gray-800 border border-gray-600 rounded-lg shadow-lg p-2">
+                          <div className="flex justify-between items-center mb-2 text-[10px] text-gray-400">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const allCountries = filterOptions.countries.map(c => c.code);
+                                setFilters((prev) => ({
+                                  ...prev,
+                                  selectedCountries: allCountries,
+                                }));
+                              }}
+                              className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600"
+                            >
+                              Select All
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setFilters((prev) => ({
+                                  ...prev,
+                                  selectedCountries: [],
+                                }))
+                              }
+                              className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600"
+                            >
+                              Clear
+                            </button>
+                          </div>
+                          <div className="grid grid-cols-1 gap-1">
+                            {filterOptions.countries.length > 0 ? (
+                              filterOptions.countries.map((country) => {
+                                const checked = filters.selectedCountries.includes(country.code);
+                                const FlagComponent = getCountryFlagComponent(country.code);
+                                return (
+                                  <label
+                                    key={country.code}
+                                    className="flex items-center space-x-2 text-xs text-gray-200 cursor-pointer hover:bg-gray-700 p-1 rounded"
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={checked}
+                                      onChange={() => {
+                                        setFilters((prev) => {
+                                          const exists = prev.selectedCountries.includes(country.code);
+                                          return {
+                                            ...prev,
+                                            selectedCountries: exists
+                                              ? prev.selectedCountries.filter((c) => c !== country.code)
+                                              : [...prev.selectedCountries, country.code],
+                                          };
+                                        });
+                                      }}
+                                      className="h-3 w-3 accent-blue-500 flex-shrink-0"
+                                    />
+                                    <div className="flex items-center space-x-2 truncate">
+                                      {FlagComponent && (
+                                        <div className="flex-shrink-0 w-5">
+                                          <FlagComponent style={{ width: '100%', height: 'auto' }} />
+                                        </div>
+                                      )}
+                                      <span className="truncate">{country.name}</span>
+                                    </div>
+                                  </label>
+                                );
+                              })
+                            ) : (
+                              <div className="text-gray-400 text-xs p-2 text-center">
+                                No countries available for selected criteria
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
                     {/* Years dropdown with multi-select checkboxes */}
                     <div className="relative">
                       <label className="block text-sm font-medium text-gray-300 mb-1">
@@ -1816,7 +2041,7 @@ function RankingsContent() {
                       <button
                         type="button"
                         onClick={() => setShowYearDropdown((prev) => !prev)}
-                        className="w-full flex items-center justify-between px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full flex items-center justify-between h-10 px-3 bg-gray-600 border border-gray-500 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
                         <span>
                           {filters.selectedYears.length === 0
