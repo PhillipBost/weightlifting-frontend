@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { createPublicClient } from '../../../lib/supabase/client';
+import { createClient } from '../../../lib/supabase/client';
 import { Trophy, Calendar, Weight, TrendingUp, Medal, User, Building, MapPin, ExternalLink, ArrowLeft, BarChart3, Dumbbell, ChevronLeft, ChevronRight, Database } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, AreaChart, Area, ScatterChart, Scatter, Brush, ReferenceLine } from 'recharts';
 import jsPDF from 'jspdf';
@@ -353,7 +353,7 @@ const SortIcon = ({ column, sortConfig }: {
 
 export default function AthletePage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
-  const supabase = createPublicClient();
+  const supabase = createClient();
   const [selectedTab, setSelectedTab] = useState('overview');
   const [athlete, setAthlete] = useState<any>(null);
   const [results, setResults] = useState<any[]>([]);
@@ -481,117 +481,139 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
   const resolvedParams = React.use(params);
 
   useEffect(() => {
+    let isMounted = true;
+
     async function fetchAthleteData() {
+      // Timeout promise
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Data fetch timed out')), 15000)
+      );
+
       try {
         setLoading(true);
         setError(null);
 
-        let athleteData = null;
-        let athleteError = null;
+        const fetchData = async () => {
+          let athleteData = null;
+          let athleteError = null;
 
-        if (!isNaN(Number(resolvedParams.id))) {
-          const result = await supabase
-            .from('lifters')
-            .select('lifter_id, athlete_name, membership_number, created_at, updated_at, internal_id, internal_id_2, internal_id_3, internal_id_4, internal_id_5, internal_id_6, internal_id_7, internal_id_8')
-            .eq('membership_number', parseInt(resolvedParams.id))
-            .single();
+          if (!isNaN(Number(resolvedParams.id))) {
+            const result = await supabase
+              .from('lifters')
+              .select('lifter_id, athlete_name, membership_number, created_at, updated_at, internal_id, internal_id_2, internal_id_3, internal_id_4, internal_id_5, internal_id_6, internal_id_7, internal_id_8')
+              .eq('membership_number', parseInt(resolvedParams.id))
+              .single();
 
-          athleteData = result.data;
-          athleteError = result.error;
-        }
+            athleteData = result.data;
+            athleteError = result.error;
+          }
 
-        if (!athleteData) {
-          // Handle both hyphenated and space-separated names in URLs
-          let decodedName = decodeURIComponent(resolvedParams.id);
+          if (!athleteData) {
+            // Handle both hyphenated and space-separated names in URLs
+            let decodedName = decodeURIComponent(resolvedParams.id);
 
-          // First, try searching with the decoded name as-is (preserves legitimate hyphens)
-          const formattedName1 = decodedName
-            .split(/\s+/) // Split on spaces only
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-            .join(' ');
-
-          let result = await supabase
-            .from('lifters')
-            .select('lifter_id, athlete_name, membership_number, created_at, updated_at, internal_id, internal_id_2, internal_id_3, internal_id_4, internal_id_5, internal_id_6, internal_id_7, internal_id_8')
-            .ilike('athlete_name', formattedName1);
-
-          let matchingAthletes = result.data || [];
-
-          // If not found and no spaces in original, try converting hyphens to spaces
-          if (matchingAthletes.length === 0 && !decodedName.includes(' ')) {
-            const formattedName2 = decodedName
-              .replace(/-/g, ' ')
-              .split(' ')
+            // First, try searching with the decoded name as-is (preserves legitimate hyphens)
+            const formattedName1 = decodedName
+              .split(/\s+/) // Split on spaces only
               .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
               .join(' ');
 
-            result = await supabase
+            let result = await supabase
               .from('lifters')
               .select('lifter_id, athlete_name, membership_number, created_at, updated_at, internal_id, internal_id_2, internal_id_3, internal_id_4, internal_id_5, internal_id_6, internal_id_7, internal_id_8')
-              .ilike('athlete_name', formattedName2);
+              .ilike('athlete_name', formattedName1);
 
-            matchingAthletes = result.data || [];
+            let matchingAthletes = result.data || [];
+
+            // If not found and no spaces in original, try converting hyphens to spaces
+            if (matchingAthletes.length === 0 && !decodedName.includes(' ')) {
+              const formattedName2 = decodedName
+                .replace(/-/g, ' ')
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                .join(' ');
+
+              result = await supabase
+                .from('lifters')
+                .select('lifter_id, athlete_name, membership_number, created_at, updated_at, internal_id, internal_id_2, internal_id_3, internal_id_4, internal_id_5, internal_id_6, internal_id_7, internal_id_8')
+                .ilike('athlete_name', formattedName2);
+
+              matchingAthletes = result.data || [];
+            }
+
+            // Handle results: single match, multiple matches, or no matches
+            if (matchingAthletes.length === 1) {
+              athleteData = matchingAthletes[0];
+              athleteError = null;
+            } else if (matchingAthletes.length > 1) {
+              // For multiple matches, get recent club info for each athlete
+              const athletesWithRecentInfo = await Promise.all(
+                matchingAthletes.map(async (athlete) => {
+                  const { data: recentResults } = await supabase
+                    .from('meet_results')
+                    .select('wso, club_name, date')
+                    .eq('lifter_id', athlete.lifter_id)
+                    .order('date', { ascending: false })
+                    .limit(10);
+
+                  const recentWso = recentResults?.find(r => r.wso && r.wso.trim() !== '')?.wso;
+                  const recentClub = recentResults?.find(r => r.club_name && r.club_name.trim() !== '')?.club_name;
+
+                  return {
+                    ...athlete,
+                    recent_wso: recentWso,
+                    recent_club_name: recentClub
+                  };
+                })
+              );
+
+              if (isMounted) {
+                setDuplicateAthletes(athletesWithRecentInfo);
+              }
+              return; // Exit early to show disambiguation
+            } else {
+              athleteError = { message: 'Athlete not found' };
+            }
           }
 
-          // Handle results: single match, multiple matches, or no matches
-          if (matchingAthletes.length === 1) {
-            athleteData = matchingAthletes[0];
-            athleteError = null;
-          } else if (matchingAthletes.length > 1) {
-            // For multiple matches, get recent club info for each athlete
-            const athletesWithRecentInfo = await Promise.all(
-              matchingAthletes.map(async (athlete) => {
-                const { data: recentResults } = await supabase
-                  .from('meet_results')
-                  .select('wso, club_name, date')
-                  .eq('lifter_id', athlete.lifter_id)
-                  .order('date', { ascending: false })
-                  .limit(10);
-
-                const recentWso = recentResults?.find(r => r.wso && r.wso.trim() !== '')?.wso;
-                const recentClub = recentResults?.find(r => r.club_name && r.club_name.trim() !== '')?.club_name;
-
-                return {
-                  ...athlete,
-                  recent_wso: recentWso,
-                  recent_club_name: recentClub
-                };
-              })
-            );
-
-            setDuplicateAthletes(athletesWithRecentInfo);
-            return; // Exit early to show disambiguation
-          } else {
-            athleteError = { message: 'Athlete not found' };
+          if (athleteError || !athleteData) {
+            throw new Error('Athlete not found');
           }
-        }
 
-        if (athleteError || !athleteData) {
-          throw new Error('Athlete not found');
-        }
+          const { data: resultsData, error: resultsError } = await supabase
+            .from('meet_results')
+            .select(`
+              *,
+              meets!inner("Level")
+            `)
+            .eq('lifter_id', athleteData.lifter_id)
+            .order('date', { ascending: false });
 
-        const { data: resultsData, error: resultsError } = await supabase
-          .from('meet_results')
-          .select(`
-			*,
-			meets!inner("Level")
-		  `)
-          .eq('lifter_id', athleteData.lifter_id)
-          .order('date', { ascending: false });
+          if (resultsError) throw resultsError;
 
-        if (resultsError) throw resultsError;
+          if (isMounted) {
+            setAthlete(athleteData);
+            setResults(resultsData || []);
+          }
+        };
 
-        setAthlete(athleteData);
-        setResults(resultsData || []);
+        await Promise.race([fetchData(), timeoutPromise]);
+
       } catch (err: any) {
-        setError(err.message);
-        console.error('Error fetching athlete data:', err);
+        if (isMounted) {
+          setError(err.message);
+          console.error('Error fetching athlete data:', err);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
 
     fetchAthleteData();
+
+    return () => { isMounted = false; };
   }, [resolvedParams.id]);
 
   useEffect(() => {

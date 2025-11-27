@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { User, Session } from '@supabase/supabase-js'
 import { queryWithTimeout, queryWithRetry } from '@/lib/supabase-utils'
@@ -37,12 +37,21 @@ interface AuthProviderProps {
   children: ReactNode
 }
 
+// Move client outside component to ensure singleton usage
+const authClient = createClient()
+
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<ExtendedUser | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isLoadingProfile, setIsLoadingProfile] = useState(false)
-  const supabase = createClient()
+
+  // Use the singleton client
+  const supabase = authClient
+
+  // Refs to prevent double initialization in React Strict Mode
+  const hasInitialized = useRef(false)
+  const initPromise = useRef<Promise<void> | null>(null)
 
   // Profile caching helpers
   const PROFILE_CACHE_KEY = 'user_profile_cache'
@@ -89,24 +98,35 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   // Fetch user profile data including role
-  const fetchUserProfile = async (authUser: User): Promise<ExtendedUser> => {
+  const fetchUserProfile = async (authUser: User, retryCount = 0): Promise<ExtendedUser | null> => {
     try {
-      console.log('Fetching profile for user ID:', authUser.id)
+      console.log(`[AUTH] Fetching profile for user ID: ${authUser.id} (attempt ${retryCount + 1})`)
 
-      const { data: profile, error } = await supabase
+      // SKIP getSession check here to prevent deadlocks. 
+      // We rely on the passed authUser and handle DB errors if the session is invalid.
+
+      // Add timeout to the DB query
+      const dbPromise = supabase
         .from('profiles')
         .select('name, role')
         .eq('id', authUser.id)
         .single()
 
-      if (error) {
-        console.error('Error fetching user profile:', error)
-        console.log('User ID being queried:', authUser.id)
-        console.log('Auth user email:', authUser.email)
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
+      )
 
-        // Try to create the profile if it doesn't exist
+      const { data: profile, error } = await Promise.race([
+        dbPromise,
+        timeoutPromise
+      ]) as any
+
+      if (error) {
+        console.error('[AUTH] Error fetching user profile:', error.message)
+
+        // Handle specific error codes
         if (error.code === 'PGRST116') {
-          console.log('Profile not found, creating new profile...')
+          console.log('[AUTH] Profile not found, creating new profile...')
           const { data: newProfile, error: insertError } = await supabase
             .from('profiles')
             .insert({
@@ -119,7 +139,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             .single()
 
           if (insertError) {
-            console.error('Error creating profile:', insertError)
+            console.error('[AUTH] Error creating profile:', insertError)
             return { ...authUser, role: 'default' }
           }
 
@@ -130,10 +150,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
           }
         }
 
-        return { ...authUser, role: 'default' }
+        // If it's a potential auth error (like 401/403 equivalent in Supabase/PostgREST), try to refresh session
+        if (retryCount < 2 && (error.message.includes('JWT') || error.message.includes('token'))) {
+          console.log('[AUTH] Potential stale token detected, refreshing session...')
+          const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
+          if (!refreshError && refreshData.session) {
+            console.log('[AUTH] Session refreshed, retrying profile fetch...')
+            return fetchUserProfile(refreshData.session.user, retryCount + 1)
+          }
+        }
+
+        return null
       }
 
-      console.log('Profile fetched successfully:', profile)
+      console.log('[AUTH] Profile fetched successfully:', profile)
 
       return {
         ...authUser,
@@ -141,54 +171,96 @@ export function AuthProvider({ children }: AuthProviderProps) {
         name: profile?.name || authUser.user_metadata?.name
       }
     } catch (error) {
-      console.error('Failed to fetch user profile:', error)
-      return { ...authUser, role: 'default' }
+      console.error('[AUTH] Failed to fetch user profile:', error)
+      return null
     }
   }
 
   // Initialize auth state and listen for changes
   useEffect(() => {
-    // Get initial session with timeout protection
+    // Prevent double initialization
+    if (hasInitialized.current) {
+      console.log('[AUTH] Already initialized, skipping')
+      return
+    }
+
+    hasInitialized.current = true
+    console.log('[AUTH] First initialization')
+
+    // Get initial session
     const initializeAuth = async () => {
+      // 10s timeout for initial session check
       const timeout = new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Auth initialization timeout')), 10000)
-      );
+      )
 
       try {
-        console.log('[AUTH] Initializing auth...')
-        const sessionPromise = supabase.auth.getSession()
-        const { data: { session }, error } = await Promise.race([sessionPromise, timeout]) as any
+        console.log('[AUTH] Getting session...')
+        // Race between getSession and timeout
+        const { data: { session }, error } = await Promise.race([
+          supabase.auth.getSession(),
+          timeout
+        ]) as any
 
         if (error) {
-          console.error('[AUTH] Error getting session:', error)
+          console.error('[AUTH] Session error:', error)
           setSession(null)
           setUser(null)
         } else {
           console.log('[AUTH] Session retrieved:', session ? 'active' : 'none')
           setSession(session)
+
           if (session?.user) {
-            const extendedUser = await fetchUserProfile(session.user)
-            setUser(extendedUser)
+            // Set user IMMEDIATELY with basic data
+            const basicUser: ExtendedUser = {
+              ...session.user,
+              role: 'default',
+              name: session.user.email?.split('@')[0] || 'User'
+            }
+            setUser(basicUser)
+
+            // Fetch profile ASYNC without blocking
+            // We don't await this, so the UI can render immediately
+            fetchUserProfile(session.user)
+              .then(extendedUser => {
+                if (extendedUser) {
+                  console.log('[AUTH] Profile loaded:', extendedUser.role)
+                  setUser(extendedUser)
+                }
+              })
+              .catch(err => {
+                console.error('[AUTH] Profile fetch failed:', err.message)
+              })
           } else {
             setUser(null)
           }
         }
       } catch (error) {
-        console.error('[AUTH] Failed to initialize auth:', error instanceof Error ? error.message : error)
+        console.error('[AUTH] Init failed:', error)
         setSession(null)
         setUser(null)
       } finally {
-        console.log('[AUTH] Initialization complete, setting isLoading to false')
+        console.log('[AUTH] Init complete, isLoading = false')
         setIsLoading(false)
       }
     }
 
-    initializeAuth()
+    if (!initPromise.current) {
+      initPromise.current = initializeAuth()
+    }
 
     // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log(`[AUTH] Auth state change: ${event}`)
+
+      // If the session is the same as what we have, don't do anything drastic
+      // This helps prevent loops if onAuthStateChange fires redundantly
+      if (event === 'INITIAL_SESSION' && session?.access_token === session?.access_token) {
+        // We already handled initial session in initializeAuth, but we update state just in case
+      }
+
       setSession(session)
 
       if (session?.user) {
@@ -199,7 +271,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
           name: cachedProfile?.name || session.user.email?.split('@')[0] || 'User',
           role: cachedProfile?.role || 'default'
         }
-        setUser(immediateUser)
+
+        // Only update user if it's different to avoid re-renders
+        setUser(prev => {
+          if (prev?.id === immediateUser.id && prev?.role === immediateUser.role) return prev;
+          return immediateUser;
+        })
+
         setIsLoading(false)
 
         // Only show loading profile if we don't have a cached role
@@ -209,40 +287,30 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         // Then fetch fresh profile with retry logic in the background
         try {
-          const extendedUser = await queryWithRetry(
-            async () => {
-              const result = await fetchUserProfile(session.user)
-              // Only throw if we actually got an error, not if we got default values
-              if (!result.role || result.role === 'default') {
-                throw new Error('Profile not loaded yet')
-              }
-              return result
-            },
-            {
-              maxRetries: 4,
-              initialDelayMs: 100,
-              maxDelayMs: 2000,
-              queryName: 'fetchUserProfile'
-            }
-          )
+          // Use a simpler retry logic that respects auth errors
+          const extendedUser = await fetchUserProfile(session.user)
 
-          // Cache the successful profile fetch
-          if (extendedUser.name || extendedUser.role) {
-            setCachedProfile(session.user.id, {
-              name: extendedUser.name,
-              role: extendedUser.role
-            })
+          if (extendedUser) {
+            // Cache the successful profile fetch
+            if (extendedUser.name || extendedUser.role) {
+              setCachedProfile(session.user.id, {
+                name: extendedUser.name,
+                role: extendedUser.role
+              })
+            }
+
+            // Update user with fresh profile data
+            setUser(extendedUser)
+            console.log('[AUTH] Profile loaded successfully:', extendedUser.role)
+          } else {
+            console.warn('[AUTH] Profile fetch failed, keeping existing profile if available')
+            // Do NOT overwrite user with null or default if we already have a profile
           }
 
-          // Update user with fresh profile data
-          setUser(extendedUser)
           setIsLoadingProfile(false)
-          console.log('[AUTH] Profile loaded successfully:', extendedUser)
         } catch (error) {
-          console.error('[AUTH] Profile fetch failed after retries:', error instanceof Error ? error.message : error)
-          // Keep the immediate user with cached/session data
+          console.error('[AUTH] Profile fetch failed:', error)
           setIsLoadingProfile(false)
-          console.log('[AUTH] Using fallback user data:', immediateUser)
         }
       } else {
         setUser(null)
@@ -340,27 +408,33 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Clear cached profile immediately
       clearCachedProfile()
 
-      // Aggressively clear all client-side storage
-      if (typeof window !== 'undefined') {
-        // Clear local and session storage
-        localStorage.clear()
-        sessionStorage.clear()
+      // Wrap with timeout to detect hanging promises
+      const result = await queryWithTimeout(
+        supabase.auth.signOut(),
+        15000,
+        'supabase.auth.signOut()'
+      )
 
-        // Clear all cookies accessible to JS
-        document.cookie.split(";").forEach((c) => {
-          document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-        });
+      const { error } = result
+      if (error) {
+        throw new Error(error.message)
+      }
+      // Session will be cleared via the onAuthStateChange listener
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+      console.error('[AUTH] Logout failed:', errorMsg)
+
+      // Check health when logout fails
+      try {
+        const health = await checkSupabaseHealth()
+        if (!health.healthy) {
+          console.error('[AUTH] Supabase health check failed:', health)
+        }
+      } catch (healthErr) {
+        console.error('[AUTH] Health check error:', healthErr instanceof Error ? healthErr.message : healthErr)
       }
 
-      // Call server-side logout route to clear cookies
-      await fetch('/auth/signout', { method: 'POST' })
-
-      // Force a hard reload to ensure all client state is reset and new cookies (empty) are respected
-      window.location.href = '/'
-    } catch (error) {
-      console.error('[AUTH] Logout failed:', error)
-      // Fallback to home page even if error
-      window.location.href = '/'
+      throw error
     }
   }
 
@@ -374,7 +448,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setSession(session)
         if (session?.user) {
           const extendedUser = await fetchUserProfile(session.user)
-          setUser(extendedUser)
+          if (extendedUser) {
+            setUser(extendedUser)
+          }
         } else {
           setUser(null)
         }
