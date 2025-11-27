@@ -831,23 +831,6 @@ function RankingsContent() {
         ...iwfRankingsLocal.map((a) => ({ ...a, federation: "iwf" as const })),
       ]);
 
-      // Extract unique countries
-      const uniqueCountries = new Map<string, string>();
-      [...usawRankingsLocal, ...iwfRankingsLocal].forEach(athlete => {
-        if (athlete.country_code && athlete.country_name) {
-          uniqueCountries.set(athlete.country_code, athlete.country_name);
-        }
-      });
-
-      const sortedCountries = Array.from(uniqueCountries.entries())
-        .map(([code, name]) => ({ code, name }))
-        .sort((a, b) => a.name.localeCompare(b.name));
-
-      setFilterOptions(prev => ({
-        ...prev,
-        countries: sortedCountries
-      }));
-
     } catch (err: any) {
       setError(err.message);
       console.error("Error fetching rankings data:", err);
@@ -2157,102 +2140,6 @@ function RankingsContent() {
                             })}
                           </div>
 
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Countries Filter */}
-                    <div className="relative">
-                      <label className="block text-sm font-medium text-gray-300 mb-1">
-                        Countries
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => setShowCountryDropdown((prev) => !prev)}
-                        className="w-full flex items-center justify-between px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <span>
-                          {filters.selectedCountries.length === 0
-                            ? "All Countries"
-                            : `${filters.selectedCountries.length} selected`}
-                        </span>
-                        <span className="ml-2 text-xs text-gray-300">
-                          {showCountryDropdown ? "▲" : "▼"}
-                        </span>
-                      </button>
-
-                      {showCountryDropdown && (
-                        <div className="absolute z-20 mt-1 w-64 max-h-64 overflow-y-auto bg-gray-800 border border-gray-600 rounded-lg shadow-lg p-2">
-                          <div className="flex justify-between items-center mb-2 text-[10px] text-gray-400">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const allCountries = filterOptions.countries.map(c => c.code);
-                                setFilters((prev) => ({
-                                  ...prev,
-                                  selectedCountries: allCountries,
-                                }));
-                              }}
-                              className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600"
-                            >
-                              Select All
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setFilters((prev) => ({
-                                  ...prev,
-                                  selectedCountries: [],
-                                }))
-                              }
-                              className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600"
-                            >
-                              Clear
-                            </button>
-                          </div>
-                          <div className="grid grid-cols-1 gap-1">
-                            {filterOptions.countries.length > 0 ? (
-                              filterOptions.countries.map((country) => {
-                                const checked = filters.selectedCountries.includes(country.code);
-                                const FlagComponent = getCountryFlagComponent(country.code);
-                                return (
-                                  <label
-                                    key={country.code}
-                                    className="flex items-center space-x-2 text-xs text-gray-200 cursor-pointer hover:bg-gray-700 p-1 rounded"
-                                  >
-                                    <input
-                                      type="checkbox"
-                                      checked={checked}
-                                      onChange={() => {
-                                        setFilters((prev) => {
-                                          const exists = prev.selectedCountries.includes(country.code);
-                                          return {
-                                            ...prev,
-                                            selectedCountries: exists
-                                              ? prev.selectedCountries.filter((c) => c !== country.code)
-                                              : [...prev.selectedCountries, country.code],
-                                          };
-                                        });
-                                      }}
-                                      className="h-3 w-3 accent-blue-500 flex-shrink-0"
-                                    />
-                                    <div className="flex items-center space-x-2 truncate">
-                                      {FlagComponent && (
-                                        <div className="flex-shrink-0 w-5">
-                                          <FlagComponent style={{ width: '100%', height: 'auto' }} />
-                                        </div>
-                                      )}
-                                      <span className="truncate">{country.name}</span>
-                                    </div>
-                                  </label>
-                                );
-                              })
-                            ) : (
-                              <div className="text-gray-400 text-xs p-2 text-center">
-                                No countries available for selected criteria
-                              </div>
-                            )}
-                          </div>
                         </div>
                       )}
                     </div>
