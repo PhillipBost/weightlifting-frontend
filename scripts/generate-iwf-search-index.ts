@@ -11,10 +11,10 @@ import dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
 
 const IWF_URL = process.env.NEXT_PUBLIC_SUPABASE_IWF_URL;
-const IWF_KEY = process.env.NEXT_PUBLIC_SUPABASE_IWF_ANON_KEY;
+const IWF_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!IWF_URL || !IWF_KEY) {
-    console.error('Missing IWF Supabase environment variables (NEXT_PUBLIC_SUPABASE_IWF_URL, NEXT_PUBLIC_SUPABASE_IWF_ANON_KEY)');
+    console.error('Missing IWF Supabase environment variables (NEXT_PUBLIC_SUPABASE_IWF_URL, SUPABASE_SERVICE_ROLE_KEY)');
     process.exit(1);
 }
 
