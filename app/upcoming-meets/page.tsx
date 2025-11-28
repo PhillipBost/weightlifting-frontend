@@ -2443,11 +2443,7 @@ function RankingsContent() {
 export default function RankingsPage() {
   return (
     <AuthGuard
-      requireAnyRole={[
-        ROLES.ADMIN,
-        ROLES.COACH,
-        ROLES.USAW_NATIONAL_TEAM_COACH,
-      ]}
+      requireRole={ROLES.ADMIN}
       fallback={
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
@@ -2455,7 +2451,7 @@ export default function RankingsPage() {
               Access Denied
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
-              You don't have permission to view the rankings.
+              You don't have permission to view upcoming meets.
             </p>
           </div>
         </div>

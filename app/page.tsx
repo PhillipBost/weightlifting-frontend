@@ -923,8 +923,8 @@ export default function WeightliftingLandingPage() {
               </Link>
             )}
 
-            {/* Upcoming Meets Navigation Card - visible only to authorized roles */}
-            {canViewRankings && (
+            {/* Upcoming Meets Navigation Card - visible only to Admin */}
+            {user?.role === ROLES.ADMIN && (
               <Link href="/upcoming-meets" className="group">
                 <div className="bg-app-secondary border border-app-primary rounded-xl p-6 hover:bg-app-hover transition-all duration-200 hover:shadow-lg hover:scale-105">
                   <div className="flex items-center space-x-4">
