@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Search, TrendingUp, Trophy, Users, Calendar, CalendarDays, MapPinned, Weight, Dumbbell, Database, Filter, ArrowRight, Github, Heart, X, User, MapPin, Loader2 } from 'lucide-react';
+import { Search, TrendingUp, Trophy, Users, Calendar, CalendarDays, CalendarFold, MapPinned, Weight, Dumbbell, Database, Filter, ArrowRight, Github, Heart, X, User, MapPin, Loader2 } from 'lucide-react';
 
 
 import { useRouter } from 'next/navigation';
@@ -917,6 +917,31 @@ export default function WeightliftingLandingPage() {
                   </div>
                   <div className="flex items-center mt-4 text-sm text-emerald-400 group-hover:text-emerald-300 transition-colors">
                     <span>View rankings</span>
+                    <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+              </Link>
+            )}
+
+            {/* Upcoming Meets Navigation Card - visible only to authorized roles */}
+            {canViewRankings && (
+              <Link href="/upcoming-meets" className="group">
+                <div className="bg-app-secondary border border-app-primary rounded-xl p-6 hover:bg-app-hover transition-all duration-200 hover:shadow-lg hover:scale-105">
+                  <div className="flex items-center space-x-4">
+                    <div className="bg-purple-500/10 rounded-full p-3 group-hover:bg-purple-500/20 transition-colors">
+                      <CalendarFold className="h-6 w-6 text-purple-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-app-primary group-hover:text-purple-400 transition-colors">
+                        Upcoming Meets
+                      </h3>
+                      <p className="text-sm text-app-tertiary mt-1">
+                        Browse upcoming competition schedules
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center mt-4 text-sm text-purple-400 group-hover:text-purple-300 transition-colors">
+                    <span>View upcoming meets</span>
                     <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>

@@ -71,7 +71,7 @@ export async function middleware(request: NextRequest) {
   console.log('[MIDDLEWARE] Cookie check:', hasAuthToken ? 'Found auth token' : 'No auth token');
 
   // Protected routes that require authentication
-  const protectedRoutes = ['/admin', '/rankings'];
+  const protectedRoutes = ['/admin', '/rankings', '/upcoming-meets'];
   const isProtectedRoute = protectedRoutes.some(route =>
     request.nextUrl.pathname.startsWith(route)
   );
@@ -94,5 +94,6 @@ export const config = {
      */
     '/admin/:path*',
     '/rankings/:path*',
+    '/upcoming-meets/:path*',
   ],
 }
