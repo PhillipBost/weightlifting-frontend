@@ -62,7 +62,7 @@ export async function GET(request: Request) {
 
     // Get WSO boundary data
     const { data: wsoData, error: wsoError } = await supabaseAdmin
-      .from('wso_information')
+      .from('usaw_wso_information')
       .select('name, territory_geojson')
       .eq('name', wsoName)
       .single()
@@ -80,7 +80,7 @@ export async function GET(request: Request) {
 
     // Query meets with all relevant fields
     const { data: recentMeets, error: meetError } = await supabaseAdmin
-      .from('meets')
+      .from('usaw_meets')
       .select('meet_id, Meet, Date, wso_geography, latitude, longitude, city, state')
       .gte('Date', cutoffDate)
       .not('latitude', 'is', null)

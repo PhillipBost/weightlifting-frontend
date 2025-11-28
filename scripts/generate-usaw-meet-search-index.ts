@@ -53,7 +53,7 @@ async function generateUSAWMeetIndex() {
 
         while (hasMore) {
             const { data, error } = await supabase
-                .from('meets')
+                .from('usaw_meets')
                 .select('meet_id, Meet, Date, Level, city, state, address')
                 .range(page * pageSize, (page + 1) * pageSize - 1);
 

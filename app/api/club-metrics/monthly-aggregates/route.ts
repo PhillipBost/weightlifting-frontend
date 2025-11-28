@@ -22,7 +22,7 @@ export async function GET(request: Request) {
 
     // Get monthly aggregates - sum all clubs for each month
     const { data: aggregates, error } = await supabaseAdmin
-      .from('club_rolling_metrics')
+      .from('usaw_club_rolling_metrics')
       .select(`
         snapshot_month,
         active_members_12mo,

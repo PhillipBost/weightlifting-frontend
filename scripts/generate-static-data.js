@@ -22,7 +22,7 @@ async function generateWSOBoundaries() {
 
   try {
     const { data: wsoData, error } = await supabaseAdmin
-      .from('wso_information')
+      .from('usaw_wso_information')
       .select(`
         wso_id,
         name,
@@ -81,7 +81,7 @@ async function generateClubLocations() {
   try {
     // Get club location data from clubs table
     const { data: clubsData, error: clubsError } = await supabaseAdmin
-      .from('clubs')
+      .from('usaw_clubs')
       .select('*')
       .not('latitude', 'is', null)
       .not('longitude', 'is', null)
@@ -96,7 +96,7 @@ async function generateClubLocations() {
 
     // Get recent activity data for clubs
     const { data: activityData, error: activityError } = await supabaseAdmin
-      .from('meet_results')
+      .from('usaw_meet_results')
       .select('club_name, lifter_id, date')
       .gte('date', `${lastYear}-01-01`)
       .lt('date', `${currentYear + 1}-01-01`)
@@ -166,7 +166,7 @@ async function generateRecentMeets() {
 
     // Query for recent meets from last 3 years
     const { data: meetResults, error: meetError } = await supabaseAdmin
-      .from('meet_results')
+      .from('usaw_meet_results')
       .select(`
         meet_name,
         date,
@@ -219,7 +219,7 @@ async function generateRecentMeets() {
         if (meetIds.length > 0) {
           // Try meet_locations table first
           let { data: meetLocations, error: locationError } = await supabaseAdmin
-            .from('meet_locations')
+            .from('usaw_meet_locations')
             .select('meet_id, latitude, longitude, venue, city, state, address')
             .in('meet_id', meetIds)
 
@@ -227,7 +227,7 @@ async function generateRecentMeets() {
           if (locationError || !meetLocations || meetLocations.length === 0) {
             console.log('Trying meets table for location data...')
             const { data: meetData, error: meetError } = await supabaseAdmin
-              .from('meets')
+              .from('usaw_meets')
               .select('meet_id, lat, lng, venue, city, state, address')
               .in('meet_id', meetIds)
 

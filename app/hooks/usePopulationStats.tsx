@@ -48,7 +48,7 @@ export function usePopulationStats(filter?: DemographicFilter) {
         setError('Population statistics loading timed out. Using fallback data.');
         setLoading(false);
       }, 10000); // 10 second timeout
-      
+
       const dataSource = filter?.dataSource || 'usaw';
 
       // Debug logging for data source selection
@@ -149,7 +149,7 @@ export function usePopulationStats(filter?: DemographicFilter) {
           // USAW branch - use supabase client with 'meet_results' table
           // First, get count to determine sampling strategy
           let countQuery = supabase
-            .from('meet_results')
+            .from('usaw_meet_results')
             .select('*', { count: 'exact', head: true })
             .not('total', 'is', null)
             .not('best_snatch', 'is', null)
@@ -188,7 +188,7 @@ export function usePopulationStats(filter?: DemographicFilter) {
 
           // Query for actual data with adaptive sampling
           let dataQuery = supabase
-            .from('meet_results')
+            .from('usaw_meet_results')
             .select('lifter_id,snatch_lift_1,snatch_lift_2,snatch_lift_3,best_snatch,cj_lift_1,cj_lift_2,cj_lift_3,best_cj,total,date,age_category,gender,qpoints,q_youth,q_masters')
             .not('total', 'is', null)
             .not('best_snatch', 'is', null)
@@ -238,13 +238,13 @@ export function usePopulationStats(filter?: DemographicFilter) {
 
         if (!rawData || rawData.length === 0) {
           // Fallback to general population stats if no filtered data
-          const fallbackDescription = filter?.gender || filter?.ageCategory ? 
+          const fallbackDescription = filter?.gender || filter?.ageCategory ?
             `${filter?.gender === 'M' ? 'male' : filter?.gender === 'F' ? 'female' : ''} athletes${filter?.ageCategory ? ` in ${filter.ageCategory}` : ''}` :
             'all athletes';
 
           const fallbackMetric = {
-            percentile25: 0, percentile50: 0, percentile75: 0, mean: 0, 
-            sampleSize: 0, distribution: [], confidence: 'low' as const, 
+            percentile25: 0, percentile50: 0, percentile75: 0, mean: 0,
+            sampleSize: 0, distribution: [], confidence: 'low' as const,
             demographicDescription: fallbackDescription
           };
 
@@ -283,53 +283,53 @@ export function usePopulationStats(filter?: DemographicFilter) {
 
         // Calculate metrics for each athlete in the sample
         console.log('Processing', data.length, 'unique athletes for metrics calculation');
-        
+
         const athleteMetrics = data.map((result: any, index: number) => {
           try {
             // For IWF, ensure q-scores are handled (may be null)
             const qScores = [
               result.qpoints || 0,
-              result.q_youth || 0, 
+              result.q_youth || 0,
               result.q_masters || 0
             ].filter(q => q > 0);
-            
+
             const bestQScore = qScores.length > 0 ? Math.max(...qScores) : 0;
 
             const allAttempts = [
               result.snatch_lift_1, result.snatch_lift_2, result.snatch_lift_3,
               result.cj_lift_1, result.cj_lift_2, result.cj_lift_3
             ];
-            
-            const validAttempts = allAttempts.filter(attempt => 
+
+            const validAttempts = allAttempts.filter(attempt =>
               attempt != null && String(attempt) !== '0' && !isNaN(parseInt(String(attempt)))
             );
-            
-            const successfulAttempts = validAttempts.filter(attempt => 
+
+            const successfulAttempts = validAttempts.filter(attempt =>
               parseInt(String(attempt)) > 0
             );
-            
-            const successRate = validAttempts.length > 0 ? 
+
+            const successRate = validAttempts.length > 0 ?
               (successfulAttempts.length / validAttempts.length) * 100 : 0;
 
             // Calculate separate snatch and clean & jerk success rates
             const snatchAttempts = [result.snatch_lift_1, result.snatch_lift_2, result.snatch_lift_3];
-            const validSnatchAttempts = snatchAttempts.filter(attempt => 
+            const validSnatchAttempts = snatchAttempts.filter(attempt =>
               attempt != null && String(attempt) !== '0' && !isNaN(parseInt(String(attempt)))
             );
-            const successfulSnatchAttempts = validSnatchAttempts.filter(attempt => 
+            const successfulSnatchAttempts = validSnatchAttempts.filter(attempt =>
               parseInt(String(attempt)) > 0
             );
-            const snatchSuccessRate = validSnatchAttempts.length > 0 ? 
+            const snatchSuccessRate = validSnatchAttempts.length > 0 ?
               (successfulSnatchAttempts.length / validSnatchAttempts.length) * 100 : 0;
 
             const cjAttempts = [result.cj_lift_1, result.cj_lift_2, result.cj_lift_3];
-            const validCjAttempts = cjAttempts.filter(attempt => 
+            const validCjAttempts = cjAttempts.filter(attempt =>
               attempt != null && String(attempt) !== '0' && !isNaN(parseInt(String(attempt)))
             );
-            const successfulCjAttempts = validCjAttempts.filter(attempt => 
+            const successfulCjAttempts = validCjAttempts.filter(attempt =>
               parseInt(String(attempt)) > 0
             );
-            const cleanJerkSuccessRate = validCjAttempts.length > 0 ? 
+            const cleanJerkSuccessRate = validCjAttempts.length > 0 ?
               (successfulCjAttempts.length / validCjAttempts.length) * 100 : 0;
 
             // Simple clutch calculation - 3rd attempts after missing first two
@@ -340,7 +340,7 @@ export function usePopulationStats(filter?: DemographicFilter) {
             const sn1 = parseInt(String(result.snatch_lift_1 || '0'));
             const sn2 = parseInt(String(result.snatch_lift_2 || '0'));
             const sn3 = parseInt(String(result.snatch_lift_3 || '0'));
-            
+
             if (sn1 <= 0 && sn2 <= 0 && sn3 !== 0) {
               clutchSituations++;
               if (sn3 > 0) clutchSuccesses++;
@@ -350,7 +350,7 @@ export function usePopulationStats(filter?: DemographicFilter) {
             const cj1 = parseInt(String(result.cj_lift_1 || '0'));
             const cj2 = parseInt(String(result.cj_lift_2 || '0'));
             const cj3 = parseInt(String(result.cj_lift_3 || '0'));
-            
+
             if (cj1 <= 0 && cj2 <= 0 && cj3 !== 0) {
               clutchSituations++;
               if (cj3 > 0) clutchSuccesses++;
@@ -377,11 +377,11 @@ export function usePopulationStats(filter?: DemographicFilter) {
             // Calculate separate bounce-back rates for snatch and C&J
             let snatchBounceBackRate = 0;
             let cleanJerkBounceBackRate = 0;
-            
+
             if (sn1 <= 0 && sn2 !== 0) {
               snatchBounceBackRate = sn2 > 0 ? 100 : 0;
             }
-            
+
             if (cj1 <= 0 && cj2 !== 0) {
               cleanJerkBounceBackRate = cj2 > 0 ? 100 : 0;
             }
@@ -400,21 +400,21 @@ export function usePopulationStats(filter?: DemographicFilter) {
               total: parseInt(String(result.total || '0'))
             };
           } catch (metricsError: any) {
-              console.error(`Error processing metrics for athlete ${index}:`, metricsError);
-              return {
-                lifter_id: `unknown_${index}`,
-                successRate: 0,
-                snatchSuccessRate: 0,
-                cleanJerkSuccessRate: 0,
-                clutchRate: 0,
-                bounceBackRate: 0,
-                snatchBounceBackRate: 0,
-                cleanJerkBounceBackRate: 0,
-                bestQScore: 0,
-                total: 0
-              };
-            }
-          }).filter((metrics: any) => metrics !== null);
+            console.error(`Error processing metrics for athlete ${index}:`, metricsError);
+            return {
+              lifter_id: `unknown_${index}`,
+              successRate: 0,
+              snatchSuccessRate: 0,
+              cleanJerkSuccessRate: 0,
+              clutchRate: 0,
+              bounceBackRate: 0,
+              snatchBounceBackRate: 0,
+              cleanJerkBounceBackRate: 0,
+              bestQScore: 0,
+              total: 0
+            };
+          }
+        }).filter((metrics: any) => metrics !== null);
 
         // Create demographic description
         const demographicDescription = (() => {
@@ -433,19 +433,19 @@ export function usePopulationStats(filter?: DemographicFilter) {
           // For some metrics like clutch performance, 0 is a meaningful value
           const filtered = includeZeros ? values : values.filter(v => v > 0);
           const sorted = filtered.sort((a, b) => a - b);
-          
+
           if (sorted.length === 0) {
-            return { 
-              percentile25: 0, percentile50: 0, percentile75: 0, mean: 0, 
+            return {
+              percentile25: 0, percentile50: 0, percentile75: 0, mean: 0,
               sampleSize: 0, distribution: [], confidence: 'low'
             };
           }
-          
+
           const mean = sorted.reduce((sum, val) => sum + val, 0) / sorted.length;
           const p25Index = Math.floor(sorted.length * 0.25);
           const p50Index = Math.floor(sorted.length * 0.50);
           const p75Index = Math.floor(sorted.length * 0.75);
-          
+
           return {
             percentile25: sorted[p25Index] || 0,
             percentile50: sorted[p50Index] || 0,
@@ -461,7 +461,7 @@ export function usePopulationStats(filter?: DemographicFilter) {
         const snatchSuccessRates = athleteMetrics.map(m => m.snatchSuccessRate);
         const cleanJerkSuccessRates = athleteMetrics.map(m => m.cleanJerkSuccessRate);
         const clutchRates = athleteMetrics.map(m => m.clutchRate);
-        
+
         // Debug logging for development
         if (process.env.NODE_ENV === 'development') {
           console.log(`Population stats calculated: ${clutchRates.length} athletes, ${clutchRates.filter(r => r > 0).length} with clutch situations`);
@@ -478,7 +478,7 @@ export function usePopulationStats(filter?: DemographicFilter) {
           const baseConsistency = Math.min(95, Math.max(40, metrics.successRate + (Math.random() - 0.5) * 20));
           return baseConsistency;
         });
-        
+
         const competitionFrequencies = data.map(athlete => {
           // Calculate competitions per year for this athlete (simplified)
           // In a real implementation, we'd group by lifter_id and calculate actual frequency
@@ -531,13 +531,13 @@ export function usePopulationStats(filter?: DemographicFilter) {
         clearTimeout(timeoutId); // Clear timeout on success
       } catch (err: any) {
         clearTimeout(timeoutId); // Clear timeout on error
-        
+
         // Enhanced error logging and extraction
         console.error('Error fetching population stats:', err);
         console.error('Error type:', typeof err);
         console.error('Error constructor:', err?.constructor?.name);
         console.error('Full error object:', JSON.stringify(err, null, 2));
-        
+
         // Extract error details with better handling (Supabase/PostgREST structure)
         const supabaseError = err?.error || err;
         const errorDetails = {
@@ -548,29 +548,29 @@ export function usePopulationStats(filter?: DemographicFilter) {
           name: supabaseError?.name || err?.name || '',
           stack: err?.stack || ''
         };
-        
+
         console.error('Detailed error info:', errorDetails);
         console.error('Data source at error:', dataSource, 'table:', dataSource === 'iwf' ? 'iwf_meet_results' : 'meet_results');
-        
+
         // Construct comprehensive error message
         let errorMessage = 'Population statistics loading failed';
-        
+
         if (err?.message && err.message !== '{}') {
           errorMessage += `: ${err.message}`;
         }
-        
+
         if (err?.code) {
           errorMessage += ` (Code: ${err.code})`;
         }
-        
+
         if (err?.details) {
           errorMessage += ` - ${err.details}`;
         }
-        
+
         if (err?.hint) {
           errorMessage += ` Hint: ${err.hint}`;
         }
-        
+
         // If still empty error, try alternative approaches
         if (errorMessage === 'Population statistics loading failed') {
           if (typeof err === 'string' && err.length > 0) {
@@ -581,9 +581,9 @@ export function usePopulationStats(filter?: DemographicFilter) {
             errorMessage += ': Network or database connection issue';
           }
         }
-        
+
         setError(errorMessage);
-        
+
         // Add retry mechanism for failed requests - disable for SQL syntax errors to prevent loops
         const isSyntaxError = errorDetails.code?.includes('column') || errorDetails.message?.includes('does not exist');
         const shouldRetry = !isSyntaxError && (!err?.code || err.code !== 'PGRST116'); // Don't retry on auth or syntax errors
@@ -597,7 +597,7 @@ export function usePopulationStats(filter?: DemographicFilter) {
         } else if (isSyntaxError) {
           console.error('SQL syntax error detected - skipping retry to prevent infinite loop');
         }
-        
+
         // Provide fallback stats on error - IWF-specific fallbacks (slightly higher averages for international data)
         const fallbackDescription = `${dataSource === 'iwf' ? 'international ' : ''}all athletes (fallback data - error occurred)`;
         const fallbackMetric = {
@@ -605,7 +605,7 @@ export function usePopulationStats(filter?: DemographicFilter) {
           sampleSize: 0, distribution: [], confidence: 'low' as const,
           demographicDescription: fallbackDescription
         };
-        
+
         const iwfFallbackMeans = {
           successRate: 78,
           snatchSuccessRate: 75,
@@ -618,7 +618,7 @@ export function usePopulationStats(filter?: DemographicFilter) {
           competitionFrequency: 2.8,
           qScorePerformance: 58
         };
-        
+
         const usawFallbackMeans = {
           successRate: 76,
           snatchSuccessRate: 73,
@@ -631,9 +631,9 @@ export function usePopulationStats(filter?: DemographicFilter) {
           competitionFrequency: 3.4,
           qScorePerformance: 54
         };
-        
+
         const means = dataSource === 'iwf' ? iwfFallbackMeans : usawFallbackMeans;
-        
+
         setStats({
           successRate: { ...fallbackMetric, mean: means.successRate },
           snatchSuccessRate: { ...fallbackMetric, mean: means.snatchSuccessRate },

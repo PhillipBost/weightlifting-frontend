@@ -91,7 +91,7 @@ async function generateUSAWAthleteIndex() {
 
         while (hasMore) {
             const { data, error } = await supabase
-                .from('lifters')
+                .from('usaw_lifters')
                 .select('lifter_id, athlete_name, membership_number')
                 .range(page * pageSize, (page + 1) * pageSize - 1);
 
@@ -147,7 +147,7 @@ async function generateUSAWAthleteIndex() {
         // It fetches `iwf_lifters` with `recent_results:iwf_meet_results(...)`.
         // This implies a foreign key relationship.
         // Does `lifters` have a relationship to `meet_results`?
-        // `app/page.tsx` does `.from('meet_results').in('lifter_id', lifterIds)`.
+        // `app/page.tsx` does `.from('usaw_meet_results').in('lifter_id', lifterIds)`.
         // This suggests we can try `.select('*, meet_results(...)')` on `lifters`.
         // Let's try that.
 
@@ -178,7 +178,7 @@ async function generateUSAWAthleteIndex() {
             // If we do 1000 lifters, we can fetch their latest results in a second query.
 
             const { data: lifters, error } = await supabase
-                .from('lifters')
+                .from('usaw_lifters')
                 .select('lifter_id, athlete_name, membership_number')
                 .range(page * pageSize, (page + 1) * pageSize - 1);
 
@@ -223,7 +223,7 @@ async function generateUSAWAthleteIndex() {
                 //   Merge.
 
                 const { data: results, error: resError } = await supabase
-                    .from('meet_results')
+                    .from('usaw_meet_results')
                     .select('lifter_id, date, gender, club_name, wso')
                     .in('lifter_id', lifterIds)
                     .order('date', { ascending: false });

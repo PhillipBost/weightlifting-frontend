@@ -87,7 +87,7 @@ export async function POST(request: Request) {
     // Get the most recent snapshot to identify active clubs
     console.log('Fetching most recent snapshot...')
     const { data: recentSnapshot, error: recentError } = await supabaseAdmin
-      .from('club_rolling_metrics')
+      .from('usaw_club_rolling_metrics')
       .select('snapshot_month')
       .order('snapshot_month', { ascending: false })
       .limit(1)
@@ -111,11 +111,11 @@ export async function POST(request: Request) {
     const selectFields = displayMetric === 'activity' ?
       'club_name, active_members_12mo, activity_factor' :
       displayMetric === 'participations' ?
-      'club_name, active_members_12mo, total_competitions_12mo' :
-      'club_name, active_members_12mo'
+        'club_name, active_members_12mo, total_competitions_12mo' :
+        'club_name, active_members_12mo'
 
     let activeClubsQuery = supabaseAdmin
-      .from('club_rolling_metrics')
+      .from('usaw_club_rolling_metrics')
       .select(selectFields)
       .eq('snapshot_month', mostRecentMonth)
       .gte('active_members_12mo', minActivityThreshold)
@@ -126,7 +126,7 @@ export async function POST(request: Request) {
 
       // Get clubs that belong to the specified WSO
       const { data: wsoClubs, error: wsoClubsError } = await supabaseAdmin
-        .from('clubs')
+        .from('usaw_clubs')
         .select('club_name')
         .eq('wso_geography', wsoFilter)
         .not('club_name', 'is', null)
@@ -145,8 +145,8 @@ export async function POST(request: Request) {
     }
 
     const orderField = displayMetric === 'activity' ? 'activity_factor' :
-                     displayMetric === 'participations' ? 'total_competitions_12mo' :
-                     'active_members_12mo'
+      displayMetric === 'participations' ? 'total_competitions_12mo' :
+        'active_members_12mo'
 
     const { data: activeClubs, error: activeError } = await activeClubsQuery
       .order(orderField, { ascending: false })
@@ -198,11 +198,11 @@ export async function POST(request: Request) {
         const historicalSelectFields = displayMetric === 'activity' ?
           'club_name, active_members_12mo, activity_factor' :
           displayMetric === 'participations' ?
-          'club_name, active_members_12mo, total_competitions_12mo' :
-          'club_name, active_members_12mo'
+            'club_name, active_members_12mo, total_competitions_12mo' :
+            'club_name, active_members_12mo'
 
         const { data: historicalData, error: historicalError } = await supabaseAdmin
-          .from('club_rolling_metrics')
+          .from('usaw_club_rolling_metrics')
           .select(historicalSelectFields)
           .in('club_name', clubNames)
           .gte('snapshot_month', calcStartDateStr)
@@ -219,8 +219,8 @@ export async function POST(request: Request) {
           // Initialize clubs with their current values as baseline
           topActiveClubs.forEach(club => {
             const currentValue = displayMetric === 'activity' ? (club as any).activity_factor :
-                               displayMetric === 'participations' ? (club as any).total_competitions_12mo :
-                               (club as any).active_members_12mo
+              displayMetric === 'participations' ? (club as any).total_competitions_12mo :
+                (club as any).active_members_12mo
             clubStats[(club as any).club_name] = {
               peak: currentValue || 0,
               average: currentValue || 0,
@@ -233,8 +233,8 @@ export async function POST(request: Request) {
           historicalData.forEach(row => {
             const stats = clubStats[(row as any).club_name]
             const value = displayMetric === 'activity' ? (row as any).activity_factor :
-                         displayMetric === 'participations' ? (row as any).total_competitions_12mo :
-                         (row as any).active_members_12mo
+              displayMetric === 'participations' ? (row as any).total_competitions_12mo :
+                (row as any).active_members_12mo
             if (stats && typeof value === 'number') {
               stats.peak = Math.max(stats.peak, value)
               stats.total += value
@@ -271,11 +271,11 @@ export async function POST(request: Request) {
     const timeSeriesSelectFields = displayMetric === 'activity' ?
       'club_name, snapshot_month, active_members_12mo, activity_factor' :
       displayMetric === 'participations' ?
-      'club_name, snapshot_month, active_members_12mo, total_competitions_12mo' :
-      'club_name, snapshot_month, active_members_12mo'
+        'club_name, snapshot_month, active_members_12mo, total_competitions_12mo' :
+        'club_name, snapshot_month, active_members_12mo'
 
     const { data: timeSeriesData, error: timeSeriesError } = await supabaseAdmin
-      .from('club_rolling_metrics')
+      .from('usaw_club_rolling_metrics')
       .select(timeSeriesSelectFields)
       .in('club_name', selectedClubs)
       .gte('snapshot_month', startDateStr)
@@ -324,8 +324,8 @@ export async function POST(request: Request) {
       }
       const monthKey = new Date((row as any).snapshot_month).toISOString().substring(0, 10)
       const value = displayMetric === 'activity' ? (row as any).activity_factor :
-                   displayMetric === 'participations' ? (row as any).total_competitions_12mo :
-                   (row as any).active_members_12mo
+        displayMetric === 'participations' ? (row as any).total_competitions_12mo :
+          (row as any).active_members_12mo
       clubDataMap[(row as any).club_name][monthKey] = value || 0
     })
 

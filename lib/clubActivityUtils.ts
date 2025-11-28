@@ -35,8 +35,8 @@ export interface ClubWithActivity {
 export async function fetchClubsWithCoordinates() {
   const supabaseAdmin = getSupabaseAdmin()
 
-  const { data: clubsData, error: clubsError} = await supabaseAdmin
-    .from('clubs')
+  const { data: clubsData, error: clubsError } = await supabaseAdmin
+    .from('usaw_clubs')
     .select('club_name, address, latitude, longitude, wso_geography, geocode_display_name')
     .not('latitude', 'is', null)
     .not('longitude', 'is', null)
@@ -59,7 +59,7 @@ export async function fetchRecentActivity() {
   const twoYearsAgoString = twoYearsAgo.toISOString().split('T')[0]
 
   const { data: activityData, error: activityError } = await supabaseAdmin
-    .from('meet_results')
+    .from('usaw_meet_results')
     .select('club_name, lifter_id, meet_id, date')
     .gte('date', twoYearsAgoString)
     .not('club_name', 'is', null)

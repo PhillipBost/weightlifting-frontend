@@ -19,7 +19,7 @@ export async function POST(request: Request) {
 
     // Fetch all clubs with coordinates
     const { data: clubsData, error: clubsError } = await supabaseAdmin
-      .from('clubs')
+      .from('usaw_clubs')
       .select('club_name, latitude, longitude')
       .not('latitude', 'is', null)
       .not('longitude', 'is', null)

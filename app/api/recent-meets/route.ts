@@ -131,14 +131,14 @@ export async function GET(request: Request) {
 
     // Get WSO boundary data for proper geographic filtering
     const { data: wsoData, error: wsoError } = await supabaseAdmin
-      .from('wso_information')
+      .from('usaw_wso_information')
       .select('wso_id, name, territory_geojson')
       .eq('name', wsoName)
       .single()
 
     // Query recent meets using wso_geography field (source of truth)
     const { data: allRecentMeets, error: meetError } = await supabaseAdmin
-      .from('meets')
+      .from('usaw_meets')
       .select('meet_id, Meet, Date, wso_geography, latitude, longitude, address, city, state')
       .eq('wso_geography', wsoName)
       .gte('Date', cutoffDate)

@@ -78,7 +78,7 @@ async function generateUSAWCurrentYear() {
         // First fetch all results without join (faster)
         while (hasMore) {
             const { data, error } = await supabase
-                .from('meet_results')
+                .from('usaw_meet_results')
                 .select(`
                     result_id,
                     meet_id,
@@ -128,7 +128,7 @@ async function generateUSAWCurrentYear() {
         for (let i = 0; i < uniqueLifterIds.length; i += 1000) {
             const batch = uniqueLifterIds.slice(i, i + 1000);
             const { data: lifters, error } = await supabase
-                .from('lifters')
+                .from('usaw_lifters')
                 .select('lifter_id, membership_number')
                 .in('lifter_id', batch);
 

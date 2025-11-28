@@ -111,7 +111,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
 
         // First, fetch meet information (convert string ID to integer)
         const { data: meetData, error: meetError } = await supabase
-          .from('meets')
+          .from('usaw_meets')
           .select('Meet, Date, Level, city, state, address, elevation_meters, latitude, longitude, URL')
           .eq('meet_id', parseInt(resolvedParams.id))
           .single();
@@ -148,7 +148,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
 
         // Then fetch all results for this meet - join with lifters table to get membership_number
         const { data: resultsData, error: resultsError } = await supabase
-          .from('meet_results')
+          .from('usaw_meet_results')
           .select(`
             result_id,
             lifter_name,

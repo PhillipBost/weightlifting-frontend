@@ -10,7 +10,7 @@ export async function GET() {
   try {
     // Get distinct club names with recent activity - limit to most recent month for performance
     const { data: clubs, error } = await supabaseAdmin
-      .from('club_rolling_metrics')
+      .from('usaw_club_rolling_metrics')
       .select('club_name')
       .not('club_name', 'eq', '-') // Exclude unaffiliated
       .eq('snapshot_month', '2025-08-01') // Use latest month only for performance

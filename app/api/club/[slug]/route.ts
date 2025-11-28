@@ -51,7 +51,7 @@ export async function GET(
     // Split slug into words and search for club names containing most of these words
     const words = slug.split('-').filter(w => w.length > 0)
     console.log('Searching for words:', words)
-    
+
     // Handle 2-letter abbreviations that might have special characters (like W/L)
     // Insert wildcards between each character for short words to handle special chars
     const processedWords = words.map(word => {
@@ -61,12 +61,12 @@ export async function GET(
       }
       return word
     })
-    
+
     const simplePattern = processedWords.join('%')
     console.log('Using pattern:', `%${simplePattern}%`)
-    
+
     const { data: clubsData, error: clubsError } = await supabaseAdmin
-      .from('clubs')
+      .from('usaw_clubs')
       .select(`
         club_name,
         active_lifters_count,

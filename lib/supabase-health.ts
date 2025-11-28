@@ -30,7 +30,7 @@ export async function checkSupabaseHealth(): Promise<SupabaseHealthStatus> {
     let data, queryError;
     try {
       const result = await queryWithTimeout(
-        supabase.from('lifters').select('lifter_id').limit(1) as any,
+        supabase.from('usaw_lifters').select('lifter_id').limit(1) as any,
         8000,
         'data access query'
       ) as any

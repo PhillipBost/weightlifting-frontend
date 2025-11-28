@@ -31,7 +31,7 @@ export function useMeetClubLocations(meetId: string) {
 
         // Step 1: Fetch all results for the meet
         const { data: resultsData, error: resultsError } = await supabase
-          .from('meet_results')
+          .from('usaw_meet_results')
           .select('club_name, wso')
           .eq('meet_id', parseInt(meetId));
 
@@ -47,7 +47,7 @@ export function useMeetClubLocations(meetId: string) {
         }
 
         // Step 2: Group by club_name (priority) or wso fallback, count athletes
-        const clubCounts: Record<string, {originalName: string, count: number}> = {};
+        const clubCounts: Record<string, { originalName: string, count: number }> = {};
         resultsData.forEach((row: any) => {
           let name = row.club_name;
           if (!name || name.trim() === '') {
@@ -56,7 +56,7 @@ export function useMeetClubLocations(meetId: string) {
           if (name && name !== 'Unknown') {
             const norm = normalizeName(name);
             if (!clubCounts[norm]) {
-              clubCounts[norm] = {originalName: name, count: 0};
+              clubCounts[norm] = { originalName: name, count: 0 };
             }
             clubCounts[norm].count += 1;
           }
@@ -69,28 +69,28 @@ export function useMeetClubLocations(meetId: string) {
         }));
 
         // Step 3: Fetch coords from clubs table via API (uses service role key)
-        let clubCoords: Record<string, {lat: number, lng: number}> = {};
+        let clubCoords: Record<string, { lat: number, lng: number }> = {};
         console.log(`[useMeetClubLocations] Fetching club coordinates via API...`);
-        
+
         // Get unique club names from results
         const uniqueClubNames = Array.from(
           new Set(uniqueEntries.map((entry: any) => entry.name))
         );
-        
+
         try {
           const response = await fetch('/api/clubs/coordinates', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ clubNames: uniqueClubNames })
           });
-          
+
           if (!response.ok) {
             throw new Error(`API error: ${response.statusText}`);
           }
-          
+
           const coordinatesMap = await response.json();
           console.log(`[useMeetClubLocations] Received coordinates:`, coordinatesMap);
-          
+
           // Build clubCoords from API response
           uniqueClubNames.forEach((clubName: string) => {
             const coords = coordinatesMap[clubName];
@@ -101,7 +101,7 @@ export function useMeetClubLocations(meetId: string) {
               };
             }
           });
-          
+
           console.log(`[useMeetClubLocations] Matched ${Object.keys(clubCoords).length} clubs from API`);
         } catch (err: any) {
           console.error(`[useMeetClubLocations] Error calling API:`, err);
@@ -111,19 +111,19 @@ export function useMeetClubLocations(meetId: string) {
         // Step 4: For unmatched clubs, try WSO fallback
         const unmatchedEntries = uniqueEntries.filter((entry: any) => !clubCoords[entry.name]);
 
-        let wsoCoords: Record<string, {lat: number, lng: number}> = {};
+        let wsoCoords: Record<string, { lat: number, lng: number }> = {};
         if (unmatchedEntries.length > 0) {
           console.log(`[useMeetClubLocations] ${unmatchedEntries.length} clubs not matched, trying WSO fallback...`);
-          
+
           const { data: wsoData, error: wsoError } = await supabase
-            .from('wso_information')
+            .from('usaw_wso_information')
             .select('name, geographic_center_lat, geographic_center_lng')
             .not('geographic_center_lat', 'is', null)
             .not('geographic_center_lng', 'is', null);
 
           if (wsoError) throw wsoError;
 
-          const normalizedWsoMap: Record<string, {originalName: string, lat: number, lng: number}> = {};
+          const normalizedWsoMap: Record<string, { originalName: string, lat: number, lng: number }> = {};
           wsoData.forEach((wso: any) => {
             if (wso.geographic_center_lat && wso.geographic_center_lng) {
               const norm = normalizeName(wso.name);

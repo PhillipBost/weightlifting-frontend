@@ -32,7 +32,7 @@ export async function GET() {
 
     // Query clubs table directly with pre-calculated active_lifters_count
     const { data: clubsData, error: clubsError } = await supabaseAdmin
-      .from('clubs')
+      .from('usaw_clubs')
       .select('club_name, address, latitude, longitude, geocode_display_name, active_lifters_count')
       .not('latitude', 'is', null)
       .not('longitude', 'is', null)

@@ -36,7 +36,7 @@ export async function GET() {
 
     // Query clubs table with pre-calculated activity metrics
     const { data: clubsData, error: clubsError } = await supabaseAdmin
-      .from('clubs')
+      .from('usaw_clubs')
       .select('club_name, address, latitude, longitude, geocode_display_name, wso_geography, active_lifters_count, activity_factor, total_participations, recent_meets_count')
       .not('latitude', 'is', null)
       .not('longitude', 'is', null)

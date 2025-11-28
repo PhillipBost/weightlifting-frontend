@@ -27,7 +27,7 @@ export async function GET() {
 
     while (true) {
       const { data: batchData, error: batchError } = await supabaseAdmin
-        .from('club_rolling_metrics')
+        .from('usaw_club_rolling_metrics')
         .select('*')
         .order('snapshot_month', { ascending: true })
         .order('club_name', { ascending: true })

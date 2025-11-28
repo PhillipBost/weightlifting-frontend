@@ -30,7 +30,7 @@ async function testUSAW2025() {
 
         while (hasMore) {
             const { data, error } = await supabase
-                .from('meet_results')
+                .from('usaw_meet_results')
                 .select(`
                     result_id,
                     meet_id,

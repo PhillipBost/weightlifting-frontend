@@ -499,7 +499,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 
           if (!isNaN(Number(resolvedParams.id))) {
             const result = await supabase
-              .from('lifters')
+              .from('usaw_lifters')
               .select('lifter_id, athlete_name, membership_number, created_at, updated_at, internal_id, internal_id_2, internal_id_3, internal_id_4, internal_id_5, internal_id_6, internal_id_7, internal_id_8')
               .eq('membership_number', parseInt(resolvedParams.id))
               .single();
@@ -519,7 +519,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
               .join(' ');
 
             let result = await supabase
-              .from('lifters')
+              .from('usaw_lifters')
               .select('lifter_id, athlete_name, membership_number, created_at, updated_at, internal_id, internal_id_2, internal_id_3, internal_id_4, internal_id_5, internal_id_6, internal_id_7, internal_id_8')
               .ilike('athlete_name', formattedName1);
 
@@ -534,7 +534,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                 .join(' ');
 
               result = await supabase
-                .from('lifters')
+                .from('usaw_lifters')
                 .select('lifter_id, athlete_name, membership_number, created_at, updated_at, internal_id, internal_id_2, internal_id_3, internal_id_4, internal_id_5, internal_id_6, internal_id_7, internal_id_8')
                 .ilike('athlete_name', formattedName2);
 
@@ -550,7 +550,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
               const athletesWithRecentInfo = await Promise.all(
                 matchingAthletes.map(async (athlete) => {
                   const { data: recentResults } = await supabase
-                    .from('meet_results')
+                    .from('usaw_meet_results')
                     .select('wso, club_name, date')
                     .eq('lifter_id', athlete.lifter_id)
                     .order('date', { ascending: false })
@@ -581,7 +581,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
           }
 
           const { data: resultsData, error: resultsError } = await supabase
-            .from('meet_results')
+            .from('usaw_meet_results')
             .select(`
               *,
               meets!inner("Level")

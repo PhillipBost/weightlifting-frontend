@@ -15,10 +15,10 @@ export async function GET(request: Request) {
       'CDN-Cache-Control': 'public, s-maxage=604800',
       'Vercel-CDN-Cache-Control': 'public, s-maxage=604800'
     }
-    
+
     // Get WSO boundary data with pre-calculated metrics
     const { data: wsoData, error: wsoError } = await supabaseAdmin
-      .from('wso_information')
+      .from('usaw_wso_information')
       .select('*')
 
     if (wsoError) {
@@ -35,7 +35,7 @@ export async function GET(request: Request) {
     let dynamicMeetCounts: Record<string, number> = {}
     try {
       const { data: recentMeets, error: meetError } = await supabaseAdmin
-        .from('meets')
+        .from('usaw_meets')
         .select('wso_geography, meet_id')
         .gte('Date', cutoffDate)
         .not('wso_geography', 'is', null)
@@ -47,7 +47,7 @@ export async function GET(request: Request) {
         recentMeets.forEach(meet => {
           const wsoName = meet.wso_geography?.trim()
           if (!wsoName) return
-          
+
           if (!meetsByWso[wsoName]) {
             meetsByWso[wsoName] = new Set()
           }
@@ -70,7 +70,7 @@ export async function GET(request: Request) {
 
     // Fetch clubs data for treemap visualization
     const { data: clubsData, error: clubsError } = await supabaseAdmin
-      .from('clubs')
+      .from('usaw_clubs')
       .select('club_name, wso_geography, latitude, longitude, active_lifters_count')
       .not('latitude', 'is', null)
       .not('longitude', 'is', null)

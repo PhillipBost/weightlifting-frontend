@@ -29,7 +29,7 @@ export async function GET(request: Request) {
 
     // Get data for specific month, ordered by requested metric
     const { data: clubData, error } = await supabaseAdmin
-      .from('club_rolling_metrics')
+      .from('usaw_club_rolling_metrics')
       .select(`
         club_name,
         active_members_12mo,

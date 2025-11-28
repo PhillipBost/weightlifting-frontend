@@ -37,16 +37,16 @@ function pointInGeoJSON(point: [number, number], geojson: any): boolean {
 function pointInPolygon(point: [number, number], polygon: number[][]): boolean {
   const [x, y] = point
   let inside = false
-  
+
   for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
     const [xi, yi] = polygon[i]
     const [xj, yj] = polygon[j]
-    
+
     if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) {
       inside = !inside
     }
   }
-  
+
   return inside
 }
 
@@ -58,7 +58,7 @@ function slugToWsoName(slug: string): string {
     'iowa-nebraska': 'Iowa-Nebraska',
     'minnesota-dakotas': 'Minnesota-Dakotas',
     'missouri-valley': 'Missouri Valley',
-    'mountain-north': 'Mountain North', 
+    'mountain-north': 'Mountain North',
     'mountain-south': 'Mountain South',
     'new-england': 'New England',
     'new-jersey': 'New Jersey',
@@ -101,7 +101,7 @@ export async function GET(
 
     // Get WSO boundary data for geographic filtering
     const { data: wsoData, error: wsoError } = await supabaseAdmin
-      .from('wso_information')
+      .from('usaw_wso_information')
       .select('name, territory_geojson')
 
     if (wsoError) {
@@ -110,9 +110,9 @@ export async function GET(
 
     // Get ALL clubs with coordinates (we'll filter geographically)
     console.log('Querying all clubs with coordinates for geographic filtering')
-    
+
     const { data: clubsData, error: clubsError } = await supabaseAdmin
-      .from('clubs')
+      .from('usaw_clubs')
       .select('club_name, wso_geography, phone, email, address, geocode_display_name, latitude, longitude, active_lifters_count')
       .not('latitude', 'is', null)
       .not('longitude', 'is', null)
@@ -131,19 +131,19 @@ export async function GET(
 
     // Apply geographic filtering
     let filteredClubs = clubsData || []
-    
+
     if (wsoData && !wsoError) {
       const targetWSO = wsoData.find(wso => wso.name === wsoName)
-      
+
       if (targetWSO && targetWSO.territory_geojson) {
         console.log(`Applying geographic filtering for ${wsoName}`)
-        
+
         const geographicallyFilteredClubs = filteredClubs.filter(club => {
           if (!club.latitude || !club.longitude) return false
           const isInside = pointInGeoJSON([club.longitude, club.latitude], targetWSO.territory_geojson)
           return isInside
         })
-        
+
         console.log(`Geographic filtering: ${geographicallyFilteredClubs.length} clubs inside ${wsoName} territory (removed ${filteredClubs.length - geographicallyFilteredClubs.length} clubs outside territory)`)
         filteredClubs = geographicallyFilteredClubs
       } else {
@@ -188,7 +188,7 @@ export async function GET(
         clubsAfterFiltering: filteredClubs.length,
         geographicFilteringApplied: !!(wsoData && !wsoError)
       }
-    }, { 
+    }, {
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate'
       }

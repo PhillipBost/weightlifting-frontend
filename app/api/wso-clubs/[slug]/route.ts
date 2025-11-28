@@ -16,7 +16,7 @@ function slugToWsoName(slug: string): string {
     'iowa-nebraska': 'Iowa-Nebraska',
     'minnesota-dakotas': 'Minnesota-Dakotas',
     'missouri-valley': 'Missouri Valley',
-    'mountain-north': 'Mountain North', 
+    'mountain-north': 'Mountain North',
     'mountain-south': 'Mountain South',
     'new-england': 'New England',
     'new-jersey': 'New Jersey',
@@ -67,7 +67,7 @@ export async function GET(
 
     // Query clubs filtered by wso_geography field (database-assigned WSO)
     const { data: clubsData, error: clubsError } = await supabaseAdmin
-      .from('clubs')
+      .from('usaw_clubs')
       .select('club_name, wso_geography, phone, email, address, geocode_display_name, latitude, longitude, active_lifters_count')
       .eq('wso_geography', wsoName)
       .not('latitude', 'is', null)
@@ -93,18 +93,18 @@ export async function GET(
 
     // Get WSO information for context
     console.log('Searching for WSO with name:', wsoName)
-    
+
     // First, let's see what WSO names actually exist in the database
     const { data: allWsos, error: allWsosError } = await supabaseAdmin
-      .from('wso_information')
+      .from('usaw_wso_information')
       .select('name')
-    
+
     if (!allWsosError && allWsos) {
       console.log('Available WSO names in database:', allWsos.map(w => w.name))
     }
-    
+
     const { data: wsoInfo, error: wsoInfoError } = await supabaseAdmin
-      .from('wso_information')
+      .from('usaw_wso_information')
       .select('*')
       .eq('name', wsoName)
       .single()

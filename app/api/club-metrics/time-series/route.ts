@@ -25,7 +25,7 @@ export async function GET(request: Request) {
 
     // Get time series data for specific club
     const { data: timeSeries, error } = await supabaseAdmin
-      .from('club_rolling_metrics')
+      .from('usaw_club_rolling_metrics')
       .select(`
         snapshot_month,
         active_members_12mo,
