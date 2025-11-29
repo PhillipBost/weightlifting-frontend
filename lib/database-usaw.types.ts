@@ -14,7 +14,7 @@ export type Database = {
   }
   public: {
     Tables: {
-      club_rolling_metrics: {
+      usaw_club_rolling_metrics: {
         Row: {
           active_members_12mo: number | null
           activity_factor: number | null
@@ -47,7 +47,7 @@ export type Database = {
         }
         Relationships: []
       }
-      clubs: {
+      usaw_clubs: {
         Row: {
           active_lifters_count: number | null
           activity_factor: number | null
@@ -125,7 +125,7 @@ export type Database = {
         }
         Relationships: []
       }
-      lifters: {
+      usaw_lifters: {
         Row: {
           athlete_name: string
           club_name: string | null
@@ -257,12 +257,12 @@ export type Database = {
             foreignKeyName: "meet_locations_meet_id_fkey"
             columns: ["meet_id"]
             isOneToOne: false
-            referencedRelation: "meets"
+            referencedRelation: "usaw_meets"
             referencedColumns: ["meet_id"]
           },
         ]
       }
-      meet_results: {
+      usaw_meet_results: {
         Row: {
           age_category: string | null
           best_cj: string | null
@@ -394,19 +394,19 @@ export type Database = {
             foreignKeyName: "meet_results_lifter_id_fkey"
             columns: ["lifter_id"]
             isOneToOne: false
-            referencedRelation: "lifters"
+            referencedRelation: "usaw_lifters"
             referencedColumns: ["lifter_id"]
           },
           {
             foreignKeyName: "meet_results_meet_id_fkey"
             columns: ["meet_id"]
             isOneToOne: false
-            referencedRelation: "meets"
+            referencedRelation: "usaw_meets"
             referencedColumns: ["meet_id"]
           },
         ]
       }
-      meets: {
+      usaw_meets: {
         Row: {
           address: string | null
           batch_id: string | null
@@ -526,7 +526,7 @@ export type Database = {
         }
         Relationships: []
       }
-      wso_information: {
+      usaw_wso_information: {
         Row: {
           active_lifters_count: number | null
           active_status: boolean | null
