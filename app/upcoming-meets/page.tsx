@@ -507,7 +507,7 @@ function RankingsContent() {
         console.log("USAW: Falling back to database...");
         // Build USAW query with optional year filtering
         let usawQuery = supabase
-          .from("meet_results")
+          .from("usaw_meet_results")
           .select(
             `
             result_id,
@@ -553,7 +553,7 @@ function RankingsContent() {
         for (let i = 0; i < lifterIds.length; i += LIFTER_BATCH_SIZE) {
           const batch = lifterIds.slice(i, i + LIFTER_BATCH_SIZE);
           const { data: liftersData, error: liftersError } = await supabase
-            .from("lifters")
+            .from("usaw_lifters")
             .select(`lifter_id, athlete_name, wso, club_name, membership_number`)
             .in('lifter_id', batch);
 

@@ -169,7 +169,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
             competition_age,
             wso,
             club_name,
-            lifters!inner(membership_number)
+            lifters:usaw_lifters!inner(membership_number)
           `)
           .eq('meet_id', parseInt(resolvedParams.id));
 

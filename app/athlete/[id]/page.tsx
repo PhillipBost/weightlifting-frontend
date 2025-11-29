@@ -584,7 +584,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
             .from('usaw_meet_results')
             .select(`
               *,
-              meets!inner("Level")
+              meets:usaw_meets!inner("Level")
             `)
             .eq('lifter_id', athleteData.lifter_id)
             .order('date', { ascending: false });

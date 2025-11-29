@@ -1,11 +1,12 @@
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from './database-iwf.types'
 
-const IWF_URL = process.env.NEXT_PUBLIC_SUPABASE_IWF_URL
-const IWF_KEY = process.env.NEXT_PUBLIC_SUPABASE_IWF_ANON_KEY
+// Now using unified self-hosted database for both USAW and IWF data
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
+const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-if (!IWF_URL || !IWF_KEY) {
-  throw new Error('Missing IWF Supabase environment variables (NEXT_PUBLIC_SUPABASE_IWF_URL, NEXT_PUBLIC_SUPABASE_IWF_ANON_KEY)')
+if (!SUPABASE_URL || !SUPABASE_KEY) {
+  throw new Error('Missing Supabase environment variables (NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY)')
 }
 
 // No-op storage to completely isolate IWF client from browser storage
@@ -22,7 +23,7 @@ export const supabaseIWF = new Proxy({} as ReturnType<typeof createClient<Databa
   get: (target, prop) => {
     // Lazy initialization on first property access
     if (!_supabaseIWF) {
-      _supabaseIWF = createClient<Database>(IWF_URL, IWF_KEY, {
+      _supabaseIWF = createClient<Database>(SUPABASE_URL, SUPABASE_KEY, {
         auth: {
           autoRefreshToken: false,
           persistSession: false,
