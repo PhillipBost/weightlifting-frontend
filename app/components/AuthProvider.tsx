@@ -113,7 +113,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         .single()
 
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 20000)
       )
 
       const { data: profile, error } = await Promise.race([
@@ -171,8 +171,37 @@ export function AuthProvider({ children }: AuthProviderProps) {
         name: profile?.name || authUser.user_metadata?.name
       }
     } catch (error) {
-      console.error('[AUTH] Failed to fetch user profile:', error)
-      return null
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      console.error('[AUTH] Failed to fetch user profile:', errorMsg);
+
+      if (errorMsg.includes('timeout')) {
+        console.error('[AUTH] Profile fetch timed out - possible database cold start or stale token');
+        console.error('[AUTH] Session state:', {
+          hasUser: !!authUser,
+          userId: authUser?.id,
+          retryCount
+        });
+
+        // Attempt session refresh and retry on timeout
+        if (retryCount < 2) {
+          console.log(`[AUTH] Attempting session refresh due to timeout (retry ${retryCount + 1} of 2)...`);
+          try {
+            const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+            if (!refreshError && refreshData.session) {
+              console.log('[AUTH] Session refreshed successfully, retrying profile fetch...');
+              return fetchUserProfile(refreshData.session.user, retryCount + 1);
+            } else {
+              console.error('[AUTH] Session refresh failed:', refreshError?.message || 'No session returned');
+            }
+          } catch (refreshErr) {
+            console.error('[AUTH] Session refresh error:', refreshErr);
+          }
+        } else {
+          console.error('[AUTH] Max retry attempts (3) reached, giving up');
+        }
+      }
+
+      return null;
     }
   }
 

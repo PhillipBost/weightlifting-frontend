@@ -44,13 +44,16 @@ export function AuthGuard({ children, requireRole, requireAnyRole, fallback }: A
     const hasRequiredRole = user.role && requireAnyRole.includes(user.role);
 
     // Show loading state while profile is being verified
-    if (!hasRequiredRole && isLoadingProfile) {
+    if (!hasRequiredRole && (isLoadingProfile || isLoading)) {
       return (
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
             <p className="text-gray-600 dark:text-gray-400">
               Verifying permissions...
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              This may take a moment after idle periods
             </p>
           </div>
         </div>
@@ -82,13 +85,16 @@ export function AuthGuard({ children, requireRole, requireAnyRole, fallback }: A
     const hasRequiredRole = user.role === requireRole;
 
     // Show loading state while profile is being verified
-    if (!hasRequiredRole && isLoadingProfile) {
+    if (!hasRequiredRole && (isLoadingProfile || isLoading)) {
       return (
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
             <p className="text-gray-600 dark:text-gray-400">
               Verifying permissions...
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              This may take a moment after idle periods
             </p>
           </div>
         </div>
