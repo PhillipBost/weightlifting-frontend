@@ -49,6 +49,8 @@ interface IWFRankingResult {
     qpoints: number;
     q_youth: number | null;
     q_masters: number | null;
+    country_code: string;
+    country_name: string;
 }
 
 async function generateUSAWCurrentYear() {
@@ -193,8 +195,9 @@ async function generateUSAWCurrentYear() {
 async function generateIWFCurrentYear() {
     console.log(`\nGenerating IWF rankings for ${CURRENT_YEAR}...`);
 
-    const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_IWF_URL;
-    const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_IWF_ANON_KEY;
+    // After database migration, IWF and USAW data are in the same database
+    const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_IWF_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_IWF_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     if (!SUPABASE_URL || !SUPABASE_KEY) {
         console.error('Missing IWF Supabase environment variables');
@@ -235,7 +238,9 @@ async function generateIWFCurrentYear() {
                     total,
                     qpoints,
                     q_youth,
-                    q_masters
+                    q_masters,
+                    country_code,
+                    country_name
                 `)
                 .order('db_result_id', { ascending: true })
                 .range(page * pageSize, (page + 1) * pageSize - 1);
@@ -311,7 +316,9 @@ async function generateIWFCurrentYear() {
                 total: parseFloat(result.total) || 0,
                 qpoints: parseFloat(result.qpoints) || 0,
                 q_youth: result.q_youth ? parseFloat(result.q_youth) : null,
-                q_masters: result.q_masters ? parseFloat(result.q_masters) : null
+                q_masters: result.q_masters ? parseFloat(result.q_masters) : null,
+                country_code: result.country_code || "",
+                country_name: result.country_name || ""
             };
         });
 
