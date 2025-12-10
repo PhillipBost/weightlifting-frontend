@@ -2,8 +2,8 @@ name: Update Current Year Rankings
 
 on:
   schedule:
-    # Run weekly on Sundays at 00:30 UTC (30 minutes after search indexes)
-    - cron: '30 0 * * 0'
+    # Run daily at 00:30 UTC (30 minutes after search indexes)
+    - cron: '30 0 * * *'
   workflow_dispatch: # Allow manual triggering from Actions tab
 
 permissions:
