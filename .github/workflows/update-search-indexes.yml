@@ -1,4 +1,4 @@
-name: Update Search Indexes
+name: Daily Search Index Update
 
 # Run daily at midnight UTC
 # Can also be triggered manually from the Actions tab

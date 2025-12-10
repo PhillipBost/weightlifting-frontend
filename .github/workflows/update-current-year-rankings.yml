@@ -1,4 +1,4 @@
-name: Update Current Year Rankings
+name: Daily Current Year Rankings Update
 
 on:
   schedule:
