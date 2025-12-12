@@ -989,15 +989,18 @@ function RankingsContent() {
       filtered = Array.from(countryBestMap.values());
     }
 
-    const rankingCriteria = filters.rankBy as keyof AthleteRanking;
+    // Determine ranking criteria: use sortBy if it's a performance metric, otherwise use rankBy
+    const performanceMetrics = ['best_snatch', 'best_cj', 'best_qpoints'];
+    const shouldUseSort = performanceMetrics.includes(filters.sortBy);
+    const rankingCriteria = (shouldUseSort ? filters.sortBy : filters.rankBy) as keyof AthleteRanking;
 
     // Create a sorted list to determine ranks
-    // We sort by the ranking criteria (e.g. best_total desc) to establish the "True Rank" order
+    // Rankings are ALWAYS based on highest value = #1 (descending), regardless of sort order
     const rankedForTrueRank = [...filtered];
     rankedForTrueRank.sort((a, b) => {
       const aValue = a[rankingCriteria] as number;
       const bValue = b[rankingCriteria] as number;
-      return bValue - aValue;
+      return bValue - aValue; // Always descending for ranking
     });
 
     // Assign ranks based on the sorted list
@@ -1159,10 +1162,20 @@ function RankingsContent() {
   }
 
   function handleSort(column: string) {
-    let newSortOrder: 'asc' | 'desc' = 'asc';
-    if (filters.sortBy === column && filters.sortOrder === 'asc') {
-      newSortOrder = 'desc';
+    // Performance metrics should default to descending (highest first)
+    const performanceMetrics = ['best_total', 'best_snatch', 'best_cj', 'best_qpoints'];
+    const isPerformanceMetric = performanceMetrics.includes(column);
+
+    let newSortOrder: 'asc' | 'desc';
+
+    if (filters.sortBy === column) {
+      // Toggle if clicking the same column
+      newSortOrder = filters.sortOrder === 'asc' ? 'desc' : 'asc';
+    } else {
+      // First click: performance metrics default to desc, others to asc
+      newSortOrder = isPerformanceMetric ? 'desc' : 'asc';
     }
+
     setFilters(prev => ({
       ...prev,
       sortBy: column,
@@ -1541,9 +1554,8 @@ function RankingsContent() {
                               handleFilterChange("federation", "all");
                               setShowFederationDropdown(false);
                             }}
-                            className={`w-full px-3 py-2 text-left hover:bg-gray-600 first:rounded-t-lg ${
-                              filters.federation === "all" ? "bg-gray-600" : ""
-                            }`}
+                            className={`w-full px-3 py-2 text-left hover:bg-gray-600 first:rounded-t-lg ${filters.federation === "all" ? "bg-gray-600" : ""
+                              }`}
                           >
                             All Federations
                           </button>
@@ -1553,9 +1565,8 @@ function RankingsContent() {
                               handleFilterChange("federation", "usaw");
                               setShowFederationDropdown(false);
                             }}
-                            className={`w-full px-3 py-2 text-left hover:bg-gray-600 ${
-                              filters.federation === "usaw" ? "bg-gray-600" : ""
-                            }`}
+                            className={`w-full px-3 py-2 text-left hover:bg-gray-600 ${filters.federation === "usaw" ? "bg-gray-600" : ""
+                              }`}
                           >
                             USAW
                           </button>
@@ -1565,9 +1576,8 @@ function RankingsContent() {
                               handleFilterChange("federation", "iwf");
                               setShowFederationDropdown(false);
                             }}
-                            className={`w-full px-3 py-2 text-left hover:bg-gray-600 ${
-                              filters.federation === "iwf" ? "bg-gray-600" : ""
-                            }`}
+                            className={`w-full px-3 py-2 text-left hover:bg-gray-600 ${filters.federation === "iwf" ? "bg-gray-600" : ""
+                              }`}
                           >
                             IWF
                           </button>
@@ -1577,9 +1587,8 @@ function RankingsContent() {
                               handleFilterChange("federation", "iwf_one_per_country");
                               setShowFederationDropdown(false);
                             }}
-                            className={`w-full px-3 py-2 text-left hover:bg-gray-600 last:rounded-b-lg flex items-center justify-between ${
-                              filters.federation === "iwf_one_per_country" ? "bg-gray-600" : ""
-                            }`}
+                            className={`w-full px-3 py-2 text-left hover:bg-gray-600 last:rounded-b-lg flex items-center justify-between ${filters.federation === "iwf_one_per_country" ? "bg-gray-600" : ""
+                              }`}
                           >
                             <span>IWF 1/MF</span>
                             <MetricTooltip
