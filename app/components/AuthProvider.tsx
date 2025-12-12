@@ -113,7 +113,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         .single()
 
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Profile fetch timeout')), 20000)
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
       )
 
       const { data: profile, error } = await Promise.race([
@@ -183,8 +183,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         });
 
         // Attempt session refresh and retry on timeout
-        if (retryCount < 2) {
-          console.log(`[AUTH] Attempting session refresh due to timeout (retry ${retryCount + 1} of 2)...`);
+        if (retryCount < 1) {
+          console.log(`[AUTH] Attempting session refresh due to timeout (retry ${retryCount + 1} of 1)...`);
           try {
             const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
             if (!refreshError && refreshData.session) {
@@ -197,7 +197,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             console.error('[AUTH] Session refresh error:', refreshErr);
           }
         } else {
-          console.error('[AUTH] Max retry attempts (3) reached, giving up');
+          console.error('[AUTH] Max retry attempts (2) reached, giving up');
         }
       }
 

@@ -482,11 +482,13 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 
   useEffect(() => {
     let isMounted = true;
+    let retryCount = 0;
+    const MAX_RETRIES = 2;
 
-    async function fetchAthleteData() {
-      // Timeout promise
+    async function fetchAthleteData(attempt = 0) {
+      // Increased timeout from 15s to 30s to accommodate database cold starts
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Data fetch timed out')), 15000)
+        setTimeout(() => reject(new Error('Data fetch timed out')), 30000)
       );
 
       try {
@@ -601,7 +603,26 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 
       } catch (err: any) {
         if (isMounted) {
-          setError(err.message);
+          const isTimeout = err.message === 'Data fetch timed out';
+
+          // Retry logic with exponential backoff
+          if (isTimeout && attempt < MAX_RETRIES) {
+            const delay = Math.pow(2, attempt) * 2000; // 2s, 4s
+            console.log(`[ATHLETE] Data fetch timed out, retrying in ${delay}ms (attempt ${attempt + 1} of ${MAX_RETRIES})...`);
+
+            // Wait before retrying
+            await new Promise(resolve => setTimeout(resolve, delay));
+
+            // Retry
+            return fetchAthleteData(attempt + 1);
+          }
+
+          // Final error after all retries
+          if (isTimeout) {
+            setError('Unable to load athlete data. The database may be experiencing high load. Please try again in a moment.');
+          } else {
+            setError(err.message);
+          }
           console.error('Error fetching athlete data:', err);
         }
       } finally {
@@ -781,15 +802,23 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
   if (error || !athlete) {
     return (
       <div className="min-h-screen bg-app-gradient flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center max-w-md mx-auto px-4">
           <h1 className="text-2xl font-bold text-app-primary mb-4">Error Loading Athlete</h1>
-          <p className="text-app-secondary mb-4">{error || 'Athlete not found'}</p>
-          <button
-            onClick={() => window.history.back()}
-            className="bg-accent-primary hover:bg-accent-primary-hover text-app-primary px-6 py-2 rounded-lg transition-colors"
-          >
-            Go Back
-          </button>
+          <p className="text-app-secondary mb-6">{error || 'Athlete not found'}</p>
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-accent-primary hover:bg-accent-primary-hover text-app-primary px-6 py-2 rounded-lg transition-colors"
+            >
+              Try Again
+            </button>
+            <button
+              onClick={() => window.history.back()}
+              className="bg-app-tertiary hover:bg-app-surface text-app-secondary px-6 py-2 rounded-lg transition-colors border border-app-secondary"
+            >
+              Go Back
+            </button>
+          </div>
         </div>
       </div>
     );
