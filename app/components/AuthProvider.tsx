@@ -240,25 +240,51 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setSession(session)
 
           if (session?.user) {
-            // Set user IMMEDIATELY with basic data
+            // Check for cached profile first
+            const cachedProfile = getCachedProfile(session.user.id)
+
+            // Set user IMMEDIATELY with cached or basic data
             const basicUser: ExtendedUser = {
               ...session.user,
-              role: 'default',
-              name: session.user.email?.split('@')[0] || 'User'
+              role: cachedProfile?.role || 'default',
+              name: cachedProfile?.name || session.user.email?.split('@')[0] || 'User'
             }
             setUser(basicUser)
 
-            // Fetch profile ASYNC without blocking
+            // Fetch profile ASYNC without blocking - NO RETRIES during init
             // We don't await this, so the UI can render immediately
-            fetchUserProfile(session.user)
-              .then(extendedUser => {
-                if (extendedUser) {
+            // Use a simple timeout without retry logic to avoid cascading timeouts
+            const profilePromise = supabase
+              .from('profiles')
+              .select('name, role')
+              .eq('id', session.user.id)
+              .single()
+
+            const timeoutPromise = new Promise((_, reject) =>
+              setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
+            )
+
+            Promise.race([profilePromise, timeoutPromise])
+              .then((result: any) => {
+                const { data: profile, error } = result
+                if (!error && profile) {
+                  const extendedUser: ExtendedUser = {
+                    ...session.user,
+                    role: profile.role || 'default',
+                    name: profile.name || session.user.email?.split('@')[0] || 'User'
+                  }
                   console.log('[AUTH] Profile loaded:', extendedUser.role)
+                  setCachedProfile(session.user.id, {
+                    name: extendedUser.name,
+                    role: extendedUser.role
+                  })
                   setUser(extendedUser)
+                } else {
+                  console.log('[AUTH] Profile fetch failed during init, using defaults')
                 }
               })
               .catch(err => {
-                console.error('[AUTH] Profile fetch failed:', err.message)
+                console.log('[AUTH] Profile fetch timed out during init, using defaults')
               })
           } else {
             setUser(null)
@@ -314,33 +340,47 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setIsLoadingProfile(true)
         }
 
-        // Then fetch fresh profile with retry logic in the background
-        try {
-          // Use a simpler retry logic that respects auth errors
-          const extendedUser = await fetchUserProfile(session.user)
+        // Then fetch fresh profile in the background - NO RETRIES
+        // Use the same simplified approach as initialization
+        const profilePromise = supabase
+          .from('profiles')
+          .select('name, role')
+          .eq('id', session.user.id)
+          .single()
 
-          if (extendedUser) {
-            // Cache the successful profile fetch
-            if (extendedUser.name || extendedUser.role) {
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
+        )
+
+        Promise.race([profilePromise, timeoutPromise])
+          .then((result: any) => {
+            const { data: profile, error } = result
+            if (!error && profile) {
+              const extendedUser: ExtendedUser = {
+                ...session.user,
+                role: profile.role || 'default',
+                name: profile.name || session.user.email?.split('@')[0] || 'User'
+              }
+
+              // Cache the successful profile fetch
               setCachedProfile(session.user.id, {
                 name: extendedUser.name,
                 role: extendedUser.role
               })
+
+              // Update user with fresh profile data
+              setUser(extendedUser)
+              console.log('[AUTH] Profile loaded successfully:', extendedUser.role)
+            } else {
+              console.log('[AUTH] Profile fetch failed in auth state change, keeping existing profile')
             }
 
-            // Update user with fresh profile data
-            setUser(extendedUser)
-            console.log('[AUTH] Profile loaded successfully:', extendedUser.role)
-          } else {
-            console.warn('[AUTH] Profile fetch failed, keeping existing profile if available')
-            // Do NOT overwrite user with null or default if we already have a profile
-          }
-
-          setIsLoadingProfile(false)
-        } catch (error) {
-          console.error('[AUTH] Profile fetch failed:', error)
-          setIsLoadingProfile(false)
-        }
+            setIsLoadingProfile(false)
+          })
+          .catch(error => {
+            console.log('[AUTH] Profile fetch timed out in auth state change, keeping existing profile')
+            setIsLoadingProfile(false)
+          })
       } else {
         setUser(null)
         clearCachedProfile()
