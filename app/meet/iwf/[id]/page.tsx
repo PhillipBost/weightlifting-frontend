@@ -110,6 +110,8 @@ interface MeetResult {
   qpoints?: number;
   q_youth?: number;
   q_masters?: number;
+  country_name?: string | null;
+  country_code?: string | null;
 }
 
 interface Meet {
