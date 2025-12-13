@@ -32,6 +32,10 @@ interface MeetResult {
   competition_age: number | null;
   wso: string;
   club_name: string;
+  qpoints?: number;
+  q_youth?: number;
+  q_masters?: number;
+  rank?: number; // Static rank property
   lifters: {
     membership_number: string;
   } | {
@@ -89,7 +93,16 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
     key: keyof MeetResult | 'place';
     direction: 'asc' | 'desc';
   } | null>(null);
-  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
+  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set(["Men's Results", "Women's Results"]));
+
+  // New state for summary tables
+  const [showMenSummary, setShowMenSummary] = useState(false);
+  const [showWomenSummary, setShowWomenSummary] = useState(false);
+  const [summarySortConfig, setSummarySortConfig] = useState<{
+    gender: 'men' | 'women';
+    key: keyof MeetResult | 'rank';
+    direction: 'asc' | 'desc';
+  } | null>(null);
 
   // Hook to fetch club/spoke data for the map
   const { spokes, loading: mapLoading, error: mapError } = useMeetClubLocations(resolvedParams?.id || '');
@@ -169,6 +182,9 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
             competition_age,
             wso,
             club_name,
+            qpoints,
+            q_youth,
+            q_masters,
             lifters:usaw_lifters!inner(membership_number)
           `)
           .eq('meet_id', parseInt(resolvedParams.id));
@@ -910,7 +926,196 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
           </div>
         )}
 
-        {/* Results by Gender Section */}
+        {/* NEW SUMMARY TABLES */}
+        {(() => {
+          // Helper for Q-Score
+          const getBestQScore = (result: MeetResult) => {
+            const qYouth = result.q_youth || 0;
+            const qPoints = result.qpoints || 0;
+            const qMasters = result.q_masters || 0;
+
+            if (qPoints >= qYouth && qPoints >= qMasters && qPoints > 0) {
+              return { value: qPoints, style: { color: 'var(--chart-qpoints)' } };
+            }
+            if (qYouth >= qMasters && qYouth > 0) {
+              return { value: qYouth, style: { color: 'var(--chart-qyouth)' } };
+            }
+            if (qMasters > 0) {
+              return { value: qMasters, style: { color: 'var(--chart-qmasters)' } };
+            }
+
+            return { value: 0, style: { color: 'var(--chart-qpoints)' } };
+          };
+
+          // Group and Rank Logic
+          const getGenderRankedResults = () => {
+            const men: MeetResult[] = [];
+            const women: MeetResult[] = [];
+
+            results.forEach(r => {
+              const isFemale = r.age_category?.toLowerCase().includes("women's") || r.gender === 'F';
+              if (isFemale) women.push(r);
+              else men.push(r);
+            });
+
+            const rankAndSort = (list: MeetResult[]) => {
+              // 1. Calculate static rank based on Q-Points
+              // Sort by Q-Points desc to assign rank
+              const sortedForRank = [...list].sort((a, b) => {
+                const qA = getBestQScore(a).value;
+                const qB = getBestQScore(b).value;
+                return qB - qA; // Highest Q-points first
+              });
+
+              // Assign static rank
+              const rankedList = sortedForRank.map((item, index) => ({
+                ...item,
+                rank: index + 1
+              }));
+
+              // 2. Apply user sort if active
+              // If sorting by rank or default, returned rankedList is already sorted by Q-Points (which corresponds to rank)
+              // If sorting by other columns, sort the rankedList but KEEP the rank property static
+              return rankedList;
+            };
+
+            return {
+              men: rankAndSort(men),
+              women: rankAndSort(women)
+            };
+          };
+
+          const { men: menRanked, women: womenRanked } = getGenderRankedResults();
+
+          const handleSummarySort = (gender: 'men' | 'women', key: keyof MeetResult | 'rank') => {
+            let direction: 'asc' | 'desc' = 'asc';
+            // Default sort for numeric values (rank, total, qpoints) should be desc for "best" usually, but standard UI toggle is asc first often??
+            // Actually for Rank, asc (1, 2, 3) is best.
+            // For Total/QPoints, desc is best.
+
+            if (summarySortConfig && summarySortConfig.gender === gender && summarySortConfig.key === key) {
+              // Toggle direction
+              direction = summarySortConfig.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+              // Default direction when switching columns
+              if (key === 'rank' || key === 'lifter_name' || key === 'weight_class' || key === 'competition_age' || key === 'age_category') {
+                direction = 'asc';
+              } else {
+                // numeric stats usually desc first
+                direction = 'desc';
+              }
+            }
+            setSummarySortConfig({ gender, key, direction });
+          };
+
+          const getSortedSummaryList = (list: MeetResult[], gender: 'men' | 'women') => {
+            if (!summarySortConfig || summarySortConfig.gender !== gender) {
+              // Default sort by Rank (which is Q-points desc)
+              return list.sort((a, b) => (a.rank || 0) - (b.rank || 0));
+            }
+
+            return [...list].sort((a, b) => {
+              const valA = summarySortConfig.key === 'rank' ? (a.rank || 0) : (summarySortConfig.key === 'qpoints' ? getBestQScore(a).value : (a[summarySortConfig.key as keyof MeetResult] as any));
+              const valB = summarySortConfig.key === 'rank' ? (b.rank || 0) : (summarySortConfig.key === 'qpoints' ? getBestQScore(b).value : (b[summarySortConfig.key as keyof MeetResult] as any));
+
+              // Handle nulls/types
+              let cmpA = valA;
+              let cmpB = valB;
+
+              if (typeof valA === 'string') cmpA = valA.toLowerCase();
+              if (typeof valB === 'string') cmpB = valB.toLowerCase();
+
+              // Numeric parsing for specific fields if they are strings in DB
+              if (['total', 'body_weight_kg', 'competition_age'].includes(summarySortConfig.key as string)) {
+                cmpA = parseFloat(String(valA) || '0');
+                cmpB = parseFloat(String(valB) || '0');
+              }
+
+              if (cmpA < cmpB) return summarySortConfig.direction === 'asc' ? -1 : 1;
+              if (cmpA > cmpB) return summarySortConfig.direction === 'asc' ? 1 : -1;
+              return 0;
+            });
+          };
+
+          const renderSummaryTable = (title: string, data: MeetResult[], gender: 'men' | 'women', show: boolean, toggle: () => void) => {
+            if (data.length === 0) return null;
+            const sortedData = getSortedSummaryList(data, gender);
+
+            const SortIndicator = ({ col }: { col: any }) => {
+              if (!summarySortConfig || summarySortConfig.gender !== gender || summarySortConfig.key !== col) {
+                return <span className="text-app-disabled ml-1">↕</span>;
+              }
+              return <span className="text-accent-primary ml-1">{summarySortConfig.direction === 'asc' ? '↑' : '↓'}</span>;
+            };
+
+            const headerClass = "px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none";
+
+            return (
+              <div className="mb-4">
+                <div className="mb-3">
+                  <button
+                    onClick={toggle}
+                    className="flex items-center space-x-2 text-app-primary hover:text-accent-primary transition-colors mb-2 text-left"
+                  >
+                    {show ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+                    <h2 className="text-2xl font-bold">
+                      {title}
+                    </h2>
+                    <span className="text-sm text-app-muted ml-2">
+                      ({data.length} athletes)
+                    </span>
+                  </button>
+                </div>
+
+                {show && (
+                  <div className="card-primary mb-8">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse">
+                        <thead className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200">
+                          <tr>
+                            <th className={headerClass} onClick={() => handleSummarySort(gender, 'rank')}>Rank <SortIndicator col="rank" /></th>
+                            <th className={headerClass} onClick={() => handleSummarySort(gender, 'lifter_name')}>Name <SortIndicator col="lifter_name" /></th>
+                            <th className={headerClass} onClick={() => handleSummarySort(gender, 'weight_class')}>Weight Class <SortIndicator col="weight_class" /></th>
+                            <th className={headerClass} onClick={() => handleSummarySort(gender, 'competition_age')}>Comp Age <SortIndicator col="competition_age" /></th>
+                            <th className={headerClass} onClick={() => handleSummarySort(gender, 'age_category')}>Cat <SortIndicator col="age_category" /></th>
+                            <th className={headerClass} onClick={() => handleSummarySort(gender, 'total')}>Total <SortIndicator col="total" /></th>
+                            <th className={headerClass} onClick={() => handleSummarySort(gender, 'qpoints')}>Q-Points <SortIndicator col="qpoints" /></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {sortedData.map(r => (
+                            <tr key={r.result_id} className="border-t border-gray-700/50 hover:bg-app-hover transition-colors">
+                              <td className="px-2 py-2 text-sm">{r.rank}</td>
+                              <td className="px-2 py-2 text-sm max-w-[200px] truncate" title={r.lifter_name}>
+                                <Link href={getAthleteUrl(r)} className="text-blue-400 hover:text-blue-300 hover:underline">
+                                  {r.lifter_name}
+                                </Link>
+                              </td>
+                              <td className="px-2 py-2 text-sm">{r.weight_class}</td>
+                              <td className="px-2 py-2 text-sm">{r.competition_age}</td>
+                              <td className="px-2 py-2 text-sm max-w-[150px] truncate" title={r.age_category}>{r.age_category}</td>
+                              <td className="px-2 py-2 text-sm font-bold" style={{ color: 'var(--chart-total)' }}>{r.total}</td>
+                              <td className="px-2 py-2 text-sm font-bold" style={getBestQScore(r).style}>
+                                {getBestQScore(r).value?.toFixed(3)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          };
+
+          return (
+            <>
+              {renderSummaryTable("Men's Rankings", menRanked, 'men', showMenSummary, () => setShowMenSummary(!showMenSummary))}
+              {renderSummaryTable("Women's Rankings", womenRanked, 'women', showWomenSummary, () => setShowWomenSummary(!showWomenSummary))}
+            </>
+          );
+        })()}
         {Object.entries(genderGroupedResults).map(([genderSection, divisionsInSection]) => {
           const isCollapsed = collapsedSections.has(genderSection);
           const hasDivisions = Object.keys(divisionsInSection).length > 0;
@@ -929,9 +1134,6 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                   <h2 className="text-2xl font-bold">
                     {genderSection}
                   </h2>
-                  <span className="text-sm text-app-muted ml-2">
-                    ({Object.values(divisionsInSection).reduce((total, divisionResults) => total + divisionResults.length, 0)} athletes)
-                  </span>
                 </button>
               </div>
 
