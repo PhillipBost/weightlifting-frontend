@@ -107,6 +107,9 @@ interface MeetResult {
   iwf_lifter_id?: number | null;
   competition_group?: string | null;
   rank?: number | null;
+  qpoints?: number;
+  q_youth?: number;
+  q_masters?: number;
 }
 
 interface Meet {
@@ -187,6 +190,24 @@ const getCountryFlagComponent = (code: string): React.ComponentType<any> | null 
   return component;
 };
 
+const getBestQScore = (result: any) => {
+  const qYouth = result.q_youth || 0;
+  const qPoints = result.qpoints || 0;
+  const qMasters = result.q_masters || 0;
+
+  if (qPoints >= qYouth && qPoints >= qMasters && qPoints > 0) {
+    return { value: qPoints, type: 'qpoints', style: { color: 'var(--chart-qpoints)' } };
+  }
+  if (qYouth >= qMasters && qYouth > 0) {
+    return { value: qYouth, type: 'qyouth', style: { color: 'var(--chart-qyouth)' } };
+  }
+  if (qMasters > 0) {
+    return { value: qMasters, type: 'qmasters', style: { color: 'var(--chart-qmasters)' } };
+  }
+
+  return { value: null, type: 'none', style: { color: 'var(--chart-qpoints)' } };
+};
+
 const SortIcon = ({ column, sortConfig, division }: {
   column: string;
   sortConfig: { division: string; key: keyof MeetResult | 'place'; direction: 'asc' | 'desc' } | null;
@@ -223,7 +244,15 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
     key: keyof MeetResult | 'place';
     direction: 'asc' | 'desc';
   } | null>(null);
-  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
+  /* Updated to match new section titles */
+  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set(["Men's Results by Division", "Women's Results by Division"]));
+  const [showMenSummary, setShowMenSummary] = useState(false);
+  const [showWomenSummary, setShowWomenSummary] = useState(false);
+  const [summarySortConfig, setSummarySortConfig] = useState<{
+    gender: 'men' | 'women';
+    key: keyof MeetResult | 'rank';
+    direction: 'asc' | 'desc';
+  } | null>(null);
 
   // Hook to fetch country/spoke data for the map
   const { spokes, loading: mapLoading, error: mapError } = useMeetCountryLocations(resolvedParams?.id || '');
@@ -238,13 +267,13 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
 
   useEffect(() => {
     if (!resolvedParams) return;
-    
+
     const fetchMeetData = async () => {
       try {
         setLoading(true);
-        
-        
-        
+
+
+
         // First, fetch meet information (convert string ID to integer)
         const { data: meetData, error: meetError } = await supabaseIWF
           .from('iwf_meets')
@@ -272,7 +301,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         let locationStr = 'Location TBD';
         if (locationData && locationData.length > 0 && !locationError) {
           const loc = locationData[0]; // Take the first location record
-          
+
           // Prefer location_text if available, then build from components
           if (loc.location_text) {
             locationStr = loc.location_text;
@@ -353,7 +382,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
           setError(`Error loading meet results: ${resultsError.message}`);
           return;
         }
-        
+
         // Ensure type compatibility and merge meet data from separate fetch
         const typedResults = rawIWFResults as Partial<IWFMeetResult>[];
         const mergedResults = typedResults.map(result => ({
@@ -369,7 +398,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
           birth_year: result.birth_year || 0,
           manual_override: result.manual_override || false
         })) as IWFMeetResult[];
-        
+
         // Apply adapter to transform IWF results to USAW-compatible structure
         const adaptedResults = adaptIWFResults(mergedResults);
         setResults(adaptedResults as MeetResult[]);
@@ -385,10 +414,10 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
 
   const getAgeAppropriateDivision = (result: MeetResult, officialWeightClass: string): string | null => {
     if (!result.competition_age || !officialWeightClass) return null;
-    
+
     const age = result.competition_age;
     const weightClass = officialWeightClass; // Use the same weight class as official division
-    
+
     // Better gender detection - check for "Women's" first, then fallback to gender field or assume male
     let isMale = true;
     if (result.age_category?.toLowerCase().includes("women's")) {
@@ -396,16 +425,16 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
     } else if (result.gender === 'F') {
       isMale = false;
     }
-    
+
     const genderPrefix = isMale ? "Men's" : "Women's";
-    
+
     // Youth (13-17) - ONLY show youth division, don't compete against adults
     if (age <= 17) {
       if (age >= 16 && age <= 17) return `${genderPrefix} 16-17 Age Group ${weightClass}`;
       if (age >= 14 && age <= 15) return `${genderPrefix} 14-15 Age Group ${weightClass}`;
       if (age <= 13) return `${genderPrefix} 13 Under Age Group ${weightClass}`;
     }
-    
+
     // Masters (35+) - additional division for masters athletes competing in Open
     if (age >= 35) {
       if (age >= 35 && age <= 39) return `${genderPrefix} Masters (35-39) ${weightClass}`;
@@ -419,10 +448,10 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
       if (age >= 75 && age <= 79) return `${genderPrefix} Masters (75-79) ${weightClass}`;
       if (age >= 80) return `${genderPrefix} Masters (80+) ${weightClass}`;
     }
-    
+
     // Junior (15-20) - additional division for junior athletes competing in Open
     if (age >= 15 && age <= 20) return `Junior ${genderPrefix} ${weightClass}`;
-    
+
     // Open/Senior (18+) - primary category, no additional division needed
     return null;
   };
@@ -430,23 +459,23 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
   const groupResultsByDivision = (results: MeetResult[]) => {
     const uniqueCategories = [...new Set(results.map(r => r.age_category))];
     const isMastersOnlyMeet = uniqueCategories.every(cat => cat?.includes('Masters'));
-    
+
     if (isMastersOnlyMeet) {
       // For Masters-only meets, create synthetic Open divisions as parents
       const syntheticOpenGroups: Record<string, MeetResult[]> = {};
       const mastersDivisions: Record<string, MeetResult[]> = {};
-      
+
       results.forEach(result => {
         const weightClass = result.weight_class || 'Unknown';
         const isFemale = result.age_category?.toLowerCase().includes("women's") || result.gender === 'F';
         const syntheticOpenKey = `Open ${isFemale ? "Women's" : "Men's"} ${weightClass}`;
-        
+
         // Add to synthetic open division
         if (!syntheticOpenGroups[syntheticOpenKey]) {
           syntheticOpenGroups[syntheticOpenKey] = [];
         }
         syntheticOpenGroups[syntheticOpenKey].push(result);
-        
+
         // Also track the original Masters division as a sub-division
         const originalKey = `${result.age_category} ${weightClass}`;
         if (!mastersDivisions[originalKey]) {
@@ -458,66 +487,66 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
           ageAppropriateDivisionName: originalKey
         });
       });
-      
+
       // Create ordered structure: Open division + its Masters sub-divisions
       const orderedGroups: Record<string, MeetResult[]> = {};
-      
+
       Object.entries(syntheticOpenGroups).forEach(([openKey, openResults]) => {
         // Add synthetic open division
         orderedGroups[openKey] = openResults;
-        
+
         // Find and add corresponding Masters divisions
         Object.entries(mastersDivisions).forEach(([mastersKey, mastersResults]) => {
           const mastersWeightClass = mastersKey.split(' ').pop();
           const openWeightClass = openKey.split(' ').pop();
           const mastersGender = mastersKey.toLowerCase().includes("women's") ? "women" : "men";
           const openGender = openKey.toLowerCase().includes("women's") ? "women" : "men";
-          
+
           if (mastersWeightClass === openWeightClass && mastersGender === openGender) {
             orderedGroups[mastersKey] = mastersResults;
           }
         });
       });
-      
+
       // Sort athletes within each division by total (highest first)  
       Object.keys(orderedGroups).forEach(divisionKey => {
         orderedGroups[divisionKey].sort((a, b) => {
           const aTotal = parseFloat(a.total || '0');
           const bTotal = parseFloat(b.total || '0');
-          
+
           // If totals are equal, use bodyweight as tiebreaker (lighter wins)
           if (aTotal === bTotal) {
             const aBodyweight = parseFloat(a.body_weight_kg || '999');
             const bBodyweight = parseFloat(b.body_weight_kg || '999');
             return aBodyweight - bBodyweight;
           }
-          
+
           return bTotal - aTotal; // Higher total first
         });
       });
-      
+
       // Sort the ordered groups by gender and weight class
       return sortDivisionsByPattern(orderedGroups);
     }
-    
+
     // New logic: Establish proper Open parent → child hierarchy
     const allGroups: Record<string, MeetResult[]> = {};
     const ageAppropriateGroups: Record<string, MeetResult[]> = {};
-    
+
     // Helper function to determine age-appropriate division from age
     const getDefaultDivisionFromAge = (age: number | null, gender: string): string => {
       if (!age) return 'Open'; // Default to Open if no age
-      
+
       const genderPrefix = gender === 'F' ? "Women's" : "Men's";
-      
+
       // Youth categories
       if (age <= 13) return `${genderPrefix} 13 Under Age Group`;
       if (age >= 14 && age <= 15) return `${genderPrefix} 14-15 Age Group`;
       if (age >= 16 && age <= 17) return `${genderPrefix} 16-17 Age Group`;
-      
+
       // Junior (15-20)
       if (age >= 15 && age <= 20) return `Junior ${genderPrefix}`;
-      
+
       // Masters (35+)
       if (age >= 35) {
         if (age >= 35 && age <= 39) return `${genderPrefix} Masters (35-39)`;
@@ -531,7 +560,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         if (age >= 75 && age <= 79) return `${genderPrefix} Masters (75-79)`;
         if (age >= 80) return `${genderPrefix} Masters (80+)`;
       }
-      
+
       // Default to Open for adults
       return `Open ${genderPrefix}`;
     };
@@ -540,13 +569,13 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
     results.forEach(result => {
       let officialCategory = result.age_category?.trim();
       let weightClass = result.weight_class?.trim();
-      
+
       // Debug Grant specifically
 
-      
+
       // Fill in missing data using age-appropriate defaults
       let updatedResult = { ...result };
-      
+
       // Check for invalid age_category values
       if (!officialCategory || officialCategory === 'Unknown' || officialCategory === '-' || officialCategory === 'null') {
         const defaultCategory = getDefaultDivisionFromAge(result.competition_age, result.gender);
@@ -554,7 +583,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         updatedResult.age_category = defaultCategory; // Update the result object
 
       }
-      
+
       // Check for invalid weight_class values  
       if (!weightClass || weightClass === 'Unknown' || weightClass === '-' || weightClass === 'null') {
         // For now, use a default weight class - could be improved with body weight logic
@@ -562,14 +591,14 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         updatedResult.weight_class = weightClass; // Update the result object
 
       }
-      
+
       const officialKey = `${officialCategory} ${weightClass}`;
-      
+
       if (!allGroups[officialKey]) {
         allGroups[officialKey] = [];
       }
       allGroups[officialKey].push(updatedResult); // Use updated result
-      
+
       // Create age-appropriate divisions for athletes competing in Open
       const ageAppropriateDivision = getAgeAppropriateDivision(updatedResult, weightClass);
 
@@ -584,11 +613,11 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         });
       }
     });
-    
+
     // Second pass: Establish parent-child relationships
     const combinedGroups: Record<string, MeetResult[]> = {};
     const processedWeightClasses = new Set<string>();
-    
+
     // Extract weight class from division key and normalize for comparison
     const getWeightClassFromDivision = (divisionKey: string): string => {
       const weightMatch = divisionKey.match(/(\+?\d+\+?)\s*[Kk]g$/i);
@@ -598,7 +627,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
       }
       return 'Unknown';
     };
-    
+
     // Find all weight classes that have Open divisions
     const openDivisions = new Set<string>();
     Object.keys(allGroups).forEach(divisionKey => {
@@ -607,41 +636,41 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         openDivisions.add(weightClass);
       }
     });
-    
+
     // Helper function to check if lifters from one division also appear in another
     const getDivisionLifterIds = (divisionKey: string): Set<number> => {
       const division = allGroups[divisionKey];
       return new Set(division ? division.map(result => result.lifter_id) : []);
     };
-    
+
     // Process in two phases: 1) Open parents and their eligible children, 2) Standalone divisions
     const assignedAsChildren = new Set<string>();
-    
+
     // Phase 1: Process ONLY Open divisions first (force priority)
     const openDivisionKeys = Object.keys(allGroups).filter(key => key.includes('Open'));
-    
+
     openDivisionKeys.forEach(divisionKey => {
       const results = allGroups[divisionKey];
       // Open divisions are always parents
       combinedGroups[divisionKey] = results;
       const weightClass = getWeightClassFromDivision(divisionKey);
       processedWeightClasses.add(weightClass);
-      
-  
-      
+
+
+
       // Find all OTHER divisions with same weight class and check for lifter overlap
       Object.entries(allGroups).forEach(([otherDivisionKey, otherResults]) => {
-        if (otherDivisionKey !== divisionKey && 
-            !otherDivisionKey.includes('Open') && // Don't process other Open divisions as children
-            getWeightClassFromDivision(otherDivisionKey) === weightClass &&
-            !assignedAsChildren.has(otherDivisionKey)) { // Don't reassign already assigned children
-          
+        if (otherDivisionKey !== divisionKey &&
+          !otherDivisionKey.includes('Open') && // Don't process other Open divisions as children
+          getWeightClassFromDivision(otherDivisionKey) === weightClass &&
+          !assignedAsChildren.has(otherDivisionKey)) { // Don't reassign already assigned children
+
           const openLifterIds = getDivisionLifterIds(divisionKey);
           const otherLifterIds = getDivisionLifterIds(otherDivisionKey);
-          
+
           // Check if any lifters appear in both divisions
           const hasOverlap = [...otherLifterIds].some(id => openLifterIds.has(id));
-          
+
           if (hasOverlap) {
             // Some lifters competed in both - this becomes a child of the Open division
 
@@ -657,7 +686,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         }
       });
     });
-    
+
     // Phase 2: Process remaining divisions as standalone parents (no children allowed)
     Object.entries(allGroups).forEach(([divisionKey, results]) => {
       if (!divisionKey.includes('Open') && !assignedAsChildren.has(divisionKey)) {
@@ -667,7 +696,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
 
       }
     });
-    
+
     // Add age-appropriate groups - but ONLY if they're not already processed
     Object.entries(ageAppropriateGroups).forEach(([divisionKey, results]) => {
       if (!combinedGroups[divisionKey]) {
@@ -675,43 +704,43 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
 
       }
     });
-    
 
 
-    
+
+
     // Sort athletes within each division by total (highest first)
     Object.keys(combinedGroups).forEach(divisionKey => {
       combinedGroups[divisionKey].sort((a, b) => {
         const aTotal = parseFloat(a.total || '0');
         const bTotal = parseFloat(b.total || '0');
-        
+
         // If totals are equal, use bodyweight as tiebreaker (lighter wins)
         if (aTotal === bTotal) {
           const aBodyweight = parseFloat(a.body_weight_kg || '999');
           const bBodyweight = parseFloat(b.body_weight_kg || '999');
           return aBodyweight - bBodyweight;
         }
-        
+
         return bTotal - aTotal; // Higher total first
       });
     });
-    
+
     // Don't use sortDivisionsByPattern as it destroys parent-child relationships
     // Instead, we already have the correct structure from our grouping logic
     const orderedGroups: Record<string, MeetResult[]> = combinedGroups;
-    
+
     // Sort the division keys manually while preserving parent-child relationships
     const parentDivisions: string[] = [];
     const childDivisions: Record<string, string[]> = {}; // parent -> children mapping
-    
+
     // Identify parents and children
     Object.keys(orderedGroups).forEach(divisionKey => {
       try {
         const results = orderedGroups[divisionKey];
         const hasChildrenMarked = results && results.some && results.some(result => result && result.isDuplicateForAge);
-        
 
-        
+
+
         if (hasChildrenMarked) {
           // This is a child division
           // Find its parent (should be an Open division with same weight class AND gender)
@@ -724,9 +753,9 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
             const sameGender = isFemaleChild === isFemaleParent;
             return isOpen && sameWeightClass && sameGender;
           });
-          
 
-          
+
+
           if (parentKey) {
             if (!childDivisions[parentKey]) {
               childDivisions[parentKey] = [];
@@ -744,38 +773,38 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         parentDivisions.push(divisionKey);
       }
     });
-    
+
     // Sort parents by weight class and gender (simplified sorting)
     const sortedParents = parentDivisions.sort((a, b) => {
       // Extract basic sorting info without getSortKey
       const aFemale = a.toLowerCase().includes("women's");
       const bFemale = b.toLowerCase().includes("women's");
-      
+
       // Gender first (men before women)
       if (aFemale !== bFemale) {
         return aFemale ? 1 : -1;
       }
-      
+
       // Then by weight class (heaviest first)
       const aWeightMatch = a.match(/(\+?\d+\+?)\s*[Kk]g$/i);
       const bWeightMatch = b.match(/(\+?\d+\+?)\s*[Kk]g$/i);
-      
+
       if (aWeightMatch && bWeightMatch) {
         const aWeight = parseFloat(aWeightMatch[1].replace('+', '')) + (aWeightMatch[0].includes('+') ? 0.1 : 0);
         const bWeight = parseFloat(bWeightMatch[1].replace('+', '')) + (bWeightMatch[0].includes('+') ? 0.1 : 0);
         return bWeight - aWeight; // Descending (heaviest first)
       }
-      
+
       return 0;
     });
-    
+
     // Rebuild ordered structure: parent followed by its children
     const finalOrderedGroups: Record<string, MeetResult[]> = {};
-    
+
     sortedParents.forEach(parentKey => {
       // Add parent
       finalOrderedGroups[parentKey] = orderedGroups[parentKey];
-      
+
       // Add its children (if any) in sorted order
       if (childDivisions[parentKey]) {
         const sortedChildren = childDivisions[parentKey].sort((a, b) => {
@@ -784,22 +813,22 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
           if (a > b) return 1;
           return 0;
         });
-        
+
         sortedChildren.forEach(childKey => {
           finalOrderedGroups[childKey] = orderedGroups[childKey];
         });
       }
     });
-    
 
 
-    
+
+
     return finalOrderedGroups;
   };
 
   const sortDivisionsByPattern = (groups: Record<string, MeetResult[]>): Record<string, MeetResult[]> => {
 
-    
+
     // Parse weight class to numeric value for sorting (heaviest to lightest)
     const parseWeightClass = (weightClass: string): number => {
       // Handle plus symbol - these are always the heaviest (unlimited) weight classes
@@ -807,43 +836,43 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         const weight = parseFloat(weightClass.substring(1).replace('kg', ''));
         return weight + 1000; // Add 1000 to ensure plus classes sort first (heaviest)
       }
-      
+
       // Handle regular weight classes - extract numeric value
       const weight = parseFloat(weightClass.replace('kg', ''));
       return isNaN(weight) ? -1 : weight; // Unknown weights go to end
     };
-    
+
     const getWeightClassValue = (weightClass: string): number => {
       const weight = parseWeightClass(weightClass);
 
       return weight === -1 ? 9999 : -weight; // Negative for descending sort (heaviest first), unknown at end
     };
-    
+
     const getSortKey = (divisionKey: string) => {
       const isFemale = divisionKey.toLowerCase().includes("women's");
-      
+
       // Extract weight class - handle all variations: 63+kg, 110+kg, +58 Kg, +105 kg, +87kg, etc.
       const weightMatch = divisionKey.match(/(\+?\d+\+?)\s*[Kk]g$/i);
       const weightClass = weightMatch ? weightMatch[0] : 'Unknown';
-      
+
       // Parse weight class directly for sorting
       let weightValue = 0;
       if (weightClass !== 'Unknown') {
         // Extract just the numeric part and check for plus signs
         const numericPart = weightClass.match(/(\d+)/);
         const hasPlus = weightClass.includes('+');
-        
+
         if (numericPart) {
           const baseWeight = parseFloat(numericPart[1]);
           // Plus classes are slightly heavier than their base weight
           weightValue = hasPlus ? baseWeight + 0.1 : baseWeight;
         }
       }
-      
+
       // Determine division type priority: Open < Junior < Masters age groups
       let divisionPriority = 0;
       let ageGroup = 0;
-      
+
       if (divisionKey.includes('Open') || (!divisionKey.includes('Masters') && !divisionKey.includes('Junior'))) {
         divisionPriority = 0; // Open/main divisions first
       } else if (divisionKey.includes('Junior')) {
@@ -862,48 +891,48 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         else if (divisionKey.includes('(40-44)')) ageGroup = 8;
         else if (divisionKey.includes('(35-39)')) ageGroup = 9;
       }
-      
+
       const sortKey = {
         gender: isFemale ? 1 : 0, // Men first (0), then Women (1)
         weight: -weightValue, // Negative for descending sort (heaviest first)
         divisionType: divisionPriority, // Open, then Junior, then Masters
         ageGroup: ageGroup // For Masters: oldest to youngest
       };
-      
+
 
       return sortKey;
     };
-    
+
     // Sort division keys according to pattern
     const sortedKeys = Object.keys(groups).sort((a, b) => {
       const aKey = getSortKey(a);
       const bKey = getSortKey(b);
-      
+
       // First sort by gender (men first)
       if (aKey.gender !== bKey.gender) {
         return aKey.gender - bKey.gender;
       }
-      
+
       // Then by weight class (heaviest first)
       if (aKey.weight !== bKey.weight) {
         return aKey.weight - bKey.weight;
       }
-      
+
       // Then by division type (Open, Junior, Masters)
       if (aKey.divisionType !== bKey.divisionType) {
         return aKey.divisionType - bKey.divisionType;
       }
-      
+
       // Finally by age group for Masters (oldest to youngest)
       return aKey.ageGroup - bKey.ageGroup;
     });
-    
+
     // Rebuild the ordered object
     const sortedGroups: Record<string, MeetResult[]> = {};
     sortedKeys.forEach(key => {
       sortedGroups[key] = groups[key];
     });
-    
+
     return sortedGroups;
   };
 
@@ -935,8 +964,8 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
 
     // Convert back to objects while preserving order
     const genderSections: Record<string, Record<string, MeetResult[]>> = {
-      "Men's Results": Object.fromEntries(mensResults),
-      "Women's Results": Object.fromEntries(womensResults)
+      "Men's Results by Division": Object.fromEntries(mensResults),
+      "Women's Results by Division": Object.fromEntries(womensResults)
     };
 
     return genderSections;
@@ -949,11 +978,11 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
 
   const handleSort = (division: string, key: keyof MeetResult | 'place') => {
     let direction: 'asc' | 'desc' = 'asc';
-    
+
     if (sortConfig && sortConfig.division === division && sortConfig.key === key && sortConfig.direction === 'asc') {
       direction = 'desc';
     }
-    
+
     setSortConfig({ division, key, direction });
   };
 
@@ -1012,7 +1041,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         <div className="text-center">
           <h1 className="text-2xl font-bold text-app-primary mb-4">Error Loading Meet</h1>
           <p className="text-app-secondary mb-4">{error || 'Meet not found'}</p>
-          <button 
+          <button
             onClick={() => router.back()}
             className="bg-accent-primary hover:bg-accent-primary-hover text-app-primary px-6 py-2 rounded-lg transition-colors"
           >
@@ -1023,12 +1052,178 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
     );
   }
 
+  const handleSummarySort = (gender: 'men' | 'women', key: keyof MeetResult | 'rank') => {
+    setSummarySortConfig(current => {
+      if (current?.gender === gender && current?.key === key) {
+        return { ...current, direction: current.direction === 'asc' ? 'desc' : 'asc' };
+      }
+      return { gender, key, direction: 'asc' }; // Default to asc for new sort
+    });
+  };
+
+  // Process data for summary tables (Rank determines order)
+  const processRankings = (data: MeetResult[]) => {
+    // 1. Filter unique athletes (best result per athlete if duplicates exist)
+    const unique = Array.from(new Map(data.map(item => [item.lifter_name, item])).values());
+
+    // 2. Sort by Q-Points descending (Highest Q-Points = Rank 1)
+    const sorted = unique.sort((a, b) => {
+      const aQ = getBestQScore(a).value || 0;
+      const bQ = getBestQScore(b).value || 0;
+      return bQ - aQ;
+    });
+
+    // 3. Assign Rank
+    return sorted.map((item, index) => ({
+      ...item,
+      rank: index + 1
+    }));
+  };
+
+  const menRanked = processRankings(results.filter(r => r.gender === 'M' || r.gender === 'Men'));
+  const womenRanked = processRankings(results.filter(r => r.gender === 'F' || r.gender === 'Women'));
+
+  const getSortedSummaryList = (list: MeetResult[], gender: 'men' | 'women') => {
+    if (!summarySortConfig || summarySortConfig.gender !== gender) return list;
+
+    return [...list].sort((a, b) => {
+      let valA: any, valB: any;
+
+      // Handle special fields
+      if (summarySortConfig.key === 'qpoints') {
+        valA = getBestQScore(a).value || 0;
+        valB = getBestQScore(b).value || 0;
+      } else if (summarySortConfig.key === 'total') {
+        valA = parseFloat(a.total || '0');
+        valB = parseFloat(b.total || '0');
+      } else {
+        valA = a[summarySortConfig.key as keyof MeetResult];
+        valB = b[summarySortConfig.key as keyof MeetResult];
+      }
+
+      // Numeric handling
+      if (typeof valA === 'string' && !isNaN(parseFloat(valA))) {
+        valA = parseFloat(valA);
+        valB = parseFloat(valB);
+      }
+
+      let cmpA = valA;
+      let cmpB = valB;
+
+      if (typeof valA === 'string') {
+        cmpA = valA.toLowerCase();
+        cmpB = String(valB).toLowerCase();
+      } else {
+        cmpA = parseFloat(String(valA) || '0');
+        cmpB = parseFloat(String(valB) || '0');
+      }
+
+      if (summarySortConfig.key === 'country_name' || summarySortConfig.key === 'country_code') {
+        // Handle potential undefined values for country sorting
+        cmpA = (valA || '').toString().toLowerCase();
+        cmpB = (valB || '').toString().toLowerCase();
+      }
+
+      if (cmpA < cmpB) return summarySortConfig.direction === 'asc' ? -1 : 1;
+      if (cmpA > cmpB) return summarySortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  };
+
+  const renderSummaryTable = (title: string, data: MeetResult[], gender: 'men' | 'women', show: boolean, toggle: () => void) => {
+    if (data.length === 0) return null;
+    const sortedData = getSortedSummaryList(data, gender);
+
+    const SortIndicator = ({ col }: { col: any }) => {
+      if (!summarySortConfig || summarySortConfig.gender !== gender || summarySortConfig.key !== col) {
+        return <span className="text-app-disabled ml-1">↕</span>;
+      }
+      return <span className="text-accent-primary ml-1">{summarySortConfig.direction === 'asc' ? '↑' : '↓'}</span>;
+    };
+
+    const headerClass = "px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none";
+
+    return (
+      <div className="mb-4">
+        <div className="mb-3">
+          <button
+            onClick={toggle}
+            className="flex items-center space-x-2 text-app-primary hover:text-accent-primary transition-colors mb-2 text-left"
+          >
+            {show ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+            <h2 className="text-2xl font-bold">
+              {title}
+            </h2>
+            <span className="text-sm text-app-muted ml-2">
+              ({data.length} athletes)
+            </span>
+          </button>
+        </div>
+
+        {show && (
+          <div className="card-primary mb-8">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200">
+                  <tr>
+                    <th className={headerClass} onClick={() => handleSummarySort(gender, 'rank')}>Rank <SortIndicator col="rank" /></th>
+                    <th className={headerClass} onClick={() => handleSummarySort(gender, 'lifter_name')}>Name <SortIndicator col="lifter_name" /></th>
+                    <th className={headerClass} onClick={() => handleSummarySort(gender, 'country_name')}>Country <SortIndicator col="country_name" /></th>
+                    <th className={headerClass} onClick={() => handleSummarySort(gender, 'weight_class')}>Weight Class <SortIndicator col="weight_class" /></th>
+                    <th className={headerClass} onClick={() => handleSummarySort(gender, 'competition_age')}>Comp Age <SortIndicator col="competition_age" /></th>
+                    <th className={headerClass} onClick={() => handleSummarySort(gender, 'age_category')}>Cat <SortIndicator col="age_category" /></th>
+                    <th className={headerClass} onClick={() => handleSummarySort(gender, 'total')}>Total <SortIndicator col="total" /></th>
+                    <th className={headerClass} onClick={() => handleSummarySort(gender, 'qpoints')}>Q-Points <SortIndicator col="qpoints" /></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedData.map(r => (
+                    <tr key={r.result_id} className="border-t border-gray-700/50 hover:bg-app-hover transition-colors">
+                      <td className="px-2 py-2 text-sm">{r.rank}</td>
+                      <td className="px-2 py-2 text-sm max-w-[200px] truncate" title={r.lifter_name}>
+                        <Link href={getAthleteUrl(r)} className="text-blue-400 hover:text-blue-300 hover:underline">
+                          {r.lifter_name}
+                        </Link>
+                      </td>
+                      <td className="px-2 py-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          {(() => {
+                            const FlagComponent = getCountryFlagComponent(r.country_code || r.wso);
+                            if (!FlagComponent) return null;
+                            // Pass year to AnaFlag
+                            if (FlagComponent === AnaFlag && meet) {
+                              const meetYear = new Date(meet.date).getFullYear();
+                              return <FlagComponent style={{ width: '18px', height: '18px' }} year={meetYear} />;
+                            }
+                            return <FlagComponent style={{ width: '18px', height: '18px' }} />;
+                          })()}
+                          <span className="text-sm">{r.country_name || r.club_name || r.country_code || '-'}</span>
+                        </div>
+                      </td>
+                      <td className="px-2 py-2 text-sm">{r.weight_class}</td>
+                      <td className="px-2 py-2 text-sm">{r.competition_age}</td>
+                      <td className="px-2 py-2 text-sm max-w-[150px] truncate" title={r.age_category}>{r.age_category}</td>
+                      <td className="px-2 py-2 text-sm font-bold" style={{ color: 'var(--chart-total)' }}>{r.total}</td>
+                      <td className="px-2 py-2 text-sm font-bold" style={getBestQScore(r).style}>
+                        {getBestQScore(r).value?.toFixed(3)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const groupedResults = groupResultsByDivision(results);
   const genderGroupedResults = groupResultsByGenderAndDivision(groupedResults);
 
   return (
     <div className="min-h-screen bg-app-gradient">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Meet Header */}
         <div className="card-primary mb-8">
           <div className="flex items-start justify-between mb-6">
@@ -1039,10 +1234,10 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
               <div className="flex flex-wrap gap-4 text-sm text-app-secondary">
                 <div className="flex items-center space-x-2">
                   <Calendar className="h-4 w-4" />
-                  <span>{new Date(meet.date).toLocaleDateString('en-US', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
+                  <span>{new Date(meet.date).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
                   })}</span>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -1097,10 +1292,18 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         )}
 
         {/* Results by Gender Section */}
+        {(() => {
+          return (
+            <>
+              {renderSummaryTable("Men's Overall Rankings by Q-Points", menRanked, 'men', showMenSummary, () => setShowMenSummary(!showMenSummary))}
+              {renderSummaryTable("Women's Overall Rankings by Q-Points", womenRanked, 'women', showWomenSummary, () => setShowWomenSummary(!showWomenSummary))}
+            </>
+          );
+        })()}
         {Object.entries(genderGroupedResults).map(([genderSection, divisionsInSection]) => {
           const isCollapsed = collapsedSections.has(genderSection);
           const hasDivisions = Object.keys(divisionsInSection).length > 0;
-          
+
           if (!hasDivisions) return null;
 
           return (
@@ -1115,9 +1318,6 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                   <h2 className="text-2xl font-bold">
                     {genderSection}
                   </h2>
-                  <span className="text-sm text-app-muted ml-2">
-                    ({Object.values(divisionsInSection).reduce((total, divisionResults) => total + divisionResults.length, 0)} athletes)
-                  </span>
                 </button>
               </div>
 
@@ -1125,10 +1325,10 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
               {!isCollapsed && Object.entries(divisionsInSection).map(([division, divisionResults]) => {
                 const isAgeAppropriate = divisionResults.some(result => result.isDuplicateForAge);
                 const isDivisionCollapsed = collapsedSections.has(division);
-                
+
                 return (
                   <div key={division} className={`card-primary mb-2 ${isAgeAppropriate ? 'ml-6 border-l-4 border-accent-primary bg-app-tertiary' : ''}`}>
-                    <div 
+                    <div
                       onClick={() => toggleSection(division)}
                       className="cursor-pointer hover:bg-app-hover transition-colors"
                     >
@@ -1144,16 +1344,16 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                         <span className="ml-auto text-sm text-app-muted">{divisionResults.length} athletes</span>
                       </h3>
                     </div>
-                    
+
                     {!isDivisionCollapsed && (
                       <div className="overflow-x-auto">
-                        <table className="border-separate" style={{borderSpacing: 0, width: 'auto'}}>
+                        <table className="border-separate" style={{ borderSpacing: 0, width: 'auto' }}>
                           <thead className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200">
                             <tr className="border-b-2 border-gray-400 dark:border-gray-500">
                               <th
                                 onClick={() => handleSort(division, 'place')}
                                 className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
-                                style={{width: '60px'}}
+                                style={{ width: '60px' }}
                               >
                                 <div className="flex items-center justify-start space-x-1">
                                   <span>Place</span>
@@ -1163,7 +1363,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                               <th
                                 onClick={() => handleSort(division, 'lifter_name')}
                                 className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
-                                style={{minWidth: '200px'}}
+                                style={{ minWidth: '200px' }}
                               >
                                 <div className="flex items-center justify-start space-x-1">
                                   <span>Athlete</span>
@@ -1172,7 +1372,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                               </th>
                               <th
                                 className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider select-none"
-                                style={{minWidth: '80px'}}
+                                style={{ minWidth: '80px' }}
                               >
                                 <div className="flex items-center justify-start space-x-1">
                                   <span>Group</span>
@@ -1181,7 +1381,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                               <th
                                 onClick={() => handleSort(division, 'club_name')}
                                 className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
-                                style={{minWidth: '120px'}}
+                                style={{ minWidth: '120px' }}
                               >
                                 <div className="flex items-center justify-start space-x-1">
                                   <span>Country</span>
@@ -1192,7 +1392,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                               <th
                                 onClick={() => handleSort(division, 'best_snatch')}
                                 className="px-2 py-1 text-right text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
-                                style={{width: '80px'}}
+                                style={{ width: '80px' }}
                               >
                                 <div className="flex items-center justify-end space-x-1">
                                   <span>Snatch</span>
@@ -1202,7 +1402,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                               <th
                                 onClick={() => handleSort(division, 'best_cj')}
                                 className="px-2 py-1 text-right text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
-                                style={{width: '80px'}}
+                                style={{ width: '80px' }}
                               >
                                 <div className="flex items-center justify-end space-x-1">
                                   <span>C&J</span>
@@ -1212,7 +1412,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                               <th
                                 onClick={() => handleSort(division, 'total')}
                                 className="px-2 py-1 text-right text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
-                                style={{width: '80px'}}
+                                style={{ width: '80px' }}
                               >
                                 <div className="flex items-center justify-end space-x-1">
                                   <span>Total</span>
@@ -1222,7 +1422,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                               <th
                                 onClick={() => handleSort(division, 'body_weight_kg')}
                                 className="px-2 py-1 text-right text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
-                                style={{width: '100px'}}
+                                style={{ width: '100px' }}
                               >
                                 <div className="flex items-center justify-end space-x-1">
                                   <span>Bodyweight</span>
@@ -1235,106 +1435,106 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                             {getSortedResults(divisionResults, division).map((result, index) => {
                               const originalIndex = divisionResults.indexOf(result);
                               const displayPlace = originalIndex + 1;
-                              
+
                               return (
-                              <tr key={result.result_id} className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors group" style={{ borderTopColor: 'var(--border-secondary)' }}>
-                                <td className="px-2 py-1 whitespace-nowrap text-sm font-medium text-app-primary">
-                                  <div className="flex items-center gap-1">
-                                    <span>{displayPlace}</span>
-                                    {displayPlace === 1 && <Medal className="h-4 w-4" style={{ color: '#FFD700' }} />}
-                                    {displayPlace === 2 && <Medal className="h-4 w-4" style={{ color: '#C0C0C0' }} />}
-                                    {displayPlace === 3 && <Medal className="h-4 w-4" style={{ color: '#CD7F32' }} />}
-                                  </div>
-                                </td>
-                                <td className="px-2 py-1 whitespace-nowrap">
-                                  <Link
-                                    href={getAthleteUrl(result)}
-                                    className="flex items-center space-x-1 text-accent-primary group-hover:text-accent-primary-hover transition-colors hover:underline"
-                                  >
-                                    <span className="font-medium text-sm">{result.lifter_name}</span>
-                                    <ExternalLink className="h-3 w-3" />
-                                  </Link>
-                                  <div className="text-xs text-app-muted">
-                                    {result.competition_age && `Age ${result.competition_age}`}
-                                    {(() => {
-                                      return (
-                                        <>
-                                          {result.iwf_lifter_id && result.competition_age && " • "}
-                                          {result.iwf_lifter_id && `#${result.iwf_lifter_id}`}
-                                        </>
-                                      );
-                                    })()}
-                                  </div>
-                                </td>
-                                <td className="px-2 py-1 whitespace-nowrap text-sm text-app-secondary">
-                                  {result.competition_group ? (
-                                    <span className="inline-block px-2 py-0.5 bg-accent-primary/20 text-accent-primary rounded font-semibold text-xs">
-                                      {result.competition_group}
-                                    </span>
-                                  ) : (
-                                    <span className="text-app-muted">-</span>
-                                  )}
-                                </td>
-                                <td className="px-2 py-1 whitespace-nowrap text-sm text-app-secondary">
-                                  <div className="flex items-center gap-2">
-                                    {(() => {
-                                      const FlagComponent = getCountryFlagComponent(result.wso);
-                                      if (result.club_name && (result.club_name.includes('Neutral') || result.club_name.includes('Refugee'))) {
-                  
-                                      }
-                                      if (!FlagComponent) return null;
-
-                                      // Pass year to AnaFlag for year-aware flag selection
-                                      if (FlagComponent === AnaFlag && meet) {
-                                        const meetYear = new Date(meet.date).getFullYear();
-                                        return <FlagComponent style={{ width: '18px', height: '18px' }} year={meetYear} />;
-                                      }
-
-                                      return <FlagComponent style={{ width: '18px', height: '18px' }} />;
-                                    })()}
-                                    <span className="text-sm">{result.club_name || '-'}</span>
-                                  </div>
-                                </td>
-                                <td></td>
-                                <td className="px-2 py-1 whitespace-nowrap text-sm text-left" style={{ color: 'var(--chart-snatch)' }}>
-                                  <div className="font-medium">{result.best_snatch ? `${result.best_snatch}kg` : '-'}</div>
-                                  <div className="text-xs text-app-muted">
-                                    {[result.snatch_lift_1, result.snatch_lift_2, result.snatch_lift_3]
-                                      .filter(attempt => attempt && attempt !== '0')
-                                      .map((attempt, i) => {
-                                        const weight = parseInt(attempt!);
+                                <tr key={result.result_id} className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors group" style={{ borderTopColor: 'var(--border-secondary)' }}>
+                                  <td className="px-2 py-1 whitespace-nowrap text-sm font-medium text-app-primary">
+                                    <div className="flex items-center gap-1">
+                                      <span>{displayPlace}</span>
+                                      {displayPlace === 1 && <Medal className="h-4 w-4" style={{ color: '#FFD700' }} />}
+                                      {displayPlace === 2 && <Medal className="h-4 w-4" style={{ color: '#C0C0C0' }} />}
+                                      {displayPlace === 3 && <Medal className="h-4 w-4" style={{ color: '#CD7F32' }} />}
+                                    </div>
+                                  </td>
+                                  <td className="px-2 py-1 whitespace-nowrap">
+                                    <Link
+                                      href={getAthleteUrl(result)}
+                                      className="flex items-center space-x-1 text-accent-primary group-hover:text-accent-primary-hover transition-colors hover:underline"
+                                    >
+                                      <span className="font-medium text-sm">{result.lifter_name}</span>
+                                      <ExternalLink className="h-3 w-3" />
+                                    </Link>
+                                    <div className="text-xs text-app-muted">
+                                      {result.competition_age && `Age ${result.competition_age}`}
+                                      {(() => {
                                         return (
-                                          <span key={i} className={weight > 0 ? '' : 'text-red-500'} style={weight > 0 ? { color: 'var(--chart-snatch)' } : {}}>
-                                            {Math.abs(weight)}
-                                            {i < 2 ? '/' : ''}
-                                          </span>
+                                          <>
+                                            {result.iwf_lifter_id && result.competition_age && " • "}
+                                            {result.iwf_lifter_id && `#${result.iwf_lifter_id}`}
+                                          </>
                                         );
-                                      })}
-                                  </div>
-                                </td>
-                                <td className="px-2 py-1 whitespace-nowrap text-sm text-left" style={{ color: 'var(--chart-cleanjerk)' }}>
-                                  <div className="font-medium">{result.best_cj ? `${result.best_cj}kg` : '-'}</div>
-                                  <div className="text-xs text-app-muted">
-                                    {[result.cj_lift_1, result.cj_lift_2, result.cj_lift_3]
-                                      .filter(attempt => attempt && attempt !== '0')
-                                      .map((attempt, i) => {
-                                        const weight = parseInt(attempt!);
-                                        return (
-                                          <span key={i} className={weight > 0 ? '' : 'text-red-500'} style={weight > 0 ? { color: 'var(--chart-cleanjerk)' } : {}}>
-                                            {Math.abs(weight)}
-                                            {i < 2 ? '/' : ''}
-                                          </span>
-                                        );
-                                      })}
-                                  </div>
-                                </td>
-                                <td className="px-2 py-1 whitespace-nowrap text-sm font-bold text-left" style={{ color: 'var(--chart-total)' }}>
-                                  {result.total ? `${result.total}kg` : '-'}
-                                </td>
-                                <td className="px-2 py-1 whitespace-nowrap text-sm text-app-secondary text-left">
-                                  {result.body_weight_kg ? `${result.body_weight_kg}kg` : '-'}
-                                </td>
-                              </tr>
+                                      })()}
+                                    </div>
+                                  </td>
+                                  <td className="px-2 py-1 whitespace-nowrap text-sm text-app-secondary">
+                                    {result.competition_group ? (
+                                      <span className="inline-block px-2 py-0.5 bg-accent-primary/20 text-accent-primary rounded font-semibold text-xs">
+                                        {result.competition_group}
+                                      </span>
+                                    ) : (
+                                      <span className="text-app-muted">-</span>
+                                    )}
+                                  </td>
+                                  <td className="px-2 py-1 whitespace-nowrap text-sm text-app-secondary">
+                                    <div className="flex items-center gap-2">
+                                      {(() => {
+                                        const FlagComponent = getCountryFlagComponent(result.wso);
+                                        if (result.club_name && (result.club_name.includes('Neutral') || result.club_name.includes('Refugee'))) {
+
+                                        }
+                                        if (!FlagComponent) return null;
+
+                                        // Pass year to AnaFlag for year-aware flag selection
+                                        if (FlagComponent === AnaFlag && meet) {
+                                          const meetYear = new Date(meet.date).getFullYear();
+                                          return <FlagComponent style={{ width: '18px', height: '18px' }} year={meetYear} />;
+                                        }
+
+                                        return <FlagComponent style={{ width: '18px', height: '18px' }} />;
+                                      })()}
+                                      <span className="text-sm">{result.club_name || '-'}</span>
+                                    </div>
+                                  </td>
+                                  <td></td>
+                                  <td className="px-2 py-1 whitespace-nowrap text-sm text-left" style={{ color: 'var(--chart-snatch)' }}>
+                                    <div className="font-medium">{result.best_snatch ? `${result.best_snatch}kg` : '-'}</div>
+                                    <div className="text-xs text-app-muted">
+                                      {[result.snatch_lift_1, result.snatch_lift_2, result.snatch_lift_3]
+                                        .filter(attempt => attempt && attempt !== '0')
+                                        .map((attempt, i) => {
+                                          const weight = parseInt(attempt!);
+                                          return (
+                                            <span key={i} className={weight > 0 ? '' : 'text-red-500'} style={weight > 0 ? { color: 'var(--chart-snatch)' } : {}}>
+                                              {Math.abs(weight)}
+                                              {i < 2 ? '/' : ''}
+                                            </span>
+                                          );
+                                        })}
+                                    </div>
+                                  </td>
+                                  <td className="px-2 py-1 whitespace-nowrap text-sm text-left" style={{ color: 'var(--chart-cleanjerk)' }}>
+                                    <div className="font-medium">{result.best_cj ? `${result.best_cj}kg` : '-'}</div>
+                                    <div className="text-xs text-app-muted">
+                                      {[result.cj_lift_1, result.cj_lift_2, result.cj_lift_3]
+                                        .filter(attempt => attempt && attempt !== '0')
+                                        .map((attempt, i) => {
+                                          const weight = parseInt(attempt!);
+                                          return (
+                                            <span key={i} className={weight > 0 ? '' : 'text-red-500'} style={weight > 0 ? { color: 'var(--chart-cleanjerk)' } : {}}>
+                                              {Math.abs(weight)}
+                                              {i < 2 ? '/' : ''}
+                                            </span>
+                                          );
+                                        })}
+                                    </div>
+                                  </td>
+                                  <td className="px-2 py-1 whitespace-nowrap text-sm font-bold text-left" style={{ color: 'var(--chart-total)' }}>
+                                    {result.total ? `${result.total}kg` : '-'}
+                                  </td>
+                                  <td className="px-2 py-1 whitespace-nowrap text-sm text-app-secondary text-left">
+                                    {result.body_weight_kg ? `${result.body_weight_kg}kg` : '-'}
+                                  </td>
+                                </tr>
                               );
                             })}
                           </tbody>

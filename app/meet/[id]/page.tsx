@@ -93,7 +93,8 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
     key: keyof MeetResult | 'place';
     direction: 'asc' | 'desc';
   } | null>(null);
-  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set(["Men's Results", "Women's Results"]));
+  /* Updated to match new section titles */
+  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set(["Men's Results by Division", "Women's Results by Division"]));
 
   // New state for summary tables
   const [showMenSummary, setShowMenSummary] = useState(false);
@@ -756,8 +757,8 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
 
     // Convert back to objects while preserving order
     const genderSections: Record<string, Record<string, MeetResult[]>> = {
-      "Men's Results": Object.fromEntries(mensResults),
-      "Women's Results": Object.fromEntries(womensResults)
+      "Men's Results by Division": Object.fromEntries(mensResults),
+      "Women's Results by Division": Object.fromEntries(womensResults)
     };
 
     return genderSections;
@@ -1111,8 +1112,8 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
 
           return (
             <>
-              {renderSummaryTable("Men's Rankings", menRanked, 'men', showMenSummary, () => setShowMenSummary(!showMenSummary))}
-              {renderSummaryTable("Women's Rankings", womenRanked, 'women', showWomenSummary, () => setShowWomenSummary(!showWomenSummary))}
+              {renderSummaryTable("Men's Overall Rankings by Q-Points", menRanked, 'men', showMenSummary, () => setShowMenSummary(!showMenSummary))}
+              {renderSummaryTable("Women's Overall Rankings by Q-Points", womenRanked, 'women', showWomenSummary, () => setShowWomenSummary(!showWomenSummary))}
             </>
           );
         })()}
