@@ -116,6 +116,8 @@ interface AthleteRanking {
   unique_id: string;
   country_code?: string;
   country_name?: string;
+  wso?: string;
+  club_name?: string;
 }
 
 interface USAWRankingResult {
@@ -307,6 +309,12 @@ function RankingsContent() {
     sortOrder: ("desc" as any) as 'asc' | 'desc',
     selectedYears: [2025] as number[], // Default to current year
     selectedCountries: [] as string[],
+    bodyWeightMin: "",
+    bodyWeightMax: "",
+    startDate: "",
+    endDate: "",
+    selectedWSO: [] as string[],
+    selectedClubs: [] as string[],
   });
 
   const [showFilters, setShowFilters] = useState(false);
@@ -317,6 +325,8 @@ function RankingsContent() {
   const [showHistorical1998Dropdown, setShowHistorical1998Dropdown] = useState(false);
   const [showFederationDropdown, setShowFederationDropdown] = useState(false);
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+  const [showWsoDropdown, setShowWsoDropdown] = useState(false);
+  const [showClubDropdown, setShowClubDropdown] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
   const resultsPerPage = 20;
@@ -325,7 +335,12 @@ function RankingsContent() {
     weightClasses: [] as string[],
     ageCategories: [] as string[],
     countries: [] as { code: string; name: string }[],
+    wsoCategories: [] as string[],
+    barbellClubs: [] as string[],
   });
+
+  const [wsoSearch, setWsoSearch] = useState("");
+  const [clubSearch, setClubSearch] = useState("");
 
   const [inactiveWeightClasses, setInactiveWeightClasses] = useState<
     Set<string>
@@ -343,12 +358,34 @@ function RankingsContent() {
     setCurrentPage(1);
   }, [filters]);
 
+  // Auto-populate Years filter when date range is set
+  useEffect(() => {
+    const hasStartDate = Boolean(filters.startDate);
+    const hasEndDate = Boolean(filters.endDate);
+
+    if (hasStartDate || hasEndDate) {
+      const startYear = hasStartDate ? new Date(filters.startDate).getFullYear() : 1998;
+      const endYear = hasEndDate ? new Date(filters.endDate).getFullYear() : new Date().getFullYear();
+      const yearsFromRange: number[] = [];
+      for (let year = startYear; year <= endYear; year++) {
+        yearsFromRange.push(year);
+      }
+      
+      // Only update if the years actually changed
+      const currentYears = filters.selectedYears.slice().sort();
+      const newYears = yearsFromRange.slice().sort();
+      if (JSON.stringify(currentYears) !== JSON.stringify(newYears)) {
+        setFilters(prev => ({ ...prev, selectedYears: yearsFromRange }));
+      }
+    }
+  }, [filters.startDate, filters.endDate]);
+
   // Re-fetch data when selected years change
   useEffect(() => {
     // Only re-fetch if inactiveWeightClasses has been initialized
     // Don't check rankings.length because it might be 0 after clearing years
     if (inactiveWeightClasses.size > 0) {
-      console.log('Year selection changed, re-fetching data for:', filters.selectedYears);
+      console.log('Year/Date selection changed, re-fetching data for:', { selectedYears: filters.selectedYears, startDate: filters.startDate, endDate: filters.endDate });
       fetchRankingsData(inactiveWeightClasses);
     }
   }, [filters.selectedYears]);
@@ -487,8 +524,25 @@ function RankingsContent() {
           ? inactiveWeightClassesSet
           : new Set<string>();
 
-      // If no years are selected, show zero results (don't fetch anything)
-      if (!filters.selectedYears || filters.selectedYears.length === 0) {
+      // Determine which years to fetch:
+      // 1. If date range is set, extract years from it
+      // 2. Otherwise use selectedYears
+      // 3. If neither, show zero results
+      let yearsToFetch: number[] = [];
+      const hasStartDate = Boolean(filters.startDate);
+      const hasEndDate = Boolean(filters.endDate);
+
+      if (hasStartDate || hasEndDate) {
+        const startYear = hasStartDate ? new Date(filters.startDate).getFullYear() : 1998;
+        const endYear = hasEndDate ? new Date(filters.endDate).getFullYear() : new Date().getFullYear();
+        yearsToFetch = [];
+        for (let year = startYear; year <= endYear; year++) {
+          yearsToFetch.push(year);
+        }
+        console.log('Date range active, fetching years:', yearsToFetch);
+      } else if (filters.selectedYears && filters.selectedYears.length > 0) {
+        yearsToFetch = filters.selectedYears;
+      } else {
         setRankings([]);
         setUsawRankings([]);
         setIwfRankings([]);
@@ -502,7 +556,7 @@ function RankingsContent() {
       let usawDbFallbackNeeded = false;
 
       try {
-        const usawPromises = filters.selectedYears
+        const usawPromises = yearsToFetch
           .filter(year => year >= 2012 && year <= 2025)
           .map(year => loadUSAWRankingsFile(year));
 
@@ -621,6 +675,8 @@ function RankingsContent() {
           unique_id: result.result_id ? `usaw-${result.result_id}-${index}` : `usaw-gen-${year}-${index}`,
           country_code: "USA",
           country_name: "USA",
+          wso: lifterInfo?.wso || "",
+          club_name: lifterInfo?.club_name || "",
         };
       });
 
@@ -628,6 +684,8 @@ function RankingsContent() {
 
       // --- FILTER OPTION EXTRACTION (Keep existing logic) ---
       const weightClassCombinations = new Set<string>();
+      const wsoCategoriesSet = new Set<string>();
+      const barbellClubsSet = new Set<string>();
       usawRankingsLocal.forEach((athlete) => {
         if (athlete.age_category && athlete.weight_class) {
           let gender = "";
@@ -637,6 +695,14 @@ function RankingsContent() {
           if (gender) {
             weightClassCombinations.add(`${gender} ${athlete.weight_class}`);
           }
+        }
+
+        if (athlete.wso) {
+          wsoCategoriesSet.add(athlete.wso);
+        }
+
+        if (athlete.club_name) {
+          barbellClubsSet.add(athlete.club_name);
         }
       });
 
@@ -718,6 +784,8 @@ function RankingsContent() {
         weightClasses: sortedWeightClasses,
         ageCategories: sortedAgeCategories,
         countries: [], // Initialize with empty, will be populated after data load
+        wsoCategories: Array.from(wsoCategoriesSet).sort((a, b) => a.localeCompare(b)),
+        barbellClubs: Array.from(barbellClubsSet).sort((a, b) => a.localeCompare(b)),
       });
 
       // --- IWF DATA LOADING ---
@@ -725,7 +793,7 @@ function RankingsContent() {
       let iwfDbFallbackNeeded = false;
 
       try {
-        const iwfPromises = filters.selectedYears
+        const iwfPromises = yearsToFetch
           .filter(year => year >= 1998 && year <= 2025)
           .map(year => loadIWFRankingsFile(year));
 
@@ -961,18 +1029,76 @@ function RankingsContent() {
       });
     }
 
-    // Filter by year if specific years are selected
-    // This handles non-continuous year selections (e.g., [2025, 2023] excluding 2024)
-    if (filters.selectedYears && filters.selectedYears.length > 0) {
+    const minBodyWeight = filters.bodyWeightMin !== "" ? parseFloat(filters.bodyWeightMin) : null;
+    const maxBodyWeight = filters.bodyWeightMax !== "" ? parseFloat(filters.bodyWeightMax) : null;
+    if (minBodyWeight !== null || maxBodyWeight !== null) {
       filtered = filtered.filter((athlete) => {
-        return filters.selectedYears.includes(athlete.year);
+        const weightValue = athlete.last_body_weight !== undefined && athlete.last_body_weight !== null && athlete.last_body_weight !== ""
+          ? parseFloat(String(athlete.last_body_weight))
+          : NaN;
+
+        if ((minBodyWeight !== null || maxBodyWeight !== null) && Number.isNaN(weightValue)) return false;
+        if (minBodyWeight !== null && weightValue < minBodyWeight) return false;
+        if (maxBodyWeight !== null && weightValue > maxBodyWeight) return false;
+        return true;
       });
+    }
+
+    const hasStartDate = Boolean(filters.startDate);
+    const hasEndDate = Boolean(filters.endDate);
+
+    // Auto-select years covered by date range
+    let yearsFromDateRange: number[] = [];
+    if (hasStartDate || hasEndDate) {
+      const start = hasStartDate ? new Date(filters.startDate + 'T00:00:00') : null;
+      const end = hasEndDate ? new Date(filters.endDate + 'T23:59:59') : null;
+
+      filtered = filtered.filter((athlete) => {
+        if (!athlete.last_competition) return false;
+        const competitionDate = new Date(athlete.last_competition);
+        if (start && competitionDate < start) return false;
+        if (end && competitionDate > end) return false;
+        return true;
+      });
+
+      // Collect years from filtered results
+      const yearsSet = new Set<number>();
+      filtered.forEach(athlete => {
+        if (athlete.year) yearsSet.add(athlete.year);
+      });
+      yearsFromDateRange = Array.from(yearsSet);
+    } else if (filters.selectedYears && filters.selectedYears.length > 0) {
+      // Filter by year only when no date range is active
+      filtered = filtered.filter((athlete) => filters.selectedYears.includes(athlete.year));
     }
 
     // Filter by selected countries
     if (filters.selectedCountries && filters.selectedCountries.length > 0) {
       filtered = filtered.filter((athlete) => {
         return athlete.country_code && filters.selectedCountries.includes(athlete.country_code);
+      });
+    }
+
+    if (filters.selectedWSO.length > 0) {
+      const wsoSet = new Set(filters.selectedWSO.map((w) => w.toLowerCase().trim()));
+      console.log('WSO Filter Active:', { selectedWSO: filters.selectedWSO, wsoSet: Array.from(wsoSet) });
+      const beforeCount = filtered.length;
+      filtered = filtered.filter((athlete) => {
+        if (athlete.federation !== "usaw") return false;
+        const athleteWso = (athlete.wso || "").toLowerCase().trim();
+        const matches = wsoSet.has(athleteWso);
+        if (matches) console.log('WSO Match:', { athlete: athlete.lifter_name, wso: athleteWso });
+        return matches;
+      });
+      console.log('WSO Filter Result:', { before: beforeCount, after: filtered.length });
+    }
+
+    if (filters.selectedClubs.length > 0) {
+      const clubSet = new Set(filters.selectedClubs.map((c) => c.toLowerCase()));
+      filtered = filtered.filter((athlete) => {
+        if (athlete.federation !== "usaw") return false;
+        const clubValue = (athlete.club_name || "").toLowerCase();
+        return clubSet.has(clubValue);
       });
     }
 
@@ -1250,7 +1376,15 @@ function RankingsContent() {
       selectedYears: [],
       federation: "all",
       selectedCountries: [],
+      bodyWeightMin: "",
+      bodyWeightMax: "",
+      startDate: "",
+      endDate: "",
+      selectedWSO: [],
+      selectedClubs: [],
     });
+    setWsoSearch("");
+    setClubSearch("");
   }
 
   function exportToCSV() {
@@ -2183,6 +2317,199 @@ function RankingsContent() {
                         </div>
                       )}
                     </div>
+                    {/* Body Weight Range */}
+                    <div className="min-w-0">
+                      <label className="block text-sm font-medium text-gray-300 mb-1">Body Weight (kg)</label>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          placeholder="Min"
+                          value={filters.bodyWeightMin}
+                          onChange={(e) => handleFilterChange("bodyWeightMin", e.target.value)}
+                          className="w-28 h-10 px-3 bg-gray-600 border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <span className="text-gray-400">–</span>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          placeholder="Max"
+                          value={filters.bodyWeightMax}
+                          onChange={(e) => handleFilterChange("bodyWeightMax", e.target.value)}
+                          className="w-28 h-10 px-3 bg-gray-600 border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <p className="mt-1 text-[11px] text-gray-400">Enter hundredths (e.g., 71.23) to narrow lifter body weight.</p>
+                    </div>
+
+                    {/* Date Range */}
+                    <div className="min-w-0">
+                      <label className="block text-sm font-medium text-gray-300 mb-1">Date Range</label>
+                      <div className="flex items-center space-x-1">
+                        <input
+                          type="date"
+                          value={filters.startDate}
+                          onChange={(e) => handleFilterChange("startDate", e.target.value)}
+                          className="w-32 h-10 px-1.5 text-xs bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <span className="text-gray-400 text-xs">–</span>
+                        <input
+                          type="date"
+                          value={filters.endDate}
+                          onChange={(e) => handleFilterChange("endDate", e.target.value)}
+                          className="w-32 h-10 px-1.5 text-xs bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <p className="mt-1 text-[11px] text-gray-400">Applies to competition date for the shown result.</p>
+                    </div>
+
+                    {/* WSO Filter (USAW) */}
+                    <div className="relative">
+                      <label className="block text-sm font-medium text-gray-300 mb-1">WSO (USAW)</label>
+                      <button
+                        type="button"
+                        onClick={() => setShowWsoDropdown((prev) => !prev)}
+                        className="w-full flex items-center justify-between h-10 px-3 bg-gray-600 border border-gray-500 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <span>{filters.selectedWSO.length === 0 ? "All WSOs" : `${filters.selectedWSO.length} selected`}</span>
+                        <span className="ml-2 text-xs text-gray-300">{showWsoDropdown ? "▲" : "▼"}</span>
+                      </button>
+
+                      {showWsoDropdown && (
+                        <div className="absolute z-20 mt-1 w-64 max-h-72 overflow-y-auto bg-gray-800 border border-gray-600 rounded-lg shadow-lg p-3 space-y-3">
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="text"
+                              value={wsoSearch}
+                              onChange={(e) => setWsoSearch(e.target.value)}
+                              placeholder="Type to filter WSOs"
+                              className="flex-1 h-9 px-3 bg-gray-700 border border-gray-600 rounded text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                          <div className="flex justify-between text-[11px] text-gray-400">
+                            <button
+                              type="button"
+                              onClick={() => setFilters((prev) => ({ ...prev, selectedWSO: [...filterOptions.wsoCategories] }))}
+                              className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600"
+                            >
+                              Select All
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setFilters((prev) => ({ ...prev, selectedWSO: [] }))}
+                              className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600"
+                            >
+                              Clear
+                            </button>
+                          </div>
+                          <div className="space-y-1">
+                            {filterOptions.wsoCategories
+                              .filter((wso) => wso.toLowerCase().includes(wsoSearch.toLowerCase()))
+                              .map((wso) => {
+                                const checked = filters.selectedWSO.includes(wso);
+                                return (
+                                  <label key={wso} className="flex items-center space-x-2 text-sm text-gray-200 cursor-pointer hover:bg-gray-700 px-2 py-1 rounded">
+                                    <input
+                                      type="checkbox"
+                                      checked={checked}
+                                      onChange={() => {
+                                        setFilters((prev) => {
+                                          const exists = prev.selectedWSO.includes(wso);
+                                          return {
+                                            ...prev,
+                                            selectedWSO: exists ? prev.selectedWSO.filter((item) => item !== wso) : [...prev.selectedWSO, wso],
+                                          };
+                                        });
+                                      }}
+                                      className="h-3 w-3 accent-blue-500"
+                                    />
+                                    <span className="truncate">{wso}</span>
+                                  </label>
+                                );
+                              })}
+                            {filterOptions.wsoCategories.filter((wso) => wso.toLowerCase().includes(wsoSearch.toLowerCase())).length === 0 && (
+                              <div className="text-gray-400 text-xs text-center py-1">No WSO matches</div>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-gray-500">WSO filter only applies to USAW results.</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Barbell Club Filter (USAW) */}
+                    <div className="relative">
+                      <label className="block text-sm font-medium text-gray-300 mb-1">Barbell Club (USAW)</label>
+                      <button
+                        type="button"
+                        onClick={() => setShowClubDropdown((prev) => !prev)}
+                        className="w-full flex items-center justify-between h-10 px-3 bg-gray-600 border border-gray-500 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <span>{filters.selectedClubs.length === 0 ? "All Clubs" : `${filters.selectedClubs.length} selected`}</span>
+                        <span className="ml-2 text-xs text-gray-300">{showClubDropdown ? "▲" : "▼"}</span>
+                      </button>
+
+                      {showClubDropdown && (
+                        <div className="absolute z-20 mt-1 w-64 max-h-72 overflow-y-auto bg-gray-800 border border-gray-600 rounded-lg shadow-lg p-3 space-y-3">
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="text"
+                              value={clubSearch}
+                              onChange={(e) => setClubSearch(e.target.value)}
+                              placeholder="Type to filter clubs"
+                              className="flex-1 h-9 px-3 bg-gray-700 border border-gray-600 rounded text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                          <div className="flex justify-between text-[11px] text-gray-400">
+                            <button
+                              type="button"
+                              onClick={() => setFilters((prev) => ({ ...prev, selectedClubs: [...filterOptions.barbellClubs] }))}
+                              className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600"
+                            >
+                              Select All
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setFilters((prev) => ({ ...prev, selectedClubs: [] }))}
+                              className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600"
+                            >
+                              Clear
+                            </button>
+                          </div>
+                          <div className="space-y-1">
+                            {filterOptions.barbellClubs
+                              .filter((club) => club.toLowerCase().includes(clubSearch.toLowerCase()))
+                              .map((club) => {
+                                const checked = filters.selectedClubs.includes(club);
+                                return (
+                                  <label key={club} className="flex items-center space-x-2 text-sm text-gray-200 cursor-pointer hover:bg-gray-700 px-2 py-1 rounded">
+                                    <input
+                                      type="checkbox"
+                                      checked={checked}
+                                      onChange={() => {
+                                        setFilters((prev) => {
+                                          const exists = prev.selectedClubs.includes(club);
+                                          return {
+                                            ...prev,
+                                            selectedClubs: exists ? prev.selectedClubs.filter((item) => item !== club) : [...prev.selectedClubs, club],
+                                          };
+                                        });
+                                      }}
+                                      className="h-3 w-3 accent-blue-500"
+                                    />
+                                    <span className="truncate">{club}</span>
+                                  </label>
+                                );
+                              })}
+                            {filterOptions.barbellClubs.filter((club) => club.toLowerCase().includes(clubSearch.toLowerCase())).length === 0 && (
+                              <div className="text-gray-400 text-xs text-center py-1">No club matches</div>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-gray-500">Club filter only applies to USAW results.</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex justify-between items-center">
@@ -2489,7 +2816,6 @@ function RankingsContent() {
     </div >
   );
 }
-
 export default function RankingsPage() {
   return (
     <AuthGuard
