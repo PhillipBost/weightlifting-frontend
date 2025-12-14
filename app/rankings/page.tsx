@@ -2253,7 +2253,7 @@ function RankingsContent() {
                               href={
                                 athlete.federation === "iwf"
                                   ? `/athlete/iwf/${athlete.iwf_lifter_id}`
-                                  : `/athlete/${athlete.membership_number}`
+                                  : `/athlete/${athlete.membership_number || athlete.lifter_name.toLowerCase().replace(/\s+/g, '-')}`
                               }
                               prefetch={false}
                               className="text-blue-400 hover:text-blue-300 hover:underline"
