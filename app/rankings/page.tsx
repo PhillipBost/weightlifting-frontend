@@ -180,6 +180,22 @@ const getBestQScore = (result: any) => {
   return { value: null, type: 'none', style: { color: 'var(--chart-qpoints)' } };
 };
 
+const getDominantCategory = (list: AthleteRanking[]) => {
+  let youthCount = 0;
+  let openCount = 0;
+  let mastersCount = 0;
+
+  list.forEach(r => {
+    if ((r.q_youth ?? 0) > 0) youthCount++;
+    if ((r.qpoints ?? 0) > 0) openCount++;
+    if ((r.q_masters ?? 0) > 0) mastersCount++;
+  });
+
+  if (youthCount >= openCount && youthCount >= mastersCount && youthCount > 0) return 'q_youth';
+  if (mastersCount >= openCount && mastersCount > 0) return 'q_masters';
+  return 'qpoints'; // Default to open/standard Q-points
+};
+
 const getCountryFlagComponent = (code: string): React.ComponentType<any> | null => {
   if (!code) return null;
 
@@ -265,6 +281,10 @@ const HISTORICAL_1998_2018_WEIGHT_CLASSES = {
   Men: ["31kg", "35kg", "39kg", "44kg", "50kg", "56kg", "62kg", "69kg", "69+kg", "77kg", "85kg", "85+kg", "94kg", "94+kg", "105kg", "105+kg"],
 };
 
+// Performance metrics that should be ranked when sorted by
+// Note: use raw qpoints (open) so youth/masters scores do not affect open ranking
+const PERFORMANCE_METRICS = ['best_total', 'best_snatch', 'best_cj', 'qpoints', 'q_youth', 'q_masters'];
+
 function RankingsContent() {
   const supabase = createClient();
   const [usawRankings, setUsawRankings] = useState<AthleteRanking[]>([]);
@@ -284,7 +304,7 @@ function RankingsContent() {
     rankBy: "best_total",
     federation: "all",
     sortBy: "best_total",
-    sortOrder: "desc",
+    sortOrder: ("desc" as any) as 'asc' | 'desc',
     selectedYears: [2025] as number[], // Default to current year
     selectedCountries: [] as string[],
   });
@@ -831,6 +851,8 @@ function RankingsContent() {
         ...iwfRankingsLocal.map((a) => ({ ...a, federation: "iwf" as const })),
       ]);
 
+      // Keep default sort as Total; no override to sortBy here
+
     } catch (err: any) {
       setError(err.message);
       console.error("Error fetching rankings data:", err);
@@ -989,48 +1011,58 @@ function RankingsContent() {
       filtered = Array.from(countryBestMap.values());
     }
 
-    // Determine ranking criteria: use sortBy if it's a performance metric, otherwise use rankBy
-    const performanceMetrics = ['best_snatch', 'best_cj', 'best_qpoints'];
-    const shouldUseSort = performanceMetrics.includes(filters.sortBy);
-    const rankingCriteria = (shouldUseSort ? filters.sortBy : filters.rankBy) as keyof AthleteRanking;
-
-    // Create a sorted list to determine ranks
-    // Rankings are ALWAYS based on highest value = #1 (descending), regardless of sort order
+    // Determine if we should recalculate ranks based on current sort column
+    const isPerformanceSort = PERFORMANCE_METRICS.includes(filters.sortBy);
+    
+    // Determine which metric to use for ranking
+    let rankingCriteria: keyof AthleteRanking;
+    if (isPerformanceSort) {
+      rankingCriteria = filters.sortBy as keyof AthleteRanking;
+    } else {
+      rankingCriteria = filters.rankBy as keyof AthleteRanking;
+    }
+    
+    // Create a sorted list for ranking (always descending for performance metrics)
     const rankedForTrueRank = [...filtered];
     rankedForTrueRank.sort((a, b) => {
-      const aValue = a[rankingCriteria] as number;
-      const bValue = b[rankingCriteria] as number;
+      const aValue = (a[rankingCriteria] as number) ?? 0;
+      const bValue = (b[rankingCriteria] as number) ?? 0;
       return bValue - aValue; // Always descending for ranking
     });
-
-    // Assign ranks based on the sorted list
+    
+    // Assign ranks with tied-score handling (same rank for equal values, no gaps)
     // For each lifter, only their best result gets a rank
-    // We use unique_id to identify which specific results should have ranks
-    const rankMap = new Map<string, number>(); // Maps unique_id to rank
-    let currentRank = 1;
+    let rankMap = new Map<string, number>();
     const rankedLifters = new Set<string>();
-
+    let currentRank = 1;
+    let lastValue: number | null = null;
+    
     rankedForTrueRank.forEach((athlete) => {
       if (!rankedLifters.has(athlete.lifter_id)) {
-        // This is the best result for this lifter - assign it a rank
+        const athleteValue = athlete[rankingCriteria] as number;
+        
+        // If value differs from last, update rank; if same, keep same rank
+        if (lastValue === null || athleteValue !== lastValue) {
+          currentRank = rankedLifters.size + 1; // Rank = number of lifters already ranked + 1
+          lastValue = athleteValue;
+        }
+        
         rankMap.set(athlete.unique_id, currentRank);
         rankedLifters.add(athlete.lifter_id);
-        currentRank++;
       }
-      // All other results for this lifter will not have a rank
     });
 
     // Handle trueRank sorting separately since it's calculated
     if (filters.sortBy === "trueRank") {
-      // rankedForTrueRank is already sorted by performance (Rank ASC)
-      // If sortOrder is 'desc', we reverse it
-      let sortedResult = [...rankedForTrueRank];
+      // Sort by the rank values we calculated
+      filtered.sort((a, b) => {
+        const rankA = rankMap.get(a.unique_id) ?? Infinity;
+        const rankB = rankMap.get(b.unique_id) ?? Infinity;
+        
+        return filters.sortOrder === "asc" ? rankA - rankB : rankB - rankA;
+      });
 
-      if (filters.sortOrder === "desc") {
-        sortedResult.reverse();
-      }
-
-      const rankedFiltered = sortedResult.map((athlete) => ({
+      const rankedFiltered = filtered.map((athlete) => ({
         ...athlete,
         trueRank: rankMap.get(athlete.unique_id),
       }));
@@ -1163,8 +1195,7 @@ function RankingsContent() {
 
   function handleSort(column: string) {
     // Performance metrics should default to descending (highest first)
-    const performanceMetrics = ['best_total', 'best_snatch', 'best_cj', 'best_qpoints'];
-    const isPerformanceMetric = performanceMetrics.includes(column);
+    const isPerformanceMetric = PERFORMANCE_METRICS.includes(column);
 
     let newSortOrder: 'asc' | 'desc';
 
@@ -1443,8 +1474,8 @@ function RankingsContent() {
                               ? "Best Snatch"
                               : filters.sortBy === "best_cj"
                                 ? "Best C&J"
-                                : filters.sortBy === "best_qpoints"
-                                  ? "Best Q-Points"
+                                : filters.sortBy === "qpoints"
+                                  ? "Q-Points"
                                   : "Best Total"}{" ("}{filters.sortOrder === "asc" ? "Asc" : "Desc"}{")"}
                       </span>
                       <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-app-tertiary text-app-muted">
@@ -2209,8 +2240,14 @@ function RankingsContent() {
                     <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("best_total")}>
                       Total {getSortIcon("best_total")}
                     </th>
-                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("best_qpoints")}>
-                      Q-Points {getSortIcon("best_qpoints")}
+                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("q_youth")}>
+                      Q-Youth {getSortIcon("q_youth")}
+                    </th>
+                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("qpoints")}>
+                      Q-Points {getSortIcon("qpoints")}
+                    </th>
+                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("q_masters")}>
+                      Q-Masters {getSortIcon("q_masters")}
                     </th>
                     <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("competition_age")}>
                       Comp Age {getSortIcon("competition_age")}
@@ -2306,10 +2343,14 @@ function RankingsContent() {
                             {athlete.best_total ? "kg" : ""}
                           </span>
                         </td>
-                        <td className="px-2 py-1 whitespace-nowrap text-xs">
-                          <span className="font-bold" style={getBestQScore(athlete).style}>
-                            {getBestQScore(athlete).value ? getBestQScore(athlete).value.toFixed(1) : "-"}
-                          </span>
+                        <td className="px-2 py-1 whitespace-nowrap text-xs font-medium" style={{ color: (athlete.q_youth ?? 0) > 0 ? 'var(--chart-qyouth)' : 'inherit' }}>
+                          {(athlete.q_youth && athlete.q_youth > 0) ? athlete.q_youth.toFixed(3) : '-'}
+                        </td>
+                        <td className="px-2 py-1 whitespace-nowrap text-xs font-medium" style={{ color: (athlete.qpoints ?? 0) > 0 ? 'var(--chart-qpoints)' : 'inherit' }}>
+                          {(athlete.qpoints && athlete.qpoints > 0) ? athlete.qpoints.toFixed(3) : '-'}
+                        </td>
+                        <td className="px-2 py-1 whitespace-nowrap text-xs font-medium" style={{ color: (athlete.q_masters ?? 0) > 0 ? 'var(--chart-qmasters)' : 'inherit' }}>
+                          {(athlete.q_masters && athlete.q_masters > 0) ? athlete.q_masters.toFixed(3) : '-'}
                         </td>
                         <td className="px-2 py-1 whitespace-nowrap text-xs">
                           {athlete.competition_age || "-"}
