@@ -96,11 +96,15 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
   /* Updated to match new section titles */
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set(["Men's Results by Division", "Women's Results by Division"]));
 
-  // New state for summary tables
   const [showMenSummary, setShowMenSummary] = useState(false);
   const [showWomenSummary, setShowWomenSummary] = useState(false);
-  const [summarySortConfig, setSummarySortConfig] = useState<{
-    gender: 'men' | 'women';
+
+  // Track sort config for each gender independently
+  const [menSortConfig, setMenSortConfig] = useState<{
+    key: keyof MeetResult | 'rank';
+    direction: 'asc' | 'desc';
+  } | null>(null);
+  const [womenSortConfig, setWomenSortConfig] = useState<{
     key: keyof MeetResult | 'rank';
     direction: 'asc' | 'desc';
   } | null>(null);
@@ -929,127 +933,144 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
 
         {/* NEW SUMMARY TABLES */}
         {(() => {
-          // Helper for Q-Score
-          const getBestQScore = (result: MeetResult) => {
-            const qYouth = result.q_youth || 0;
-            const qPoints = result.qpoints || 0;
-            const qMasters = result.q_masters || 0;
+          // Helper: Get dominant category (most populated)
+          const getDominantCategory = (list: MeetResult[]) => {
+            let youthCount = 0;
+            let openCount = 0;
+            let mastersCount = 0;
 
-            if (qPoints >= qYouth && qPoints >= qMasters && qPoints > 0) {
-              return { value: qPoints, style: { color: 'var(--chart-qpoints)' } };
-            }
-            if (qYouth >= qMasters && qYouth > 0) {
-              return { value: qYouth, style: { color: 'var(--chart-qyouth)' } };
-            }
-            if (qMasters > 0) {
-              return { value: qMasters, style: { color: 'var(--chart-qmasters)' } };
-            }
+            list.forEach(r => {
+              if ((r.q_youth ?? 0) > 0) youthCount++;
+              if ((r.qpoints ?? 0) > 0) openCount++;
+              if ((r.q_masters ?? 0) > 0) mastersCount++;
+            });
 
-            return { value: 0, style: { color: 'var(--chart-qpoints)' } };
+            if (youthCount >= openCount && youthCount >= mastersCount && youthCount > 0) return 'q_youth';
+            if (mastersCount >= openCount && mastersCount > 0) return 'q_masters';
+            return 'qpoints'; // Default to open/standard Q-points
           };
 
-          // Group and Rank Logic
-          const getGenderRankedResults = () => {
+          const splitByGender = () => {
             const men: MeetResult[] = [];
             const women: MeetResult[] = [];
-
             results.forEach(r => {
               const isFemale = r.age_category?.toLowerCase().includes("women's") || r.gender === 'F';
               if (isFemale) women.push(r);
               else men.push(r);
             });
-
-            const rankAndSort = (list: MeetResult[]) => {
-              // 1. Calculate static rank based on Q-Points
-              // Sort by Q-Points desc to assign rank
-              const sortedForRank = [...list].sort((a, b) => {
-                const qA = getBestQScore(a).value;
-                const qB = getBestQScore(b).value;
-                return qB - qA; // Highest Q-points first
-              });
-
-              // Assign static rank
-              const rankedList = sortedForRank.map((item, index) => ({
-                ...item,
-                rank: index + 1
-              }));
-
-              // 2. Apply user sort if active
-              // If sorting by rank or default, returned rankedList is already sorted by Q-Points (which corresponds to rank)
-              // If sorting by other columns, sort the rankedList but KEEP the rank property static
-              return rankedList;
-            };
-
-            return {
-              men: rankAndSort(men),
-              women: rankAndSort(women)
-            };
+            return { men, women };
           };
 
-          const { men: menRanked, women: womenRanked } = getGenderRankedResults();
+          const { men, women } = splitByGender();
+
+          // Initialize default sort if not set
+          // We use a small side-effect here during render or just calculate defaults on the fly
+          const getEffectiveSort = (gender: 'men' | 'women', list: MeetResult[]) => {
+            const config = gender === 'men' ? menSortConfig : womenSortConfig;
+            if (config) return config;
+
+            // Default: dominant category, desc
+            const dom = getDominantCategory(list);
+            return { key: dom as any, direction: 'desc' as const };
+          };
 
           const handleSummarySort = (gender: 'men' | 'women', key: keyof MeetResult | 'rank') => {
-            let direction: 'asc' | 'desc' = 'asc';
-            // Default sort for numeric values (rank, total, qpoints) should be desc for "best" usually, but standard UI toggle is asc first often??
-            // Actually for Rank, asc (1, 2, 3) is best.
-            // For Total/QPoints, desc is best.
-
-            if (summarySortConfig && summarySortConfig.gender === gender && summarySortConfig.key === key) {
-              // Toggle direction
-              direction = summarySortConfig.direction === 'asc' ? 'desc' : 'asc';
-            } else {
-              // Default direction when switching columns
-              if (key === 'rank' || key === 'lifter_name' || key === 'weight_class' || key === 'competition_age' || key === 'age_category') {
-                direction = 'asc';
-              } else {
-                // numeric stats usually desc first
-                direction = 'desc';
-              }
-            }
-            setSummarySortConfig({ gender, key, direction });
-          };
-
-          const getSortedSummaryList = (list: MeetResult[], gender: 'men' | 'women') => {
-            if (!summarySortConfig || summarySortConfig.gender !== gender) {
-              // Default sort by Rank (which is Q-points desc)
-              return list.sort((a, b) => (a.rank || 0) - (b.rank || 0));
+            const currentConfig = gender === 'men' ? menSortConfig : womenSortConfig;
+            // Determine default direction for this new key if switching
+            let nextDirection: 'asc' | 'desc' = 'desc'; // Default to desc for stats
+            if (key === 'lifter_name' || key === 'weight_class' || key === 'competition_age' || key === 'age_category' || key === 'club_name') {
+              nextDirection = 'asc';
             }
 
-            return [...list].sort((a, b) => {
-              const valA = summarySortConfig.key === 'rank' ? (a.rank || 0) : (summarySortConfig.key === 'qpoints' ? getBestQScore(a).value : (a[summarySortConfig.key as keyof MeetResult] as any));
-              const valB = summarySortConfig.key === 'rank' ? (b.rank || 0) : (summarySortConfig.key === 'qpoints' ? getBestQScore(b).value : (b[summarySortConfig.key as keyof MeetResult] as any));
+            if (currentConfig && currentConfig.key === key) {
+              // Toggle
+              nextDirection = currentConfig.direction === 'asc' ? 'desc' : 'asc';
+            }
 
-              // Handle nulls/types
-              let cmpA = valA;
-              let cmpB = valB;
-
-              if (typeof valA === 'string') cmpA = valA.toLowerCase();
-              if (typeof valB === 'string') cmpB = valB.toLowerCase();
-
-              // Numeric parsing for specific fields if they are strings in DB
-              if (['total', 'body_weight_kg', 'competition_age'].includes(summarySortConfig.key as string)) {
-                cmpA = parseFloat(String(valA) || '0');
-                cmpB = parseFloat(String(valB) || '0');
-              }
-
-              if (cmpA < cmpB) return summarySortConfig.direction === 'asc' ? -1 : 1;
-              if (cmpA > cmpB) return summarySortConfig.direction === 'asc' ? 1 : -1;
-              return 0;
-            });
+            if (gender === 'men') setMenSortConfig({ key, direction: nextDirection });
+            else setWomenSortConfig({ key, direction: nextDirection });
           };
 
           const renderSummaryTable = (title: string, data: MeetResult[], gender: 'men' | 'women', show: boolean, toggle: () => void) => {
             if (data.length === 0) return null;
-            const sortedData = getSortedSummaryList(data, gender);
+
+            const sortConfig = getEffectiveSort(gender, data);
+
+            // Sort data
+            const sortedData = [...data].sort((a, b) => {
+              const key = sortConfig.key;
+
+              // Helper to get value
+              const getVal = (item: MeetResult, k: any) => {
+                if (k === 'qpoints') return item.qpoints ?? 0;
+                if (k === 'q_youth') return item.q_youth ?? 0;
+                if (k === 'q_masters') return item.q_masters ?? 0;
+                return item[k as keyof MeetResult];
+              };
+
+              const valA = getVal(a, key);
+              const valB = getVal(b, key);
+
+              // Special handling for Q-stats: 0/null goes to bottom
+              const isQStat = ['qpoints', 'q_youth', 'q_masters'].includes(key as string);
+              if (isQStat) {
+                const aZero = !valA || valA === 0;
+                const bZero = !valB || valB === 0;
+                if (aZero && !bZero) return 1; // a bottom
+                if (!aZero && bZero) return -1; // b bottom
+                if (aZero && bZero) {
+                  // Both zero, sort alphabetically
+                  return a.lifter_name.localeCompare(b.lifter_name);
+                }
+              }
+
+              // Normal sort comparison
+              let cmpA: any = valA;
+              let cmpB: any = valB;
+
+              // String normalization
+              if (typeof valA === 'string') cmpA = valA.toLowerCase();
+              if (typeof valB === 'string') cmpB = valB.toLowerCase();
+
+              // Numeric force
+              if (['total', 'body_weight_kg', 'competition_age'].includes(key as string)) {
+                cmpA = parseFloat(String(valA) || '0');
+                cmpB = parseFloat(String(valB) || '0');
+              }
+
+              if (cmpA < cmpB) return sortConfig.direction === 'asc' ? -1 : 1;
+              if (cmpA > cmpB) return sortConfig.direction === 'asc' ? 1 : -1;
+
+              return 0;
+            });
+
+            // Assign ranks if sorting by a Q-stat
+            // If sort key is a Q-stat, and value > 0, assign rank. 
+            // If NOT sorting by Q-stat, do we show rank? User: "Lifters should be re-ranked depending on which of the three columns is used to sort."
+            // We will calculate rank based on the SORTED list order for valid scores if the sort key is a score type.
+            const isRankingSort = ['qpoints', 'q_youth', 'q_masters', 'total'].includes(sortConfig.key as string);
+
+            const dataWithDisplayRank = sortedData.map((item, idx) => {
+              let displayRank: string | number = '-';
+              if (isRankingSort) {
+                // Only rank if they have a value > 0
+                const val = (item as any)[sortConfig.key];
+                if (val && val > 0) {
+                  displayRank = idx + 1;
+                }
+              }
+              return { ...item, displayRank };
+            });
 
             const SortIndicator = ({ col }: { col: any }) => {
-              if (!summarySortConfig || summarySortConfig.gender !== gender || summarySortConfig.key !== col) {
+              if (sortConfig.key !== col) {
                 return <span className="text-app-disabled ml-1">↕</span>;
               }
-              return <span className="text-accent-primary ml-1">{summarySortConfig.direction === 'asc' ? '↑' : '↓'}</span>;
+              return <span className="text-accent-primary ml-1">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>;
             };
 
             const headerClass = "px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none";
+            const qHeaderClass = (col: string) => `px-2 py-1 text-left text-xs font-medium uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none ${sortConfig.key === col ? 'text-accent-primary font-bold' : 'text-gray-900 dark:text-gray-200'}`;
 
             return (
               <div className="mb-4">
@@ -1080,13 +1101,16 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                             <th className={headerClass} onClick={() => handleSummarySort(gender, 'competition_age')}>Comp Age <SortIndicator col="competition_age" /></th>
                             <th className={headerClass} onClick={() => handleSummarySort(gender, 'age_category')}>Cat <SortIndicator col="age_category" /></th>
                             <th className={headerClass} onClick={() => handleSummarySort(gender, 'total')}>Total <SortIndicator col="total" /></th>
-                            <th className={headerClass} onClick={() => handleSummarySort(gender, 'qpoints')}>Q-Points <SortIndicator col="qpoints" /></th>
+                            {/* Three Q Columns */}
+                            <th className={qHeaderClass('q_youth')} onClick={() => handleSummarySort(gender, 'q_youth')}>Q-Youth <SortIndicator col="q_youth" /></th>
+                            <th className={qHeaderClass('qpoints')} onClick={() => handleSummarySort(gender, 'qpoints')}>Q-Points <SortIndicator col="qpoints" /></th>
+                            <th className={qHeaderClass('q_masters')} onClick={() => handleSummarySort(gender, 'q_masters')}>Q-Masters <SortIndicator col="q_masters" /></th>
                           </tr>
                         </thead>
                         <tbody>
-                          {sortedData.map(r => (
+                          {dataWithDisplayRank.map(r => (
                             <tr key={r.result_id} className="border-t border-gray-700/50 hover:bg-app-hover transition-colors">
-                              <td className="px-2 py-2 text-sm">{r.rank}</td>
+                              <td className="px-2 py-2 text-sm font-semibold">{r.displayRank}</td>
                               <td className="px-2 py-2 text-sm max-w-[200px] truncate" title={r.lifter_name}>
                                 <Link href={getAthleteUrl(r)} className="text-blue-400 hover:text-blue-300 hover:underline">
                                   {r.lifter_name}
@@ -1096,8 +1120,15 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                               <td className="px-2 py-2 text-sm">{r.competition_age}</td>
                               <td className="px-2 py-2 text-sm max-w-[150px] truncate" title={r.age_category}>{r.age_category}</td>
                               <td className="px-2 py-2 text-sm font-bold" style={{ color: 'var(--chart-total)' }}>{r.total}</td>
-                              <td className="px-2 py-2 text-sm font-bold" style={getBestQScore(r).style}>
-                                {getBestQScore(r).value?.toFixed(3)}
+
+                              <td className="px-2 py-2 text-sm font-medium" style={{ color: (r.q_youth || 0) > 0 ? 'var(--chart-qyouth)' : 'inherit' }}>
+                                {(r.q_youth && r.q_youth > 0) ? r.q_youth.toFixed(3) : '-'}
+                              </td>
+                              <td className="px-2 py-2 text-sm font-medium" style={{ color: (r.qpoints || 0) > 0 ? 'var(--chart-qpoints)' : 'inherit' }}>
+                                {(r.qpoints && r.qpoints > 0) ? r.qpoints.toFixed(3) : '-'}
+                              </td>
+                              <td className="px-2 py-2 text-sm font-medium" style={{ color: (r.q_masters || 0) > 0 ? 'var(--chart-qmasters)' : 'inherit' }}>
+                                {(r.q_masters && r.q_masters > 0) ? r.q_masters.toFixed(3) : '-'}
                               </td>
                             </tr>
                           ))}
@@ -1112,8 +1143,8 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
 
           return (
             <>
-              {renderSummaryTable("Men's Overall Rankings by Q-Points", menRanked, 'men', showMenSummary, () => setShowMenSummary(!showMenSummary))}
-              {renderSummaryTable("Women's Overall Rankings by Q-Points", womenRanked, 'women', showWomenSummary, () => setShowWomenSummary(!showWomenSummary))}
+              {renderSummaryTable("Men's Overall Rankings by Q-Points", men, 'men', showMenSummary, () => setShowMenSummary(!showMenSummary))}
+              {renderSummaryTable("Women's Overall Rankings by Q-Points", women, 'women', showWomenSummary, () => setShowWomenSummary(!showWomenSummary))}
             </>
           );
         })()}
