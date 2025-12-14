@@ -28,6 +28,8 @@ interface USAWRankingResult {
     qpoints: number;
     q_youth: number | null;
     q_masters: number | null;
+    club_name: string | null;
+    wso: string | null;
 }
 
 interface IWFRankingResult {
@@ -51,6 +53,51 @@ interface IWFRankingResult {
     q_masters: number | null;
     country_code: string;
     country_name: string;
+}
+
+interface WSOData {
+    wso_id: number;
+    name: string;
+    active_status: boolean | null;
+    geographic_type: string | null;
+    states: string[] | null;
+    counties: string[] | null;
+    estimated_population: number | null;
+    population_estimate: number | null;
+    geographic_center_lat: number | null;
+    geographic_center_lng: number | null;
+    territory_geojson: any;
+    active_lifters_count: number | null;
+    recent_meets_count: number | null;
+    barbell_clubs_count: number | null;
+    activity_factor: number | null;
+    total_participations: number | null;
+    contact_email: string | null;
+    official_url: string | null;
+    notes: string | null;
+    analytics_updated_at: string | null;
+}
+
+interface ClubData {
+    club_name: string;
+    address: string | null;
+    phone: string | null;
+    email: string | null;
+    wso_geography: string | null;
+    state: string | null;
+    latitude: number | null;
+    longitude: number | null;
+    geocode_display_name: string | null;
+    geocode_success: boolean | null;
+    geocode_strategy_used: string | null;
+    geocode_precision_score: number | null;
+    active_lifters_count: number | null;
+    recent_meets_count: number | null;
+    activity_factor: number | null;
+    total_participations: number | null;
+    elevation_meters: number | null;
+    elevation_source: string | null;
+    analytics_updated_at: string | null;
 }
 
 async function generateUSAWCurrentYear() {
@@ -77,7 +124,7 @@ async function generateUSAWCurrentYear() {
         const pageSize = 1000;
         let hasMore = true;
 
-        // First fetch all results without join (faster)
+        // Fetch all results with club_name and wso_geography
         while (hasMore) {
             const { data, error } = await supabase
                 .from('usaw_meet_results')
@@ -98,7 +145,9 @@ async function generateUSAWCurrentYear() {
                     total,
                     qpoints,
                     q_youth,
-                    q_masters
+                    q_masters,
+                    club_name,
+                    wso
                 `)
                 .gte('date', `${CURRENT_YEAR}-01-01`)
                 .lte('date', `${CURRENT_YEAR}-12-31`)
@@ -169,7 +218,9 @@ async function generateUSAWCurrentYear() {
                 total: parseFloat(result.total) || 0,
                 qpoints: parseFloat(result.qpoints) || 0,
                 q_youth: result.q_youth ? parseFloat(result.q_youth) : null,
-                q_masters: result.q_masters ? parseFloat(result.q_masters) : null
+                q_masters: result.q_masters ? parseFloat(result.q_masters) : null,
+                club_name: result.club_name || null,
+                wso: result.wso || null
             };
         });
 
@@ -341,21 +392,211 @@ async function generateIWFCurrentYear() {
     }
 }
 
+async function generateWSOCurrentYear() {
+    console.log(`\nGenerating WSO data for ${CURRENT_YEAR}...`);
+
+    const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!SUPABASE_URL || !SUPABASE_KEY) {
+        console.error('Missing USAW Supabase environment variables');
+        throw new Error('Missing USAW credentials');
+    }
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+        auth: {
+            autoRefreshToken: false,
+            persistSession: false
+        }
+    });
+
+    try {
+        // Fetch all WSO information
+        const { data: wsoData, error: wsoError } = await supabase
+            .from('usaw_wso_information')
+            .select(`
+                wso_id,
+                name,
+                active_status,
+                geographic_type,
+                states,
+                counties,
+                estimated_population,
+                population_estimate,
+                geographic_center_lat,
+                geographic_center_lng,
+                territory_geojson,
+                active_lifters_count,
+                recent_meets_count,
+                barbell_clubs_count,
+                activity_factor,
+                total_participations,
+                contact_email,
+                official_url,
+                notes,
+                analytics_updated_at
+            `)
+            .order('name', { ascending: true });
+
+        if (wsoError) {
+            throw new Error(`Error fetching WSO data: ${wsoError.message}`);
+        }
+
+        console.log(`  Total WSO records: ${wsoData?.length || 0}`);
+
+        if (!wsoData || wsoData.length === 0) {
+            console.log(`  No WSO data available, skipping file creation`);
+            return;
+        }
+
+        const dataDir = path.join(process.cwd(), 'public', 'data');
+        await fs.mkdir(dataDir, { recursive: true });
+
+        const jsonData = JSON.stringify(wsoData);
+        const compressed = gzipSync(jsonData);
+
+        const outputPath = path.join(dataDir, `wso-data-${CURRENT_YEAR}.json.gz`);
+        await fs.writeFile(outputPath, compressed);
+
+        const stats = await fs.stat(outputPath);
+        console.log(`  ✓ Saved to public/data/wso-data-${CURRENT_YEAR}.json.gz`);
+        console.log(`  Size: ${(stats.size / 1024).toFixed(2)} KB (${wsoData.length} WSO records)`);
+
+    } catch (err) {
+        console.error(`Failed to generate WSO data for ${CURRENT_YEAR}:`, err);
+        throw err;
+    }
+}
+
+async function generateClubsCurrentYear() {
+    console.log(`\nGenerating Barbell Club data for ${CURRENT_YEAR}...`);
+
+    const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!SUPABASE_URL || !SUPABASE_KEY) {
+        console.error('Missing USAW Supabase environment variables');
+        throw new Error('Missing USAW credentials');
+    }
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+        auth: {
+            autoRefreshToken: false,
+            persistSession: false
+        }
+    });
+
+    try {
+        let allClubs: any[] = [];
+        let page = 0;
+        const pageSize = 1000;
+        let hasMore = true;
+
+        // Fetch all club data in batches
+        while (hasMore) {
+            const { data, error } = await supabase
+                .from('usaw_clubs')
+                .select(`
+                    club_name,
+                    address,
+                    phone,
+                    email,
+                    wso_geography,
+                    state,
+                    latitude,
+                    longitude,
+                    geocode_display_name,
+                    geocode_success,
+                    geocode_strategy_used,
+                    geocode_precision_score,
+                    active_lifters_count,
+                    recent_meets_count,
+                    activity_factor,
+                    total_participations,
+                    elevation_meters,
+                    elevation_source,
+                    analytics_updated_at
+                `)
+                .order('club_name', { ascending: true })
+                .range(page * pageSize, (page + 1) * pageSize - 1);
+
+            if (error) {
+                throw new Error(`Error fetching clubs: ${error.message}`);
+            }
+
+            if (data && data.length > 0) {
+                allClubs.push(...data);
+                console.log(`  Fetched ${allClubs.length} clubs...`);
+                page++;
+                if (data.length < pageSize) hasMore = false;
+            } else {
+                hasMore = false;
+            }
+        }
+
+        console.log(`  Total clubs: ${allClubs.length}`);
+
+        if (allClubs.length === 0) {
+            console.log(`  No club data available, skipping file creation`);
+            return;
+        }
+
+        const dataDir = path.join(process.cwd(), 'public', 'data');
+        await fs.mkdir(dataDir, { recursive: true });
+
+        const jsonData = JSON.stringify(allClubs);
+        const compressed = gzipSync(jsonData);
+
+        const outputPath = path.join(dataDir, `barbell-clubs-${CURRENT_YEAR}.json.gz`);
+        await fs.writeFile(outputPath, compressed);
+
+        const stats = await fs.stat(outputPath);
+        console.log(`  ✓ Saved to public/data/barbell-clubs-${CURRENT_YEAR}.json.gz`);
+        console.log(`  Size: ${(stats.size / 1024).toFixed(2)} KB (${allClubs.length} clubs)`);
+
+        // Also generate active clubs only (clubs with recent activity)
+        const activeClubs = allClubs.filter(club => 
+            club.active_lifters_count && club.active_lifters_count > 0
+        );
+
+        if (activeClubs.length > 0) {
+            const activeJsonData = JSON.stringify(activeClubs);
+            const activeCompressed = gzipSync(activeJsonData);
+
+            const activeOutputPath = path.join(dataDir, `active-barbell-clubs-${CURRENT_YEAR}.json.gz`);
+            await fs.writeFile(activeOutputPath, activeCompressed);
+
+            const activeStats = await fs.stat(activeOutputPath);
+            console.log(`  ✓ Saved to public/data/active-barbell-clubs-${CURRENT_YEAR}.json.gz`);
+            console.log(`  Size: ${(activeStats.size / 1024).toFixed(2)} KB (${activeClubs.length} active clubs)`);
+        }
+
+    } catch (err) {
+        console.error(`Failed to generate club data for ${CURRENT_YEAR}:`, err);
+        throw err;
+    }
+}
+
 async function main() {
-    console.log(`🚀 Generating rankings for current year (${CURRENT_YEAR})...`);
+    console.log(`🚀 Generating rankings and organizational data for current year (${CURRENT_YEAR})...`);
     console.log('━'.repeat(50));
 
     try {
         await generateUSAWCurrentYear();
         await generateIWFCurrentYear();
+        await generateWSOCurrentYear();
+        await generateClubsCurrentYear();
 
         console.log('\n' + '━'.repeat(50));
-        console.log(`✓ Current year rankings generation complete!`);
+        console.log(`✓ Current year data generation complete!`);
         console.log(`  Files created:`);
         console.log(`    - public/data/usaw-rankings-${CURRENT_YEAR}.json.gz`);
         console.log(`    - public/data/iwf-rankings-${CURRENT_YEAR}.json.gz`);
+        console.log(`    - public/data/wso-data-${CURRENT_YEAR}.json.gz`);
+        console.log(`    - public/data/barbell-clubs-${CURRENT_YEAR}.json.gz`);
+        console.log(`    - public/data/active-barbell-clubs-${CURRENT_YEAR}.json.gz`);
     } catch (err) {
-        console.error('\n✗ Rankings generation failed:', err);
+        console.error('\n✗ Data generation failed:', err);
         process.exit(1);
     }
 }
