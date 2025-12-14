@@ -2123,100 +2123,30 @@ function RankingsContent() {
                       )}
                     </div>
 
-                    {/* Countries Filter */}
-                    <div className="relative">
-                      <label className="block text-sm font-medium text-gray-300 mb-1">
-                        Countries
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => setShowCountryDropdown((prev) => !prev)}
-                        className="w-full flex items-center justify-between h-10 px-3 bg-gray-600 border border-gray-500 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <span>
-                          {filters.selectedCountries.length === 0
-                            ? "All Countries"
-                            : `${filters.selectedCountries.length} selected`}
-                        </span>
-                        <span className="ml-2 text-xs text-gray-300">
-                          {showCountryDropdown ? "▲" : "▼"}
-                        </span>
-                      </button>
-
-                      {showCountryDropdown && (
-                        <div className="absolute z-20 mt-1 w-64 max-h-64 overflow-y-auto bg-gray-800 border border-gray-600 rounded-lg shadow-lg p-2">
-                          <div className="flex justify-between items-center mb-2 text-[10px] text-gray-400">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const allCountries = filterOptions.countries.map(c => c.code);
-                                setFilters((prev) => ({
-                                  ...prev,
-                                  selectedCountries: allCountries,
-                                }));
-                              }}
-                              className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600"
-                            >
-                              Select All
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setFilters((prev) => ({
-                                  ...prev,
-                                  selectedCountries: [],
-                                }))
-                              }
-                              className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600"
-                            >
-                              Clear
-                            </button>
-                          </div>
-                          <div className="grid grid-cols-1 gap-1">
-                            {filterOptions.countries.length > 0 ? (
-                              filterOptions.countries.map((country) => {
-                                const checked = filters.selectedCountries.includes(country.code);
-                                const FlagComponent = getCountryFlagComponent(country.code);
-                                return (
-                                  <label
-                                    key={country.code}
-                                    className="flex items-center space-x-2 text-xs text-gray-200 cursor-pointer hover:bg-gray-700 p-1 rounded"
-                                  >
-                                    <input
-                                      type="checkbox"
-                                      checked={checked}
-                                      onChange={() => {
-                                        setFilters((prev) => {
-                                          const exists = prev.selectedCountries.includes(country.code);
-                                          return {
-                                            ...prev,
-                                            selectedCountries: exists
-                                              ? prev.selectedCountries.filter((c) => c !== country.code)
-                                              : [...prev.selectedCountries, country.code],
-                                          };
-                                        });
-                                      }}
-                                      className="h-3 w-3 accent-blue-500 flex-shrink-0"
-                                    />
-                                    <div className="flex items-center space-x-2 truncate">
-                                      {FlagComponent && (
-                                        <div className="flex-shrink-0 w-5">
-                                          <FlagComponent style={{ width: '100%', height: 'auto' }} />
-                                        </div>
-                                      )}
-                                      <span className="truncate">{country.name}</span>
-                                    </div>
-                                  </label>
-                                );
-                              })
-                            ) : (
-                              <div className="text-gray-400 text-xs p-2 text-center">
-                                No countries available for selected criteria
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
+                    {/* Body Weight Range */}
+                    <div className="min-w-0">
+                      <label className="block text-sm font-medium text-gray-300 mb-1">Body Weight (kg)</label>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          placeholder="Min"
+                          value={filters.bodyWeightMin}
+                          onChange={(e) => handleFilterChange("bodyWeightMin", e.target.value)}
+                          className="w-28 h-10 px-3 bg-gray-600 border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <span className="text-gray-400">–</span>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          placeholder="Max"
+                          value={filters.bodyWeightMax}
+                          onChange={(e) => handleFilterChange("bodyWeightMax", e.target.value)}
+                          className="w-28 h-10 px-3 bg-gray-600 border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
                     </div>
 
                     {/* Years dropdown with multi-select checkboxes */}
@@ -2317,32 +2247,6 @@ function RankingsContent() {
                         </div>
                       )}
                     </div>
-                    {/* Body Weight Range */}
-                    <div className="min-w-0">
-                      <label className="block text-sm font-medium text-gray-300 mb-1">Body Weight (kg)</label>
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          placeholder="Min"
-                          value={filters.bodyWeightMin}
-                          onChange={(e) => handleFilterChange("bodyWeightMin", e.target.value)}
-                          className="w-28 h-10 px-3 bg-gray-600 border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                        <span className="text-gray-400">–</span>
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          placeholder="Max"
-                          value={filters.bodyWeightMax}
-                          onChange={(e) => handleFilterChange("bodyWeightMax", e.target.value)}
-                          className="w-28 h-10 px-3 bg-gray-600 border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                      <p className="mt-1 text-[11px] text-gray-400">Enter hundredths (e.g., 71.23) to narrow lifter body weight.</p>
-                    </div>
 
                     {/* Date Range */}
                     <div className="min-w-0">
@@ -2363,6 +2267,102 @@ function RankingsContent() {
                         />
                       </div>
                       <p className="mt-1 text-[11px] text-gray-400">Applies to competition date for the shown result.</p>
+                    </div>
+
+                    {/* Countries Filter */}
+                    <div className="relative">
+                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Countries
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setShowCountryDropdown((prev) => !prev)}
+                        className="w-full flex items-center justify-between h-10 px-3 bg-gray-600 border border-gray-500 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <span>
+                          {filters.selectedCountries.length === 0
+                            ? "All Countries"
+                            : `${filters.selectedCountries.length} selected`}
+                        </span>
+                        <span className="ml-2 text-xs text-gray-300">
+                          {showCountryDropdown ? "▲" : "▼"}
+                        </span>
+                      </button>
+
+                      {showCountryDropdown && (
+                        <div className="absolute z-20 mt-1 w-64 max-h-64 overflow-y-auto bg-gray-800 border border-gray-600 rounded-lg shadow-lg p-2">
+                          <div className="flex justify-between items-center mb-2 text-[10px] text-gray-400">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const allCountries = filterOptions.countries.map(c => c.code);
+                                setFilters((prev) => ({
+                                  ...prev,
+                                  selectedCountries: allCountries,
+                                }));
+                              }}
+                              className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600"
+                            >
+                              Select All
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setFilters((prev) => ({
+                                  ...prev,
+                                  selectedCountries: [],
+                                }))
+                              }
+                              className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600"
+                            >
+                              Clear
+                            </button>
+                          </div>
+                          <div className="grid grid-cols-1 gap-1">
+                            {filterOptions.countries.length > 0 ? (
+                              filterOptions.countries.map((country) => {
+                                const checked = filters.selectedCountries.includes(country.code);
+                                const FlagComponent = getCountryFlagComponent(country.code);
+                                return (
+                                  <label
+                                    key={country.code}
+                                    className="flex items-center space-x-2 text-xs text-gray-200 cursor-pointer hover:bg-gray-700 p-1 rounded"
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={checked}
+                                      onChange={() => {
+                                        setFilters((prev) => {
+                                          const exists = prev.selectedCountries.includes(country.code);
+                                          return {
+                                            ...prev,
+                                            selectedCountries: exists
+                                              ? prev.selectedCountries.filter((c) => c !== country.code)
+                                              : [...prev.selectedCountries, country.code],
+                                          };
+                                        });
+                                      }}
+                                      className="h-3 w-3 accent-blue-500 flex-shrink-0"
+                                    />
+                                    <div className="flex items-center space-x-2 truncate">
+                                      {FlagComponent && (
+                                        <div className="flex-shrink-0 w-5">
+                                          <FlagComponent style={{ width: '100%', height: 'auto' }} />
+                                        </div>
+                                      )}
+                                      <span className="truncate">{country.name}</span>
+                                    </div>
+                                  </label>
+                                );
+                              })
+                            ) : (
+                              <div className="text-gray-400 text-xs p-2 text-center">
+                                No countries available for selected criteria
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* WSO Filter (USAW) */}
