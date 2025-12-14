@@ -37,14 +37,22 @@ jobs:
 
       - name: Check for changes
         id: verify_diff
+        shell: bash
         run: |
-          git diff --quiet public/data/*-rankings-*.json.gz public/data/wso-data-*.json.gz public/data/*barbell-clubs-*.json.gz || echo "changed=true" >> $GITHUB_OUTPUT
+          if compgen -G "public/data/*.json.gz" > /dev/null; then
+            git diff --quiet -- public/data/*.json.gz || echo "changed=true" >> $GITHUB_OUTPUT
+          fi
 
       - name: Commit and push if changed
         if: steps.verify_diff.outputs.changed == 'true'
+        shell: bash
         run: |
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
-          git add public/data/*-rankings-*.json.gz public/data/wso-data-*.json.gz public/data/*barbell-clubs-*.json.gz
-          git commit -m "chore: update current year data (rankings, WSO, clubs) [automated]"
-          git push
+          if compgen -G "public/data/*.json.gz" > /dev/null; then
+            git add public/data/*.json.gz
+            git commit -m "chore: update current year data (rankings, WSO, clubs) [automated]"
+            git push
+          else
+            echo "No data files to commit."
+          fi
