@@ -9,6 +9,29 @@ dotenv.config({ path: '.env.local' });
 
 const CURRENT_YEAR = new Date().getFullYear();
 
+// Prioritize CLI argument over environment variable
+const TARGET_YEAR_ARG = process.argv[2];
+const TARGET_YEAR_ENV = process.env.RANKINGS_YEAR;
+
+// Helper to validate year is a 4-digit number
+const isValidYear = (val: any): val is number => {
+    const num = Number(val);
+    return Number.isFinite(num) && num >= 1900 && num <= 2100;
+};
+
+// Try CLI arg first, then env var, then fall back to current year
+let TARGET_YEAR = CURRENT_YEAR;
+
+if (TARGET_YEAR_ARG && isValidYear(TARGET_YEAR_ARG)) {
+    TARGET_YEAR = Number(TARGET_YEAR_ARG);
+    console.log(`Using year from CLI argument: ${TARGET_YEAR}`);
+} else if (TARGET_YEAR_ENV && isValidYear(TARGET_YEAR_ENV)) {
+    TARGET_YEAR = Number(TARGET_YEAR_ENV);
+    console.log(`Using year from RANKINGS_YEAR env: ${TARGET_YEAR}`);
+} else {
+    console.log(`Using current year: ${TARGET_YEAR}`);
+}
+
 interface USAWRankingResult {
     result_id: number;
     meet_id: number;
@@ -101,7 +124,7 @@ interface ClubData {
 }
 
 async function generateUSAWCurrentYear() {
-    console.log(`\nGenerating USAW rankings for ${CURRENT_YEAR}...`);
+    console.log(`\nGenerating USAW rankings for ${TARGET_YEAR}...`);
 
     const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -149,13 +172,13 @@ async function generateUSAWCurrentYear() {
                     club_name,
                     wso
                 `)
-                .gte('date', `${CURRENT_YEAR}-01-01`)
-                .lte('date', `${CURRENT_YEAR}-12-31`)
+                .gte('date', `${TARGET_YEAR}-01-01`)
+                .lte('date', `${TARGET_YEAR}-12-31`)
                 .order('result_id', { ascending: true })
                 .range(page * pageSize, (page + 1) * pageSize - 1);
 
             if (error) {
-                throw new Error(`Error fetching results for ${CURRENT_YEAR}: ${error.message}`);
+                throw new Error(`Error fetching results for ${TARGET_YEAR}: ${error.message}`);
             }
 
             if (data && data.length > 0) {
@@ -193,7 +216,7 @@ async function generateUSAWCurrentYear() {
         console.log(`  Total results: ${allResults.length}`);
 
         if (allResults.length === 0) {
-            console.log(`  No results for ${CURRENT_YEAR}, skipping file creation`);
+            console.log(`  No results for ${TARGET_YEAR}, skipping file creation`);
             return;
         }
 
@@ -230,21 +253,21 @@ async function generateUSAWCurrentYear() {
         const jsonData = JSON.stringify(processedResults);
         const compressed = gzipSync(jsonData);
 
-        const outputPath = path.join(dataDir, `usaw-rankings-${CURRENT_YEAR}.json.gz`);
+        const outputPath = path.join(dataDir, `usaw-rankings-${TARGET_YEAR}.json.gz`);
         await fs.writeFile(outputPath, compressed);
 
         const stats = await fs.stat(outputPath);
-        console.log(`  ✓ Saved to public/data/usaw-rankings-${CURRENT_YEAR}.json.gz`);
+        console.log(`  ✓ Saved to public/data/usaw-rankings-${TARGET_YEAR}.json.gz`);
         console.log(`  Size: ${(stats.size / 1024).toFixed(2)} KB (${processedResults.length} results)`);
 
     } catch (err) {
-        console.error(`Failed to generate USAW rankings for ${CURRENT_YEAR}:`, err);
+        console.error(`Failed to generate USAW rankings for ${TARGET_YEAR}:`, err);
         throw err;
     }
 }
 
 async function generateIWFCurrentYear() {
-    console.log(`\nGenerating IWF rankings for ${CURRENT_YEAR}...`);
+    console.log(`\nGenerating IWF rankings for ${TARGET_YEAR}...`);
 
     // After database migration, IWF and USAW data are in the same database
     const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_IWF_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -305,11 +328,11 @@ async function generateIWFCurrentYear() {
                 const yearResults = data.filter(result => {
                     if (!result.date) return false;
                     const dateYear = result.date.trim().slice(-4);
-                    return dateYear === CURRENT_YEAR.toString();
+                    return dateYear === TARGET_YEAR.toString();
                 });
 
                 allResults.push(...yearResults);
-                console.log(`  Fetched ${allResults.length} results for ${CURRENT_YEAR}...`);
+                console.log(`  Fetched ${allResults.length} results for ${TARGET_YEAR}...`);
                 page++;
                 if (data.length < pageSize) hasMore = false;
             } else {
@@ -342,7 +365,7 @@ async function generateIWFCurrentYear() {
         console.log(`  Total results: ${allResults.length}`);
 
         if (allResults.length === 0) {
-            console.log(`  No results for ${CURRENT_YEAR}, skipping file creation`);
+            console.log(`  No results for ${TARGET_YEAR}, skipping file creation`);
             return;
         }
 
@@ -379,21 +402,21 @@ async function generateIWFCurrentYear() {
         const jsonData = JSON.stringify(processedResults);
         const compressed = gzipSync(jsonData);
 
-        const outputPath = path.join(dataDir, `iwf-rankings-${CURRENT_YEAR}.json.gz`);
+        const outputPath = path.join(dataDir, `iwf-rankings-${TARGET_YEAR}.json.gz`);
         await fs.writeFile(outputPath, compressed);
 
         const stats = await fs.stat(outputPath);
-        console.log(`  ✓ Saved to public/data/iwf-rankings-${CURRENT_YEAR}.json.gz`);
+        console.log(`  ✓ Saved to public/data/iwf-rankings-${TARGET_YEAR}.json.gz`);
         console.log(`  Size: ${(stats.size / 1024).toFixed(2)} KB (${processedResults.length} results)`);
 
     } catch (err) {
-        console.error(`Failed to generate IWF rankings for ${CURRENT_YEAR}:`, err);
+        console.error(`Failed to generate IWF rankings for ${TARGET_YEAR}:`, err);
         throw err;
     }
 }
 
 async function generateWSOCurrentYear() {
-    console.log(`\nGenerating WSO data for ${CURRENT_YEAR}...`);
+    console.log(`\nGenerating WSO data for ${TARGET_YEAR}...`);
 
     const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -455,21 +478,21 @@ async function generateWSOCurrentYear() {
         const jsonData = JSON.stringify(wsoData);
         const compressed = gzipSync(jsonData);
 
-        const outputPath = path.join(dataDir, `wso-data-${CURRENT_YEAR}.json.gz`);
+        const outputPath = path.join(dataDir, `wso-data-${TARGET_YEAR}.json.gz`);
         await fs.writeFile(outputPath, compressed);
 
         const stats = await fs.stat(outputPath);
-        console.log(`  ✓ Saved to public/data/wso-data-${CURRENT_YEAR}.json.gz`);
+        console.log(`  ✓ Saved to public/data/wso-data-${TARGET_YEAR}.json.gz`);
         console.log(`  Size: ${(stats.size / 1024).toFixed(2)} KB (${wsoData.length} WSO records)`);
 
     } catch (err) {
-        console.error(`Failed to generate WSO data for ${CURRENT_YEAR}:`, err);
+        console.error(`Failed to generate WSO data for ${TARGET_YEAR}:`, err);
         throw err;
     }
 }
 
 async function generateClubsCurrentYear() {
-    console.log(`\nGenerating Barbell Club data for ${CURRENT_YEAR}...`);
+    console.log(`\nGenerating Barbell Club data for ${TARGET_YEAR}...`);
 
     const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -547,11 +570,11 @@ async function generateClubsCurrentYear() {
         const jsonData = JSON.stringify(allClubs);
         const compressed = gzipSync(jsonData);
 
-        const outputPath = path.join(dataDir, `barbell-clubs-${CURRENT_YEAR}.json.gz`);
+        const outputPath = path.join(dataDir, `barbell-clubs-${TARGET_YEAR}.json.gz`);
         await fs.writeFile(outputPath, compressed);
 
         const stats = await fs.stat(outputPath);
-        console.log(`  ✓ Saved to public/data/barbell-clubs-${CURRENT_YEAR}.json.gz`);
+        console.log(`  ✓ Saved to public/data/barbell-clubs-${TARGET_YEAR}.json.gz`);
         console.log(`  Size: ${(stats.size / 1024).toFixed(2)} KB (${allClubs.length} clubs)`);
 
         // Also generate active clubs only (clubs with recent activity)
@@ -563,22 +586,22 @@ async function generateClubsCurrentYear() {
             const activeJsonData = JSON.stringify(activeClubs);
             const activeCompressed = gzipSync(activeJsonData);
 
-            const activeOutputPath = path.join(dataDir, `active-barbell-clubs-${CURRENT_YEAR}.json.gz`);
+            const activeOutputPath = path.join(dataDir, `active-barbell-clubs-${TARGET_YEAR}.json.gz`);
             await fs.writeFile(activeOutputPath, activeCompressed);
 
             const activeStats = await fs.stat(activeOutputPath);
-            console.log(`  ✓ Saved to public/data/active-barbell-clubs-${CURRENT_YEAR}.json.gz`);
+            console.log(`  ✓ Saved to public/data/active-barbell-clubs-${TARGET_YEAR}.json.gz`);
             console.log(`  Size: ${(activeStats.size / 1024).toFixed(2)} KB (${activeClubs.length} active clubs)`);
         }
 
     } catch (err) {
-        console.error(`Failed to generate club data for ${CURRENT_YEAR}:`, err);
+        console.error(`Failed to generate club data for ${TARGET_YEAR}:`, err);
         throw err;
     }
 }
 
 async function main() {
-    console.log(`🚀 Generating rankings and organizational data for current year (${CURRENT_YEAR})...`);
+    console.log(`🚀 Generating rankings and organizational data for target year (${TARGET_YEAR})...`);
     console.log('━'.repeat(50));
 
     try {
@@ -590,11 +613,11 @@ async function main() {
         console.log('\n' + '━'.repeat(50));
         console.log(`✓ Current year data generation complete!`);
         console.log(`  Files created:`);
-        console.log(`    - public/data/usaw-rankings-${CURRENT_YEAR}.json.gz`);
-        console.log(`    - public/data/iwf-rankings-${CURRENT_YEAR}.json.gz`);
-        console.log(`    - public/data/wso-data-${CURRENT_YEAR}.json.gz`);
-        console.log(`    - public/data/barbell-clubs-${CURRENT_YEAR}.json.gz`);
-        console.log(`    - public/data/active-barbell-clubs-${CURRENT_YEAR}.json.gz`);
+        console.log(`    - public/data/usaw-rankings-${TARGET_YEAR}.json.gz`);
+        console.log(`    - public/data/iwf-rankings-${TARGET_YEAR}.json.gz`);
+        console.log(`    - public/data/wso-data-${TARGET_YEAR}.json.gz`);
+        console.log(`    - public/data/barbell-clubs-${TARGET_YEAR}.json.gz`);
+        console.log(`    - public/data/active-barbell-clubs-${TARGET_YEAR}.json.gz`);
     } catch (err) {
         console.error('\n✗ Data generation failed:', err);
         process.exit(1);
