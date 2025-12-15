@@ -289,6 +289,23 @@ const HISTORICAL_1998_2018_WEIGHT_CLASSES = {
 // Note: use raw qpoints (open) so youth/masters scores do not affect open ranking
 const PERFORMANCE_METRICS = ['best_total', 'best_snatch', 'best_cj', 'qpoints', 'q_youth', 'q_masters'];
 
+// Helper function to format selected years for display
+function formatSelectedYears(years: number[]): string {
+  if (years.length === 0) {
+    return "All Years (1998–" + new Date().getFullYear() + ")";
+  }
+  
+  const sorted = [...years].sort((a, b) => b - a);
+  
+  // If 7 or fewer years, show all
+  if (sorted.length <= 7) {
+    return sorted.join(", ");
+  }
+  
+  // If more than 7, show first 3, ellipsis, and last 2
+  return `${sorted[0]}, ${sorted[1]}, ${sorted[2]}, […], ${sorted[sorted.length - 2]}, ${sorted[sorted.length - 1]}`;
+}
+
 function RankingsContent() {
   const supabase = createClient();
   const [usawRankings, setUsawRankings] = useState<AthleteRanking[]>([]);
@@ -2172,17 +2189,10 @@ function RankingsContent() {
                         onClick={() => setShowYearDropdown((prev) => !prev)}
                         className="w-full flex items-center justify-between h-10 px-3 bg-gray-600 border border-gray-500 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
-                        <span>
-                          {filters.selectedYears.length === 0
-                            ? "All Years (1998–" +
-                            new Date().getFullYear() +
-                            ")"
-                            : filters.selectedYears
-                              .slice()
-                              .sort((a, b) => b - a)
-                              .join(", ")}
+                        <span className="truncate">
+                          {formatSelectedYears(filters.selectedYears)}
                         </span>
-                        <span className="ml-2 text-xs text-gray-300">
+                        <span className="ml-2 text-xs text-gray-300 flex-shrink-0">
                           {showYearDropdown ? "▲" : "▼"}
                         </span>
                       </button>
