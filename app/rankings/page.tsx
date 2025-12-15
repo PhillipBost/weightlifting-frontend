@@ -297,13 +297,13 @@ function formatSelectedYears(years: number[]): string {
   
   const sorted = [...years].sort((a, b) => b - a);
   
-  // If 7 or fewer years, show all
-  if (sorted.length <= 7) {
+  // If 6 or fewer years, show all
+  if (sorted.length <= 6) {
     return sorted.join(", ");
   }
   
-  // If more than 7, show first 3, ellipsis, and last 2
-  return `${sorted[0]}, ${sorted[1]}, ${sorted[2]}, […], ${sorted[sorted.length - 2]}, ${sorted[sorted.length - 1]}`;
+  // If more than 6, show first 2, ellipsis, and last 2
+  return `${sorted[0]}, ${sorted[1]}, […], ${sorted[sorted.length - 2]}, ${sorted[sorted.length - 1]}`;
 }
 
 function RankingsContent() {
@@ -346,6 +346,27 @@ function RankingsContent() {
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [showWsoDropdown, setShowWsoDropdown] = useState(false);
   const [showClubDropdown, setShowClubDropdown] = useState(false);
+  const [showColumnVisibility, setShowColumnVisibility] = useState(false);
+
+  const [visibleColumns, setVisibleColumns] = useState({
+    rank: true,
+    athlete: true,
+    resource: true,
+    country: true,
+    gender: true,
+    weightClass: true,
+    bodyWeight: true,
+    bestSnatch: true,
+    bestCJ: true,
+    total: true,
+    qYouth: true,
+    qPoints: true,
+    qMasters: true,
+    compAge: true,
+    ageCategory: false,
+    date: true,
+    meetName: false,
+  });
 
   const [currentPage, setCurrentPage] = useState(1);
   const resultsPerPage = 20;
@@ -1418,37 +1439,33 @@ function RankingsContent() {
   }
 
   function exportToCSV() {
-    const headers = [
-      "Rank",
-      "Athlete Name",
-      "Resource",
-      "Gender",
-      "Weight Class",
-      "Age Category",
-      "Best Snatch (kg)",
-      "Best C&J (kg)",
-      "Best Total (kg)",
-      "Best Q-Points",
-      "Competitions",
-      "Last Competition",
-      "Meet Name",
+    // Build headers dynamically based on visible columns
+    const columnConfig = [
+      { key: 'rank', header: 'Rank', getValue: (a: AthleteRanking) => a.trueRank || "N/A" },
+      { key: 'athlete', header: 'Athlete Name', getValue: (a: AthleteRanking) => a.lifter_name },
+      { key: 'resource', header: 'Resource', getValue: (a: AthleteRanking) => a.federation === "iwf" ? "IWF" : "USAW" },
+      { key: 'country', header: 'Country', getValue: (a: AthleteRanking) => a.country_code || "" },
+      { key: 'gender', header: 'Gender', getValue: (a: AthleteRanking) => a.gender },
+      { key: 'weightClass', header: 'Weight Class', getValue: (a: AthleteRanking) => a.weight_class || "" },
+      { key: 'bodyWeight', header: 'Body Weight (kg)', getValue: (a: AthleteRanking) => a.last_body_weight || "" },
+      { key: 'bestSnatch', header: 'Best Snatch (kg)', getValue: (a: AthleteRanking) => a.best_snatch || "" },
+      { key: 'bestCJ', header: 'Best C&J (kg)', getValue: (a: AthleteRanking) => a.best_cj || "" },
+      { key: 'total', header: 'Best Total (kg)', getValue: (a: AthleteRanking) => a.best_total || "" },
+      { key: 'qYouth', header: 'Q-Youth', getValue: (a: AthleteRanking) => a.q_youth || "" },
+      { key: 'qPoints', header: 'Q-Points', getValue: (a: AthleteRanking) => a.qpoints || "" },
+      { key: 'qMasters', header: 'Q-Masters', getValue: (a: AthleteRanking) => a.q_masters || "" },
+      { key: 'compAge', header: 'Competition Age', getValue: (a: AthleteRanking) => a.competition_age || "" },
+      { key: 'ageCategory', header: 'Age Category', getValue: (a: AthleteRanking) => a.age_category || "" },
+      { key: 'date', header: 'Last Competition', getValue: (a: AthleteRanking) => a.last_competition || "" },
+      { key: 'meetName', header: 'Meet Name', getValue: (a: AthleteRanking) => a.last_meet_name || "" },
     ];
 
-    const csvData = filteredRankings.map((athlete) => [
-      athlete.trueRank || "N/A",
-      athlete.lifter_name,
-      athlete.federation === "iwf" ? "IWF" : "USAW",
-      athlete.gender,
-      athlete.weight_class || "",
-      athlete.age_category || "",
-      athlete.best_snatch || "",
-      athlete.best_cj || "",
-      athlete.best_total || "",
-      athlete.best_qpoints || "",
-      athlete.competition_count,
-      athlete.last_competition || "",
-      athlete.last_meet_name || "",
-    ]);
+    const visibleConfig = columnConfig.filter(col => visibleColumns[col.key as keyof typeof visibleColumns]);
+    const headers = visibleConfig.map(col => col.header);
+
+    const csvData = filteredRankings.map((athlete) => 
+      visibleConfig.map(col => col.getValue(athlete))
+    );
 
     const csvContent = [headers, ...csvData]
       .map((row) =>
@@ -1477,6 +1494,29 @@ function RankingsContent() {
     const rowsToPrint = filteredRankings.slice(0, MAX_PRINT_ROWS);
     const isTruncated = filteredRankings.length > MAX_PRINT_ROWS;
 
+    // Build table columns dynamically based on visible columns
+    const columnConfig = [
+      { key: 'rank', header: 'Rank', getValue: (a: AthleteRanking) => a.trueRank || "N/A", className: 'rank' },
+      { key: 'athlete', header: 'Athlete', getValue: (a: AthleteRanking) => a.lifter_name },
+      { key: 'resource', header: 'Resource', getValue: (a: AthleteRanking) => a.federation === "iwf" ? "IWF" : "USAW" },
+      { key: 'country', header: 'Country', getValue: (a: AthleteRanking) => a.country_code || "" },
+      { key: 'gender', header: 'Gender', getValue: (a: AthleteRanking) => a.gender },
+      { key: 'weightClass', header: 'Weight Class', getValue: (a: AthleteRanking) => a.weight_class || "" },
+      { key: 'bodyWeight', header: 'Body Weight', getValue: (a: AthleteRanking) => a.last_body_weight ? `${a.last_body_weight}kg` : "-" },
+      { key: 'bestSnatch', header: 'Best Snatch', getValue: (a: AthleteRanking) => a.best_snatch || "-" },
+      { key: 'bestCJ', header: 'Best C&J', getValue: (a: AthleteRanking) => a.best_cj || "-" },
+      { key: 'total', header: 'Best Total', getValue: (a: AthleteRanking) => a.best_total || "-" },
+      { key: 'qYouth', header: 'Q-Youth', getValue: (a: AthleteRanking) => a.q_youth && a.q_youth > 0 ? a.q_youth.toFixed(3) : "-" },
+      { key: 'qPoints', header: 'Q-Points', getValue: (a: AthleteRanking) => a.qpoints && a.qpoints > 0 ? a.qpoints.toFixed(3) : "-" },
+      { key: 'qMasters', header: 'Q-Masters', getValue: (a: AthleteRanking) => a.q_masters && a.q_masters > 0 ? a.q_masters.toFixed(3) : "-" },
+      { key: 'compAge', header: 'Comp Age', getValue: (a: AthleteRanking) => a.competition_age || "-" },
+      { key: 'ageCategory', header: 'Age Category', getValue: (a: AthleteRanking) => a.age_category || "" },
+      { key: 'date', header: 'Date', getValue: (a: AthleteRanking) => a.last_competition ? new Date(a.last_competition).toLocaleDateString() : "-" },
+      { key: 'meetName', header: 'Meet', getValue: (a: AthleteRanking) => a.last_meet_name || "" },
+    ];
+
+    const visibleConfig = columnConfig.filter(col => visibleColumns[col.key as keyof typeof visibleColumns]);
+
     const tableHTML = `
       <!DOCTYPE html>
       <html>
@@ -1501,17 +1541,7 @@ function RankingsContent() {
           <table>
             <thead>
               <tr>
-                <th>Rank</th>
-                <th>Athlete</th>
-                <th>Resource</th>
-                <th>Gender</th>
-                <th>Weight Class</th>
-                <th>Age Category</th>
-                <th>Best Snatch</th>
-                <th>Best C&J</th>
-                <th>Best Total</th>
-                <th>Q-Points</th>
-                <th>Meet</th>
+                ${visibleConfig.map(col => `<th>${col.header}</th>`).join('')}
               </tr>
             </thead>
             <tbody>
@@ -1519,20 +1549,7 @@ function RankingsContent() {
         .map(
           (athlete) => `
                 <tr>
-                  <td class="rank">${athlete.trueRank || "N/A"}</td>
-                  <td>${athlete.lifter_name}</td>
-                  <td>${athlete.federation === "iwf" ? "IWF" : "USAW"}</td>
-                  <td>${athlete.gender}</td>
-                  <td>${athlete.weight_class || ""}</td>
-                  <td>${athlete.age_category || ""}</td>
-                  <td>${athlete.best_snatch || "-"}</td>
-                  <td>${athlete.best_cj || "-"}</td>
-                  <td>${athlete.best_total || "-"}</td>
-                  <td>${athlete.best_qpoints
-              ? athlete.best_qpoints.toFixed(1)
-              : "-"
-            }</td>
-                  <td>${athlete.last_meet_name || "-"}</td>
+                  ${visibleConfig.map(col => `<td${col.className ? ` class="${col.className}"` : ''}>${col.getValue(athlete)}</td>`).join('')}
                 </tr>
               `
         )
@@ -1659,6 +1676,79 @@ function RankingsContent() {
                     <Filter className="h-4 w-4" />
                     <span>{showFilters ? "Hide Filters" : "Show Filters"}</span>
                   </button>
+
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowColumnVisibility(!showColumnVisibility)}
+                      className="flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                    >
+                      <ChevronDown className="h-4 w-4" />
+                      <span>Columns</span>
+                    </button>
+
+                    {showColumnVisibility && (
+                      <div className="absolute right-0 mt-2 w-56 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-20 max-h-96 overflow-y-auto">
+                        <div className="p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs font-semibold text-gray-300">Column Visibility</span>
+                            <button
+                              onClick={() => setVisibleColumns({
+                                rank: true,
+                                athlete: true,
+                                resource: true,
+                                country: true,
+                                gender: true,
+                                weightClass: true,
+                                bodyWeight: true,
+                                bestSnatch: true,
+                                bestCJ: true,
+                                total: true,
+                                qYouth: true,
+                                qPoints: true,
+                                qMasters: true,
+                                compAge: true,
+                                ageCategory: true,
+                                date: true,
+                                meetName: true,
+                              })}
+                              className="text-xs text-blue-400 hover:text-blue-300"
+                            >
+                              Show All
+                            </button>
+                          </div>
+                          {[
+                            { key: 'rank', label: 'Rank' },
+                            { key: 'athlete', label: 'Athlete' },
+                            { key: 'resource', label: 'Resource' },
+                            { key: 'country', label: 'Country' },
+                            { key: 'gender', label: 'Gender' },
+                            { key: 'weightClass', label: 'Weight Class' },
+                            { key: 'bodyWeight', label: 'Body Weight' },
+                            { key: 'bestSnatch', label: 'Best Snatch' },
+                            { key: 'bestCJ', label: 'Best C&J' },
+                            { key: 'total', label: 'Total' },
+                            { key: 'qYouth', label: 'Q-Youth' },
+                            { key: 'qPoints', label: 'Q-Points' },
+                            { key: 'qMasters', label: 'Q-Masters' },
+                            { key: 'compAge', label: 'Comp Age' },
+                            { key: 'ageCategory', label: 'Age Category' },
+                            { key: 'date', label: 'Date' },
+                            { key: 'meetName', label: 'Meet Name' },
+                          ].map(({ key, label }) => (
+                            <label key={key} className="flex items-center space-x-2 py-1.5 hover:bg-gray-700/50 px-2 rounded cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={visibleColumns[key as keyof typeof visibleColumns]}
+                                onChange={(e) => setVisibleColumns(prev => ({ ...prev, [key]: e.target.checked }))}
+                                className="rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-500 focus:ring-offset-gray-800"
+                              />
+                              <span className="text-xs text-gray-300">{label}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
                   <div className="relative">
                     <button
@@ -2560,57 +2650,91 @@ function RankingsContent() {
               <table className="w-full text-left">
                 <thead className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200">
                   <tr>
-                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("trueRank")}>
-                      Rank {getSortIcon("trueRank")}
-                    </th>
-                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("lifter_name")}>
-                      Athlete {getSortIcon("lifter_name")}
-                    </th>
-                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">
-                      Resource
-                    </th>
-                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">
-                      Country
-                    </th>
-                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("gender")}>
-                      Gender {getSortIcon("gender")}
-                    </th>
-                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("weight_class")}>
-                      Weight Class {getSortIcon("weight_class")}
-                    </th>
-                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("last_body_weight")}>
-                      Body Weight {getSortIcon("last_body_weight")}
-                    </th>
-                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("best_snatch")}>
-                      Best Sn {getSortIcon("best_snatch")}
-                    </th>
-                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("best_cj")}>
-                      Best CJ {getSortIcon("best_cj")}
-                    </th>
-                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("best_total")}>
-                      Total {getSortIcon("best_total")}
-                    </th>
-                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("q_youth")}>
-                      Q-Youth {getSortIcon("q_youth")}
-                    </th>
-                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("qpoints")}>
-                      Q-Points {getSortIcon("qpoints")}
-                    </th>
-                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("q_masters")}>
-                      Q-Masters {getSortIcon("q_masters")}
-                    </th>
-                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("competition_age")}>
-                      Comp Age {getSortIcon("competition_age")}
-                    </th>
-                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">
-                      Age Category
-                    </th>
-                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("last_competition")}>
-                      Date {getSortIcon("last_competition")}
-                    </th>
-                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("last_meet_name")}>
-                      Meet Name {getSortIcon("last_meet_name")}
-                    </th>
+                    {visibleColumns.rank && (
+                      <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("trueRank")}>
+                        Rank {getSortIcon("trueRank")}
+                      </th>
+                    )}
+                    {visibleColumns.athlete && (
+                      <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("lifter_name")}>
+                        Athlete {getSortIcon("lifter_name")}
+                      </th>
+                    )}
+                    {visibleColumns.resource && (
+                      <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">
+                        Resource
+                      </th>
+                    )}
+                    {visibleColumns.country && (
+                      <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">
+                        Country
+                      </th>
+                    )}
+                    {visibleColumns.gender && (
+                      <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("gender")}>
+                        Gender {getSortIcon("gender")}
+                      </th>
+                    )}
+                    {visibleColumns.weightClass && (
+                      <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("weight_class")}>
+                        Weight Class {getSortIcon("weight_class")}
+                      </th>
+                    )}
+                    {visibleColumns.bodyWeight && (
+                      <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("last_body_weight")}>
+                        Body Weight {getSortIcon("last_body_weight")}
+                      </th>
+                    )}
+                    {visibleColumns.bestSnatch && (
+                      <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("best_snatch")}>
+                        Best Sn {getSortIcon("best_snatch")}
+                      </th>
+                    )}
+                    {visibleColumns.bestCJ && (
+                      <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("best_cj")}>
+                        Best CJ {getSortIcon("best_cj")}
+                      </th>
+                    )}
+                    {visibleColumns.total && (
+                      <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("best_total")}>
+                        Total {getSortIcon("best_total")}
+                      </th>
+                    )}
+                    {visibleColumns.qYouth && (
+                      <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("q_youth")}>
+                        Q-Youth {getSortIcon("q_youth")}
+                      </th>
+                    )}
+                    {visibleColumns.qPoints && (
+                      <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("qpoints")}>
+                        Q-Points {getSortIcon("qpoints")}
+                      </th>
+                    )}
+                    {visibleColumns.qMasters && (
+                      <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("q_masters")}>
+                        Q-Masters {getSortIcon("q_masters")}
+                      </th>
+                    )}
+                    {visibleColumns.compAge && (
+                      <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("competition_age")}>
+                        Comp Age {getSortIcon("competition_age")}
+                      </th>
+                    )}
+                    {visibleColumns.ageCategory && (
+                      <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider">
+                        Age Category
+                      </th>
+                    )}
+                    {visibleColumns.date && (
+                      <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("last_competition")}>
+                        Date {getSortIcon("last_competition")}
+                      </th>
+                    )}
+                    {visibleColumns.meetName && (
+                      <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("last_meet_name")}>
+                        Meet Name {getSortIcon("last_meet_name")}
+                      </th>
+                    )}
                   </tr>
                 </thead>
                 <tbody>
@@ -2631,99 +2755,133 @@ function RankingsContent() {
                         className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors"
                         style={{ borderTopColor: 'var(--border-secondary)' }}
                       >
-                        <td className="px-2 py-1 whitespace-nowrap text-xs">
-                          {athlete.trueRank ?? ""}
-                        </td>
-                        <td className="px-2 py-1 whitespace-nowrap text-xs">
-                          <div className="font-medium">
+                        {visibleColumns.rank && (
+                          <td className="px-2 py-1 whitespace-nowrap text-xs">
+                            {athlete.trueRank ?? ""}
+                          </td>
+                        )}
+                        {visibleColumns.athlete && (
+                          <td className="px-2 py-1 whitespace-nowrap text-xs">
+                            <div className="font-medium">
+                              <Link
+                                href={
+                                  athlete.federation === "iwf"
+                                    ? `/athlete/iwf/${athlete.iwf_lifter_id}`
+                                    : `/athlete/${athlete.membership_number || athlete.lifter_name.toLowerCase().replace(/\s+/g, '-')}`
+                                }
+                                prefetch={false}
+                                className="text-blue-400 hover:text-blue-300 hover:underline"
+                              >
+                                {athlete.lifter_name}
+                              </Link>
+                            </div>
+                          </td>
+                        )}
+                        {visibleColumns.resource && (
+                          <td className="px-2 py-1 whitespace-nowrap text-xs">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium ${athlete.federation === 'iwf'
+                              ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                              : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                              }`}>
+                              {athlete.federation === 'iwf' ? 'IWF' : 'USAW'}
+                            </span>
+                          </td>
+                        )}
+                        {visibleColumns.country && (
+                          <td className="px-2 py-1 whitespace-nowrap text-xs">
+                            <div className="flex items-center space-x-2">
+                              {(() => {
+                                const FlagComponent = getCountryFlagComponent(athlete.country_code || "");
+                                return FlagComponent ? <FlagComponent style={{ width: '1.2em', height: 'auto' }} /> : null;
+                              })()}
+                              <span>{athlete.country_code || "-"}</span>
+                            </div>
+                          </td>
+                        )}
+                        {visibleColumns.gender && (
+                          <td className="px-2 py-1 whitespace-nowrap text-xs">
+                            {athlete.gender}
+                          </td>
+                        )}
+                        {visibleColumns.weightClass && (
+                          <td className="px-2 py-1 whitespace-nowrap text-xs">
+                            {athlete.weight_class || "-"}
+                          </td>
+                        )}
+                        {visibleColumns.bodyWeight && (
+                          <td className="px-2 py-1 whitespace-nowrap text-xs">
+                            {athlete.last_body_weight ? `${athlete.last_body_weight}kg` : "-"}
+                          </td>
+                        )}
+                        {visibleColumns.bestSnatch && (
+                          <td className="px-2 py-1 whitespace-nowrap">
+                            <span className="font-medium text-xs" style={{ color: 'var(--chart-snatch)' }}>
+                              {athlete.best_snatch || "-"}
+                              {athlete.best_snatch ? "kg" : ""}
+                            </span>
+                          </td>
+                        )}
+                        {visibleColumns.bestCJ && (
+                          <td className="px-2 py-1 whitespace-nowrap">
+                            <span className="font-medium text-xs" style={{ color: 'var(--chart-cleanjerk)' }}>
+                              {athlete.best_cj || "-"}
+                              {athlete.best_cj ? "kg" : ""}
+                            </span>
+                          </td>
+                        )}
+                        {visibleColumns.total && (
+                          <td className="px-2 py-1 whitespace-nowrap">
+                            <span className="font-bold text-xs" style={{ color: 'var(--chart-total)' }}>
+                              {athlete.best_total || "-"}
+                              {athlete.best_total ? "kg" : ""}
+                            </span>
+                          </td>
+                        )}
+                        {visibleColumns.qYouth && (
+                          <td className="px-2 py-1 whitespace-nowrap text-xs font-medium" style={{ color: (athlete.q_youth ?? 0) > 0 ? 'var(--chart-qyouth)' : 'inherit' }}>
+                            {(athlete.q_youth && athlete.q_youth > 0) ? athlete.q_youth.toFixed(3) : '-'}
+                          </td>
+                        )}
+                        {visibleColumns.qPoints && (
+                          <td className="px-2 py-1 whitespace-nowrap text-xs font-medium" style={{ color: (athlete.qpoints ?? 0) > 0 ? 'var(--chart-qpoints)' : 'inherit' }}>
+                            {(athlete.qpoints && athlete.qpoints > 0) ? athlete.qpoints.toFixed(3) : '-'}
+                          </td>
+                        )}
+                        {visibleColumns.qMasters && (
+                          <td className="px-2 py-1 whitespace-nowrap text-xs font-medium" style={{ color: (athlete.q_masters ?? 0) > 0 ? 'var(--chart-qmasters)' : 'inherit' }}>
+                            {(athlete.q_masters && athlete.q_masters > 0) ? athlete.q_masters.toFixed(3) : '-'}
+                          </td>
+                        )}
+                        {visibleColumns.compAge && (
+                          <td className="px-2 py-1 whitespace-nowrap text-xs">
+                            {athlete.competition_age || "-"}
+                          </td>
+                        )}
+                        {visibleColumns.ageCategory && (
+                          <td className="px-2 py-1 whitespace-nowrap text-xs">
+                            {athlete.age_category || "-"}
+                          </td>
+                        )}
+                        {visibleColumns.date && (
+                          <td className="px-2 py-1 whitespace-nowrap text-xs">
+                            {athlete.last_competition ? new Date(athlete.last_competition).toLocaleDateString() : "-"}
+                          </td>
+                        )}
+                        {visibleColumns.meetName && (
+                          <td className="px-2 py-1 whitespace-nowrap text-xs max-w-[200px] truncate" title={athlete.last_meet_name || ""}>
                             <Link
                               href={
                                 athlete.federation === "iwf"
-                                  ? `/athlete/iwf/${athlete.iwf_lifter_id}`
-                                  : `/athlete/${athlete.membership_number || athlete.lifter_name.toLowerCase().replace(/\s+/g, '-')}`
+                                  ? `/meet/iwf/${athlete.meet_id}`
+                                  : `/meet/${athlete.meet_id}`
                               }
                               prefetch={false}
                               className="text-blue-400 hover:text-blue-300 hover:underline"
                             >
-                              {athlete.lifter_name}
+                              {athlete.last_meet_name || "-"}
                             </Link>
-                          </div>
-                        </td>
-                        <td className="px-2 py-1 whitespace-nowrap text-xs">
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium ${athlete.federation === 'iwf'
-                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                            }`}>
-                            {athlete.federation === 'iwf' ? 'IWF' : 'USAW'}
-                          </span>
-                        </td>
-                        <td className="px-2 py-1 whitespace-nowrap text-xs">
-                          <div className="flex items-center space-x-2">
-                            {(() => {
-                              const FlagComponent = getCountryFlagComponent(athlete.country_code || "");
-                              return FlagComponent ? <FlagComponent style={{ width: '1.2em', height: 'auto' }} /> : null;
-                            })()}
-                            <span>{athlete.country_code || "-"}</span>
-                          </div>
-                        </td>
-                        <td className="px-2 py-1 whitespace-nowrap text-xs">
-                          {athlete.gender}
-                        </td>
-                        <td className="px-2 py-1 whitespace-nowrap text-xs">
-                          {athlete.weight_class || "-"}
-                        </td>
-                        <td className="px-2 py-1 whitespace-nowrap text-xs">
-                          {athlete.last_body_weight ? `${athlete.last_body_weight}kg` : "-"}
-                        </td>
-                        <td className="px-2 py-1 whitespace-nowrap">
-                          <span className="font-medium text-xs" style={{ color: 'var(--chart-snatch)' }}>
-                            {athlete.best_snatch || "-"}
-                            {athlete.best_snatch ? "kg" : ""}
-                          </span>
-                        </td>
-                        <td className="px-2 py-1 whitespace-nowrap">
-                          <span className="font-medium text-xs" style={{ color: 'var(--chart-cleanjerk)' }}>
-                            {athlete.best_cj || "-"}
-                            {athlete.best_cj ? "kg" : ""}
-                          </span>
-                        </td>
-                        <td className="px-2 py-1 whitespace-nowrap">
-                          <span className="font-bold text-xs" style={{ color: 'var(--chart-total)' }}>
-                            {athlete.best_total || "-"}
-                            {athlete.best_total ? "kg" : ""}
-                          </span>
-                        </td>
-                        <td className="px-2 py-1 whitespace-nowrap text-xs font-medium" style={{ color: (athlete.q_youth ?? 0) > 0 ? 'var(--chart-qyouth)' : 'inherit' }}>
-                          {(athlete.q_youth && athlete.q_youth > 0) ? athlete.q_youth.toFixed(3) : '-'}
-                        </td>
-                        <td className="px-2 py-1 whitespace-nowrap text-xs font-medium" style={{ color: (athlete.qpoints ?? 0) > 0 ? 'var(--chart-qpoints)' : 'inherit' }}>
-                          {(athlete.qpoints && athlete.qpoints > 0) ? athlete.qpoints.toFixed(3) : '-'}
-                        </td>
-                        <td className="px-2 py-1 whitespace-nowrap text-xs font-medium" style={{ color: (athlete.q_masters ?? 0) > 0 ? 'var(--chart-qmasters)' : 'inherit' }}>
-                          {(athlete.q_masters && athlete.q_masters > 0) ? athlete.q_masters.toFixed(3) : '-'}
-                        </td>
-                        <td className="px-2 py-1 whitespace-nowrap text-xs">
-                          {athlete.competition_age || "-"}
-                        </td>
-                        <td className="px-2 py-1 whitespace-nowrap text-xs">
-                          {athlete.age_category || "-"}
-                        </td>
-                        <td className="px-2 py-1 whitespace-nowrap text-xs">
-                          {athlete.last_competition ? new Date(athlete.last_competition).toLocaleDateString() : "-"}
-                        </td>
-                        <td className="px-2 py-1 whitespace-nowrap text-xs max-w-[200px] truncate" title={athlete.last_meet_name || ""}>
-                          <Link
-                            href={
-                              athlete.federation === "iwf"
-                                ? `/meet/iwf/${athlete.meet_id}`
-                                : `/meet/${athlete.meet_id}`
-                            }
-                            prefetch={false}
-                            className="text-blue-400 hover:text-blue-300 hover:underline"
-                          >
-                            {athlete.last_meet_name || "-"}
-                          </Link>
-                        </td>
+                          </td>
+                        )}
                       </tr>
                     ))
                   )}
