@@ -139,6 +139,8 @@ interface USAWRankingResult {
   qpoints: number;
   q_youth: number | null;
   q_masters: number | null;
+  wso?: string | null;
+  club_name?: string | null;
 }
 
 interface IWFRankingResult {
@@ -600,7 +602,9 @@ function RankingsContent() {
             q_youth,
             q_masters,
             competition_age,
-            gender
+            gender,
+            wso,
+            club_name
           `
           );
 
@@ -675,8 +679,8 @@ function RankingsContent() {
           unique_id: result.result_id ? `usaw-${result.result_id}-${index}` : `usaw-gen-${year}-${index}`,
           country_code: "USA",
           country_name: "USA",
-          wso: lifterInfo?.wso || "",
-          club_name: lifterInfo?.club_name || "",
+          wso: result.wso || lifterInfo?.wso || "",
+          club_name: result.club_name || lifterInfo?.club_name || "",
         };
       });
 
@@ -1100,6 +1104,15 @@ function RankingsContent() {
         const clubValue = (athlete.club_name || "").toLowerCase();
         return clubSet.has(clubValue);
       });
+    }
+
+    // Filter out athletes without scores for the selected ranking metric
+    if (filters.rankBy === 'q_youth') {
+      filtered = filtered.filter((athlete) => (athlete.q_youth ?? 0) > 0);
+    } else if (filters.rankBy === 'q_masters') {
+      filtered = filtered.filter((athlete) => (athlete.q_masters ?? 0) > 0);
+    } else if (filters.rankBy === 'qpoints') {
+      filtered = filtered.filter((athlete) => (athlete.qpoints ?? 0) > 0);
     }
 
     // If "IWF 1/MF" is selected, keep only the best athlete per country
