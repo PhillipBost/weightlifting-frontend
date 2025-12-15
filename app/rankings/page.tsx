@@ -2379,7 +2379,6 @@ function RankingsContent() {
                           className="w-32 h-10 px-1.5 text-xs bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
-                      <p className="mt-1 text-[11px] text-gray-400">Applies to competition date for the shown result.</p>
                     </div>
 
                     {/* Countries Filter */}
