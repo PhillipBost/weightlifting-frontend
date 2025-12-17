@@ -1,5 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { AuthProvider } from "./components/AuthProvider";
 import { GlobalHeader } from "./components/GlobalHeader";
@@ -22,6 +23,7 @@ export default function RootLayout({
             {/* Global header for all non-Home pages, matching /meet */}
             <GlobalHeader />
             {children}
+            <Analytics />
           </ThemeProvider>
         </AuthProvider>
       </body>
