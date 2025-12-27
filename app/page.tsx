@@ -498,8 +498,11 @@ export default function WeightliftingLandingPage() {
 
     if (source === 'USAW') {
       // USAW: prefer membership number, fallback to name slug
-      if (result.membership_number) {
+      if (result.membership_number && result.membership_number !== 'null') {
         athleteId = result.membership_number.toString();
+      } else if (result.lifter_id) {
+        // Fallback to internal ID if membership number is missing
+        athleteId = `u-${result.lifter_id}`;
       } else {
         athleteId = result.athlete_name!
           .toLowerCase()
@@ -677,16 +680,18 @@ export default function WeightliftingLandingPage() {
                         // Build display info based on source
                         const displayInfo = source === 'IWF'
                           ? [result.gender, result.country_name, result.iwf_lifter_id ? `#${result.iwf_lifter_id}` : (result.db_lifter_id ? `#${result.db_lifter_id}` : null)]
-                          : [result.gender, result.club_name, result.membership_number ? `#${result.membership_number}` : null];
+                          : [result.gender, result.club_name, result.membership_number && result.membership_number !== 'null' ? `#${result.membership_number}` : (result.lifter_id ? `Ref #${result.lifter_id}` : null)];
 
                         const athleteUrl = buildAthleteUrl(
                           result.source === 'IWF'
                             ? (result.iwf_lifter_id || result.db_lifter_id)!.toString()
-                            : (result.membership_number?.toString() || result.athlete_name!
-                              .toLowerCase()
-                              .replace(/[^\w\s-]/g, '')
-                              .replace(/\s+/g, '-')
-                              .trim()),
+                            : (result.membership_number && result.membership_number !== 'null'
+                              ? result.membership_number.toString()
+                              : (result.lifter_id ? `u-${result.lifter_id}` : result.athlete_name!
+                                .toLowerCase()
+                                .replace(/[^\w\s-]/g, '')
+                                .replace(/\s+/g, '-')
+                                .trim())),
                           result.source || 'USAW'
                         );
                         return (

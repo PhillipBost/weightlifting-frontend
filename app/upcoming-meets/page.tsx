@@ -1541,9 +1541,8 @@ function RankingsContent() {
                               handleFilterChange("federation", "all");
                               setShowFederationDropdown(false);
                             }}
-                            className={`w-full px-3 py-2 text-left hover:bg-gray-600 first:rounded-t-lg ${
-                              filters.federation === "all" ? "bg-gray-600" : ""
-                            }`}
+                            className={`w-full px-3 py-2 text-left hover:bg-gray-600 first:rounded-t-lg ${filters.federation === "all" ? "bg-gray-600" : ""
+                              }`}
                           >
                             All Federations
                           </button>
@@ -1553,9 +1552,8 @@ function RankingsContent() {
                               handleFilterChange("federation", "usaw");
                               setShowFederationDropdown(false);
                             }}
-                            className={`w-full px-3 py-2 text-left hover:bg-gray-600 ${
-                              filters.federation === "usaw" ? "bg-gray-600" : ""
-                            }`}
+                            className={`w-full px-3 py-2 text-left hover:bg-gray-600 ${filters.federation === "usaw" ? "bg-gray-600" : ""
+                              }`}
                           >
                             USAW
                           </button>
@@ -1565,9 +1563,8 @@ function RankingsContent() {
                               handleFilterChange("federation", "iwf");
                               setShowFederationDropdown(false);
                             }}
-                            className={`w-full px-3 py-2 text-left hover:bg-gray-600 ${
-                              filters.federation === "iwf" ? "bg-gray-600" : ""
-                            }`}
+                            className={`w-full px-3 py-2 text-left hover:bg-gray-600 ${filters.federation === "iwf" ? "bg-gray-600" : ""
+                              }`}
                           >
                             IWF
                           </button>
@@ -1577,9 +1574,8 @@ function RankingsContent() {
                               handleFilterChange("federation", "iwf_one_per_country");
                               setShowFederationDropdown(false);
                             }}
-                            className={`w-full px-3 py-2 text-left hover:bg-gray-600 last:rounded-b-lg flex items-center justify-between ${
-                              filters.federation === "iwf_one_per_country" ? "bg-gray-600" : ""
-                            }`}
+                            className={`w-full px-3 py-2 text-left hover:bg-gray-600 last:rounded-b-lg flex items-center justify-between ${filters.federation === "iwf_one_per_country" ? "bg-gray-600" : ""
+                              }`}
                           >
                             <span>IWF 1/MF</span>
                             <MetricTooltip
@@ -2244,7 +2240,9 @@ function RankingsContent() {
                               href={
                                 athlete.federation === "iwf"
                                   ? `/athlete/iwf/${athlete.iwf_lifter_id}`
-                                  : `/athlete/${athlete.membership_number}`
+                                  : (athlete.membership_number && athlete.membership_number !== "null" && athlete.membership_number !== "")
+                                    ? `/athlete/${athlete.membership_number}`
+                                    : `/athlete/u-${athlete.lifter_id}`
                               }
                               prefetch={false}
                               className="text-blue-400 hover:text-blue-300 hover:underline"

@@ -769,15 +769,21 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
   };
 
   const getAthleteUrl = (result: MeetResult) => {
-    // First choice: membership number if available
+    // First choice: membership number if available and valid
     const membershipNumber = Array.isArray(result.lifters)
       ? result.lifters[0]?.membership_number
       : result.lifters?.membership_number;
 
-    if (membershipNumber) {
+    if (membershipNumber && membershipNumber !== 'null') {
       return `/athlete/${membershipNumber}`;
     }
-    // Fallback: athlete name formatted for URL
+
+    // Fallback 1: Internal lifter ID
+    if (result.lifter_id) {
+      return `/athlete/u-${result.lifter_id}`;
+    }
+
+    // Fallback 2: athlete name formatted for URL (legacy support)
     const nameForUrl = result.lifter_name.toLowerCase().replace(/\s+/g, '-');
     return `/athlete/${nameForUrl}`;
   };

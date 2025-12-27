@@ -508,6 +508,19 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 
             athleteData = result.data;
             athleteError = result.error;
+          } else if (resolvedParams.id.startsWith('u-')) {
+            // Handle internal ID fallback
+            const internalId = parseInt(resolvedParams.id.substring(2));
+            if (!isNaN(internalId)) {
+              const result = await supabase
+                .from('usaw_lifters')
+                .select('lifter_id, athlete_name, membership_number, created_at, updated_at, internal_id, internal_id_2, internal_id_3, internal_id_4, internal_id_5, internal_id_6, internal_id_7, internal_id_8')
+                .eq('lifter_id', internalId)
+                .single();
+
+              athleteData = result.data;
+              athleteError = result.error;
+            }
           }
 
           if (!athleteData) {
@@ -767,7 +780,11 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
               {duplicateAthletes.map((athlete, index) => (
                 <Link
                   key={index}
-                  href={`/athlete/${athlete.membership_number}`}
+                  href={
+                    (athlete.membership_number && athlete.membership_number !== 'null')
+                      ? `/athlete/${athlete.membership_number}`
+                      : `/athlete/u-${athlete.lifter_id}`
+                  }
                   className="w-full text-left p-4 bg-app-tertiary hover:bg-app-surface border border-app-secondary rounded-lg transition-colors hover:shadow-md block"
                 >
                   <div className="flex items-center justify-between">

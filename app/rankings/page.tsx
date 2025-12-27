@@ -294,14 +294,14 @@ function formatSelectedYears(years: number[]): string {
   if (years.length === 0) {
     return "All Years (1998–" + new Date().getFullYear() + ")";
   }
-  
+
   const sorted = [...years].sort((a, b) => b - a);
-  
+
   // If 6 or fewer years, show all
   if (sorted.length <= 6) {
     return sorted.join(", ");
   }
-  
+
   // If more than 6, show first 2, ellipsis, and last 2
   return `${sorted[0]}, ${sorted[1]}, […], ${sorted[sorted.length - 2]}, ${sorted[sorted.length - 1]}`;
 }
@@ -410,7 +410,7 @@ function RankingsContent() {
       for (let year = startYear; year <= endYear; year++) {
         yearsFromRange.push(year);
       }
-      
+
       // Only update if the years actually changed
       const currentYears = filters.selectedYears.slice().sort();
       const newYears = yearsFromRange.slice().sort();
@@ -1190,7 +1190,7 @@ function RankingsContent() {
 
     // Determine if we should recalculate ranks based on current sort column
     const isPerformanceSort = PERFORMANCE_METRICS.includes(filters.sortBy);
-    
+
     // Determine which metric to use for ranking
     let rankingCriteria: keyof AthleteRanking;
     if (isPerformanceSort) {
@@ -1198,7 +1198,7 @@ function RankingsContent() {
     } else {
       rankingCriteria = filters.rankBy as keyof AthleteRanking;
     }
-    
+
     // Create a sorted list for ranking (always descending for performance metrics)
     const rankedForTrueRank = [...filtered];
     rankedForTrueRank.sort((a, b) => {
@@ -1206,24 +1206,24 @@ function RankingsContent() {
       const bValue = (b[rankingCriteria] as number) ?? 0;
       return bValue - aValue; // Always descending for ranking
     });
-    
+
     // Assign ranks with tied-score handling (same rank for equal values, no gaps)
     // For each lifter, only their best result gets a rank
     let rankMap = new Map<string, number>();
     const rankedLifters = new Set<string>();
     let currentRank = 1;
     let lastValue: number | null = null;
-    
+
     rankedForTrueRank.forEach((athlete) => {
       if (!rankedLifters.has(athlete.lifter_id)) {
         const athleteValue = athlete[rankingCriteria] as number;
-        
+
         // If value differs from last, update rank; if same, keep same rank
         if (lastValue === null || athleteValue !== lastValue) {
           currentRank = rankedLifters.size + 1; // Rank = number of lifters already ranked + 1
           lastValue = athleteValue;
         }
-        
+
         rankMap.set(athlete.unique_id, currentRank);
         rankedLifters.add(athlete.lifter_id);
       }
@@ -1235,7 +1235,7 @@ function RankingsContent() {
       filtered.sort((a, b) => {
         const rankA = rankMap.get(a.unique_id) ?? Infinity;
         const rankB = rankMap.get(b.unique_id) ?? Infinity;
-        
+
         return filters.sortOrder === "asc" ? rankA - rankB : rankB - rankA;
       });
 
@@ -1463,7 +1463,7 @@ function RankingsContent() {
     const visibleConfig = columnConfig.filter(col => visibleColumns[col.key as keyof typeof visibleColumns]);
     const headers = visibleConfig.map(col => col.header);
 
-    const csvData = filteredRankings.map((athlete) => 
+    const csvData = filteredRankings.map((athlete) =>
       visibleConfig.map(col => col.getValue(athlete))
     );
 
@@ -2766,7 +2766,7 @@ function RankingsContent() {
                                 href={
                                   athlete.federation === "iwf"
                                     ? `/athlete/iwf/${athlete.iwf_lifter_id}`
-                                    : `/athlete/${athlete.membership_number || athlete.lifter_name.toLowerCase().replace(/\s+/g, '-')}`
+                                    : `/athlete/${(athlete.membership_number && athlete.membership_number !== 'null') ? athlete.membership_number : (athlete.lifter_id ? `u-${athlete.lifter_id}` : athlete.lifter_name.toLowerCase().replace(/\s+/g, '-'))}`
                                 }
                                 prefetch={false}
                                 className="text-blue-400 hover:text-blue-300 hover:underline"
