@@ -503,11 +503,54 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
             const result = await supabase
               .from('usaw_lifters')
               .select('lifter_id, athlete_name, membership_number, created_at, updated_at, internal_id, internal_id_2, internal_id_3, internal_id_4, internal_id_5, internal_id_6, internal_id_7, internal_id_8')
-              .eq('membership_number', parseInt(resolvedParams.id))
-              .single();
+              .eq('membership_number', parseInt(resolvedParams.id));
 
-            athleteData = result.data;
-            athleteError = result.error;
+            if (result.data && result.data.length > 0) {
+              // Check for unique internal IDs to detect if this is actually different people
+              // or just multiple rows for the same person.
+              // We filter out nulls just in case, though internal_id is usually the PK equivalent in logic.
+              const uniqueInternalIds = new Set(
+                result.data.map(a => a.internal_id).filter(id => id !== null && id !== undefined)
+              );
+
+              if (uniqueInternalIds.size > 1) {
+                // Determine if we have a collision of identities
+                // Fetch recent info for disambiguation
+                const athletesWithRecentInfo = await Promise.all(
+                  result.data.map(async (athlete) => {
+                    const { data: recentResults } = await supabase
+                      .from('usaw_meet_results')
+                      .select('wso, club_name, date')
+                      .eq('lifter_id', athlete.lifter_id)
+                      .order('date', { ascending: false })
+                      .limit(10);
+
+                    const recentWso = recentResults?.find(r => r.wso && r.wso.trim() !== '')?.wso;
+                    const recentClub = recentResults?.find(r => r.club_name && r.club_name.trim() !== '')?.club_name;
+
+                    return {
+                      ...athlete,
+                      recent_wso: recentWso,
+                      recent_club_name: recentClub
+                    };
+                  })
+                );
+
+                if (isMounted) {
+                  setDuplicateAthletes(athletesWithRecentInfo);
+                }
+                setLoading(false);
+                return;
+              }
+
+              // Single identity case: Use the first record (or most relevant)
+              // If multiple rows exist but share internal_id, they are the same person.
+              // Just pick one for metadata.
+              athleteData = result.data[0];
+              athleteError = null;
+            } else {
+              athleteError = result.error || { message: 'Athlete not found' };
+            }
           } else if (resolvedParams.id.startsWith('u-')) {
             // Handle internal ID fallback
             const internalId = parseInt(resolvedParams.id.substring(2));
@@ -777,38 +820,49 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
             </p>
 
             <div className="space-y-4">
-              {duplicateAthletes.map((athlete, index) => (
-                <Link
-                  key={index}
-                  href={
-                    (athlete.membership_number && athlete.membership_number !== 'null')
-                      ? `/athlete/${athlete.membership_number}`
-                      : `/athlete/u-${athlete.lifter_id}`
-                  }
-                  className="w-full text-left p-4 bg-app-tertiary hover:bg-app-surface border border-app-secondary rounded-lg transition-colors hover:shadow-md block"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-lg font-semibold text-app-primary">{athlete.athlete_name}</h3>
-                      <div className="flex flex-wrap gap-4 text-sm text-app-secondary mt-1">
-                        {athlete.membership_number && (
-                          <span>USAW #{athlete.membership_number}</span>
-                        )}
-                        {athlete.gender && (
-                          <span>{athlete.gender === 'M' ? 'Male' : 'Female'}</span>
-                        )}
-                        {athlete.recent_wso && (
-                          <span>WSO: {athlete.recent_wso}</span>
-                        )}
-                        {athlete.recent_club_name && (
-                          <span>Club: {athlete.recent_club_name}</span>
-                        )}
+              {duplicateAthletes.map((athlete, index) => {
+                // Check if this athlete's membership number is shared with any other athlete in the list
+                // trying to distinguish different people (different lifter_id) who share a membership number
+                const isMembershipAmbiguous = duplicateAthletes.some(other =>
+                  other.lifter_id !== athlete.lifter_id &&
+                  other.membership_number &&
+                  athlete.membership_number &&
+                  other.membership_number === athlete.membership_number
+                );
+
+                const profileUrl = (athlete.membership_number && athlete.membership_number !== 'null' && !isMembershipAmbiguous)
+                  ? `/athlete/${athlete.membership_number}`
+                  : `/athlete/u-${athlete.lifter_id}`;
+
+                return (
+                  <Link
+                    key={index}
+                    href={profileUrl}
+                    className="w-full text-left p-4 bg-app-tertiary hover:bg-app-surface border border-app-secondary rounded-lg transition-colors hover:shadow-md block"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-lg font-semibold text-app-primary">{athlete.athlete_name}</h3>
+                        <div className="flex flex-wrap gap-4 text-sm text-app-secondary mt-1">
+                          {athlete.membership_number && (
+                            <span>USAW #{athlete.membership_number}</span>
+                          )}
+                          {athlete.gender && (
+                            <span>{athlete.gender === 'M' ? 'Male' : 'Female'}</span>
+                          )}
+                          {athlete.recent_wso && (
+                            <span>WSO: {athlete.recent_wso}</span>
+                          )}
+                          {athlete.recent_club_name && (
+                            <span>Club: {athlete.recent_club_name}</span>
+                          )}
+                        </div>
                       </div>
+                      <ExternalLink className="h-4 w-4 text-app-muted" />
                     </div>
-                    <ExternalLink className="h-4 w-4 text-app-muted" />
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </div>
