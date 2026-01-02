@@ -45,6 +45,7 @@ interface SearchResult {
   location_text?: string;
   // Source identifier
   source?: DataSource;
+  _relevanceScore?: number;
 }
 
 
@@ -85,6 +86,7 @@ export default function WeightliftingLandingPage() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const meetSearchInputRef = useRef<HTMLInputElement>(null);
+  const meetResultsRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const meetAbortControllerRef = useRef<AbortController | null>(null);
   const router = useRouter();
@@ -367,7 +369,8 @@ export default function WeightliftingLandingPage() {
           meet_id: result.id.toString(),
           location_text: result.city && result.state ? `${result.city}, ${result.state}` : result.city || result.state || '',
           type: 'meet',
-          source: 'USAW' as DataSource
+          source: 'USAW' as DataSource,
+          _relevanceScore: result._relevanceScore
         }));
 
         // --- IWF Meet Search (MiniSearch) ---
@@ -379,7 +382,8 @@ export default function WeightliftingLandingPage() {
           db_meet_id: result.id,
           location_text: result.city && result.country ? `${result.city}, ${result.country}` : result.city || result.country || '',
           type: 'meet',
-          source: 'IWF' as DataSource
+          source: 'IWF' as DataSource,
+          _relevanceScore: result._relevanceScore
         }));
 
         // Merge all results
@@ -391,16 +395,25 @@ export default function WeightliftingLandingPage() {
           return;
         }
 
-        // Sort by date (most recent first), then by source (USAW first)
+        // Sort by relevance score first, then by date (most recent first), then by source
         allMeets.sort((a, b) => {
+          // Primary sort: Relevance Score (descending)
+          const scoreA = a._relevanceScore || 0;
+          const scoreB = b._relevanceScore || 0;
+
+          if (scoreA !== scoreB) {
+            return scoreB - scoreA;
+          }
+
+          // Secondary sort: Date (most recent first)
           const aDate = new Date(a.date).getTime();
           const bDate = new Date(b.date).getTime();
 
           if (aDate !== bDate) {
-            return bDate - aDate; // Most recent first
+            return bDate - aDate;
           }
 
-          // Same date, sort by source (USAW first)
+          // Tertiary sort: Source (USAW first)
           if (a.source !== b.source) {
             return a.source === 'USAW' ? -1 : 1;
           }
@@ -468,7 +481,10 @@ export default function WeightliftingLandingPage() {
       }
 
       // Close meet search dropdown if clicking outside
-      if (showMeetResults && meetSearchInputRef.current && !meetSearchInputRef.current.closest('.relative')?.contains(target)) {
+      if (showMeetResults &&
+        meetSearchInputRef.current &&
+        !meetSearchInputRef.current.closest('.relative')?.contains(target) &&
+        !meetResultsRef.current?.contains(target)) {
         setShowMeetResults(false);
       }
     };
@@ -796,7 +812,10 @@ export default function WeightliftingLandingPage() {
 
               {/* Meet Search Results Dropdown */}
               {showMeetResults && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-app-secondary border border-app-primary rounded-xl shadow-xl z-20 max-h-96 overflow-y-auto">
+                <div
+                  ref={meetResultsRef}
+                  className="absolute top-full left-0 right-0 mt-2 bg-app-secondary border border-app-primary rounded-xl shadow-xl z-20 max-h-96 overflow-y-auto"
+                >
                   {isMeetSearching ? (
                     <div className="p-4 text-center text-app-muted">
                       <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400 mx-auto mb-2"></div>

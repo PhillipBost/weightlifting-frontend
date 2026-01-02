@@ -1,4 +1,3 @@
-
 import MiniSearch, { SearchResult } from 'minisearch';
 
 export interface IWFMeetResult {
@@ -73,7 +72,64 @@ export class IWFMeetSearch {
     search(query: string, options?: { limit?: number }): SearchResult[] {
         if (!this.searchIndex) return [];
 
-        return this.searchIndex.search(query).slice(0, options?.limit || 20);
+        // Extract year from query for date filtering
+        const yearMatch = query.match(/\b(19|20)\d{2}\b/);
+        const targetYear = yearMatch ? parseInt(yearMatch[0]) : null;
+
+        // Get all search results
+        const rawResults = this.searchIndex.search(query);
+        const allResults = rawResults.slice(0, options?.limit || 100); // Increased limit
+
+        // Apply year filtering and custom relevance scoring
+        const scoredResults = allResults.map(result => {
+            const meetDate = new Date(result.date);
+            const meetYear = meetDate.getFullYear();
+
+            // Calculate relevance score
+            let score = result.score || 0;
+
+            // Boost exact name matches significantly
+            if (result.name && query.toLowerCase().includes(result.name.toLowerCase())) {
+                score += 100;
+            }
+
+            // Boost partial name matches
+            const queryWords = query.toLowerCase().split(/\s+/);
+            const nameWords = result.name?.toLowerCase().split(/\s+/) || [];
+            const wordMatches = queryWords.filter((word: string) =>
+                nameWords.some((nameWord: string) => nameWord.includes(word) || word.includes(nameWord))
+            ).length;
+            score += wordMatches * 10;
+
+            // If year was specified in query, heavily prioritize matches from that year
+            if (targetYear && meetYear === targetYear) {
+                score += 50;
+            } else if (targetYear) {
+                // Penalize results far from target year
+                const yearDiff = Math.abs(meetYear - targetYear);
+                score -= yearDiff * 5;
+            }
+
+            return { ...result, _relevanceScore: score, _meetYear: meetYear };
+        });
+
+        // Sort by relevance score first, then by date (most recent)
+        const sortedResults = scoredResults.sort((a, b) => {
+            if (a._relevanceScore !== b._relevanceScore) {
+                return b._relevanceScore - a._relevanceScore;
+            }
+            // If same relevance, sort by date (most recent first)
+            const aDate = new Date((a as any).date).getTime();
+            const bDate = new Date((b as any).date).getTime();
+            return bDate - aDate;
+        });
+
+        // Remove internal scoring fields before returning
+        return sortedResults.map(result => {
+            // Preserve _relevanceScore for external sorting
+            const { _meetYear, ...cleanResult } = result;
+            return cleanResult;
+        });
     }
 }
 
