@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { ROLES } from '../../../lib/roles';
-import { User, Crown, Shield, Briefcase, CheckCircle, XCircle, Medal } from 'lucide-react';
+import { User, Crown, Shield, Briefcase, CheckCircle, XCircle, Medal, Database } from 'lucide-react';
 import { RoleSelector } from './RoleSelector';
 
 interface AdminUser {
@@ -12,6 +12,7 @@ interface AdminUser {
   role: string;
   createdAt: string;
   updatedAt: string;
+  lastLogin?: string;
 }
 
 interface UserTableProps {
@@ -26,10 +27,10 @@ export function UserTable({ users, onRoleUpdate, currentUserId }: UserTableProps
 
   const handleRoleChange = async (userId: string, newRole: string) => {
     setUpdatingUsers(prev => new Set(prev).add(userId));
-    
+
     try {
       const result = await onRoleUpdate(userId, newRole);
-      
+
       if (result.success) {
         setNotifications(prev => ({
           ...prev,
@@ -41,7 +42,7 @@ export function UserTable({ users, onRoleUpdate, currentUserId }: UserTableProps
           [userId]: { type: 'error', message: result.error || 'Failed to update role' }
         }));
       }
-      
+
       // Clear notification after 3 seconds
       setTimeout(() => {
         setNotifications(prev => {
@@ -66,6 +67,8 @@ export function UserTable({ users, onRoleUpdate, currentUserId }: UserTableProps
         return <Briefcase className="h-4 w-4 text-blue-500" />;
       case ROLES.USAW_NATIONAL_TEAM_COACH:
         return <Medal className="h-4 w-4 text-emerald-500" />;
+      case ROLES.RESEARCHER:
+        return <Database className="h-4 w-4 text-purple-500" />;
       case ROLES.PREMIUM:
         return <Crown className="h-4 w-4 text-yellow-500" />;
       default:
@@ -81,6 +84,8 @@ export function UserTable({ users, onRoleUpdate, currentUserId }: UserTableProps
         return 'text-blue-500 bg-blue-500/10 border-blue-500/20';
       case ROLES.USAW_NATIONAL_TEAM_COACH:
         return 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20';
+      case ROLES.RESEARCHER:
+        return 'text-purple-500 bg-purple-500/10 border-purple-500/20';
       case ROLES.PREMIUM:
         return 'text-yellow-500 bg-yellow-500/10 border-yellow-500/20';
       default:
@@ -115,6 +120,7 @@ export function UserTable({ users, onRoleUpdate, currentUserId }: UserTableProps
             <th className="text-left py-3 px-4 text-sm font-medium text-app-secondary">User</th>
             <th className="text-left py-3 px-4 text-sm font-medium text-app-secondary">Role</th>
             <th className="text-left py-3 px-4 text-sm font-medium text-app-secondary">Joined</th>
+            <th className="text-left py-3 px-4 text-sm font-medium text-app-secondary">Last Login</th>
             <th className="text-left py-3 px-4 text-sm font-medium text-app-secondary">Last Updated</th>
             <th className="text-left py-3 px-4 text-sm font-medium text-app-secondary">Actions</th>
           </tr>
@@ -159,6 +165,9 @@ export function UserTable({ users, onRoleUpdate, currentUserId }: UserTableProps
                   {formatDate(user.createdAt)}
                 </td>
                 <td className="py-4 px-4 text-sm text-app-secondary">
+                  {user.lastLogin ? formatDate(user.lastLogin) : 'Never'}
+                </td>
+                <td className="py-4 px-4 text-sm text-app-secondary">
                   {formatDate(user.updatedAt)}
                 </td>
                 <td className="py-4 px-4">
@@ -169,11 +178,11 @@ export function UserTable({ users, onRoleUpdate, currentUserId }: UserTableProps
                       disabled={isUpdating || (isCurrentUser && user.role === ROLES.ADMIN)}
                       isCurrentUser={isCurrentUser}
                     />
-                    
+
                     {isUpdating && (
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-accent-primary"></div>
                     )}
-                    
+
                     {notification && (
                       <div className="flex items-center space-x-1">
                         {notification.type === 'success' ? (
@@ -181,9 +190,8 @@ export function UserTable({ users, onRoleUpdate, currentUserId }: UserTableProps
                         ) : (
                           <XCircle className="h-4 w-4 text-red-500" />
                         )}
-                        <span className={`text-xs ${
-                          notification.type === 'success' ? 'text-green-500' : 'text-red-500'
-                        }`}>
+                        <span className={`text-xs ${notification.type === 'success' ? 'text-green-500' : 'text-red-500'
+                          }`}>
                           {notification.message}
                         </span>
                       </div>

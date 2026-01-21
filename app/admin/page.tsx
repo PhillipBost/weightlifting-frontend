@@ -16,6 +16,7 @@ interface AdminUser {
   role: string;
   createdAt: string;
   updatedAt: string;
+  lastLogin?: string;
 }
 
 export default function AdminPage() {
@@ -65,11 +66,11 @@ export default function AdminPage() {
       }
 
       const data = await response.json();
-      
+
       // Update the users list with the new role
-      setUsers(prevUsers => 
-        prevUsers.map(u => 
-          u.id === userId 
+      setUsers(prevUsers =>
+        prevUsers.map(u =>
+          u.id === userId
             ? { ...u, role: newRole, updatedAt: data.user.updatedAt }
             : u
         )
@@ -78,9 +79,9 @@ export default function AdminPage() {
       return { success: true };
     } catch (err) {
       console.error('Failed to update role:', err);
-      return { 
-        success: false, 
-        error: err instanceof Error ? err.message : 'Failed to update role' 
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : 'Failed to update role'
       };
     }
   };
@@ -94,7 +95,7 @@ export default function AdminPage() {
     fetchUsers();
   }, []);
 
-  const filteredUsers = users.filter(u => 
+  const filteredUsers = users.filter(u =>
     u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     u.role.toLowerCase().includes(searchTerm.toLowerCase())
@@ -150,14 +151,18 @@ export default function AdminPage() {
           </div>
 
           {/* Stats Cards */}
-          <div className="max-w-[1200px] grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+          <div className="max-w-[1200px] grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 mb-8">
             <div className="card-primary text-center">
               <div className="text-2xl font-bold text-app-primary">{users.length}</div>
               <div className="text-sm text-app-secondary">Total Users</div>
             </div>
             <div className="card-primary text-center">
-              <div className="text-2xl font-bold text-green-500">{roleStats[ROLES.PREMIUM] || 0}</div>
-              <div className="text-sm text-app-secondary">Premium</div>
+              <div className="text-2xl font-bold text-app-tertiary">{roleStats[ROLES.DEFAULT] || 0}</div>
+              <div className="text-sm text-app-secondary">Default</div>
+            </div>
+            <div className="card-primary text-center">
+              <div className="text-2xl font-bold text-purple-500">{roleStats[ROLES.RESEARCHER] || 0}</div>
+              <div className="text-sm text-app-secondary">Researchers</div>
             </div>
             <div className="card-primary text-center">
               <div className="text-2xl font-bold text-blue-500">{roleStats[ROLES.COACH] || 0}</div>

@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { ROLES } from '../../../lib/roles';
-import { ChevronDown, User, Crown, Shield, Briefcase, AlertTriangle, Medal } from 'lucide-react';
+import { ChevronDown, User, Crown, Shield, Briefcase, AlertTriangle, Medal, Database } from 'lucide-react';
 
 interface RoleSelectorProps {
   currentRole: string;
@@ -28,11 +28,11 @@ export function RoleSelector({ currentRole, onRoleChange, disabled = false, isCu
       color: 'text-app-secondary'
     },
     {
-      value: ROLES.PREMIUM,
-      label: 'Premium',
-      description: 'Advanced analytics access',
-      icon: <Crown className="h-4 w-4" />,
-      color: 'text-yellow-500'
+      value: ROLES.RESEARCHER,
+      label: 'Researcher',
+      description: 'Research data access',
+      icon: <Database className="h-4 w-4" />, // Reusing Medal or finding better one if available
+      color: 'text-purple-500'
     },
     {
       value: ROLES.COACH,
@@ -63,7 +63,7 @@ export function RoleSelector({ currentRole, onRoleChange, disabled = false, isCu
 
   const handleRoleSelect = (newRole: string) => {
     setIsOpen(false);
-    
+
     // Show confirmation for admin role changes and current user changes
     if (newRole === ROLES.ADMIN || (isCurrentUser && currentRole === ROLES.ADMIN)) {
       setShowConfirm(newRole);
@@ -121,8 +121,8 @@ export function RoleSelector({ currentRole, onRoleChange, disabled = false, isCu
         disabled={isDisabled}
         className={`
           flex items-center space-x-2 px-3 py-2 rounded-lg border transition-colors min-w-[120px]
-          ${isDisabled 
-            ? 'bg-app-tertiary/50 border-app-secondary/50 cursor-not-allowed opacity-50' 
+          ${isDisabled
+            ? 'bg-app-tertiary/50 border-app-secondary/50 cursor-not-allowed opacity-50'
             : 'bg-app-tertiary border-app-secondary hover:border-accent-primary hover:bg-app-tertiary/80 cursor-pointer'
           }
         `}
@@ -140,10 +140,10 @@ export function RoleSelector({ currentRole, onRoleChange, disabled = false, isCu
 
       {/* Dropdown Menu */}
       {isOpen && !isDisabled && createPortal(
-        <div 
+        <div
           ref={dropdownRef}
           className="w-64 bg-app-secondary border border-app-secondary rounded-lg shadow-lg max-h-64 overflow-y-auto"
-          style={{ position: 'fixed', zIndex: 50 }}
+          style={{ position: 'absolute', zIndex: 50 }}
           onClick={(e) => e.stopPropagation()}
         >
           <div className="py-1">
@@ -186,14 +186,14 @@ export function RoleSelector({ currentRole, onRoleChange, disabled = false, isCu
               <AlertTriangle className="h-6 w-6 text-yellow-500" />
               <h3 className="text-lg font-bold text-app-primary">Confirm Role Change</h3>
             </div>
-            
+
             <p className="text-app-secondary mb-6">
-              {showConfirm === ROLES.ADMIN 
+              {showConfirm === ROLES.ADMIN
                 ? "You are about to grant admin privileges. This will give the user full system access including the ability to manage other users."
                 : "You are about to change your own admin role. You will lose admin access and won't be able to access this page."
               }
             </p>
-            
+
             <div className="flex items-center space-x-3">
               <button
                 onClick={handleConfirmChange}
@@ -214,8 +214,8 @@ export function RoleSelector({ currentRole, onRoleChange, disabled = false, isCu
 
       {/* Click outside to close */}
       {isOpen && (
-        <div 
-          className="fixed inset-0 z-40" 
+        <div
+          className="fixed inset-0 z-40"
           onClick={() => setIsOpen(false)}
         />
       )}
