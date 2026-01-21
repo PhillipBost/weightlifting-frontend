@@ -458,21 +458,7 @@ export default function DataExportPage() {
 
         // FEDERATION
         if (filters.federation !== 'all') {
-            if (filters.federation === 'iwf_one_per_country') {
-                filtered = filtered.filter(a => a.federation === 'iwf');
-                // Keeping One Per Country logic for consistent filtering
-                // (Logic same as rankings: reduce to map by country code)
-                const countryBestMap = new Map<string, AthleteRanking>();
-                filtered.forEach(athlete => {
-                    const existing = countryBestMap.get(athlete.country_code || "");
-                    if (!existing || athlete.best_total > existing.best_total) {
-                        countryBestMap.set(athlete.country_code || "", athlete);
-                    }
-                });
-                filtered = Array.from(countryBestMap.values());
-            } else {
-                filtered = filtered.filter(a => a.federation === filters.federation);
-            }
+            filtered = filtered.filter(a => a.federation === filters.federation);
         }
 
         // GENDER
@@ -825,7 +811,7 @@ export default function DataExportPage() {
                                             <option value="all">All Federations</option>
                                             <option value="usaw">USA Weightlifting (USAW)</option>
                                             <option value="iwf">International (IWF)</option>
-                                            <option value="iwf_one_per_country">IWF (1 per Country)</option>
+
                                         </select>
                                     </div>
 
