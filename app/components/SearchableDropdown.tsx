@@ -19,6 +19,7 @@ interface SearchableDropdownProps<T> {
     // Classes to match existing styles exactly
     triggerClassName?: string;
     dropdownClassName?: string;
+    disabled?: boolean;
 }
 
 export function SearchableDropdown<T>({
@@ -32,7 +33,8 @@ export function SearchableDropdown<T>({
     placeholder = "Select...",
     // Default values matching the current "Premium" styling in RankingsPage
     triggerClassName = "w-full flex items-center justify-between h-10 px-3 bg-app-tertiary border border-app-primary rounded-xl text-app-primary text-sm focus:outline-none focus:ring-2 focus:ring-blue-500",
-    dropdownClassName = "absolute z-20 mt-1 w-full max-h-64 overflow-y-auto bg-app-surface border border-app-primary rounded-xl shadow-lg p-2"
+    dropdownClassName = "absolute z-20 mt-1 w-full max-h-64 overflow-y-auto bg-app-surface border border-app-primary rounded-xl shadow-lg p-2",
+    disabled = false
 }: SearchableDropdownProps<T>) {
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
@@ -48,7 +50,7 @@ export function SearchableDropdown<T>({
         }
     }, [isOpen]);
 
-    // Filter options based on search
+    // Derived visible items
     const filteredOptions = useMemo(() => {
         if (!searchTerm) return options;
         const lowerSearch = searchTerm.toLowerCase();
@@ -57,16 +59,13 @@ export function SearchableDropdown<T>({
         );
     }, [options, searchTerm, getLabel]);
 
-    // Derived visible items
     const visibleOptions = filteredOptions.slice(0, visibleCount);
 
     // Handle scroll to load more
     const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
         const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
-        // Load more when properly close to bottom (50px buffer)
         if (scrollTop + clientHeight >= scrollHeight - 50) {
             if (visibleCount < filteredOptions.length) {
-                // Increase by batch size
                 setVisibleCount(prev => Math.min(prev + 20, filteredOptions.length));
             }
         }
@@ -84,17 +83,7 @@ export function SearchableDropdown<T>({
     }, []);
 
     const handleSelectAll = () => {
-        // Select all CURRENTLY FILTERED items
         const allValues = filteredOptions.map(getValue);
-        // Merge with existing selection to avoid losing non-visible items? 
-        // Usually "Select All" implies "Select All Matches". 
-        // But for a simple dropdown, usually it means "Select All Options".
-        // Let's stick to simple "Select All" behavior for now matching the visible intent.
-        // If search is active, we should probably only select visible, but existing behavior 
-        // in RankingsPage selects generic lists. 
-        // Let's assume standard behavior: Select visible filtered.
-
-        // Actually, to match existing "Select All" behavior safely:
         const newSelected = Array.from(new Set([...selected, ...allValues]));
         onSelect(newSelected);
     };
@@ -112,21 +101,24 @@ export function SearchableDropdown<T>({
 
     return (
         <div className="relative" ref={containerRef}>
-            <label className="block text-sm font-medium text-app-tertiary mb-1">
+            <label className={`block text-sm font-medium mb-1 ${disabled ? 'text-app-muted' : 'text-app-tertiary'}`}>
                 {label}
             </label>
 
             <button
                 type="button"
-                onClick={() => setIsOpen(!isOpen)}
-                className={triggerClassName}
+                onClick={() => !disabled && setIsOpen(!isOpen)}
+                disabled={disabled}
+                className={`${triggerClassName} ${disabled ? 'opacity-50 cursor-not-allowed bg-app-tertiary/50' : 'cursor-pointer hover:bg-app-hover'}`}
             >
                 <span className="truncate">
-                    {selected.length === 0
-                        ? placeholder
-                        : `${selected.length} selected`}
+                    {disabled
+                        ? "N/A"
+                        : selected.length === 0
+                            ? placeholder
+                            : `${selected.length} selected`}
                 </span>
-                <span className="ml-2 text-xs text-app-tertiary flex-shrink-0">
+                <span className={`ml-2 text-xs flex-shrink-0 ${disabled ? 'text-app-muted' : 'text-app-tertiary'}`}>
                     <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </span>
             </button>

@@ -25,6 +25,7 @@ import {
 import { getCountryFlagComponent } from "../utils/countryFlags";
 import { SearchableDropdown } from "../components/SearchableDropdown";
 import { MetricTooltip } from "../components/MetricTooltip";
+import { matchesAthleteName } from "../../lib/search/searchUtils";
 
 interface AthleteRanking {
   lifter_id: string;
@@ -1736,6 +1737,7 @@ function RankingsContent() {
                               type="button"
                               onClick={() => {
                                 handleFilterChange("federation", "iwf");
+                                setFilters(prev => ({ ...prev, selectedWSO: [], selectedClubs: [] }));
                                 setShowFederationDropdown(false);
                               }}
                               className={`w-full px-3 py-2 text-left hover:bg-app-hover ${filters.federation === "iwf" ? "bg-app-tertiary" : ""
@@ -1747,6 +1749,7 @@ function RankingsContent() {
                               type="button"
                               onClick={() => {
                                 handleFilterChange("federation", "iwf_one_per_country");
+                                setFilters(prev => ({ ...prev, selectedWSO: [], selectedClubs: [] }));
                                 setShowFederationDropdown(false);
                               }}
                               className={`w-full px-3 py-2 text-left hover:bg-app-hover last:rounded-b-lg flex items-center justify-between ${filters.federation === "iwf_one_per_country" ? "bg-app-tertiary" : ""
@@ -2332,7 +2335,7 @@ function RankingsContent() {
                                 return (
                                   <label
                                     key={year}
-                                    className="flex items-center space-x-1 text-[10px] text-app-secondary cursor-pointer"
+                                    className="flex items-center space-x-2 text-xs text-app-secondary cursor-pointer hover:bg-app-hover p-1 rounded transition-colors"
                                   >
                                     <input
                                       type="checkbox"
@@ -2351,7 +2354,7 @@ function RankingsContent() {
                                           };
                                         });
                                       }}
-                                      className="h-3 w-3 accent-blue-500"
+                                      className="h-3 w-3 accent-blue-500 flex-shrink-0 cursor-pointer"
                                     />
                                     <span>{year}</span>
                                   </label>
@@ -2417,6 +2420,7 @@ function RankingsContent() {
                       onSelect={(selected) => handleFilterChange("selectedWSO", selected)}
                       getValue={(wso) => wso}
                       getLabel={(wso) => wso}
+                      disabled={['iwf', 'iwf_one_per_country'].includes(filters.federation)}
                     />
 
                     {/* Barbell Club Filter (USAW) */}
@@ -2428,6 +2432,7 @@ function RankingsContent() {
                       onSelect={(selected) => handleFilterChange("selectedClubs", selected)}
                       getValue={(club) => club}
                       getLabel={(club) => club}
+                      disabled={['iwf', 'iwf_one_per_country'].includes(filters.federation)}
                     />
                   </div>
 
