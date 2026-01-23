@@ -18,6 +18,133 @@ import {
     RefreshCw,
     Info
 } from "lucide-react";
+import {
+    Ad, Ae, Af, Ag, Ai, Al, Am, Ao, Aq, Ar, As, At, Au, Aw, Ax, Az,
+    Ba, Bb, Bd, Be, Bf, Bg, Bh, Bi, Bj, Bl, Bm, Bn, Bo, Bq, Br, Bs, Bt, Bv, Bw, By, Bz,
+    Ca, Cc, Cd, Cf, Cg, Ch, Ci, Ck, Cl, Cm, Cn, Co, Cr, Cu, Cv, Cw, Cx, Cy, Cz,
+    De, Dj, Dk, Dm, Do, Dz, Ec, Ee, Eg, Er, Es, Et,
+    Fi, Fj, Fk, Fm, Fo, Fr, Ga, Gb, Gd, Ge, Gf, Gg, Gh, Gi, Gl, Gm, Gn, Gp, Gq, Gr, Gs, Gt, Gu, Gw, Gy,
+    Hk, Hm, Hn, Hr, Ht, Hu, Id, Ie, Im, In, Io, Iq, Ir, Is, It,
+    Je, Jm, Jo, Jp, Ke, Kg, Kh, Ki, Km, Kn, Kp, Kr, Kw, Ky, Kz,
+    La, Lb, Lc, Li, Lk, Lr, Ls, Lt, Lu, Lv, Ly, Ma, Mc, Md, Me, Mf, Mg, Mh, Mk, Ml, Mm, Mn, Mo, Mp, Mq, Mr, Ms, Mt, Mu, Mv, Mw, Mx, My, Mz,
+    Na, Nc, Ne, Nf, Ng, Ni, Nl, No, Np, Nr, Nu, Nz, Om, Pa, Pe, Pf, Pg, Ph, Pk, Pl, Pm, Pn, Pr, Ps, Pt, Pw, Py,
+    Qa, Re, Ro, Rs, Ru, Rw, Sa, Sb, Sc, Sd, Se, Sg, Sh, Si, Sj, Sk, Sl, Sm, Sn, So, Sr, Ss, St, Sv, Sx, Sy, Sz,
+    Tc, Td, Tf, Tg, Th, Tj, Tk, Tl, Tm, Tn, To, Tr, Tt, Tv, Tw, Tz, Ua, Ug, Um, Us, Uy, Uz,
+    Va, Vc, Ve, Vg, Vi, Vn, Vu, Wf, Ws, Xk, Ye, Yt, Za, Zm, Zw,
+    GbEng, GbSct, GbWls
+} from 'react-flag-icons';
+
+// Custom ROC (Russian Olympic Committee) flag component
+const RocFlag: React.FC<{ style?: React.CSSProperties }> = ({ style }) => (
+    <img
+        src="/roc-flag.svg"
+        alt="ROC"
+        style={{ ...style, width: '18px', height: 'auto' }}
+    />
+);
+
+// Custom Israel flag component
+const IsraelFlag: React.FC<{ style?: React.CSSProperties }> = ({ style }) => (
+    <img
+        src="/israel-flag.svg"
+        alt="Israel"
+        style={{ ...style, width: '18px', height: 'auto' }}
+    />
+);
+
+// Olympic flag component (for neutral athletes: EOR, IOP, IOA, OAR)
+const OlympicFlag: React.FC<{ style?: React.CSSProperties }> = ({ style }) => (
+    <img
+        src="/Olympic_flag.svg"
+        alt="Olympic Neutral"
+        style={{ ...style, width: '18px', height: 'auto' }}
+    />
+);
+
+// ANA (Individual Neutral Athletes) flag component with year detection
+const AnaFlag: React.FC<{ style?: React.CSSProperties; year?: number }> = ({ style, year }) => {
+    let flagFile = '/Flag_of_the_Individual_Neutral_Athletes_at_the_2024_Summer_Olympics.svg'; // default to 2024
+
+    if (year) {
+        if (year <= 2020) {
+            flagFile = '/ANA_flag_(2017).svg';
+        } else if (year <= 2023) {
+            flagFile = '/ANA_flag_(2021)_WA.svg';
+        }
+    }
+
+    return (
+        <img
+            src={flagFile}
+            alt="ANA"
+            style={{ ...style, width: '18px', height: 'auto' }}
+        />
+    );
+};
+
+const getCountryFlagComponent = (code: string): React.ComponentType<any> | null => {
+    if (!code) return null;
+
+    // IOC to component mapping (from iwf-lifter-manager.js country codes)
+    const iocMap: Record<string, React.ComponentType<any> | null> = {
+        // European countries (IOC codes)
+        'ALB': Al, 'AND': Ad, 'ARM': Am, 'AUT': At, 'AZE': Az, 'BEL': Be, 'BIH': Ba, 'BUL': Bg, 'CRO': Hr, 'CYP': Cy,
+        'CZE': Cz, 'DEN': Dk, 'EST': Ee, 'FIN': Fi, 'FRA': Fr, 'GEO': Ge, 'GER': De, 'GRE': Gr, 'GBR': Gb, 'HUN': Hu,
+        'ISL': Is, 'IRL': Ie, 'ISR': IsraelFlag, 'ITA': It, 'KOS': Xk, 'LAT': Lv, 'LIE': Li, 'LTU': Lt, 'LUX': Lu, 'MDA': Md, 'MON': Mc,
+        'MNE': Me, 'NED': Nl, 'NOR': No, 'POL': Pl, 'POR': Pt, 'ROU': Ro, 'RUS': Ru, 'SMR': Sm, 'SRB': Rs, 'SVK': Sk,
+        'SVN': Si, 'ESP': Es, 'SWE': Se, 'SUI': Ch, 'TUR': Tr, 'UKR': Ua,
+        // Asian countries (IOC codes)
+        'AFG': Af, 'BAN': Bd, 'CAM': Kh, 'CHN': Cn, 'HKG': Hk, 'IND': In, 'IDN': Id, 'IRN': Ir, 'JPN': Jp, 'JOR': Jo,
+        'KAZ': Kz, 'KOR': Kr, 'KWT': Kw, 'KGZ': Kg, 'LAO': La, 'LBN': Lb, 'MAS': My, 'MGL': Mn, 'MYA': Mm, 'NEP': Np,
+        'PAK': Pk, 'PHI': Ph, 'QAT': Qa, 'SGP': Sg, 'THA': Th, 'TJK': Tj, 'TPE': Tw, 'TKM': Tm, 'UZB': Uz, 'VIE': Vn,
+        // Americas (IOC codes)
+        'ARG': Ar, 'BAR': Bb, 'BRA': Br, 'CAN': Ca, 'CHI': Cl, 'COL': Co, 'CRC': Cr, 'CUB': Cu, 'DOM': Do, 'ECU': Ec,
+        'SLV': Sv, 'GUA': Gt, 'HAI': Ht, 'HND': Hn, 'JAM': Jm, 'MEX': Mx, 'PAN': Pa, 'PAR': Py, 'PER': Pe, 'PUR': Pr,
+        'URU': Uy, 'USA': Us, 'VEN': Ve,
+        // Oceania (IOC codes)
+        'AUS': Au, 'FIJ': Fj, 'NZL': Nz, 'PNG': Pg, 'SAM': Ws, 'TON': To,
+        // Africa (IOC codes)
+        'ALG': Dz, 'ANG': Ao, 'BOT': Bw, 'BWA': Bw, 'CMR': Cm, 'EGY': Eg, 'ETH': Et, 'GHA': Gh, 'KEN': Ke, 'LIB': Ly,
+        'MAR': Ma, 'MRI': Mu, 'MOZ': Mz, 'NAM': Na, 'NGA': Ng, 'RWA': Rw, 'RSA': Za, 'SUD': Sd, 'TAN': Tz, 'TUN': Tn,
+        'UGA': Ug, 'ZIM': Zw,
+        // Special/Neutral codes
+        'AIN': AnaFlag, 'ANA': AnaFlag, 'EOR': OlympicFlag, 'IOP': OlympicFlag, 'OAR': OlympicFlag, 'VAN': Vu, 'WRT': OlympicFlag, 'KUW': Kw, 'MLT': Mt, 'INA': Id, 'BRN': Bn, 'UAE': Ae, 'TGA': To, 'PRK': Kp,
+        'PLE': Ps, 'NMI': Mp, 'NGR': Ng, 'KSA': Sa, 'IRI': Ir, 'ARU': Aw, 'ASA': As, 'BDI': Bi, 'BLR': By, 'BOL': Bo,
+        'BRU': Bn, 'CGO': Cg, 'COD': Cd, 'COK': Ck, 'COM': Km, 'CPV': Cv, 'CUR': Cw, 'ENG': GbEng, 'ESA': Sv, 'FSM': Fm,
+        'GAM': Gm, 'GEQ': Gq, 'GIB': Gi, 'GUI': Gn, 'GUM': Gu, 'GUY': Gy, 'HON': Hn, 'IOA': OlympicFlag, 'IRQ': Iq, 'KIR': Ki,
+        'KRI': Ki, 'LBA': Ly, 'LBR': Lr, 'LES': Ls, 'MAC': Mo, 'MAD': Mg, 'MAW': Mw, 'MHL': Mh, 'MTN': Mr, 'NCA': Ni,
+        'NCL': Nc, 'NIC': Ni, 'NIR': GbWls, 'NIU': Nu, 'NRU': Nr, 'OMA': Om, 'PLW': Pw, 'ROC': RocFlag, 'RWF': null, 'SCO': GbSct,
+        'SEN': Sn, 'SEY': Sc, 'SLE': Sl, 'SLO': Si, 'SOL': Sb, 'SRI': Lk, 'SWZ': Sz, 'SYR': Sy, 'TAH': Pf, 'TCA': Tc,
+        'TLS': Tl, 'TTO': Tt, 'TUV': Tv, 'VIN': Vc, 'WAL': GbWls, 'WLF': Wf, 'YEM': Ye, 'ZAM': Zm, 'ZAN': Tz,
+        // Also support ISO 2-letter codes directly
+        'AD': Ad, 'AE': Ae, 'AF': Af, 'AG': Ag, 'AI': Ai, 'AL': Al, 'AM': Am, 'AO': Ao, 'AQ': Aq, 'AR': Ar, 'AS': As, 'AT': At,
+        'AU': Au, 'AW': Aw, 'AX': Ax, 'AZ': Az, 'BA': Ba, 'BB': Bb, 'BD': Bd, 'BE': Be, 'BF': Bf, 'BG': Bg, 'BH': Bh, 'BI': Bi,
+        'BJ': Bj, 'BL': Bl, 'BM': Bm, 'BN': Bn, 'BO': Bo, 'BQ': Bq, 'BR': Br, 'BS': Bs, 'BT': Bt, 'BV': Bv, 'BW': Bw, 'BY': By,
+        'BZ': Bz, 'CA': Ca, 'CC': Cc, 'CD': Cd, 'CF': Cf, 'CG': Cg, 'CH': Ch, 'CI': Ci, 'CK': Ck, 'CL': Cl, 'CM': Cm, 'CN': Cn,
+        'CO': Co, 'CR': Cr, 'CU': Cu, 'CV': Cv, 'CW': Cw, 'CX': Cx, 'CY': Cy, 'CZ': Cz, 'DE': De, 'DJ': Dj, 'DK': Dk, 'DM': Dm,
+        'DO': Do, 'DZ': Dz, 'EC': Ec, 'EE': Ee, 'EG': Eg, 'ER': Er, 'ES': Es, 'ET': Et, 'FI': Fi, 'FJ': Fj, 'FK': Fk,
+        'FM': Fm, 'FO': Fo, 'FR': Fr, 'GA': Ga, 'GB': Gb, 'GD': Gd, 'GE': Ge, 'GF': Gf, 'GG': Gg, 'GH': Gh, 'GI': Gi, 'GL': Gl,
+        'GM': Gm, 'GN': Gn, 'GP': Gp, 'GQ': Gq, 'GR': Gr, 'GS': Gs, 'GT': Gt, 'GU': Gu, 'GW': Gw, 'GY': Gy, 'HK': Hk, 'HM': Hm,
+        'HN': Hn, 'HR': Hr, 'HT': Ht, 'HU': Hu, 'ID': Id, 'IE': Ie, 'IL': IsraelFlag, 'IM': Im, 'IN': In, 'IO': Io, 'IQ': Iq, 'IR': Ir,
+        'IS': Is, 'IT': It, 'JE': Je, 'JM': Jm, 'JO': Jo, 'JP': Jp, 'KE': Ke, 'KG': Kg, 'KH': Kh, 'KI': Ki, 'KM': Km, 'KN': Kn,
+        'KP': Kp, 'KR': Kr, 'KW': Kw, 'KY': Ky, 'KZ': Kz, 'XK': Xk, 'LA': La, 'LB': Lb, 'LC': Lc, 'LI': Li, 'LK': Lk, 'LR': Lr, 'LS': Ls,
+        'LT': Lt, 'LU': Lu, 'LV': Lv, 'LY': Ly, 'MA': Ma, 'MC': Mc, 'MD': Md, 'ME': Me, 'MF': Mf, 'MG': Mg, 'MH': Mh, 'MK': Mk,
+        'ML': Ml, 'MM': Mm, 'MN': Mn, 'MO': Mo, 'MP': Mp, 'MQ': Mq, 'MR': Mr, 'MS': Ms, 'MT': Mt, 'MU': Mu, 'MV': Mv, 'MW': Mw,
+        'MX': Mx, 'MY': My, 'MZ': Mz, 'NA': Na, 'NC': Nc, 'NE': Ne, 'NF': Nf, 'NG': Ng, 'NI': Ni, 'NL': Nl, 'NO': No, 'NP': Np,
+        'NR': Nr, 'NU': Nu, 'NZ': Nz, 'OM': Om, 'PA': Pa, 'PE': Pe, 'PF': Pf, 'PG': Pg, 'PH': Ph, 'PK': Pk, 'PL': Pl, 'PM': Pm,
+        'PN': Pn, 'PR': Pr, 'PS': Ps, 'PT': Pt, 'PW': Pw, 'PY': Py, 'QA': Qa, 'RE': Re, 'RO': Ro, 'RS': Rs, 'RU': Ru, 'RW': Rw,
+        'SA': Sa, 'SB': Sb, 'SC': Sc, 'SD': Sd, 'SE': Se, 'SG': Sg, 'SH': Sh, 'SI': Si, 'SJ': Sj, 'SK': Sk, 'SL': Sl, 'SM': Sm,
+        'SN': Sn, 'SO': So, 'SR': Sr, 'SS': Ss, 'ST': St, 'SV': Sv, 'SX': Sx, 'SY': Sy, 'SZ': Sz, 'TC': Tc, 'TD': Td, 'TF': Tf,
+        'TG': Tg, 'TH': Th, 'TJ': Tj, 'TK': Tk, 'TL': Tl, 'TM': Tm, 'TN': Tn, 'TO': To, 'TR': Tr, 'TT': Tt, 'TV': Tv, 'TW': Tw,
+        'TZ': Tz, 'UA': Ua, 'UG': Ug, 'UM': Um, 'US': Us, 'UY': Uy, 'UZ': Uz, 'VA': Va, 'VC': Vc, 'VE': Ve, 'VG': Vg, 'VI': Vi,
+        'VN': Vn, 'VU': Vu, 'WF': Wf, 'WS': Ws, 'YE': Ye, 'YT': Yt, 'ZA': Za, 'ZM': Zm, 'ZW': Zw,
+        'GbEng': GbEng, 'GbSct': GbSct, 'GbWls': GbWls,
+    };
+
+    const normalized = code.toUpperCase().trim();
+    const component = iocMap[normalized] || null;
+    return component;
+};
 
 // Reuse interfaces from Rankings (simplified where possible, but keeping structure for compatibility)
 interface AthleteRanking {
@@ -118,7 +245,7 @@ export default function DataExportPage() {
         searchTerm: "",
         gender: "all",
         ageCategory: "all",
-        federation: "all",
+        federation: "usaw",
         selectedYears: [2025] as number[],
         selectedCountries: [] as string[],
         selectedWeightClasses: [] as string[],
@@ -141,6 +268,9 @@ export default function DataExportPage() {
 
     // UI States for filter dropdowns
     const [showYearDropdown, setShowYearDropdown] = useState(false);
+    const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+    const [showGenderDropdown, setShowGenderDropdown] = useState(false);
+    const [showFederationDropdown, setShowFederationDropdown] = useState(false);
 
     // Initialize data on mount
     useEffect(() => {
@@ -486,6 +616,12 @@ export default function DataExportPage() {
             filtered = filtered.filter(a => a.federation === 'usaw' && clubSet.has((a.club_name || "").toLowerCase()));
         }
 
+        // COUNTRY (IWF only)
+        if (filters.federation === 'iwf' && filters.selectedCountries.length > 0) {
+            const countrySet = new Set(filters.selectedCountries);
+            filtered = filtered.filter(a => countrySet.has(a.country_code || ""));
+        }
+
         setFilteredRankings(filtered);
     }
 
@@ -727,7 +863,7 @@ export default function DataExportPage() {
                                     <ArrowLeft className="h-5 w-5 text-app-primary" />
                                 </Link>
                                 <div className="flex items-center space-x-3">
-                                    <div className="p-2 bg-blue-500/10 rounded-lg">
+                                    <div className="p-2 bg-blue-500/10 rounded-xl">
                                         <Database className="h-6 w-6 text-blue-400" />
                                     </div>
                                     <div>
@@ -758,30 +894,36 @@ export default function DataExportPage() {
                                         <div className="space-y-2">
                                             <div
                                                 onClick={() => setShowYearDropdown(!showYearDropdown)}
-                                                className="w-full px-3 py-2 bg-app-tertiary rounded-lg border border-app-primary text-sm text-app-primary cursor-pointer flex justify-between items-center"
+                                                className="w-full px-3 py-2 bg-app-tertiary rounded-xl border border-app-primary text-sm text-app-primary cursor-pointer flex justify-between items-center"
                                             >
                                                 <span>{filters.selectedYears.length > 5 ? `${filters.selectedYears.length} Years Selected` : filters.selectedYears.join(", ")}</span>
                                                 <Filter className="h-3 w-3 opacity-50" />
                                             </div>
 
                                             {showYearDropdown && (
-                                                <div className="p-2 bg-app-surface border border-app-primary rounded-lg max-h-48 overflow-y-auto grid grid-cols-3 gap-1">
-                                                    {Array.from({ length: 2026 - 1998 }, (_, i) => 2025 - i).map(year => (
-                                                        <button
-                                                            key={year}
-                                                            onClick={() => {
-                                                                const exists = filters.selectedYears.includes(year);
-                                                                const newYears = exists
-                                                                    ? filters.selectedYears.filter(y => y !== year)
-                                                                    : [...filters.selectedYears, year];
-                                                                setFilters(prev => ({ ...prev, selectedYears: newYears.sort((a, b) => b - a) }));
-                                                            }}
-                                                            className={`px-2 py-1 text-xs rounded ${filters.selectedYears.includes(year) ? 'bg-blue-600 text-white' : 'hover:bg-app-hover text-app-secondary'}`}
-                                                        >
-                                                            {year}
-                                                        </button>
-                                                    ))}
-                                                </div>
+                                                <>
+                                                    <div
+                                                        className="fixed inset-0 z-10"
+                                                        onClick={() => setShowYearDropdown(false)}
+                                                    />
+                                                    <div className="absolute z-20 mt-1 w-full p-2 bg-app-surface border border-app-primary rounded-xl max-h-48 overflow-y-auto grid grid-cols-3 gap-1 shadow-lg">
+                                                        {Array.from({ length: 2026 - 1998 }, (_, i) => 2025 - i).map(year => (
+                                                            <button
+                                                                key={year}
+                                                                onClick={() => {
+                                                                    const exists = filters.selectedYears.includes(year);
+                                                                    const newYears = exists
+                                                                        ? filters.selectedYears.filter(y => y !== year)
+                                                                        : [...filters.selectedYears, year];
+                                                                    setFilters(prev => ({ ...prev, selectedYears: newYears.sort((a, b) => b - a) }));
+                                                                }}
+                                                                className={`px-2 py-1 text-xs rounded ${filters.selectedYears.includes(year) ? 'bg-blue-600 text-white' : 'hover:bg-app-hover text-app-secondary'}`}
+                                                            >
+                                                                {year}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </>
                                             )}
                                         </div>
                                     </div>
@@ -789,40 +931,207 @@ export default function DataExportPage() {
                                     {/* Gender */}
                                     <div>
                                         <label className="text-xs font-semibold text-app-tertiary mb-1.5 block">Gender</label>
-                                        <select
-                                            className="w-full px-3 py-2 bg-app-tertiary rounded-lg border border-app-primary text-sm text-app-primary focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                                            value={filters.gender}
-                                            onChange={(e) => setFilters(prev => ({ ...prev, gender: e.target.value }))}
-                                        >
-                                            <option value="all">All Genders</option>
-                                            <option value="Men's">Men</option>
-                                            <option value="Women's">Women</option>
-                                        </select>
+                                        <div className="relative">
+                                            <div
+                                                onClick={() => setShowGenderDropdown(!showGenderDropdown)}
+                                                className="w-full px-3 py-2 bg-app-tertiary rounded-xl border border-app-primary text-sm text-app-primary cursor-pointer flex justify-between items-center"
+                                            >
+                                                <span>
+                                                    {filters.gender === "all" && "All Genders"}
+                                                    {filters.gender === "Men's" && "Men"}
+                                                    {filters.gender === "Women's" && "Women"}
+                                                </span>
+                                                <Filter className="h-3 w-3 opacity-50" />
+                                            </div>
+
+                                            {showGenderDropdown && (
+                                                <>
+                                                    <div
+                                                        className="fixed inset-0 z-10"
+                                                        onClick={() => setShowGenderDropdown(false)}
+                                                    />
+                                                    <div className="absolute z-20 mt-1 w-full bg-app-surface border border-app-primary rounded-xl shadow-lg">
+                                                        {[
+                                                            { value: "all", label: "All Genders" },
+                                                            { value: "Men's", label: "Men" },
+                                                            { value: "Women's", label: "Women" }
+                                                        ].map(opt => (
+                                                            <button
+                                                                key={opt.value}
+                                                                onClick={() => {
+                                                                    setFilters(prev => ({ ...prev, gender: opt.value }));
+                                                                    setShowGenderDropdown(false);
+                                                                }}
+                                                                className={`w-full text-left px-3 py-2 text-sm hover:bg-app-hover first:rounded-t-xl last:rounded-b-xl ${filters.gender === opt.value ? 'bg-app-tertiary' : ''}`}
+                                                            >
+                                                                {opt.label}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
                                     </div>
 
                                     {/* Federation */}
                                     <div>
                                         <label className="text-xs font-semibold text-app-tertiary mb-1.5 block">Federation</label>
-                                        <select
-                                            className="w-full px-3 py-2 bg-app-tertiary rounded-lg border border-app-primary text-sm text-app-primary focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                                            value={filters.federation}
-                                            onChange={(e) => setFilters(prev => ({ ...prev, federation: e.target.value }))}
-                                        >
-                                            <option value="all">All Federations</option>
-                                            <option value="usaw">USA Weightlifting (USAW)</option>
-                                            <option value="iwf">International (IWF)</option>
+                                        <div className="relative">
+                                            <div
+                                                onClick={() => setShowFederationDropdown(!showFederationDropdown)}
+                                                className="w-full px-3 py-2 bg-app-tertiary rounded-xl border border-app-primary text-sm text-app-primary cursor-pointer flex justify-between items-center"
+                                            >
+                                                <span>
+                                                    {filters.federation === "usaw" && "USA Weightlifting (USAW)"}
+                                                    {filters.federation === "iwf" && "International (IWF)"}
+                                                </span>
+                                                <Filter className="h-3 w-3 opacity-50" />
+                                            </div>
 
-                                        </select>
+                                            {showFederationDropdown && (
+                                                <>
+                                                    <div
+                                                        className="fixed inset-0 z-10"
+                                                        onClick={() => setShowFederationDropdown(false)}
+                                                    />
+                                                    <div className="absolute z-20 mt-1 w-full bg-app-surface border border-app-primary rounded-xl shadow-lg">
+                                                        {[
+                                                            { value: "usaw", label: "USA Weightlifting (USAW)" },
+                                                            { value: "iwf", label: "International (IWF)" }
+                                                        ].map(opt => (
+                                                            <button
+                                                                key={opt.value}
+                                                                onClick={() => {
+                                                                    setFilters(prev => ({ ...prev, federation: opt.value }));
+                                                                    setShowFederationDropdown(false);
+                                                                }}
+                                                                className={`w-full text-left px-3 py-2 text-sm hover:bg-app-hover first:rounded-t-xl last:rounded-b-xl ${filters.federation === opt.value ? 'bg-app-tertiary' : ''}`}
+                                                            >
+                                                                {opt.label}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Country */}
+                                    <div>
+                                        <label className="text-xs font-semibold text-app-tertiary mb-1.5 block">Country</label>
+
+                                        {filters.federation === 'usaw' ? (
+                                            <div className="w-full px-3 py-2 bg-app-tertiary/50 rounded-xl border border-app-primary/50 text-sm text-app-tertiary cursor-not-allowed flex items-center">
+                                                United States
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-2">
+                                                <div
+                                                    onClick={() => setShowCountryDropdown(!showCountryDropdown)}
+                                                    className="w-full px-3 py-2 bg-app-tertiary rounded-xl border border-app-primary text-sm text-app-primary cursor-pointer flex justify-between items-center"
+                                                >
+                                                    <span>
+                                                        {filters.selectedCountries.length === 0
+                                                            ? "All Countries"
+                                                            : filters.selectedCountries.length > 3
+                                                                ? `${filters.selectedCountries.length} Countries Selected`
+                                                                : filters.selectedCountries.slice(0, 3).join(", ") + (filters.selectedCountries.length > 3 ? "..." : "")}
+                                                    </span>
+                                                    <Filter className="h-3 w-3 opacity-50" />
+                                                </div>
+
+                                                {showCountryDropdown && (
+                                                    <>
+                                                        <div
+                                                            className="fixed inset-0 z-10"
+                                                            onClick={() => setShowCountryDropdown(false)}
+                                                        />
+                                                        <div className="absolute z-20 mt-1 w-64 max-h-64 overflow-y-auto bg-app-surface border border-app-primary rounded-xl shadow-lg p-2">
+                                                            <div className="flex justify-between items-center mb-2 text-[10px] text-app-tertiary">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        const allCountries = filterOptions.countries.map(c => c.code);
+                                                                        setFilters((prev) => ({
+                                                                            ...prev,
+                                                                            selectedCountries: allCountries,
+                                                                        }));
+                                                                    }}
+                                                                    className="px-2 py-1 bg-app-tertiary rounded hover:bg-app-hover"
+                                                                >
+                                                                    Select All
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() =>
+                                                                        setFilters((prev) => ({
+                                                                            ...prev,
+                                                                            selectedCountries: [],
+                                                                        }))
+                                                                    }
+                                                                    className="px-2 py-1 bg-app-tertiary rounded hover:bg-app-hover"
+                                                                >
+                                                                    Clear
+                                                                </button>
+                                                            </div>
+                                                            <div className="grid grid-cols-1 gap-1">
+                                                                {filterOptions.countries.length > 0 ? (
+                                                                    filterOptions.countries.map((country) => {
+                                                                        const checked = filters.selectedCountries.includes(country.code);
+                                                                        const FlagComponent = getCountryFlagComponent(country.code);
+                                                                        return (
+                                                                            <label
+                                                                                key={country.code}
+                                                                                className="flex items-center space-x-2 text-xs text-app-secondary cursor-pointer hover:bg-app-hover p-1 rounded"
+                                                                            >
+                                                                                <input
+                                                                                    type="checkbox"
+                                                                                    checked={checked}
+                                                                                    onChange={() => {
+                                                                                        setFilters((prev) => {
+                                                                                            const exists = prev.selectedCountries.includes(country.code);
+                                                                                            return {
+                                                                                                ...prev,
+                                                                                                selectedCountries: exists
+                                                                                                    ? prev.selectedCountries.filter((c) => c !== country.code)
+                                                                                                    : [...prev.selectedCountries, country.code],
+                                                                                            };
+                                                                                        });
+                                                                                    }}
+                                                                                    className="h-3 w-3 accent-blue-500 flex-shrink-0"
+                                                                                />
+                                                                                <div className="flex items-center space-x-2 truncate">
+                                                                                    {FlagComponent && (
+                                                                                        <div className="flex-shrink-0 w-5">
+                                                                                            <FlagComponent style={{ width: '100%', height: 'auto' }} />
+                                                                                        </div>
+                                                                                    )}
+                                                                                    <span className="truncate">{country.name}</span>
+                                                                                </div>
+                                                                            </label>
+                                                                        );
+                                                                    })
+                                                                ) : (
+                                                                    <div className="text-app-tertiary text-xs p-2 text-center">
+                                                                        No countries available
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Reset */}
                                     <button
                                         onClick={() => setFilters({
-                                            searchTerm: "", gender: "all", ageCategory: "all", federation: "all",
+                                            searchTerm: "", gender: "all", ageCategory: "all", federation: "usaw",
                                             selectedYears: [2025], selectedCountries: [], selectedWeightClasses: [],
                                             startDate: "", endDate: "", selectedWSO: [], selectedClubs: []
                                         })}
-                                        className="w-full py-2 flex items-center justify-center space-x-2 text-xs font-medium text-app-muted hover:text-red-400 transition-colors border border-dashed border-app-tertiary rounded-lg hover:border-red-400/30"
+                                        className="w-full py-2 flex items-center justify-center space-x-2 text-xs font-medium text-app-muted hover:text-red-400 transition-colors border border-dashed border-app-tertiary rounded-xl hover:border-red-400/30"
                                     >
                                         <RefreshCw className="h-3 w-3" />
                                         <span>Reset Filters</span>
@@ -847,7 +1156,7 @@ export default function DataExportPage() {
                                         <button
                                             onClick={handleExport}
                                             disabled={exporting || filteredRankings.length === 0}
-                                            className="inline-flex items-center justify-center px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-all shadow-lg shadow-blue-900/20"
+                                            className="inline-flex items-center justify-center px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-all shadow-lg shadow-blue-900/20"
                                         >
                                             {exporting ? (
                                                 <Loader2 className="h-5 w-5 animate-spin mr-2" />

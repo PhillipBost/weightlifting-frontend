@@ -346,6 +346,8 @@ function RankingsContent() {
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [showWsoDropdown, setShowWsoDropdown] = useState(false);
   const [showClubDropdown, setShowClubDropdown] = useState(false);
+  const [showGenderDropdown, setShowGenderDropdown] = useState(false);
+  const [showAgeCategoryDropdown, setShowAgeCategoryDropdown] = useState(false);
   const [showColumnVisibility, setShowColumnVisibility] = useState(false);
 
   const [visibleColumns, setVisibleColumns] = useState({
@@ -1807,7 +1809,7 @@ function RankingsContent() {
                             )
                           }
                           placeholder="Athlete name"
-                          className="w-full h-10 pl-10 pr-3 bg-gray-600 border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full h-10 pl-10 pr-3 bg-app-tertiary border border-app-primary rounded-xl text-app-primary placeholder-app-tertiary focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                     </div>
@@ -1820,7 +1822,7 @@ function RankingsContent() {
                       <button
                         type="button"
                         onClick={() => setShowFederationDropdown(!showFederationDropdown)}
-                        className="w-full h-10 px-3 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex justify-between items-center"
+                        className="w-full h-10 px-3 bg-app-tertiary border border-app-primary rounded-xl text-app-primary focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex justify-between items-center"
                       >
                         <span>
                           {filters.federation === "all" && "All Federations"}
@@ -1832,58 +1834,61 @@ function RankingsContent() {
                       </button>
 
                       {showFederationDropdown && (
-                        <div className="absolute z-10 mt-1 w-full bg-gray-700 border border-gray-600 rounded-lg shadow-lg">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              handleFilterChange("federation", "all");
-                              setShowFederationDropdown(false);
-                            }}
-                            className={`w-full px-3 py-2 text-left hover:bg-gray-600 first:rounded-t-lg ${filters.federation === "all" ? "bg-gray-600" : ""
-                              }`}
-                          >
-                            All Federations
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              handleFilterChange("federation", "usaw");
-                              setShowFederationDropdown(false);
-                            }}
-                            className={`w-full px-3 py-2 text-left hover:bg-gray-600 ${filters.federation === "usaw" ? "bg-gray-600" : ""
-                              }`}
-                          >
-                            USAW
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              handleFilterChange("federation", "iwf");
-                              setShowFederationDropdown(false);
-                            }}
-                            className={`w-full px-3 py-2 text-left hover:bg-gray-600 ${filters.federation === "iwf" ? "bg-gray-600" : ""
-                              }`}
-                          >
-                            IWF
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              handleFilterChange("federation", "iwf_one_per_country");
-                              setShowFederationDropdown(false);
-                            }}
-                            className={`w-full px-3 py-2 text-left hover:bg-gray-600 last:rounded-b-lg flex items-center justify-between ${filters.federation === "iwf_one_per_country" ? "bg-gray-600" : ""
-                              }`}
-                          >
-                            <span>IWF 1/MF</span>
-                            <MetricTooltip
-                              title="IWF 1/MF"
-                              description="Show one athlete per country - displays only the best performing athlete from each Member Federation."
+                        <>
+                          <div className="fixed inset-0 z-10" onClick={() => setShowFederationDropdown(false)} />
+                          <div className="absolute z-20 mt-1 w-full bg-app-surface border border-app-primary rounded-xl shadow-lg">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleFilterChange("federation", "all");
+                                setShowFederationDropdown(false);
+                              }}
+                              className={`w-full px-3 py-2 text-left hover:bg-app-hover first:rounded-t-lg ${filters.federation === "all" ? "bg-app-tertiary" : ""
+                                }`}
                             >
-                              <span></span>
-                            </MetricTooltip>
-                          </button>
-                        </div>
+                              All Federations
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleFilterChange("federation", "usaw");
+                                setShowFederationDropdown(false);
+                              }}
+                              className={`w-full px-3 py-2 text-left hover:bg-app-hover ${filters.federation === "usaw" ? "bg-app-tertiary" : ""
+                                }`}
+                            >
+                              USAW
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleFilterChange("federation", "iwf");
+                                setShowFederationDropdown(false);
+                              }}
+                              className={`w-full px-3 py-2 text-left hover:bg-app-hover ${filters.federation === "iwf" ? "bg-app-tertiary" : ""
+                                }`}
+                            >
+                              IWF
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleFilterChange("federation", "iwf_one_per_country");
+                                setShowFederationDropdown(false);
+                              }}
+                              className={`w-full px-3 py-2 text-left hover:bg-app-hover last:rounded-b-lg flex items-center justify-between ${filters.federation === "iwf_one_per_country" ? "bg-app-tertiary" : ""
+                                }`}
+                            >
+                              <span>IWF 1/MF</span>
+                              <MetricTooltip
+                                title="IWF 1/MF"
+                                description="Show one athlete per country - displays only the best performing athlete from each Member Federation."
+                              >
+                                <span></span>
+                              </MetricTooltip>
+                            </button>
+                          </div>
+                        </>
                       )}
                     </div>
 
@@ -1892,17 +1897,61 @@ function RankingsContent() {
                       <label className="block text-sm font-medium text-gray-300 mb-1">
                         Gender
                       </label>
-                      <select
-                        value={filters.gender}
-                        onChange={(e) =>
-                          handleFilterChange("gender", e.target.value)
-                        }
-                        className="w-full h-10 px-3 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="all">All Genders</option>
-                        <option value="M">Male</option>
-                        <option value="F">Female</option>
-                      </select>
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => setShowGenderDropdown(!showGenderDropdown)}
+                          className="w-full h-10 px-3 bg-app-tertiary border border-app-primary rounded-xl text-app-primary focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex justify-between items-center"
+                        >
+                          <span>
+                            {filters.gender === "all" && "All Genders"}
+                            {filters.gender === "M" && "Male"}
+                            {filters.gender === "F" && "Female"}
+                          </span>
+                          <ChevronDown className={`h-4 w-4 transition-transform ${showGenderDropdown ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        {showGenderDropdown && (
+                          <>
+                            <div className="fixed inset-0 z-10" onClick={() => setShowGenderDropdown(false)} />
+                            <div className="absolute z-20 mt-1 w-full bg-app-surface border border-app-primary rounded-xl shadow-lg">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleFilterChange("gender", "all");
+                                  setShowGenderDropdown(false);
+                                }}
+                                className={`w-full px-3 py-2 text-left hover:bg-app-hover first:rounded-t-xl ${filters.gender === "all" ? "bg-app-tertiary" : ""
+                                  }`}
+                              >
+                                All Genders
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleFilterChange("gender", "M");
+                                  setShowGenderDropdown(false);
+                                }}
+                                className={`w-full px-3 py-2 text-left hover:bg-app-hover ${filters.gender === "M" ? "bg-app-tertiary" : ""
+                                  }`}
+                              >
+                                Male
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleFilterChange("gender", "F");
+                                  setShowGenderDropdown(false);
+                                }}
+                                className={`w-full px-3 py-2 text-left hover:bg-app-hover last:rounded-b-xl ${filters.gender === "F" ? "bg-app-tertiary" : ""
+                                  }`}
+                              >
+                                Female
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </div>
 
                     {/* Age Category */}
@@ -1910,25 +1959,49 @@ function RankingsContent() {
                       <label className="block text-sm font-medium text-gray-300 mb-1">
                         Age Category
                       </label>
-                      <select
-                        value={filters.ageCategory}
-                        onChange={(e) =>
-                          handleFilterChange(
-                            "ageCategory",
-                            e.target.value
-                          )
-                        }
-                        className="w-full h-10 px-3 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="all">
-                          All Age Categories
-                        </option>
-                        {filterOptions.ageCategories.map((ac) => (
-                          <option key={ac} value={ac}>
-                            {ac}
-                          </option>
-                        ))}
-                      </select>
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => setShowAgeCategoryDropdown(!showAgeCategoryDropdown)}
+                          className="w-full h-10 px-3 bg-app-tertiary border border-app-primary rounded-xl text-app-primary focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex justify-between items-center"
+                        >
+                          <span className="truncate">{filters.ageCategory === "all" ? "All Age Categories" : filters.ageCategory}</span>
+                          <ChevronDown className={`h-4 w-4 flex-shrink-0 ml-1 transition-transform ${showAgeCategoryDropdown ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        {showAgeCategoryDropdown && (
+                          <>
+                            <div className="fixed inset-0 z-10" onClick={() => setShowAgeCategoryDropdown(false)} />
+                            <div className="absolute z-20 mt-1 w-full max-h-64 overflow-y-auto bg-app-surface border border-app-primary rounded-xl shadow-lg">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  handleFilterChange("ageCategory", "all");
+                                  setShowAgeCategoryDropdown(false);
+                                }}
+                                className={`w-full px-3 py-2 text-left hover:bg-app-hover first:rounded-t-xl ${filters.ageCategory === "all" ? "bg-app-tertiary" : ""
+                                  }`}
+                              >
+                                All Age Categories
+                              </button>
+                              {filterOptions.ageCategories.map((ac) => (
+                                <button
+                                  key={ac}
+                                  type="button"
+                                  onClick={() => {
+                                    handleFilterChange("ageCategory", ac);
+                                    setShowAgeCategoryDropdown(false);
+                                  }}
+                                  className={`w-full px-3 py-2 text-left hover:bg-app-hover ${filters.ageCategory === ac ? "bg-app-tertiary" : ""
+                                    }`}
+                                >
+                                  {ac}
+                                </button>
+                              ))}
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </div>
 
                     {/* Current Weight Classes - Multi-select */}
@@ -1939,7 +2012,7 @@ function RankingsContent() {
                       <button
                         type="button"
                         onClick={() => setShowWeightClassDropdown(!showWeightClassDropdown)}
-                        className="w-full h-10 px-3 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex justify-between items-center"
+                        className="w-full h-10 px-3 bg-app-tertiary border border-app-primary rounded-xl text-app-primary focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex justify-between items-center"
                       >
                         <span>
                           {filters.selectedWeightClasses.length === 0
@@ -1950,88 +2023,91 @@ function RankingsContent() {
                       </button>
 
                       {showWeightClassDropdown && (
-                        <div className="absolute z-10 mt-1 w-full max-h-96 overflow-y-auto bg-gray-700 border border-gray-600 rounded-lg shadow-lg">
-                          {/* Select/Deselect All */}
-                          <div className="sticky top-0 bg-gray-700 border-b border-gray-600 p-2">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setFilters(prev => ({
-                                  ...prev,
-                                  selectedWeightClasses: []
-                                }));
-                              }}
-                              className="text-xs text-blue-400 hover:text-blue-300"
-                            >
-                              Clear All
-                            </button>
-                          </div>
-
-                          {/* Two-column layout: Women | Men */}
-                          <div className="grid grid-cols-2 gap-0 divide-x divide-gray-600">
-                            {/* Women's Column */}
-                            <div>
-                              <div className="px-3 py-2 bg-gray-600 text-xs font-semibold text-gray-300 text-center">
-                                Women
-                              </div>
-                              <div className="p-2">
-                                {CURRENT_WEIGHT_CLASSES.Women.map((weight) => (
-                                  <label
-                                    key={`women-${weight}`}
-                                    className="flex items-center px-2 py-1.5 hover:bg-gray-600 rounded cursor-pointer"
-                                  >
-                                    <input
-                                      type="checkbox"
-                                      checked={filters.selectedWeightClasses.includes(weight)}
-                                      onChange={(e) => {
-                                        const newSelected = e.target.checked
-                                          ? [...filters.selectedWeightClasses, weight]
-                                          : filters.selectedWeightClasses.filter(w => w !== weight);
-                                        setFilters(prev => ({
-                                          ...prev,
-                                          selectedWeightClasses: newSelected
-                                        }));
-                                      }}
-                                      className="mr-2 accent-blue-500"
-                                    />
-                                    <span className="text-sm text-gray-200">{weight}</span>
-                                  </label>
-                                ))}
-                              </div>
+                        <>
+                          <div className="fixed inset-0 z-10" onClick={() => setShowWeightClassDropdown(false)} />
+                          <div className="absolute z-10 mt-1 w-full max-h-96 overflow-y-auto bg-app-surface border border-app-primary rounded-xl shadow-lg">
+                            {/* Select/Deselect All */}
+                            <div className="sticky top-0 bg-app-surface border-b border-app-primary p-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setFilters(prev => ({
+                                    ...prev,
+                                    selectedWeightClasses: []
+                                  }));
+                                }}
+                                className="text-xs text-blue-400 hover:text-blue-300"
+                              >
+                                Clear All
+                              </button>
                             </div>
 
-                            {/* Men's Column */}
-                            <div>
-                              <div className="px-3 py-2 bg-gray-600 text-xs font-semibold text-gray-300 text-center">
-                                Men
+                            {/* Two-column layout: Women | Men */}
+                            <div className="grid grid-cols-2 gap-0 divide-x divide-app-primary">
+                              {/* Women's Column */}
+                              <div>
+                                <div className="px-3 py-2 bg-app-tertiary text-xs font-semibold text-app-tertiary text-center">
+                                  Women
+                                </div>
+                                <div className="p-2">
+                                  {CURRENT_WEIGHT_CLASSES.Women.map((weight) => (
+                                    <label
+                                      key={`women-${weight}`}
+                                      className="flex items-center px-2 py-1.5 hover:bg-app-hover rounded cursor-pointer"
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={filters.selectedWeightClasses.includes(weight)}
+                                        onChange={(e) => {
+                                          const newSelected = e.target.checked
+                                            ? [...filters.selectedWeightClasses, weight]
+                                            : filters.selectedWeightClasses.filter(w => w !== weight);
+                                          setFilters(prev => ({
+                                            ...prev,
+                                            selectedWeightClasses: newSelected
+                                          }));
+                                        }}
+                                        className="mr-2 accent-blue-500"
+                                      />
+                                      <span className="text-sm text-app-secondary">{weight}</span>
+                                    </label>
+                                  ))}
+                                </div>
                               </div>
-                              <div className="p-2">
-                                {CURRENT_WEIGHT_CLASSES.Men.map((weight) => (
-                                  <label
-                                    key={`men-${weight}`}
-                                    className="flex items-center px-2 py-1.5 hover:bg-gray-600 rounded cursor-pointer"
-                                  >
-                                    <input
-                                      type="checkbox"
-                                      checked={filters.selectedWeightClasses.includes(weight)}
-                                      onChange={(e) => {
-                                        const newSelected = e.target.checked
-                                          ? [...filters.selectedWeightClasses, weight]
-                                          : filters.selectedWeightClasses.filter(w => w !== weight);
-                                        setFilters(prev => ({
-                                          ...prev,
-                                          selectedWeightClasses: newSelected
-                                        }));
-                                      }}
-                                      className="mr-2 accent-blue-500"
-                                    />
-                                    <span className="text-sm text-gray-200">{weight}</span>
-                                  </label>
-                                ))}
+
+                              {/* Men's Column */}
+                              <div>
+                                <div className="px-3 py-2 bg-app-tertiary text-xs font-semibold text-app-tertiary text-center">
+                                  Men
+                                </div>
+                                <div className="p-2">
+                                  {CURRENT_WEIGHT_CLASSES.Men.map((weight) => (
+                                    <label
+                                      key={`men-${weight}`}
+                                      className="flex items-center px-2 py-1.5 hover:bg-app-hover rounded cursor-pointer"
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={filters.selectedWeightClasses.includes(weight)}
+                                        onChange={(e) => {
+                                          const newSelected = e.target.checked
+                                            ? [...filters.selectedWeightClasses, weight]
+                                            : filters.selectedWeightClasses.filter(w => w !== weight);
+                                          setFilters(prev => ({
+                                            ...prev,
+                                            selectedWeightClasses: newSelected
+                                          }));
+                                        }}
+                                        className="mr-2 accent-blue-500"
+                                      />
+                                      <span className="text-sm text-app-secondary">{weight}</span>
+                                    </label>
+                                  ))}
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
+                        </>
                       )}
                     </div>
 
@@ -2043,7 +2119,7 @@ function RankingsContent() {
                       <button
                         type="button"
                         onClick={() => setShowHistorical2018Dropdown(!showHistorical2018Dropdown)}
-                        className="w-full h-10 px-3 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex justify-between items-center"
+                        className="w-full h-10 px-3 bg-app-tertiary border border-app-primary rounded-xl text-app-primary focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex justify-between items-center"
                       >
                         <span>
                           {filters.selectedHistorical2018.length === 0
@@ -2054,88 +2130,91 @@ function RankingsContent() {
                       </button>
 
                       {showHistorical2018Dropdown && (
-                        <div className="absolute z-10 mt-1 w-full max-h-96 overflow-y-auto bg-gray-700 border border-gray-600 rounded-lg shadow-lg">
-                          {/* Select/Deselect All */}
-                          <div className="sticky top-0 bg-gray-700 border-b border-gray-600 p-2">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setFilters(prev => ({
-                                  ...prev,
-                                  selectedHistorical2018: []
-                                }));
-                              }}
-                              className="text-xs text-blue-400 hover:text-blue-300"
-                            >
-                              Clear All
-                            </button>
-                          </div>
-
-                          {/* Two-column layout: Women | Men */}
-                          <div className="grid grid-cols-2 gap-0 divide-x divide-gray-600">
-                            {/* Women's Column */}
-                            <div>
-                              <div className="px-3 py-2 bg-gray-600 text-xs font-semibold text-gray-300 text-center">
-                                Women
-                              </div>
-                              <div className="p-2">
-                                {HISTORICAL_2018_2025_WEIGHT_CLASSES.Women.map((weight) => (
-                                  <label
-                                    key={`hist2018-women-${weight}`}
-                                    className="flex items-center px-2 py-1.5 hover:bg-gray-600 rounded cursor-pointer"
-                                  >
-                                    <input
-                                      type="checkbox"
-                                      checked={filters.selectedHistorical2018.includes(weight)}
-                                      onChange={(e) => {
-                                        const newSelected = e.target.checked
-                                          ? [...filters.selectedHistorical2018, weight]
-                                          : filters.selectedHistorical2018.filter(w => w !== weight);
-                                        setFilters(prev => ({
-                                          ...prev,
-                                          selectedHistorical2018: newSelected
-                                        }));
-                                      }}
-                                      className="mr-2 accent-blue-500"
-                                    />
-                                    <span className="text-sm text-gray-200">{weight}</span>
-                                  </label>
-                                ))}
-                              </div>
+                        <>
+                          <div className="fixed inset-0 z-10" onClick={() => setShowHistorical2018Dropdown(false)} />
+                          <div className="absolute z-10 mt-1 w-full max-h-96 overflow-y-auto bg-app-surface border border-app-primary rounded-xl shadow-lg">
+                            {/* Select/Deselect All */}
+                            <div className="sticky top-0 bg-app-surface border-b border-app-primary p-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setFilters(prev => ({
+                                    ...prev,
+                                    selectedHistorical2018: []
+                                  }));
+                                }}
+                                className="text-xs text-blue-400 hover:text-blue-300"
+                              >
+                                Clear All
+                              </button>
                             </div>
 
-                            {/* Men's Column */}
-                            <div>
-                              <div className="px-3 py-2 bg-gray-600 text-xs font-semibold text-gray-300 text-center">
-                                Men
+                            {/* Two-column layout: Women | Men */}
+                            <div className="grid grid-cols-2 gap-0 divide-x divide-app-primary">
+                              {/* Women's Column */}
+                              <div>
+                                <div className="px-3 py-2 bg-app-tertiary text-xs font-semibold text-app-tertiary text-center">
+                                  Women
+                                </div>
+                                <div className="p-2">
+                                  {HISTORICAL_2018_2025_WEIGHT_CLASSES.Women.map((weight) => (
+                                    <label
+                                      key={`hist2018-women-${weight}`}
+                                      className="flex items-center px-2 py-1.5 hover:bg-app-hover rounded cursor-pointer"
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={filters.selectedHistorical2018.includes(weight)}
+                                        onChange={(e) => {
+                                          const newSelected = e.target.checked
+                                            ? [...filters.selectedHistorical2018, weight]
+                                            : filters.selectedHistorical2018.filter(w => w !== weight);
+                                          setFilters(prev => ({
+                                            ...prev,
+                                            selectedHistorical2018: newSelected
+                                          }));
+                                        }}
+                                        className="mr-2 accent-blue-500"
+                                      />
+                                      <span className="text-sm text-app-secondary">{weight}</span>
+                                    </label>
+                                  ))}
+                                </div>
                               </div>
-                              <div className="p-2">
-                                {HISTORICAL_2018_2025_WEIGHT_CLASSES.Men.map((weight) => (
-                                  <label
-                                    key={`hist2018-men-${weight}`}
-                                    className="flex items-center px-2 py-1.5 hover:bg-gray-600 rounded cursor-pointer"
-                                  >
-                                    <input
-                                      type="checkbox"
-                                      checked={filters.selectedHistorical2018.includes(weight)}
-                                      onChange={(e) => {
-                                        const newSelected = e.target.checked
-                                          ? [...filters.selectedHistorical2018, weight]
-                                          : filters.selectedHistorical2018.filter(w => w !== weight);
-                                        setFilters(prev => ({
-                                          ...prev,
-                                          selectedHistorical2018: newSelected
-                                        }));
-                                      }}
-                                      className="mr-2 accent-blue-500"
-                                    />
-                                    <span className="text-sm text-gray-200">{weight}</span>
-                                  </label>
-                                ))}
+
+                              {/* Men's Column */}
+                              <div>
+                                <div className="px-3 py-2 bg-app-tertiary text-xs font-semibold text-app-tertiary text-center">
+                                  Men
+                                </div>
+                                <div className="p-2">
+                                  {HISTORICAL_2018_2025_WEIGHT_CLASSES.Men.map((weight) => (
+                                    <label
+                                      key={`hist2018-men-${weight}`}
+                                      className="flex items-center px-2 py-1.5 hover:bg-app-hover rounded cursor-pointer"
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={filters.selectedHistorical2018.includes(weight)}
+                                        onChange={(e) => {
+                                          const newSelected = e.target.checked
+                                            ? [...filters.selectedHistorical2018, weight]
+                                            : filters.selectedHistorical2018.filter(w => w !== weight);
+                                          setFilters(prev => ({
+                                            ...prev,
+                                            selectedHistorical2018: newSelected
+                                          }));
+                                        }}
+                                        className="mr-2 accent-blue-500"
+                                      />
+                                      <span className="text-sm text-app-secondary">{weight}</span>
+                                    </label>
+                                  ))}
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
+                        </>
                       )}
                     </div>
 
@@ -2147,7 +2226,7 @@ function RankingsContent() {
                       <button
                         type="button"
                         onClick={() => setShowHistorical1998Dropdown(!showHistorical1998Dropdown)}
-                        className="w-full h-10 px-3 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex justify-between items-center"
+                        className="w-full h-10 px-3 bg-app-tertiary border border-app-primary rounded-xl text-app-primary focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex justify-between items-center"
                       >
                         <span>
                           {filters.selectedHistorical1998.length === 0
@@ -2158,88 +2237,91 @@ function RankingsContent() {
                       </button>
 
                       {showHistorical1998Dropdown && (
-                        <div className="absolute z-10 mt-1 w-full max-h-96 overflow-y-auto bg-gray-700 border border-gray-600 rounded-lg shadow-lg">
-                          {/* Select/Deselect All */}
-                          <div className="sticky top-0 bg-gray-700 border-b border-gray-600 p-2">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setFilters(prev => ({
-                                  ...prev,
-                                  selectedHistorical1998: []
-                                }));
-                              }}
-                              className="text-xs text-blue-400 hover:text-blue-300"
-                            >
-                              Clear All
-                            </button>
-                          </div>
-
-                          {/* Two-column layout: Women | Men */}
-                          <div className="grid grid-cols-2 gap-0 divide-x divide-gray-600">
-                            {/* Women's Column */}
-                            <div>
-                              <div className="px-3 py-2 bg-gray-600 text-xs font-semibold text-gray-300 text-center">
-                                Women
-                              </div>
-                              <div className="p-2">
-                                {HISTORICAL_1998_2018_WEIGHT_CLASSES.Women.map((weight) => (
-                                  <label
-                                    key={`hist1998-women-${weight}`}
-                                    className="flex items-center px-2 py-1.5 hover:bg-gray-600 rounded cursor-pointer"
-                                  >
-                                    <input
-                                      type="checkbox"
-                                      checked={filters.selectedHistorical1998.includes(weight)}
-                                      onChange={(e) => {
-                                        const newSelected = e.target.checked
-                                          ? [...filters.selectedHistorical1998, weight]
-                                          : filters.selectedHistorical1998.filter(w => w !== weight);
-                                        setFilters(prev => ({
-                                          ...prev,
-                                          selectedHistorical1998: newSelected
-                                        }));
-                                      }}
-                                      className="mr-2 accent-blue-500"
-                                    />
-                                    <span className="text-sm text-gray-200">{weight}</span>
-                                  </label>
-                                ))}
-                              </div>
+                        <>
+                          <div className="fixed inset-0 z-10" onClick={() => setShowHistorical1998Dropdown(false)} />
+                          <div className="absolute z-10 mt-1 w-full max-h-96 overflow-y-auto bg-app-surface border border-app-primary rounded-xl shadow-lg">
+                            {/* Select/Deselect All */}
+                            <div className="sticky top-0 bg-app-surface border-b border-app-primary p-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setFilters(prev => ({
+                                    ...prev,
+                                    selectedHistorical1998: []
+                                  }));
+                                }}
+                                className="text-xs text-blue-400 hover:text-blue-300"
+                              >
+                                Clear All
+                              </button>
                             </div>
 
-                            {/* Men's Column */}
-                            <div>
-                              <div className="px-3 py-2 bg-gray-600 text-xs font-semibold text-gray-300 text-center">
-                                Men
+                            {/* Two-column layout: Women | Men */}
+                            <div className="grid grid-cols-2 gap-0 divide-x divide-app-primary">
+                              {/* Women's Column */}
+                              <div>
+                                <div className="px-3 py-2 bg-app-tertiary text-xs font-semibold text-app-tertiary text-center">
+                                  Women
+                                </div>
+                                <div className="p-2">
+                                  {HISTORICAL_1998_2018_WEIGHT_CLASSES.Women.map((weight) => (
+                                    <label
+                                      key={`hist1998-women-${weight}`}
+                                      className="flex items-center px-2 py-1.5 hover:bg-app-hover rounded cursor-pointer"
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={filters.selectedHistorical1998.includes(weight)}
+                                        onChange={(e) => {
+                                          const newSelected = e.target.checked
+                                            ? [...filters.selectedHistorical1998, weight]
+                                            : filters.selectedHistorical1998.filter(w => w !== weight);
+                                          setFilters(prev => ({
+                                            ...prev,
+                                            selectedHistorical1998: newSelected
+                                          }));
+                                        }}
+                                        className="mr-2 accent-blue-500"
+                                      />
+                                      <span className="text-sm text-app-secondary">{weight}</span>
+                                    </label>
+                                  ))}
+                                </div>
                               </div>
-                              <div className="p-2">
-                                {HISTORICAL_1998_2018_WEIGHT_CLASSES.Men.map((weight) => (
-                                  <label
-                                    key={`hist1998-men-${weight}`}
-                                    className="flex items-center px-2 py-1.5 hover:bg-gray-600 rounded cursor-pointer"
-                                  >
-                                    <input
-                                      type="checkbox"
-                                      checked={filters.selectedHistorical1998.includes(weight)}
-                                      onChange={(e) => {
-                                        const newSelected = e.target.checked
-                                          ? [...filters.selectedHistorical1998, weight]
-                                          : filters.selectedHistorical1998.filter(w => w !== weight);
-                                        setFilters(prev => ({
-                                          ...prev,
-                                          selectedHistorical1998: newSelected
-                                        }));
-                                      }}
-                                      className="mr-2 accent-blue-500"
-                                    />
-                                    <span className="text-sm text-gray-200">{weight}</span>
-                                  </label>
-                                ))}
+
+                              {/* Men's Column */}
+                              <div>
+                                <div className="px-3 py-2 bg-app-tertiary text-xs font-semibold text-app-tertiary text-center">
+                                  Men
+                                </div>
+                                <div className="p-2">
+                                  {HISTORICAL_1998_2018_WEIGHT_CLASSES.Men.map((weight) => (
+                                    <label
+                                      key={`hist1998-men-${weight}`}
+                                      className="flex items-center px-2 py-1.5 hover:bg-app-hover rounded cursor-pointer"
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={filters.selectedHistorical1998.includes(weight)}
+                                        onChange={(e) => {
+                                          const newSelected = e.target.checked
+                                            ? [...filters.selectedHistorical1998, weight]
+                                            : filters.selectedHistorical1998.filter(w => w !== weight);
+                                          setFilters(prev => ({
+                                            ...prev,
+                                            selectedHistorical1998: newSelected
+                                          }));
+                                        }}
+                                        className="mr-2 accent-blue-500"
+                                      />
+                                      <span className="text-sm text-app-secondary">{weight}</span>
+                                    </label>
+                                  ))}
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
+                        </>
                       )}
                     </div>
 
@@ -2254,7 +2336,7 @@ function RankingsContent() {
                           placeholder="Min"
                           value={filters.bodyWeightMin}
                           onChange={(e) => handleFilterChange("bodyWeightMin", e.target.value)}
-                          className="w-28 h-10 px-3 bg-gray-600 border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-28 h-10 px-3 bg-app-tertiary border border-app-primary rounded-xl text-app-primary placeholder-app-tertiary focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                         <span className="text-gray-400">–</span>
                         <input
@@ -2264,7 +2346,7 @@ function RankingsContent() {
                           placeholder="Max"
                           value={filters.bodyWeightMax}
                           onChange={(e) => handleFilterChange("bodyWeightMax", e.target.value)}
-                          className="w-28 h-10 px-3 bg-gray-600 border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-28 h-10 px-3 bg-app-tertiary border border-app-primary rounded-xl text-app-primary placeholder-app-tertiary focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                     </div>
@@ -2277,7 +2359,7 @@ function RankingsContent() {
                       <button
                         type="button"
                         onClick={() => setShowYearDropdown((prev) => !prev)}
-                        className="w-full flex items-center justify-between h-10 px-3 bg-gray-600 border border-gray-500 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full flex items-center justify-between h-10 px-3 bg-app-tertiary border border-app-primary rounded-xl text-app-primary text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
                         <span className="truncate">
                           {formatSelectedYears(filters.selectedYears)}
@@ -2288,76 +2370,79 @@ function RankingsContent() {
                       </button>
 
                       {showYearDropdown && (
-                        <div className="absolute z-20 mt-1 w-64 max-h-64 overflow-y-auto bg-gray-800 border border-gray-600 rounded-lg shadow-lg p-2">
-                          <div className="flex justify-between items-center mb-2 text-[10px] text-gray-400">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const currentYear = new Date().getFullYear();
-                                const allYears = Array.from(
-                                  { length: currentYear - 1998 + 1 },
-                                  (_, i) => currentYear - i
+                        <>
+                          <div className="fixed inset-0 z-10" onClick={() => setShowYearDropdown(false)} />
+                          <div className="absolute z-20 mt-1 w-64 max-h-64 overflow-y-auto bg-app-surface border border-app-primary rounded-xl shadow-lg p-2">
+                            <div className="flex justify-between items-center mb-2 text-[10px] text-gray-400">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const currentYear = new Date().getFullYear();
+                                  const allYears = Array.from(
+                                    { length: currentYear - 1998 + 1 },
+                                    (_, i) => currentYear - i
+                                  );
+                                  setFilters((prev) => ({
+                                    ...prev,
+                                    selectedYears: allYears,
+                                  }));
+                                }}
+                                className="px-2 py-1 bg-app-tertiary rounded hover:bg-app-hover"
+                              >
+                                Select All
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setFilters((prev) => ({
+                                    ...prev,
+                                    selectedYears: [],
+                                  }))
+                                }
+                                className="px-2 py-1 bg-app-tertiary rounded hover:bg-app-hover"
+                              >
+                                Clear
+                              </button>
+                            </div>
+                            <div className="grid grid-cols-3 gap-1">
+                              {Array.from(
+                                { length: new Date().getFullYear() - 1998 + 1 },
+                                (_, i) => new Date().getFullYear() - i
+                              ).map((year) => {
+                                const checked =
+                                  filters.selectedYears.includes(year);
+                                return (
+                                  <label
+                                    key={year}
+                                    className="flex items-center space-x-1 text-[10px] text-app-secondary cursor-pointer"
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={checked}
+                                      onChange={() => {
+                                        setFilters((prev) => {
+                                          const exists =
+                                            prev.selectedYears.includes(year);
+                                          return {
+                                            ...prev,
+                                            selectedYears: exists
+                                              ? prev.selectedYears.filter(
+                                                (y) => y !== year
+                                              )
+                                              : [...prev.selectedYears, year],
+                                          };
+                                        });
+                                      }}
+                                      className="h-3 w-3 accent-blue-500"
+                                    />
+                                    <span>{year}</span>
+                                  </label>
                                 );
-                                setFilters((prev) => ({
-                                  ...prev,
-                                  selectedYears: allYears,
-                                }));
-                              }}
-                              className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600"
-                            >
-                              Select All
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setFilters((prev) => ({
-                                  ...prev,
-                                  selectedYears: [],
-                                }))
-                              }
-                              className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600"
-                            >
-                              Clear
-                            </button>
-                          </div>
-                          <div className="grid grid-cols-3 gap-1">
-                            {Array.from(
-                              { length: new Date().getFullYear() - 1998 + 1 },
-                              (_, i) => new Date().getFullYear() - i
-                            ).map((year) => {
-                              const checked =
-                                filters.selectedYears.includes(year);
-                              return (
-                                <label
-                                  key={year}
-                                  className="flex items-center space-x-1 text-[10px] text-gray-200 cursor-pointer"
-                                >
-                                  <input
-                                    type="checkbox"
-                                    checked={checked}
-                                    onChange={() => {
-                                      setFilters((prev) => {
-                                        const exists =
-                                          prev.selectedYears.includes(year);
-                                        return {
-                                          ...prev,
-                                          selectedYears: exists
-                                            ? prev.selectedYears.filter(
-                                              (y) => y !== year
-                                            )
-                                            : [...prev.selectedYears, year],
-                                        };
-                                      });
-                                    }}
-                                    className="h-3 w-3 accent-blue-500"
-                                  />
-                                  <span>{year}</span>
-                                </label>
-                              );
-                            })}
-                          </div>
+                              })}
+                            </div>
 
-                        </div>
+                          </div>
+                        </>
                       )}
                     </div>
 
@@ -2369,14 +2454,14 @@ function RankingsContent() {
                           type="date"
                           value={filters.startDate}
                           onChange={(e) => handleFilterChange("startDate", e.target.value)}
-                          className="w-32 h-10 px-1.5 text-xs bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-32 h-10 px-1.5 text-xs bg-app-tertiary border border-app-primary rounded-xl text-app-primary focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                         <span className="text-gray-400 text-xs">–</span>
                         <input
                           type="date"
                           value={filters.endDate}
                           onChange={(e) => handleFilterChange("endDate", e.target.value)}
-                          className="w-32 h-10 px-1.5 text-xs bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-32 h-10 px-1.5 text-xs bg-app-tertiary border border-app-primary rounded-xl text-app-primary focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                     </div>
@@ -2389,7 +2474,7 @@ function RankingsContent() {
                       <button
                         type="button"
                         onClick={() => setShowCountryDropdown((prev) => !prev)}
-                        className="w-full flex items-center justify-between h-10 px-3 bg-gray-600 border border-gray-500 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full flex items-center justify-between h-10 px-3 bg-app-tertiary border border-app-primary rounded-xl text-app-primary text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
                         <span>
                           {filters.selectedCountries.length === 0
@@ -2402,78 +2487,81 @@ function RankingsContent() {
                       </button>
 
                       {showCountryDropdown && (
-                        <div className="absolute z-20 mt-1 w-64 max-h-64 overflow-y-auto bg-gray-800 border border-gray-600 rounded-lg shadow-lg p-2">
-                          <div className="flex justify-between items-center mb-2 text-[10px] text-gray-400">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const allCountries = filterOptions.countries.map(c => c.code);
-                                setFilters((prev) => ({
-                                  ...prev,
-                                  selectedCountries: allCountries,
-                                }));
-                              }}
-                              className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600"
-                            >
-                              Select All
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setFilters((prev) => ({
-                                  ...prev,
-                                  selectedCountries: [],
-                                }))
-                              }
-                              className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600"
-                            >
-                              Clear
-                            </button>
+                        <>
+                          <div className="fixed inset-0 z-10" onClick={() => setShowCountryDropdown(false)} />
+                          <div className="absolute z-20 mt-1 w-64 max-h-64 overflow-y-auto bg-app-surface border border-app-primary rounded-xl shadow-lg p-2">
+                            <div className="flex justify-between items-center mb-2 text-[10px] text-gray-400">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const allCountries = filterOptions.countries.map(c => c.code);
+                                  setFilters((prev) => ({
+                                    ...prev,
+                                    selectedCountries: allCountries,
+                                  }));
+                                }}
+                                className="px-2 py-1 bg-app-tertiary rounded hover:bg-app-hover"
+                              >
+                                Select All
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setFilters((prev) => ({
+                                    ...prev,
+                                    selectedCountries: [],
+                                  }))
+                                }
+                                className="px-2 py-1 bg-app-tertiary rounded hover:bg-app-hover"
+                              >
+                                Clear
+                              </button>
+                            </div>
+                            <div className="grid grid-cols-1 gap-1">
+                              {filterOptions.countries.length > 0 ? (
+                                filterOptions.countries.map((country) => {
+                                  const checked = filters.selectedCountries.includes(country.code);
+                                  const FlagComponent = getCountryFlagComponent(country.code);
+                                  return (
+                                    <label
+                                      key={country.code}
+                                      className="flex items-center space-x-2 text-xs text-app-secondary cursor-pointer hover:bg-app-hover p-1 rounded"
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={checked}
+                                        onChange={() => {
+                                          setFilters((prev) => {
+                                            const exists = prev.selectedCountries.includes(country.code);
+                                            return {
+                                              ...prev,
+                                              selectedCountries: exists
+                                                ? prev.selectedCountries.filter((c) => c !== country.code)
+                                                : [...prev.selectedCountries, country.code],
+                                            };
+                                          });
+                                        }}
+                                        className="h-3 w-3 accent-blue-500 flex-shrink-0"
+                                      />
+                                      <div className="flex items-center space-x-2 truncate">
+                                        {FlagComponent && (
+                                          <div className="flex-shrink-0 w-5">
+                                            <FlagComponent style={{ width: '100%', height: 'auto' }} />
+                                          </div>
+                                        )}
+                                        <span className="truncate">{country.name}</span>
+                                      </div>
+                                    </label>
+                                  );
+                                })
+                              ) : (
+                                <div className="text-gray-400 text-xs p-2 text-center">
+                                  No countries available for selected criteria
+                                </div>
+                              )}
+                            </div>
                           </div>
-                          <div className="grid grid-cols-1 gap-1">
-                            {filterOptions.countries.length > 0 ? (
-                              filterOptions.countries.map((country) => {
-                                const checked = filters.selectedCountries.includes(country.code);
-                                const FlagComponent = getCountryFlagComponent(country.code);
-                                return (
-                                  <label
-                                    key={country.code}
-                                    className="flex items-center space-x-2 text-xs text-gray-200 cursor-pointer hover:bg-gray-700 p-1 rounded"
-                                  >
-                                    <input
-                                      type="checkbox"
-                                      checked={checked}
-                                      onChange={() => {
-                                        setFilters((prev) => {
-                                          const exists = prev.selectedCountries.includes(country.code);
-                                          return {
-                                            ...prev,
-                                            selectedCountries: exists
-                                              ? prev.selectedCountries.filter((c) => c !== country.code)
-                                              : [...prev.selectedCountries, country.code],
-                                          };
-                                        });
-                                      }}
-                                      className="h-3 w-3 accent-blue-500 flex-shrink-0"
-                                    />
-                                    <div className="flex items-center space-x-2 truncate">
-                                      {FlagComponent && (
-                                        <div className="flex-shrink-0 w-5">
-                                          <FlagComponent style={{ width: '100%', height: 'auto' }} />
-                                        </div>
-                                      )}
-                                      <span className="truncate">{country.name}</span>
-                                    </div>
-                                  </label>
-                                );
-                              })
-                            ) : (
-                              <div className="text-gray-400 text-xs p-2 text-center">
-                                No countries available for selected criteria
-                              </div>
-                            )}
-                          </div>
-                        </div>
+                        </>
                       )}
                     </div>
 
@@ -2483,70 +2571,73 @@ function RankingsContent() {
                       <button
                         type="button"
                         onClick={() => setShowWsoDropdown((prev) => !prev)}
-                        className="w-full flex items-center justify-between h-10 px-3 bg-gray-600 border border-gray-500 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full flex items-center justify-between h-10 px-3 bg-app-tertiary border border-app-primary rounded-xl text-app-primary text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
                         <span>{filters.selectedWSO.length === 0 ? "All WSOs" : `${filters.selectedWSO.length} selected`}</span>
                         <span className="ml-2 text-xs text-gray-300">{showWsoDropdown ? "▲" : "▼"}</span>
                       </button>
 
                       {showWsoDropdown && (
-                        <div className="absolute z-20 mt-1 w-64 max-h-72 overflow-y-auto bg-gray-800 border border-gray-600 rounded-lg shadow-lg p-3 space-y-3">
-                          <div className="flex items-center space-x-2">
-                            <input
-                              type="text"
-                              value={wsoSearch}
-                              onChange={(e) => setWsoSearch(e.target.value)}
-                              placeholder="Type to filter WSOs"
-                              className="flex-1 h-9 px-3 bg-gray-700 border border-gray-600 rounded text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
+                        <>
+                          <div className="fixed inset-0 z-10" onClick={() => setShowWsoDropdown(false)} />
+                          <div className="absolute z-20 mt-1 w-64 max-h-72 overflow-y-auto bg-app-surface border border-app-primary rounded-xl shadow-lg p-3 space-y-3">
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="text"
+                                value={wsoSearch}
+                                onChange={(e) => setWsoSearch(e.target.value)}
+                                placeholder="Type to filter WSOs"
+                                className="flex-1 h-9 px-3 bg-app-tertiary border border-app-primary rounded text-sm text-app-primary placeholder-app-tertiary focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              />
+                            </div>
+                            <div className="flex justify-between text-[11px] text-gray-400">
+                              <button
+                                type="button"
+                                onClick={() => setFilters((prev) => ({ ...prev, selectedWSO: [...filterOptions.wsoCategories] }))}
+                                className="px-2 py-1 bg-app-tertiary rounded hover:bg-app-hover"
+                              >
+                                Select All
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setFilters((prev) => ({ ...prev, selectedWSO: [] }))}
+                                className="px-2 py-1 bg-app-tertiary rounded hover:bg-app-hover"
+                              >
+                                Clear
+                              </button>
+                            </div>
+                            <div className="space-y-1">
+                              {filterOptions.wsoCategories
+                                .filter((wso) => wso.toLowerCase().includes(wsoSearch.toLowerCase()))
+                                .map((wso) => {
+                                  const checked = filters.selectedWSO.includes(wso);
+                                  return (
+                                    <label key={wso} className="flex items-center space-x-2 text-sm text-app-secondary cursor-pointer hover:bg-app-hover px-2 py-1 rounded">
+                                      <input
+                                        type="checkbox"
+                                        checked={checked}
+                                        onChange={() => {
+                                          setFilters((prev) => {
+                                            const exists = prev.selectedWSO.includes(wso);
+                                            return {
+                                              ...prev,
+                                              selectedWSO: exists ? prev.selectedWSO.filter((item) => item !== wso) : [...prev.selectedWSO, wso],
+                                            };
+                                          });
+                                        }}
+                                        className="h-3 w-3 accent-blue-500"
+                                      />
+                                      <span className="truncate">{wso}</span>
+                                    </label>
+                                  );
+                                })}
+                              {filterOptions.wsoCategories.filter((wso) => wso.toLowerCase().includes(wsoSearch.toLowerCase())).length === 0 && (
+                                <div className="text-gray-400 text-xs text-center py-1">No WSO matches</div>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-gray-500">WSO filter only applies to USAW results.</p>
                           </div>
-                          <div className="flex justify-between text-[11px] text-gray-400">
-                            <button
-                              type="button"
-                              onClick={() => setFilters((prev) => ({ ...prev, selectedWSO: [...filterOptions.wsoCategories] }))}
-                              className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600"
-                            >
-                              Select All
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setFilters((prev) => ({ ...prev, selectedWSO: [] }))}
-                              className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600"
-                            >
-                              Clear
-                            </button>
-                          </div>
-                          <div className="space-y-1">
-                            {filterOptions.wsoCategories
-                              .filter((wso) => wso.toLowerCase().includes(wsoSearch.toLowerCase()))
-                              .map((wso) => {
-                                const checked = filters.selectedWSO.includes(wso);
-                                return (
-                                  <label key={wso} className="flex items-center space-x-2 text-sm text-gray-200 cursor-pointer hover:bg-gray-700 px-2 py-1 rounded">
-                                    <input
-                                      type="checkbox"
-                                      checked={checked}
-                                      onChange={() => {
-                                        setFilters((prev) => {
-                                          const exists = prev.selectedWSO.includes(wso);
-                                          return {
-                                            ...prev,
-                                            selectedWSO: exists ? prev.selectedWSO.filter((item) => item !== wso) : [...prev.selectedWSO, wso],
-                                          };
-                                        });
-                                      }}
-                                      className="h-3 w-3 accent-blue-500"
-                                    />
-                                    <span className="truncate">{wso}</span>
-                                  </label>
-                                );
-                              })}
-                            {filterOptions.wsoCategories.filter((wso) => wso.toLowerCase().includes(wsoSearch.toLowerCase())).length === 0 && (
-                              <div className="text-gray-400 text-xs text-center py-1">No WSO matches</div>
-                            )}
-                          </div>
-                          <p className="text-[11px] text-gray-500">WSO filter only applies to USAW results.</p>
-                        </div>
+                        </>
                       )}
                     </div>
 
@@ -2556,70 +2647,73 @@ function RankingsContent() {
                       <button
                         type="button"
                         onClick={() => setShowClubDropdown((prev) => !prev)}
-                        className="w-full flex items-center justify-between h-10 px-3 bg-gray-600 border border-gray-500 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full flex items-center justify-between h-10 px-3 bg-app-tertiary border border-app-primary rounded-xl text-app-primary text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
                         <span>{filters.selectedClubs.length === 0 ? "All Clubs" : `${filters.selectedClubs.length} selected`}</span>
                         <span className="ml-2 text-xs text-gray-300">{showClubDropdown ? "▲" : "▼"}</span>
                       </button>
 
                       {showClubDropdown && (
-                        <div className="absolute z-20 mt-1 w-64 max-h-72 overflow-y-auto bg-gray-800 border border-gray-600 rounded-lg shadow-lg p-3 space-y-3">
-                          <div className="flex items-center space-x-2">
-                            <input
-                              type="text"
-                              value={clubSearch}
-                              onChange={(e) => setClubSearch(e.target.value)}
-                              placeholder="Type to filter clubs"
-                              className="flex-1 h-9 px-3 bg-gray-700 border border-gray-600 rounded text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
+                        <>
+                          <div className="fixed inset-0 z-10" onClick={() => setShowClubDropdown(false)} />
+                          <div className="absolute z-20 mt-1 w-64 max-h-72 overflow-y-auto bg-app-surface border border-app-primary rounded-xl shadow-lg p-3 space-y-3">
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="text"
+                                value={clubSearch}
+                                onChange={(e) => setClubSearch(e.target.value)}
+                                placeholder="Type to filter clubs"
+                                className="flex-1 h-9 px-3 bg-app-tertiary border border-app-primary rounded text-sm text-app-primary placeholder-app-tertiary focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              />
+                            </div>
+                            <div className="flex justify-between text-[11px] text-gray-400">
+                              <button
+                                type="button"
+                                onClick={() => setFilters((prev) => ({ ...prev, selectedClubs: [...filterOptions.barbellClubs] }))}
+                                className="px-2 py-1 bg-app-tertiary rounded hover:bg-app-hover"
+                              >
+                                Select All
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setFilters((prev) => ({ ...prev, selectedClubs: [] }))}
+                                className="px-2 py-1 bg-app-tertiary rounded hover:bg-app-hover"
+                              >
+                                Clear
+                              </button>
+                            </div>
+                            <div className="space-y-1">
+                              {filterOptions.barbellClubs
+                                .filter((club) => club.toLowerCase().includes(clubSearch.toLowerCase()))
+                                .map((club) => {
+                                  const checked = filters.selectedClubs.includes(club);
+                                  return (
+                                    <label key={club} className="flex items-center space-x-2 text-sm text-app-secondary cursor-pointer hover:bg-app-hover px-2 py-1 rounded">
+                                      <input
+                                        type="checkbox"
+                                        checked={checked}
+                                        onChange={() => {
+                                          setFilters((prev) => {
+                                            const exists = prev.selectedClubs.includes(club);
+                                            return {
+                                              ...prev,
+                                              selectedClubs: exists ? prev.selectedClubs.filter((item) => item !== club) : [...prev.selectedClubs, club],
+                                            };
+                                          });
+                                        }}
+                                        className="h-3 w-3 accent-blue-500"
+                                      />
+                                      <span className="truncate">{club}</span>
+                                    </label>
+                                  );
+                                })}
+                              {filterOptions.barbellClubs.filter((club) => club.toLowerCase().includes(clubSearch.toLowerCase())).length === 0 && (
+                                <div className="text-gray-400 text-xs text-center py-1">No club matches</div>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-gray-500">Club filter only applies to USAW results.</p>
                           </div>
-                          <div className="flex justify-between text-[11px] text-gray-400">
-                            <button
-                              type="button"
-                              onClick={() => setFilters((prev) => ({ ...prev, selectedClubs: [...filterOptions.barbellClubs] }))}
-                              className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600"
-                            >
-                              Select All
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setFilters((prev) => ({ ...prev, selectedClubs: [] }))}
-                              className="px-2 py-1 bg-gray-700 rounded hover:bg-gray-600"
-                            >
-                              Clear
-                            </button>
-                          </div>
-                          <div className="space-y-1">
-                            {filterOptions.barbellClubs
-                              .filter((club) => club.toLowerCase().includes(clubSearch.toLowerCase()))
-                              .map((club) => {
-                                const checked = filters.selectedClubs.includes(club);
-                                return (
-                                  <label key={club} className="flex items-center space-x-2 text-sm text-gray-200 cursor-pointer hover:bg-gray-700 px-2 py-1 rounded">
-                                    <input
-                                      type="checkbox"
-                                      checked={checked}
-                                      onChange={() => {
-                                        setFilters((prev) => {
-                                          const exists = prev.selectedClubs.includes(club);
-                                          return {
-                                            ...prev,
-                                            selectedClubs: exists ? prev.selectedClubs.filter((item) => item !== club) : [...prev.selectedClubs, club],
-                                          };
-                                        });
-                                      }}
-                                      className="h-3 w-3 accent-blue-500"
-                                    />
-                                    <span className="truncate">{club}</span>
-                                  </label>
-                                );
-                              })}
-                            {filterOptions.barbellClubs.filter((club) => club.toLowerCase().includes(clubSearch.toLowerCase())).length === 0 && (
-                              <div className="text-gray-400 text-xs text-center py-1">No club matches</div>
-                            )}
-                          </div>
-                          <p className="text-[11px] text-gray-500">Club filter only applies to USAW results.</p>
-                        </div>
+                        </>
                       )}
                     </div>
                   </div>
@@ -2985,12 +3079,7 @@ function RankingsContent() {
             />
           )}
 
-          {showYearDropdown && (
-            <div
-              className="fixed inset-0 z-0"
-              onClick={() => setShowYearDropdown(false)}
-            />
-          )}
+
         </div>
       </div>
     </div >
