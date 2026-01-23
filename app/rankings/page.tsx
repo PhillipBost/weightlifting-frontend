@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { getCountryFlagComponent } from "../utils/countryFlags";
 import { SearchableDropdown } from "../components/SearchableDropdown";
+import { MetricTooltip } from "../components/MetricTooltip";
 
 interface AthleteRanking {
   lifter_id: string;

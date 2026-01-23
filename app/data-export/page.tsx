@@ -921,109 +921,33 @@ export default function DataExportPage() {
 
                                     {/* Country */}
                                     <div>
-                                        <label className="text-xs font-semibold text-app-tertiary mb-1.5 block">Country</label>
-
                                         {filters.federation === 'usaw' ? (
                                             <div className="w-full px-3 py-2 bg-app-tertiary/50 rounded-xl border border-app-primary/50 text-sm text-app-tertiary cursor-not-allowed flex items-center">
                                                 United States
                                             </div>
                                         ) : (
-                                            <div className="space-y-2 relative">
-                                                <div
-                                                    onClick={() => setShowCountryDropdown(!showCountryDropdown)}
-                                                    className="w-full px-3 py-2 bg-app-tertiary rounded-xl border border-app-primary text-sm text-app-primary cursor-pointer flex justify-between items-center"
-                                                >
-                                                    <span>
-                                                        {filters.selectedCountries.length === 0
-                                                            ? "All Countries"
-                                                            : filters.selectedCountries.length > 3
-                                                                ? `${filters.selectedCountries.length} Countries Selected`
-                                                                : filters.selectedCountries.slice(0, 3).join(", ") + (filters.selectedCountries.length > 3 ? "..." : "")}
-                                                    </span>
-                                                    <Filter className="h-3 w-3 opacity-50" />
-                                                </div>
-
-                                                {showCountryDropdown && (
-                                                    <>
-                                                        <div
-                                                            className="fixed inset-0 z-10"
-                                                            onClick={() => setShowCountryDropdown(false)}
-                                                        />
-                                                        <div className="absolute z-20 mt-1 w-full max-h-64 overflow-y-auto bg-app-surface border border-app-primary rounded-xl shadow-lg p-2">
-                                                            <div className="flex justify-between items-center mb-2">
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => {
-                                                                        const allCountries = filterOptions.countries.map(c => c.code);
-                                                                        setFilters((prev) => ({
-                                                                            ...prev,
-                                                                            selectedCountries: allCountries,
-                                                                        }));
-                                                                    }}
-                                                                    className="px-2 py-1 bg-app-tertiary rounded hover:bg-app-hover text-xs text-app-secondary"
-                                                                >
-                                                                    Select All
-                                                                </button>
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() =>
-                                                                        setFilters((prev) => ({
-                                                                            ...prev,
-                                                                            selectedCountries: [],
-                                                                        }))
-                                                                    }
-                                                                    className="px-2 py-1 bg-app-tertiary rounded hover:bg-app-hover text-xs text-app-secondary"
-                                                                >
-                                                                    Clear
-                                                                </button>
-                                                            </div>
-                                                            <div className="grid grid-cols-1 gap-1">
-                                                                {filterOptions.countries.length > 0 ? (
-                                                                    filterOptions.countries.map((country) => {
-                                                                        const checked = filters.selectedCountries.includes(country.code);
-                                                                        const FlagComponent = getCountryFlagComponent(country.code);
-                                                                        return (
-                                                                            <label
-                                                                                key={country.code}
-                                                                                className="flex items-center space-x-2 text-xs text-app-secondary cursor-pointer hover:bg-app-hover p-1 rounded"
-                                                                            >
-                                                                                <input
-                                                                                    type="checkbox"
-                                                                                    checked={checked}
-                                                                                    onChange={() => {
-                                                                                        setFilters((prev) => {
-                                                                                            const exists = prev.selectedCountries.includes(country.code);
-                                                                                            return {
-                                                                                                ...prev,
-                                                                                                selectedCountries: exists
-                                                                                                    ? prev.selectedCountries.filter((c) => c !== country.code)
-                                                                                                    : [...prev.selectedCountries, country.code],
-                                                                                            };
-                                                                                        });
-                                                                                    }}
-                                                                                    className="h-3 w-3 accent-blue-500 flex-shrink-0"
-                                                                                />
-                                                                                <div className="flex items-center space-x-2 truncate">
-                                                                                    {FlagComponent && (
-                                                                                        <div className="flex-shrink-0 w-5">
-                                                                                            <FlagComponent style={{ width: '100%', height: 'auto' }} />
-                                                                                        </div>
-                                                                                    )}
-                                                                                    <span className="truncate">{country.name}</span>
-                                                                                </div>
-                                                                            </label>
-                                                                        );
-                                                                    })
-                                                                ) : (
-                                                                    <div className="text-app-tertiary text-xs p-2 text-center">
-                                                                        No countries available
-                                                                    </div>
-                                                                )}
-                                                            </div>
+                                            <SearchableDropdown
+                                                label="Country"
+                                                placeholder="All Countries"
+                                                options={filterOptions.countries}
+                                                selected={filters.selectedCountries}
+                                                onSelect={(selected) => setFilters(prev => ({ ...prev, selectedCountries: selected }))}
+                                                getValue={(item) => item.code}
+                                                getLabel={(item) => item.name}
+                                                renderOption={(item) => {
+                                                    const FlagComponent = getCountryFlagComponent(item.code);
+                                                    return (
+                                                        <div className="flex items-center space-x-2 truncate">
+                                                            {FlagComponent && (
+                                                                <div className="flex-shrink-0 w-5">
+                                                                    <FlagComponent style={{ width: '100%', height: 'auto' }} />
+                                                                </div>
+                                                            )}
+                                                            <span className="truncate">{item.name}</span>
                                                         </div>
-                                                    </>
-                                                )}
-                                            </div>
+                                                    );
+                                                }}
+                                            />
                                         )}
                                     </div>
 
