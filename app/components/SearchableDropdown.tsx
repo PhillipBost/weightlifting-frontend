@@ -31,8 +31,8 @@ export function SearchableDropdown<T>({
     getLabel,
     renderOption,
     placeholder = "Select...",
-    // Default values matching the current "Premium" styling in RankingsPage
-    triggerClassName = "w-full flex items-center justify-between h-10 px-3 bg-app-tertiary border border-app-primary rounded-xl text-app-primary text-sm focus:outline-none focus:ring-2 focus:ring-blue-500",
+    // Default values matching the current "Premium" styling in RankingsPage (now base size)
+    triggerClassName = "w-full flex items-center justify-between h-10 px-3 bg-app-tertiary border border-app-primary rounded-xl text-app-primary focus:outline-none focus:ring-2 focus:ring-blue-500",
     dropdownClassName = "absolute z-20 mt-1 w-full max-h-64 overflow-y-auto bg-app-surface border border-app-primary rounded-xl shadow-lg p-2",
     disabled = false
 }: SearchableDropdownProps<T>) {
@@ -99,6 +99,17 @@ export function SearchableDropdown<T>({
         onSelect(newSelected);
     };
 
+    const getTriggerText = () => {
+        if (disabled && selected.length === 0) return "N/A";
+        if (selected.length === 0) return placeholder;
+        if (selected.length === 1) {
+            // Find label for the single selected item
+            const item = options.find(o => getValue(o) === selected[0]);
+            return item ? getLabel(item) : selected[0];
+        }
+        return `${selected.length} selected`;
+    };
+
     return (
         <div className="relative" ref={containerRef}>
             <label className={`block text-sm font-medium mb-1 ${disabled ? 'text-app-muted' : 'text-app-tertiary'}`}>
@@ -112,11 +123,7 @@ export function SearchableDropdown<T>({
                 className={`${triggerClassName} ${disabled ? 'opacity-50 cursor-not-allowed bg-app-tertiary/50' : 'cursor-pointer hover:bg-app-hover'}`}
             >
                 <span className="truncate">
-                    {disabled
-                        ? "N/A"
-                        : selected.length === 0
-                            ? placeholder
-                            : `${selected.length} selected`}
+                    {getTriggerText()}
                 </span>
                 <span className={`ml-2 text-xs flex-shrink-0 ${disabled ? 'text-app-muted' : 'text-app-tertiary'}`}>
                     <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />

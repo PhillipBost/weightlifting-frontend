@@ -2280,7 +2280,7 @@ function RankingsContent() {
                       <button
                         type="button"
                         onClick={() => setShowYearDropdown((prev) => !prev)}
-                        className="w-full flex items-center justify-between h-10 px-3 bg-app-tertiary border border-app-primary rounded-xl text-app-primary text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full flex items-center justify-between h-10 px-3 bg-app-tertiary border border-app-primary rounded-xl text-app-primary focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
                         <span className="truncate">
                           {formatSelectedYears(filters.selectedYears)}

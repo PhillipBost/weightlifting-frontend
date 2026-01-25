@@ -140,7 +140,7 @@ export default function DataExportPage() {
     const [filters, setFilters] = useState({
         gender: "all",
         ageCategory: "all",
-        federation: "usaw",
+        federation: "usaw" as "usaw" | "iwf",
         selectedYears: [2025] as number[],
         selectedCountries: [] as string[],
         selectedWeightClasses: [] as string[],
@@ -149,6 +149,10 @@ export default function DataExportPage() {
         startDate: "",
         endDate: "",
         selectedWSO: [] as string[],
+        selectedClubs: [] as string[],
+        bodyWeightMin: "",
+        bodyWeightMax: "",
+        searchTerm: "",
     });
 
     // Filter options (populated from data)
@@ -457,6 +461,9 @@ export default function DataExportPage() {
                 }
             });
 
+            // Explicitly ensure USA is present
+            countryMap.set('USA', 'United States');
+
             // --- FILTER OPTION EXTRACTION (Match Rankings Page Logic) ---
             const weightClassCombinations = new Set<string>();
             const wsoCategoriesSet = new Set<string>();
@@ -602,6 +609,23 @@ export default function DataExportPage() {
         if (age >= 80) categories.push("Masters (80+)");
 
         return categories;
+    }
+
+    // Helper function to format selected years for display
+    function formatSelectedYears(years: number[]): string {
+        if (years.length === 0) {
+            return "All Years (1998–" + new Date().getFullYear() + ")";
+        }
+
+        const sorted = [...years].sort((a, b) => b - a);
+
+        // If 6 or fewer years, show all
+        if (sorted.length <= 6) {
+            return sorted.join(", ");
+        }
+
+        // If more than 6, show first 2, ellipsis, and last 2
+        return `${sorted[0]}, ${sorted[1]}, […], ${sorted[sorted.length - 2]}, ${sorted[sorted.length - 1]}`;
     }
 
     // Helper to normalize weight class strings for comparison
@@ -952,7 +976,6 @@ export default function DataExportPage() {
                                             className="w-full h-10 px-3 bg-app-tertiary border border-app-primary rounded-xl text-app-primary focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex justify-between items-center"
                                         >
                                             <span>
-                                                {filters.federation === "all" && "All Federations"}
                                                 {filters.federation === "usaw" && "USAW"}
                                                 {filters.federation === "iwf" && "IWF"}
                                             </span>
@@ -966,21 +989,10 @@ export default function DataExportPage() {
                                                     <button
                                                         type="button"
                                                         onClick={() => {
-                                                            setFilters(prev => ({ ...prev, federation: "all" }));
-                                                            setShowFederationDropdown(false);
-                                                        }}
-                                                        className={`w-full px-3 py-2 text-left hover:bg-app-hover first:rounded-t-lg ${filters.federation === "all" ? "bg-app-tertiary" : ""
-                                                            }`}
-                                                    >
-                                                        All Federations
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
                                                             setFilters(prev => ({ ...prev, federation: "usaw" }));
                                                             setShowFederationDropdown(false);
                                                         }}
-                                                        className={`w-full px-3 py-2 text-left hover:bg-app-hover ${filters.federation === "usaw" ? "bg-app-tertiary" : ""
+                                                        className={`w-full px-3 py-2 text-left hover:bg-app-hover first:rounded-t-lg ${filters.federation === "usaw" ? "bg-app-tertiary" : ""
                                                             }`}
                                                     >
                                                         USAW
@@ -1487,10 +1499,10 @@ export default function DataExportPage() {
                                         <button
                                             type="button"
                                             onClick={() => setShowYearDropdown((prev) => !prev)}
-                                            className="w-full flex items-center justify-between h-10 px-3 bg-app-tertiary border border-app-primary rounded-xl text-app-primary text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className="w-full flex items-center justify-between h-10 px-3 bg-app-tertiary border border-app-primary rounded-xl text-app-primary focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         >
                                             <span className="truncate">
-                                                {filters.selectedYears.length === 0 ? "All Years" : filters.selectedYears.join(", ")}
+                                                {formatSelectedYears(filters.selectedYears)}
                                             </span>
                                             <span className="ml-2 text-xs text-gray-300 flex-shrink-0">
                                                 {showYearDropdown ? "▲" : "▼"}
@@ -1542,7 +1554,7 @@ export default function DataExportPage() {
                                                             return (
                                                                 <label
                                                                     key={year}
-                                                                    className="flex items-center space-x-2 text-xs text-app-secondary cursor-pointer hover:bg-app-hover p-1 rounded transition-colors"
+                                                                    className="flex items-center space-x-2 text-sm text-app-secondary cursor-pointer hover:bg-app-hover p-1 rounded transition-colors"
                                                                 >
                                                                     <input
                                                                         type="checkbox"
@@ -1597,9 +1609,19 @@ export default function DataExportPage() {
                                     <SearchableDropdown
                                         label="Countries"
                                         placeholder="All Countries"
-                                        options={filterOptions.countries}
-                                        selected={filters.selectedCountries}
-                                        onSelect={(selected) => setFilters(prev => ({ ...prev, selectedCountries: selected }))}
+                                        options={
+                                            filters.federation === 'usaw'
+                                                ? filterOptions.countries.filter(c => c.code === 'USA')
+                                                : filterOptions.countries
+                                        }
+                                        selected={
+                                            filters.federation === 'usaw' ? ['USA'] : filters.selectedCountries
+                                        }
+                                        onSelect={(selected) => {
+                                            if (filters.federation === 'usaw') return;
+                                            setFilters(prev => ({ ...prev, selectedCountries: selected }))
+                                        }}
+                                        disabled={filters.federation === 'usaw'}
                                         getValue={(country) => country.code}
                                         getLabel={(country) => country.name}
                                         renderOption={(country) => {
