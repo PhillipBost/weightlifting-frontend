@@ -16,10 +16,14 @@ import {
     ArrowLeft,
     Loader2,
     RefreshCw,
-    Info
+    Info,
+    ChevronDown,
+    X,
 } from "lucide-react";
 import { getCountryFlagComponent } from "../utils/countryFlags";
 import { SearchableDropdown } from "../components/SearchableDropdown";
+import { matchesAthleteName } from "../../lib/search/searchUtils";
+import { MetricTooltip } from "../components/MetricTooltip";
 
 // Custom ROC (Russian Olympic Committee) flag component
 
@@ -120,19 +124,31 @@ export default function DataExportPage() {
         Men: ["40kg", "44kg", "48kg", "52kg", "56kg", "60kg", "65kg", "65+kg", "71kg", "79kg", "79+kg", "88kg", "94kg", "94+kg", "110kg", "110+kg"],
     };
 
+    // Historical weight classes (November 2018-May 2025)
+    const HISTORICAL_2018_2025_WEIGHT_CLASSES = {
+        Women: ["30kg", "33kg", "36kg", "40kg", "45kg", "49kg", "55kg", "59kg", "64kg", "64+kg", "71kg", "76kg", "76+kg", "81kg", "81+kg", "87kg", "87+kg"],
+        Men: ["32kg", "36kg", "39kg", "44kg", "49kg", "55kg", "61kg", "67kg", "73kg", "73+kg", "81kg", "89kg", "89+kg", "96kg", "102kg", "102+kg", "109kg", "109+kg"],
+    };
+
+    // Historical weight classes (January 1998-October 2018)
+    const HISTORICAL_1998_2018_WEIGHT_CLASSES = {
+        Women: ["31kg", "35kg", "39kg", "44kg", "48kg", "53kg", "58kg", "58+kg", "63kg", "69kg", "69+kg", "75kg", "75+kg", "90kg", "90+kg"],
+        Men: ["31kg", "35kg", "39kg", "44kg", "50kg", "56kg", "62kg", "69kg", "69+kg", "77kg", "85kg", "85+kg", "94kg", "94+kg", "105kg", "105+kg"],
+    };
+
     // State for filters
     const [filters, setFilters] = useState({
-        searchTerm: "",
         gender: "all",
         ageCategory: "all",
         federation: "usaw",
         selectedYears: [2025] as number[],
         selectedCountries: [] as string[],
         selectedWeightClasses: [] as string[],
+        selectedHistorical2018: [] as string[],
+        selectedHistorical1998: [] as string[],
         startDate: "",
         endDate: "",
         selectedWSO: [] as string[],
-        selectedClubs: [] as string[],
     });
 
     // Filter options (populated from data)
@@ -141,7 +157,6 @@ export default function DataExportPage() {
         ageCategories: [] as string[],
         countries: [] as { code: string; name: string }[],
         wsoCategories: [] as string[],
-        barbellClubs: [] as string[],
     });
 
     const [inactiveWeightClasses, setInactiveWeightClasses] = useState<Set<string>>(new Set());
@@ -151,6 +166,10 @@ export default function DataExportPage() {
     const [showCountryDropdown, setShowCountryDropdown] = useState(false);
     const [showGenderDropdown, setShowGenderDropdown] = useState(false);
     const [showFederationDropdown, setShowFederationDropdown] = useState(false);
+    const [showAgeCategoryDropdown, setShowAgeCategoryDropdown] = useState(false);
+    const [showWeightClassDropdown, setShowWeightClassDropdown] = useState(false);
+    const [showHistorical2018Dropdown, setShowHistorical2018Dropdown] = useState(false);
+    const [showHistorical1998Dropdown, setShowHistorical1998Dropdown] = useState(false);
 
     // Initialize data on mount
     useEffect(() => {
@@ -438,11 +457,115 @@ export default function DataExportPage() {
                 }
             });
 
+            // --- FILTER OPTION EXTRACTION (Match Rankings Page Logic) ---
+            const weightClassCombinations = new Set<string>();
+            const wsoCategoriesSet = new Set<string>();
+            const barbellClubsSet = new Set<string>();
+
+            [...usawRankingsLocal, ...iwfRankingsLocal].forEach((athlete) => {
+                if (athlete.age_category && athlete.weight_class) {
+                    let gender = "";
+                    if (athlete.age_category.includes("Women's")) gender = "Women's";
+                    else if (athlete.age_category.includes("Men's")) gender = "Men's";
+
+                    if (gender) {
+                        weightClassCombinations.add(`${gender} ${athlete.weight_class}`);
+                    }
+                }
+
+                if (athlete.wso) {
+                    wsoCategoriesSet.add(athlete.wso);
+                }
+
+                if (athlete.club_name) {
+                    barbellClubsSet.add(athlete.club_name);
+                }
+            });
+
+            const extractedAgeCategories = new Set<string>();
+            [...usawRankingsLocal, ...iwfRankingsLocal].forEach((athlete) => {
+                const ageCategory = athlete.age_category || "";
+                if (ageCategory.includes("11 Under")) extractedAgeCategories.add("11 Under Age Group");
+                else if (ageCategory.includes("13 Under")) extractedAgeCategories.add("13 Under Age Group");
+                else if (ageCategory.includes("14-15")) extractedAgeCategories.add("14-15 Age Group");
+                else if (ageCategory.includes("16-17")) extractedAgeCategories.add("16-17 Age Group");
+                else if (ageCategory.includes("Junior")) extractedAgeCategories.add("Junior (15-20)");
+                else if (ageCategory.includes("Masters (35-39)")) extractedAgeCategories.add("Masters (35-39)");
+                else if (ageCategory.includes("Masters (40-44)")) extractedAgeCategories.add("Masters (40-44)");
+                else if (ageCategory.includes("Masters (45-49)")) extractedAgeCategories.add("Masters (45-49)");
+                else if (ageCategory.includes("Masters (50-54)")) extractedAgeCategories.add("Masters (50-54)");
+                else if (ageCategory.includes("Masters (55-59)")) extractedAgeCategories.add("Masters (55-59)");
+                else if (ageCategory.includes("Masters (60-64)")) extractedAgeCategories.add("Masters (60-64)");
+                else if (ageCategory.includes("Masters (65-69)")) extractedAgeCategories.add("Masters (65-69)");
+                else if (ageCategory.includes("Masters (70-74)")) extractedAgeCategories.add("Masters (70-74)");
+                else if (ageCategory.includes("Masters (75-79)")) extractedAgeCategories.add("Masters (75-79)");
+                else if (ageCategory.includes("Masters (75+)")) extractedAgeCategories.add("Masters (75+)");
+                else if (ageCategory.includes("Masters (80+)")) extractedAgeCategories.add("Masters (80+)");
+                else if (ageCategory.includes("Open")) extractedAgeCategories.add("Open / Senior (15+)");
+            });
+
+            function getWeightClassOrder(weightClass: string) {
+                if (weightClass.includes("Women's")) return 1;
+                if (weightClass.includes("Men's")) return 2;
+                return 3;
+            }
+
+            const activeWeightClasses: string[] = [];
+            const inactiveWeightClassesList: string[] = [];
+
+            // Helper set for inactive check (since we have it as inactiveWeightClassesSet param or state)
+            // But we need to use the passed set or the state. The param `inactiveWeightClassesSet` is passed to this function.
+            // We'll use that.
+
+            Array.from(weightClassCombinations).forEach((wc) => {
+                if (inactiveWeightClassesSet.has(wc)) {
+                    inactiveWeightClassesList.push(`(Inactive) ${wc}`);
+                } else {
+                    activeWeightClasses.push(wc);
+                }
+            });
+
+            const sortWeightClasses = (classes: string[]) => {
+                return classes.sort((a, b) => {
+                    const cleanA = a.replace("(Inactive) ", "");
+                    const cleanB = b.replace("(Inactive) ", "");
+                    const aOrder = getWeightClassOrder(cleanA);
+                    const bOrder = getWeightClassOrder(cleanB);
+                    if (aOrder !== bOrder) return aOrder - bOrder;
+                    const aWeight = parseFloat(cleanA.split(" ").pop()?.replace(/[^\d.]/g, "") || "0") || 0;
+                    const bWeight = parseFloat(cleanB.split(" ").pop()?.replace(/[^\d.]/g, "") || "0") || 0;
+                    return aWeight - bWeight;
+                });
+            };
+
+            const sortedWeightClasses = [
+                ...sortWeightClasses(activeWeightClasses),
+                ...sortWeightClasses(inactiveWeightClassesList),
+            ];
+
+            const ageCategoryOrder = [
+                "11 Under Age Group", "13 Under Age Group", "14-15 Age Group", "16-17 Age Group",
+                "Junior (15-20)", "Open / Senior (15+)",
+                "Masters (35-39)", "Masters (40-44)", "Masters (45-49)", "Masters (50-54)",
+                "Masters (55-59)", "Masters (60-64)", "Masters (65-69)", "Masters (70-74)",
+                "Masters (75-79)", "Masters (75+)", "Masters (80+)",
+            ];
+
+            const sortedAgeCategories = Array.from(extractedAgeCategories).sort((a, b) => {
+                const aIndex = ageCategoryOrder.indexOf(a);
+                const bIndex = ageCategoryOrder.indexOf(b);
+                if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+                if (aIndex !== -1) return -1;
+                if (bIndex !== -1) return 1;
+                return a.localeCompare(b);
+            });
+
             setFilterOptions(prev => ({
                 ...prev,
                 wsoCategories: Array.from(wsoSet).sort(),
-                barbellClubs: Array.from(clubSet).sort(),
-                countries: Array.from(countryMap.entries()).map(([code, name]) => ({ code, name })).sort((a, b) => a.name.localeCompare(b.name))
+                countries: Array.from(countryMap.entries()).map(([code, name]) => ({ code, name })).sort((a, b) => a.name.localeCompare(b.name)),
+                ageCategories: sortedAgeCategories,
+                weightClasses: sortedWeightClasses,
             }));
 
         } catch (err: any) {
@@ -453,18 +576,46 @@ export default function DataExportPage() {
     }
 
     // --- FILTER Logic ---
+
+    // Helper function to determine age categories from numeric age
+    function determineAgeCategoriesFromAge(age: number): string[] {
+        const categories: string[] = [];
+
+        if (age <= 11) categories.push("11 Under Age Group");
+        if (age <= 13) categories.push("13 Under Age Group");
+        if (age >= 14 && age <= 15) categories.push("14-15 Age Group");
+        if (age >= 16 && age <= 17) categories.push("16-17 Age Group");
+        if (age >= 15 && age <= 20) categories.push("Junior (15-20)");
+        if (age >= 15) categories.push("Open / Senior (15+)");
+
+        // Masters categories
+        if (age >= 35 && age <= 39) categories.push("Masters (35-39)");
+        if (age >= 40 && age <= 44) categories.push("Masters (40-44)");
+        if (age >= 45 && age <= 49) categories.push("Masters (45-49)");
+        if (age >= 50 && age <= 54) categories.push("Masters (50-54)");
+        if (age >= 55 && age <= 59) categories.push("Masters (55-59)");
+        if (age >= 60 && age <= 64) categories.push("Masters (60-64)");
+        if (age >= 65 && age <= 69) categories.push("Masters (65-69)");
+        if (age >= 70 && age <= 74) categories.push("Masters (70-74)");
+        if (age >= 75 && age <= 79) categories.push("Masters (75-79)");
+        if (age >= 75) categories.push("Masters (75+)");
+        if (age >= 80) categories.push("Masters (80+)");
+
+        return categories;
+    }
+
+    // Helper to normalize weight class strings for comparison
+    function normalizeWeightClass(wc: string): string {
+        if (!wc) return "";
+        let normalized = wc.toLowerCase().replace(/kg/g, "").trim();
+        if (normalized.startsWith("+")) {
+            normalized = normalized.substring(1) + "+";
+        }
+        return normalized;
+    }
+
     function applyFilters() {
         let filtered = [...rankings];
-
-        // SEARCH
-        if (filters.searchTerm) {
-            const term = filters.searchTerm.toLowerCase();
-            filtered = filtered.filter(a =>
-                a.lifter_name.toLowerCase().includes(term) ||
-                (a.club_name && a.club_name.toLowerCase().includes(term)) ||
-                (a.meet_id && a.meet_id.toString().includes(term))
-            );
-        }
 
         // FEDERATION
         if (filters.federation !== 'all') {
@@ -478,26 +629,48 @@ export default function DataExportPage() {
 
         // AGE CAT
         if (filters.ageCategory !== 'all') {
-            filtered = filtered.filter(a => a.age_category === filters.ageCategory);
+            filtered = filtered.filter((athlete) => {
+                // Use competition_age as primary source
+                if (athlete.competition_age !== null && athlete.competition_age !== undefined) {
+                    const athleteCategories = determineAgeCategoriesFromAge(athlete.competition_age);
+                    return athleteCategories.includes(filters.ageCategory);
+                }
+                // Fallback to age_category string
+                if (athlete.age_category) {
+                    return athlete.age_category === filters.ageCategory || athlete.age_category.includes(filters.ageCategory);
+                }
+                return false;
+            });
+        }
+
+        // WEIGHT CLASSES (Current + Historical)
+        const allSelectedWeightClasses = [
+            ...filters.selectedWeightClasses,
+            ...filters.selectedHistorical2018,
+            ...filters.selectedHistorical1998,
+        ].map(normalizeWeightClass);
+
+        if (allSelectedWeightClasses.length > 0) {
+            filtered = filtered.filter((athlete) => {
+                const weightClass = normalizeWeightClass(athlete.weight_class || "");
+                return allSelectedWeightClasses.includes(weightClass);
+            });
         }
 
         // DATE
         if (filters.startDate) filtered = filtered.filter(a => new Date(a.last_competition) >= new Date(filters.startDate));
         if (filters.endDate) filtered = filtered.filter(a => new Date(a.last_competition) <= new Date(filters.endDate));
 
-        // WSO & CLUB
-        if (filters.selectedWSO.length > 0) {
-            const wsoSet = new Set(filters.selectedWSO.map(w => w.toLowerCase().trim()));
-            filtered = filtered.filter(a => a.federation === 'usaw' && wsoSet.has((a.wso || "").toLowerCase().trim()));
-        }
-
-        if (filters.selectedClubs.length > 0) {
-            const clubSet = new Set(filters.selectedClubs.map(c => c.toLowerCase()));
-            filtered = filtered.filter(a => a.federation === 'usaw' && clubSet.has((a.club_name || "").toLowerCase()));
+        // WSO (Only if not IWF)
+        if (!['iwf', 'iwf_one_per_country'].includes(filters.federation)) {
+            if (filters.selectedWSO.length > 0) {
+                const wsoSet = new Set(filters.selectedWSO.map(w => w.toLowerCase().trim()));
+                filtered = filtered.filter(a => a.federation === 'usaw' && wsoSet.has((a.wso || "").toLowerCase().trim()));
+            }
         }
 
         // COUNTRY (IWF only)
-        if (filters.federation === 'iwf' && filters.selectedCountries.length > 0) {
+        if (['iwf', 'iwf_one_per_country'].includes(filters.federation) && filters.selectedCountries.length > 0) {
             const countrySet = new Set(filters.selectedCountries);
             filtered = filtered.filter(a => countrySet.has(a.country_code || ""));
         }
@@ -757,160 +930,181 @@ export default function DataExportPage() {
                 </header>
 
                 <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                    <div className="space-y-8">
 
                         {/* FILTERS PANEL */}
-                        <div className="lg:col-span-1 space-y-6">
-                            <div className="bg-app-secondary rounded-xl p-5 border border-app-primary shadow-sm sticky top-24">
+                        <div className="w-full">
+                            <div className="bg-app-secondary rounded-xl p-5 border border-app-primary shadow-sm">
                                 <h2 className="text-sm font-bold text-app-sidebar-header uppercase tracking-wider mb-4 flex items-center">
                                     <Filter className="h-4 w-4 mr-2" />
                                     Filters
                                 </h2>
 
-                                <div className="space-y-4">
-                                    {/* Years */}
-                                    <div>
-                                        <label className="text-xs font-semibold text-app-tertiary mb-1.5 block">Year(s)</label>
-                                        <div className="space-y-2 relative">
-                                            <div
-                                                onClick={() => setShowYearDropdown(!showYearDropdown)}
-                                                className="w-full px-3 py-2 bg-app-tertiary rounded-xl border border-app-primary text-sm text-app-primary cursor-pointer flex justify-between items-center"
-                                            >
-                                                <span>{filters.selectedYears.length > 5 ? `${filters.selectedYears.length} Years Selected` : filters.selectedYears.join(", ")}</span>
-                                                <Filter className="h-3 w-3 opacity-50" />
-                                            </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    {/* Federation */}
+                                    <div className="relative">
+                                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                                            Federation
+                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowFederationDropdown(!showFederationDropdown)}
+                                            className="w-full h-10 px-3 bg-app-tertiary border border-app-primary rounded-xl text-app-primary focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex justify-between items-center"
+                                        >
+                                            <span>
+                                                {filters.federation === "all" && "All Federations"}
+                                                {filters.federation === "usaw" && "USAW"}
+                                                {filters.federation === "iwf" && "IWF"}
+                                            </span>
+                                            <ChevronDown className={`h-4 w-4 transition-transform ${showFederationDropdown ? 'rotate-180' : ''}`} />
+                                        </button>
 
-                                            {showYearDropdown && (
-                                                <>
-                                                    <div
-                                                        className="fixed inset-0 z-10"
-                                                        onClick={() => setShowYearDropdown(false)}
-                                                    />
-                                                    <div className="absolute z-20 mt-1 w-full p-2 bg-app-surface border border-app-primary rounded-xl max-h-48 overflow-y-auto shadow-lg">
-                                                        <div className="flex justify-between items-center mb-2">
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    const allYears = Array.from({ length: 2026 - 1998 }, (_, i) => 2025 - i);
-                                                                    setFilters(prev => ({ ...prev, selectedYears: allYears }));
-                                                                }}
-                                                                className="px-2 py-1 bg-app-tertiary rounded hover:bg-app-hover text-xs text-app-secondary"
-                                                            >
-                                                                Select All
-                                                            </button>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() =>
-                                                                    setFilters(prev => ({ ...prev, selectedYears: [] }))
-                                                                }
-                                                                className="px-2 py-1 bg-app-tertiary rounded hover:bg-app-hover text-xs text-app-secondary"
-                                                            >
-                                                                Clear
-                                                            </button>
-                                                        </div>
-                                                        <div className="grid grid-cols-3 gap-1">
-                                                            {Array.from({ length: 2026 - 1998 }, (_, i) => 2025 - i).map(year => (
-                                                                <button
-                                                                    key={year}
-                                                                    onClick={() => {
-                                                                        const exists = filters.selectedYears.includes(year);
-                                                                        const newYears = exists
-                                                                            ? filters.selectedYears.filter(y => y !== year)
-                                                                            : [...filters.selectedYears, year];
-                                                                        setFilters(prev => ({ ...prev, selectedYears: newYears.sort((a, b) => b - a) }));
-                                                                    }}
-                                                                    className={`px-2 py-1 text-xs rounded ${filters.selectedYears.includes(year) ? 'bg-blue-600 text-white' : 'hover:bg-app-hover text-app-secondary'}`}
-                                                                >
-                                                                    {year}
-                                                                </button>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                </>
-                                            )}
-                                        </div>
+                                        {showFederationDropdown && (
+                                            <>
+                                                <div className="fixed inset-0 z-10" onClick={() => setShowFederationDropdown(false)} />
+                                                <div className="absolute z-20 mt-1 w-full bg-app-surface border border-app-primary rounded-xl shadow-lg">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setFilters(prev => ({ ...prev, federation: "all" }));
+                                                            setShowFederationDropdown(false);
+                                                        }}
+                                                        className={`w-full px-3 py-2 text-left hover:bg-app-hover first:rounded-t-lg ${filters.federation === "all" ? "bg-app-tertiary" : ""
+                                                            }`}
+                                                    >
+                                                        All Federations
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setFilters(prev => ({ ...prev, federation: "usaw" }));
+                                                            setShowFederationDropdown(false);
+                                                        }}
+                                                        className={`w-full px-3 py-2 text-left hover:bg-app-hover ${filters.federation === "usaw" ? "bg-app-tertiary" : ""
+                                                            }`}
+                                                    >
+                                                        USAW
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setFilters(prev => ({ ...prev, federation: "iwf", selectedWSO: [] }));
+                                                            setShowFederationDropdown(false);
+                                                        }}
+                                                        className={`w-full px-3 py-2 text-left hover:bg-app-hover last:rounded-b-lg ${filters.federation === "iwf" ? "bg-app-tertiary" : ""
+                                                            }`}
+                                                    >
+                                                        IWF
+                                                    </button>
+                                                </div>
+                                            </>
+                                        )}
                                     </div>
 
                                     {/* Gender */}
                                     <div>
-                                        <label className="text-xs font-semibold text-app-tertiary mb-1.5 block">Gender</label>
+                                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                                            Gender
+                                        </label>
                                         <div className="relative">
-                                            <div
+                                            <button
+                                                type="button"
                                                 onClick={() => setShowGenderDropdown(!showGenderDropdown)}
-                                                className="w-full px-3 py-2 bg-app-tertiary rounded-xl border border-app-primary text-sm text-app-primary cursor-pointer flex justify-between items-center"
+                                                className="w-full h-10 px-3 bg-app-tertiary border border-app-primary rounded-xl text-app-primary focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex justify-between items-center"
                                             >
                                                 <span>
                                                     {filters.gender === "all" && "All Genders"}
-                                                    {filters.gender === "Men's" && "Men"}
-                                                    {filters.gender === "Women's" && "Women"}
+                                                    {filters.gender === "M" && "Male"}
+                                                    {filters.gender === "F" && "Female"}
                                                 </span>
-                                                <Filter className="h-3 w-3 opacity-50" />
-                                            </div>
+                                                <ChevronDown className={`h-4 w-4 transition-transform ${showGenderDropdown ? 'rotate-180' : ''}`} />
+                                            </button>
 
                                             {showGenderDropdown && (
                                                 <>
-                                                    <div
-                                                        className="fixed inset-0 z-10"
-                                                        onClick={() => setShowGenderDropdown(false)}
-                                                    />
+                                                    <div className="fixed inset-0 z-10" onClick={() => setShowGenderDropdown(false)} />
                                                     <div className="absolute z-20 mt-1 w-full bg-app-surface border border-app-primary rounded-xl shadow-lg">
-                                                        {[
-                                                            { value: "all", label: "All Genders" },
-                                                            { value: "Men's", label: "Men" },
-                                                            { value: "Women's", label: "Women" }
-                                                        ].map(opt => (
-                                                            <button
-                                                                key={opt.value}
-                                                                onClick={() => {
-                                                                    setFilters(prev => ({ ...prev, gender: opt.value }));
-                                                                    setShowGenderDropdown(false);
-                                                                }}
-                                                                className={`w-full text-left px-3 py-2 text-sm hover:bg-app-hover first:rounded-t-xl last:rounded-b-xl ${filters.gender === opt.value ? 'bg-app-tertiary' : ''}`}
-                                                            >
-                                                                {opt.label}
-                                                            </button>
-                                                        ))}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setFilters(prev => ({ ...prev, gender: "all" }));
+                                                                setShowGenderDropdown(false);
+                                                            }}
+                                                            className={`w-full px-3 py-2 text-left hover:bg-app-hover first:rounded-t-xl ${filters.gender === "all" ? "bg-app-tertiary" : ""
+                                                                }`}
+                                                        >
+                                                            All Genders
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setFilters(prev => ({ ...prev, gender: "M" }));
+                                                                setShowGenderDropdown(false);
+                                                            }}
+                                                            className={`w-full px-3 py-2 text-left hover:bg-app-hover ${filters.gender === "M" ? "bg-app-tertiary" : ""
+                                                                }`}
+                                                        >
+                                                            Male
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setFilters(prev => ({ ...prev, gender: "F" }));
+                                                                setShowGenderDropdown(false);
+                                                            }}
+                                                            className={`w-full px-3 py-2 text-left hover:bg-app-hover last:rounded-b-xl ${filters.gender === "F" ? "bg-app-tertiary" : ""
+                                                                }`}
+                                                        >
+                                                            Female
+                                                        </button>
                                                     </div>
                                                 </>
                                             )}
                                         </div>
                                     </div>
 
-                                    {/* Federation */}
+                                    {/* Age Category */}
                                     <div>
-                                        <label className="text-xs font-semibold text-app-tertiary mb-1.5 block">Federation</label>
+                                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                                            Age Category
+                                        </label>
                                         <div className="relative">
-                                            <div
-                                                onClick={() => setShowFederationDropdown(!showFederationDropdown)}
-                                                className="w-full px-3 py-2 bg-app-tertiary rounded-xl border border-app-primary text-sm text-app-primary cursor-pointer flex justify-between items-center"
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowAgeCategoryDropdown(!showAgeCategoryDropdown)}
+                                                className="w-full h-10 px-3 bg-app-tertiary border border-app-primary rounded-xl text-app-primary focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex justify-between items-center"
                                             >
-                                                <span>
-                                                    {filters.federation === "usaw" && "USA Weightlifting (USAW)"}
-                                                    {filters.federation === "iwf" && "International (IWF)"}
-                                                </span>
-                                                <Filter className="h-3 w-3 opacity-50" />
-                                            </div>
+                                                <span className="truncate">{filters.ageCategory === "all" ? "All Age Categories" : filters.ageCategory}</span>
+                                                <ChevronDown className={`h-4 w-4 flex-shrink-0 ml-1 transition-transform ${showAgeCategoryDropdown ? 'rotate-180' : ''}`} />
+                                            </button>
 
-                                            {showFederationDropdown && (
+                                            {showAgeCategoryDropdown && (
                                                 <>
-                                                    <div
-                                                        className="fixed inset-0 z-10"
-                                                        onClick={() => setShowFederationDropdown(false)}
-                                                    />
-                                                    <div className="absolute z-20 mt-1 w-full bg-app-surface border border-app-primary rounded-xl shadow-lg">
-                                                        {[
-                                                            { value: "usaw", label: "USA Weightlifting (USAW)" },
-                                                            { value: "iwf", label: "International (IWF)" }
-                                                        ].map(opt => (
+                                                    <div className="fixed inset-0 z-10" onClick={() => setShowAgeCategoryDropdown(false)} />
+                                                    <div className="absolute z-20 mt-1 w-full max-h-64 overflow-y-auto bg-app-surface border border-app-primary rounded-xl shadow-lg">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setFilters(prev => ({ ...prev, ageCategory: "all" }));
+                                                                setShowAgeCategoryDropdown(false);
+                                                            }}
+                                                            className={`w-full px-3 py-2 text-left hover:bg-app-hover first:rounded-t-xl ${filters.ageCategory === "all" ? "bg-app-tertiary" : ""
+                                                                }`}
+                                                        >
+                                                            All Age Categories
+                                                        </button>
+                                                        {filterOptions.ageCategories.map((ac) => (
                                                             <button
-                                                                key={opt.value}
+                                                                key={ac}
+                                                                type="button"
                                                                 onClick={() => {
-                                                                    setFilters(prev => ({ ...prev, federation: opt.value }));
-                                                                    setShowFederationDropdown(false);
+                                                                    setFilters(prev => ({ ...prev, ageCategory: ac }));
+                                                                    setShowAgeCategoryDropdown(false);
                                                                 }}
-                                                                className={`w-full text-left px-3 py-2 text-sm hover:bg-app-hover first:rounded-t-xl last:rounded-b-xl ${filters.federation === opt.value ? 'bg-app-tertiary' : ''}`}
+                                                                className={`w-full px-3 py-2 text-left hover:bg-app-hover ${filters.ageCategory === ac ? "bg-app-tertiary" : ""
+                                                                    }`}
                                                             >
-                                                                {opt.label}
+                                                                {ac}
                                                             </button>
                                                         ))}
                                                     </div>
@@ -919,56 +1113,545 @@ export default function DataExportPage() {
                                         </div>
                                     </div>
 
-                                    {/* Country */}
-                                    <div>
-                                        {filters.federation === 'usaw' ? (
-                                            <div className="w-full px-3 py-2 bg-app-tertiary/50 rounded-xl border border-app-primary/50 text-sm text-app-tertiary cursor-not-allowed flex items-center">
-                                                United States
-                                            </div>
-                                        ) : (
-                                            <SearchableDropdown
-                                                label="Country"
-                                                placeholder="All Countries"
-                                                options={filterOptions.countries}
-                                                selected={filters.selectedCountries}
-                                                onSelect={(selected) => setFilters(prev => ({ ...prev, selectedCountries: selected }))}
-                                                getValue={(item) => item.code}
-                                                getLabel={(item) => item.name}
-                                                renderOption={(item) => {
-                                                    const FlagComponent = getCountryFlagComponent(item.code);
-                                                    return (
-                                                        <div className="flex items-center space-x-2 truncate">
-                                                            {FlagComponent && (
-                                                                <div className="flex-shrink-0 w-5">
-                                                                    <FlagComponent style={{ width: '100%', height: 'auto' }} />
-                                                                </div>
-                                                            )}
-                                                            <span className="truncate">{item.name}</span>
+                                    {/* Current Weight Classes - Multi-select */}
+                                    <div className="relative">
+                                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                                            Current Weight Classes
+                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowWeightClassDropdown(!showWeightClassDropdown)}
+                                            className="w-full h-10 px-3 bg-app-tertiary border border-app-primary rounded-xl text-app-primary focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex justify-between items-center"
+                                        >
+                                            <span>
+                                                {filters.selectedWeightClasses.length === 0
+                                                    ? "All Weight Classes"
+                                                    : `${filters.selectedWeightClasses.length} selected`}
+                                            </span>
+                                            <ChevronDown className={`h-4 w-4 transition-transform ${showWeightClassDropdown ? 'rotate-180' : ''}`} />
+                                        </button>
+
+                                        {showWeightClassDropdown && (
+                                            <>
+                                                <div className="fixed inset-0 z-10" onClick={() => setShowWeightClassDropdown(false)} />
+                                                <div className="absolute z-10 mt-1 w-full max-h-96 overflow-y-auto bg-app-surface border border-app-primary rounded-xl shadow-lg">
+                                                    {/* Select/Deselect All */}
+                                                    <div className="sticky top-0 bg-app-surface border-b border-app-primary p-2 flex justify-between items-center">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setFilters(prev => ({
+                                                                    ...prev,
+                                                                    selectedWeightClasses: [
+                                                                        ...CURRENT_WEIGHT_CLASSES.Women,
+                                                                        ...CURRENT_WEIGHT_CLASSES.Men
+                                                                    ]
+                                                                }));
+                                                            }}
+                                                            className="px-2 py-1 bg-app-tertiary rounded hover:bg-app-hover text-xs text-app-secondary"
+                                                        >
+                                                            Select All
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setFilters(prev => ({
+                                                                    ...prev,
+                                                                    selectedWeightClasses: []
+                                                                }));
+                                                            }}
+                                                            className="px-2 py-1 bg-app-tertiary rounded hover:bg-app-hover text-xs text-app-secondary"
+                                                        >
+                                                            Clear
+                                                        </button>
+                                                    </div>
+
+                                                    {/* Two-column layout: Women | Men */}
+                                                    <div className="grid grid-cols-2 gap-0 divide-x divide-app-primary">
+                                                        {/* Women's Column */}
+                                                        <div>
+                                                            <div className="px-3 py-2 bg-app-tertiary text-xs font-semibold text-app-tertiary text-center">
+                                                                Women
+                                                            </div>
+                                                            <div className="p-2">
+                                                                {CURRENT_WEIGHT_CLASSES.Women.map((weight) => (
+                                                                    <label
+                                                                        key={`women-${weight}`}
+                                                                        className="flex items-center px-2 py-1.5 hover:bg-app-hover rounded cursor-pointer"
+                                                                    >
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            checked={filters.selectedWeightClasses.includes(weight)}
+                                                                            onChange={(e) => {
+                                                                                const newSelected = e.target.checked
+                                                                                    ? [...filters.selectedWeightClasses, weight]
+                                                                                    : filters.selectedWeightClasses.filter(w => w !== weight);
+                                                                                setFilters(prev => ({
+                                                                                    ...prev,
+                                                                                    selectedWeightClasses: newSelected
+                                                                                }));
+                                                                            }}
+                                                                            className="mr-2 accent-blue-500"
+                                                                        />
+                                                                        <span className="text-sm text-app-secondary">{weight}</span>
+                                                                    </label>
+                                                                ))}
+                                                            </div>
                                                         </div>
-                                                    );
-                                                }}
-                                            />
+
+                                                        {/* Men's Column */}
+                                                        <div>
+                                                            <div className="px-3 py-2 bg-app-tertiary text-xs font-semibold text-app-tertiary text-center">
+                                                                Men
+                                                            </div>
+                                                            <div className="p-2">
+                                                                {CURRENT_WEIGHT_CLASSES.Men.map((weight) => (
+                                                                    <label
+                                                                        key={`men-${weight}`}
+                                                                        className="flex items-center px-2 py-1.5 hover:bg-app-hover rounded cursor-pointer"
+                                                                    >
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            checked={filters.selectedWeightClasses.includes(weight)}
+                                                                            onChange={(e) => {
+                                                                                const newSelected = e.target.checked
+                                                                                    ? [...filters.selectedWeightClasses, weight]
+                                                                                    : filters.selectedWeightClasses.filter(w => w !== weight);
+                                                                                setFilters(prev => ({
+                                                                                    ...prev,
+                                                                                    selectedWeightClasses: newSelected
+                                                                                }));
+                                                                            }}
+                                                                            className="mr-2 accent-blue-500"
+                                                                        />
+                                                                        <span className="text-sm text-app-secondary">{weight}</span>
+                                                                    </label>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </>
                                         )}
                                     </div>
 
-                                    {/* Reset */}
+                                    {/* Historical Weight Classes (2018-2025) - Multi-select */}
+                                    <div className="relative">
+                                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                                            Historical Weight Classes (2018-2025)
+                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowHistorical2018Dropdown(!showHistorical2018Dropdown)}
+                                            className="w-full h-10 px-3 bg-app-tertiary border border-app-primary rounded-xl text-app-primary focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex justify-between items-center"
+                                        >
+                                            <span>
+                                                {filters.selectedHistorical2018.length === 0
+                                                    ? "All Weight Classes"
+                                                    : `${filters.selectedHistorical2018.length} selected`}
+                                            </span>
+                                            <ChevronDown className={`h-4 w-4 transition-transform ${showHistorical2018Dropdown ? 'rotate-180' : ''}`} />
+                                        </button>
+
+                                        {showHistorical2018Dropdown && (
+                                            <>
+                                                <div className="fixed inset-0 z-10" onClick={() => setShowHistorical2018Dropdown(false)} />
+                                                <div className="absolute z-10 mt-1 w-full max-h-96 overflow-y-auto bg-app-surface border border-app-primary rounded-xl shadow-lg">
+                                                    {/* Select/Deselect All */}
+                                                    <div className="sticky top-0 bg-app-surface border-b border-app-primary p-2 flex justify-between items-center">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setFilters(prev => ({
+                                                                    ...prev,
+                                                                    selectedHistorical2018: [
+                                                                        ...HISTORICAL_2018_2025_WEIGHT_CLASSES.Women,
+                                                                        ...HISTORICAL_2018_2025_WEIGHT_CLASSES.Men
+                                                                    ]
+                                                                }));
+                                                            }}
+                                                            className="px-2 py-1 bg-app-tertiary rounded hover:bg-app-hover text-xs text-app-secondary"
+                                                        >
+                                                            Select All
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setFilters(prev => ({
+                                                                    ...prev,
+                                                                    selectedHistorical2018: []
+                                                                }));
+                                                            }}
+                                                            className="px-2 py-1 bg-app-tertiary rounded hover:bg-app-hover text-xs text-app-secondary"
+                                                        >
+                                                            Clear
+                                                        </button>
+                                                    </div>
+
+                                                    {/* Two-column layout: Women | Men */}
+                                                    <div className="grid grid-cols-2 gap-0 divide-x divide-app-primary">
+                                                        {/* Women's Column */}
+                                                        <div>
+                                                            <div className="px-3 py-2 bg-app-tertiary text-xs font-semibold text-app-tertiary text-center">
+                                                                Women
+                                                            </div>
+                                                            <div className="p-2">
+                                                                {HISTORICAL_2018_2025_WEIGHT_CLASSES.Women.map((weight) => (
+                                                                    <label
+                                                                        key={`hist2018-women-${weight}`}
+                                                                        className="flex items-center px-2 py-1.5 hover:bg-app-hover rounded cursor-pointer"
+                                                                    >
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            checked={filters.selectedHistorical2018.includes(weight)}
+                                                                            onChange={(e) => {
+                                                                                const newSelected = e.target.checked
+                                                                                    ? [...filters.selectedHistorical2018, weight]
+                                                                                    : filters.selectedHistorical2018.filter(w => w !== weight);
+                                                                                setFilters(prev => ({
+                                                                                    ...prev,
+                                                                                    selectedHistorical2018: newSelected
+                                                                                }));
+                                                                            }}
+                                                                            className="mr-2 accent-blue-500"
+                                                                        />
+                                                                        <span className="text-sm text-app-secondary">{weight}</span>
+                                                                    </label>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Men's Column */}
+                                                        <div>
+                                                            <div className="px-3 py-2 bg-app-tertiary text-xs font-semibold text-app-tertiary text-center">
+                                                                Men
+                                                            </div>
+                                                            <div className="p-2">
+                                                                {HISTORICAL_2018_2025_WEIGHT_CLASSES.Men.map((weight) => (
+                                                                    <label
+                                                                        key={`hist2018-men-${weight}`}
+                                                                        className="flex items-center px-2 py-1.5 hover:bg-app-hover rounded cursor-pointer"
+                                                                    >
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            checked={filters.selectedHistorical2018.includes(weight)}
+                                                                            onChange={(e) => {
+                                                                                const newSelected = e.target.checked
+                                                                                    ? [...filters.selectedHistorical2018, weight]
+                                                                                    : filters.selectedHistorical2018.filter(w => w !== weight);
+                                                                                setFilters(prev => ({
+                                                                                    ...prev,
+                                                                                    selectedHistorical2018: newSelected
+                                                                                }));
+                                                                            }}
+                                                                            className="mr-2 accent-blue-500"
+                                                                        />
+                                                                        <span className="text-sm text-app-secondary">{weight}</span>
+                                                                    </label>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+
+                                    {/* Historical Weight Classes (1998-2018) - Multi-select */}
+                                    <div className="relative">
+                                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                                            Historical Weight Classes (1998-2018)
+                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowHistorical1998Dropdown(!showHistorical1998Dropdown)}
+                                            className="w-full h-10 px-3 bg-app-tertiary border border-app-primary rounded-xl text-app-primary focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex justify-between items-center"
+                                        >
+                                            <span>
+                                                {filters.selectedHistorical1998.length === 0
+                                                    ? "All Weight Classes"
+                                                    : `${filters.selectedHistorical1998.length} selected`}
+                                            </span>
+                                            <ChevronDown className={`h-4 w-4 transition-transform ${showHistorical1998Dropdown ? 'rotate-180' : ''}`} />
+                                        </button>
+
+                                        {showHistorical1998Dropdown && (
+                                            <>
+                                                <div className="fixed inset-0 z-10" onClick={() => setShowHistorical1998Dropdown(false)} />
+                                                <div className="absolute z-10 mt-1 w-full max-h-96 overflow-y-auto bg-app-surface border border-app-primary rounded-xl shadow-lg">
+                                                    {/* Select/Deselect All */}
+                                                    <div className="sticky top-0 bg-app-surface border-b border-app-primary p-2 flex justify-between items-center">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setFilters(prev => ({
+                                                                    ...prev,
+                                                                    selectedHistorical1998: [
+                                                                        ...HISTORICAL_1998_2018_WEIGHT_CLASSES.Women,
+                                                                        ...HISTORICAL_1998_2018_WEIGHT_CLASSES.Men
+                                                                    ]
+                                                                }));
+                                                            }}
+                                                            className="px-2 py-1 bg-app-tertiary rounded hover:bg-app-hover text-xs text-app-secondary"
+                                                        >
+                                                            Select All
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setFilters(prev => ({
+                                                                    ...prev,
+                                                                    selectedHistorical1998: []
+                                                                }));
+                                                            }}
+                                                            className="px-2 py-1 bg-app-tertiary rounded hover:bg-app-hover text-xs text-app-secondary"
+                                                        >
+                                                            Clear
+                                                        </button>
+                                                    </div>
+
+                                                    {/* Two-column layout: Women | Men */}
+                                                    <div className="grid grid-cols-2 gap-0 divide-x divide-app-primary">
+                                                        {/* Women's Column */}
+                                                        <div>
+                                                            <div className="px-3 py-2 bg-app-tertiary text-xs font-semibold text-app-tertiary text-center">
+                                                                Women
+                                                            </div>
+                                                            <div className="p-2">
+                                                                {HISTORICAL_1998_2018_WEIGHT_CLASSES.Women.map((weight) => (
+                                                                    <label
+                                                                        key={`hist1998-women-${weight}`}
+                                                                        className="flex items-center px-2 py-1.5 hover:bg-app-hover rounded cursor-pointer"
+                                                                    >
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            checked={filters.selectedHistorical1998.includes(weight)}
+                                                                            onChange={(e) => {
+                                                                                const newSelected = e.target.checked
+                                                                                    ? [...filters.selectedHistorical1998, weight]
+                                                                                    : filters.selectedHistorical1998.filter(w => w !== weight);
+                                                                                setFilters(prev => ({
+                                                                                    ...prev,
+                                                                                    selectedHistorical1998: newSelected
+                                                                                }));
+                                                                            }}
+                                                                            className="mr-2 accent-blue-500"
+                                                                        />
+                                                                        <span className="text-sm text-app-secondary">{weight}</span>
+                                                                    </label>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Men's Column */}
+                                                        <div>
+                                                            <div className="px-3 py-2 bg-app-tertiary text-xs font-semibold text-app-tertiary text-center">
+                                                                Men
+                                                            </div>
+                                                            <div className="p-2">
+                                                                {HISTORICAL_1998_2018_WEIGHT_CLASSES.Men.map((weight) => (
+                                                                    <label
+                                                                        key={`hist1998-men-${weight}`}
+                                                                        className="flex items-center px-2 py-1.5 hover:bg-app-hover rounded cursor-pointer"
+                                                                    >
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            checked={filters.selectedHistorical1998.includes(weight)}
+                                                                            onChange={(e) => {
+                                                                                const newSelected = e.target.checked
+                                                                                    ? [...filters.selectedHistorical1998, weight]
+                                                                                    : filters.selectedHistorical1998.filter(w => w !== weight);
+                                                                                setFilters(prev => ({
+                                                                                    ...prev,
+                                                                                    selectedHistorical1998: newSelected
+                                                                                }));
+                                                                            }}
+                                                                            className="mr-2 accent-blue-500"
+                                                                        />
+                                                                        <span className="text-sm text-app-secondary">{weight}</span>
+                                                                    </label>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+
+                                    {/* Years dropdown with multi-select checkboxes */}
+                                    <div className="relative">
+                                        <label className="block text-sm font-medium text-gray-300 mb-1">
+                                            Years
+                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowYearDropdown((prev) => !prev)}
+                                            className="w-full flex items-center justify-between h-10 px-3 bg-app-tertiary border border-app-primary rounded-xl text-app-primary text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        >
+                                            <span className="truncate">
+                                                {filters.selectedYears.length === 0 ? "All Years" : filters.selectedYears.join(", ")}
+                                            </span>
+                                            <span className="ml-2 text-xs text-gray-300 flex-shrink-0">
+                                                {showYearDropdown ? "▲" : "▼"}
+                                            </span>
+                                        </button>
+
+                                        {showYearDropdown && (
+                                            <>
+                                                <div className="fixed inset-0 z-10" onClick={() => setShowYearDropdown(false)} />
+                                                <div className="absolute z-20 mt-1 w-full max-h-64 overflow-y-auto bg-app-surface border border-app-primary rounded-xl shadow-lg p-2">
+                                                    <div className="flex justify-between items-center mb-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                const currentYear = new Date().getFullYear();
+                                                                const allYears = Array.from(
+                                                                    { length: currentYear - 1998 + 1 },
+                                                                    (_, i) => currentYear - i
+                                                                );
+                                                                setFilters((prev) => ({
+                                                                    ...prev,
+                                                                    selectedYears: allYears,
+                                                                }));
+                                                            }}
+                                                            className="px-2 py-1 bg-app-tertiary rounded hover:bg-app-hover text-xs text-app-secondary"
+                                                        >
+                                                            Select All
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                setFilters((prev) => ({
+                                                                    ...prev,
+                                                                    selectedYears: [],
+                                                                }))
+                                                            }
+                                                            className="px-2 py-1 bg-app-tertiary rounded hover:bg-app-hover text-xs text-app-secondary"
+                                                        >
+                                                            Clear
+                                                        </button>
+                                                    </div>
+                                                    <div className="grid grid-cols-3 gap-1">
+                                                        {Array.from(
+                                                            { length: new Date().getFullYear() - 1998 + 1 },
+                                                            (_, i) => new Date().getFullYear() - i
+                                                        ).map((year) => {
+                                                            const checked =
+                                                                filters.selectedYears.includes(year);
+                                                            return (
+                                                                <label
+                                                                    key={year}
+                                                                    className="flex items-center space-x-2 text-xs text-app-secondary cursor-pointer hover:bg-app-hover p-1 rounded transition-colors"
+                                                                >
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={checked}
+                                                                        onChange={() => {
+                                                                            setFilters((prev) => {
+                                                                                const exists =
+                                                                                    prev.selectedYears.includes(year);
+                                                                                return {
+                                                                                    ...prev,
+                                                                                    selectedYears: exists
+                                                                                        ? prev.selectedYears.filter(
+                                                                                            (y) => y !== year
+                                                                                        )
+                                                                                        : [...prev.selectedYears, year],
+                                                                                };
+                                                                            });
+                                                                        }}
+                                                                        className="h-3 w-3 accent-blue-500 flex-shrink-0 cursor-pointer"
+                                                                    />
+                                                                    <span>{year}</span>
+                                                                </label>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+
+                                    {/* Date Range */}
+                                    <div className="min-w-0">
+                                        <label className="block text-sm font-medium text-gray-300 mb-1">Date Range</label>
+                                        <div className="flex items-center space-x-1">
+                                            <input
+                                                type="date"
+                                                value={filters.startDate}
+                                                onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))}
+                                                className="w-32 h-10 px-1.5 text-xs bg-app-tertiary border border-app-primary rounded-xl text-app-primary focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            />
+                                            <span className="text-gray-400 text-xs">–</span>
+                                            <input
+                                                type="date"
+                                                value={filters.endDate}
+                                                onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))}
+                                                className="w-32 h-10 px-1.5 text-xs bg-app-tertiary border border-app-primary rounded-xl text-app-primary focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Countries Filter */}
+                                    <SearchableDropdown
+                                        label="Countries"
+                                        placeholder="All Countries"
+                                        options={filterOptions.countries}
+                                        selected={filters.selectedCountries}
+                                        onSelect={(selected) => setFilters(prev => ({ ...prev, selectedCountries: selected }))}
+                                        getValue={(country) => country.code}
+                                        getLabel={(country) => country.name}
+                                        renderOption={(country) => {
+                                            const FlagComponent = getCountryFlagComponent(country.code);
+                                            return (
+                                                <div className="flex items-center space-x-2 truncate">
+                                                    {FlagComponent && (
+                                                        <div className="flex-shrink-0 w-5">
+                                                            <FlagComponent style={{ width: '100%', height: 'auto' }} />
+                                                        </div>
+                                                    )}
+                                                    <span className="truncate">{country.name}</span>
+                                                </div>
+                                            );
+                                        }}
+                                    />
+
+                                    {/* WSO Filter (USAW) */}
+                                    <SearchableDropdown
+                                        label="WSO (USAW)"
+                                        placeholder="All WSOs"
+                                        options={filterOptions.wsoCategories}
+                                        selected={filters.selectedWSO}
+                                        onSelect={(selected) => setFilters(prev => ({ ...prev, selectedWSO: selected }))}
+                                        getValue={(wso) => wso}
+                                        getLabel={(wso) => wso}
+                                        disabled={['iwf', 'iwf_one_per_country'].includes(filters.federation)}
+                                    />
+
+                                    {/* Link to Rankings or other note if needed? */}
+                                </div>
+
+                                <div className="flex justify-end mt-4">
                                     <button
                                         onClick={() => setFilters({
-                                            searchTerm: "", gender: "all", ageCategory: "all", federation: "usaw",
+                                            gender: "all", ageCategory: "all", federation: "usaw",
                                             selectedYears: [2025], selectedCountries: [], selectedWeightClasses: [],
-                                            startDate: "", endDate: "", selectedWSO: [], selectedClubs: []
+                                            selectedHistorical2018: [], selectedHistorical1998: [],
+                                            startDate: "", endDate: "", selectedWSO: [],
+                                            selectedClubs: [], bodyWeightMin: "", bodyWeightMax: "", searchTerm: ""
                                         })}
-                                        className="w-full py-2 flex items-center justify-center space-x-2 text-xs font-medium text-app-muted hover:text-red-400 transition-colors border border-dashed border-app-tertiary rounded-xl hover:border-red-400/30"
+                                        className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
                                     >
-                                        <RefreshCw className="h-3 w-3" />
-                                        <span>Reset Filters</span>
+                                        <X className="h-4 w-4" />
+                                        <span>Clear Filters</span>
                                     </button>
                                 </div>
                             </div>
                         </div>
 
                         {/* MAIN CONTENT Area */}
-                        <div className="lg:col-span-3 space-y-6">
+                        <div className="w-full space-y-6">
                             {/* Status Card */}
                             <div className="bg-app-secondary rounded-xl border border-app-primary p-6">
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

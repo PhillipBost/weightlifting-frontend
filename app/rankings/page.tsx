@@ -2436,7 +2436,7 @@ function RankingsContent() {
                     />
                   </div>
 
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-end mt-4">
                     <button
                       onClick={clearFilters}
                       className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
