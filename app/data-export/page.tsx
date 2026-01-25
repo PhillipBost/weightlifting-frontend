@@ -642,9 +642,7 @@ export default function DataExportPage() {
         let filtered = [...rankings];
 
         // FEDERATION
-        if (filters.federation !== 'all') {
-            filtered = filtered.filter(a => a.federation === filters.federation);
-        }
+        filtered = filtered.filter(a => a.federation === filters.federation);
 
         // GENDER
         if (filters.gender !== 'all') {
