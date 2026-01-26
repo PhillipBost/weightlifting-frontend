@@ -2299,8 +2299,9 @@ function RankingsContent() {
                                 type="button"
                                 onClick={() => {
                                   const currentYear = new Date().getFullYear();
+                                  const startYear = filters.federation === 'usaw' ? 2012 : 1998;
                                   const allYears = Array.from(
-                                    { length: currentYear - 1998 + 1 },
+                                    { length: currentYear - startYear + 1 },
                                     (_, i) => currentYear - i
                                   );
                                   setFilters((prev) => ({
@@ -2332,15 +2333,22 @@ function RankingsContent() {
                               ).map((year) => {
                                 const checked =
                                   filters.selectedYears.includes(year);
+                                const isDisabled = filters.federation === 'usaw' && year < 2012;
+
                                 return (
                                   <label
                                     key={year}
-                                    className="flex items-center space-x-2 text-xs text-app-secondary cursor-pointer hover:bg-app-hover p-1 rounded transition-colors"
+                                    className={`flex items-center space-x-2 text-sm p-1 rounded transition-colors ${isDisabled
+                                      ? "text-gray-500 cursor-not-allowed"
+                                      : "text-app-secondary cursor-pointer hover:bg-app-hover"
+                                      }`}
                                   >
                                     <input
                                       type="checkbox"
                                       checked={checked}
+                                      disabled={isDisabled}
                                       onChange={() => {
+                                        if (isDisabled) return;
                                         setFilters((prev) => {
                                           const exists =
                                             prev.selectedYears.includes(year);
@@ -2354,7 +2362,7 @@ function RankingsContent() {
                                           };
                                         });
                                       }}
-                                      className="h-3 w-3 accent-blue-500 flex-shrink-0 cursor-pointer"
+                                      className={`h-3 w-3 accent-blue-500 flex-shrink-0 ${isDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
                                     />
                                     <span>{year}</span>
                                   </label>
