@@ -2391,9 +2391,19 @@ function RankingsContent() {
                     <SearchableDropdown
                       label="Countries"
                       placeholder="All Countries"
-                      options={filterOptions.countries}
-                      selected={filters.selectedCountries}
-                      onSelect={(selected) => handleFilterChange("selectedCountries", selected)}
+                      options={
+                        filters.federation === 'usaw'
+                          ? filterOptions.countries.filter(c => c.code === 'USA') // Optional: only show USA option if they somehow open it
+                          : filterOptions.countries
+                      }
+                      selected={
+                        filters.federation === 'usaw' ? ['USA'] : filters.selectedCountries
+                      }
+                      onSelect={(selected) => {
+                        if (filters.federation === 'usaw') return;
+                        handleFilterChange("selectedCountries", selected);
+                      }}
+                      disabled={filters.federation === 'usaw'}
                       getValue={(country) => country.code}
                       getLabel={(country) => country.name}
                       renderOption={(country) => {
