@@ -116,6 +116,7 @@ export default function DataExportPage() {
     const [filteredRankings, setFilteredRankings] = useState<AthleteRanking[]>([]);
     const [loading, setLoading] = useState(true);
     const [exporting, setExporting] = useState(false);
+    const [exportProgress, setExportProgress] = useState(0);
     const [error, setError] = useState<string | null>(null);
 
     // Constants adapted from Rankings
@@ -703,208 +704,204 @@ export default function DataExportPage() {
     // EXPORT FUNCTION
     const handleExport = async () => {
         setExporting(true);
+        setExportProgress(0);
         try {
             const timestamp = new Date().toISOString().slice(0, 10);
-            let allRows: any[] = [];
+            let finalRows: any[] = [];
 
-            // 1. Process USAW Data (Fetch full details from DB)
-            const usawIds = filteredRankings
-                .filter(r => r.federation === 'usaw')
-                .map(r => r.unique_id.split('-')[1]) // unique_id is "usaw-{result_id}-{index}"
-                .filter(id => id && !isNaN(Number(id)));
+            // 1. Separate items by federation
+            const usawItems = filteredRankings.filter(r => r.federation === 'usaw');
+            const iwfItems = filteredRankings.filter(r => r.federation === 'iwf');
 
-            if (usawIds.length > 0) {
-                console.log(`Fetching details for ${usawIds.length} USAW records...`);
-                const BATCH_SIZE = 1000;
+            // 2. Fetch Detailed USAW Data (Lift Attempts)
+            if (usawItems.length > 0) {
+                console.log(`Fetching details for ${usawItems.length} USAW records...`);
+                // Extract result IDs from unique_id "usaw-{result_id}-{index}"
+                const usawIds = usawItems.map(r => r.unique_id.split('-')[1]).filter(id => id && !isNaN(Number(id)));
 
-                // We'll collect all results and lifter details separately to avoid join issues
-                let resultsData: any[] = [];
-                let lifterIdsToFetch = new Set<string>();
+                const BATCH_SIZE = 100; // Safe batch size for URL length
+                const totalBatches = Math.ceil(usawIds.length / BATCH_SIZE);
+                let fetchedResults: any[] = [];
 
-                // 1. Fetch Meet Results
                 for (let i = 0; i < usawIds.length; i += BATCH_SIZE) {
                     const batchIds = usawIds.slice(i, i + BATCH_SIZE);
                     const { data, error } = await supabase
                         .from("usaw_meet_results")
-                        .select("*")
+                        .select(`
+                            result_id, 
+                            snatch_lift_1, snatch_lift_2, snatch_lift_3, best_snatch,
+                            cj_lift_1, cj_lift_2, cj_lift_3, best_cj,
+                            total, date, meet_name, 
+                            q_youth, q_masters, qpoints,
+                            competition_age
+                        `)
                         .in('result_id', batchIds);
 
                     if (error) {
-                        console.error("Supabase Error during USAW results fetch:", JSON.stringify(error, null, 2));
-                        throw new Error(`Supabase Error (Results): ${error.message}`);
+                        console.error("Error fetching batch:", error);
+                        // Fallback: continue with what we have or existing state?
+                        // defaulting to basic state for this batch would be safer but let's try to persist
                     }
                     if (data) {
-                        resultsData.push(...data);
-                        data.forEach(r => {
-                            if (r.lifter_id) lifterIdsToFetch.add(String(r.lifter_id));
-                        });
+                        fetchedResults.push(...data);
                     }
+
+                    // Update progress (0-50% reserved for USAW fetch in mixed, or scaled)
+                    const percentComplete = Math.round(((i + BATCH_SIZE) / usawIds.length) * 100);
+                    setExportProgress(percentComplete);
                 }
 
-                // 2. Fetch Lifter Details
-                const lifterInfoMap = new Map<string, any>();
-                const lifterIds = Array.from(lifterIdsToFetch);
+                // Map fetched data back to the rankings list to preserve order or just use fetched?
+                // We initially filtered 'filteredRankings'. We want to output THOSE rows but enriched.
+                // Create a lookup map
+                const detailsMap = new Map(fetchedResults.map(r => [String(r.result_id), r]));
 
-                for (let i = 0; i < lifterIds.length; i += BATCH_SIZE) {
-                    const batch = lifterIds.slice(i, i + BATCH_SIZE);
-                    const { data: liftersData, error: lifterError } = await supabase
-                        .from("usaw_lifters")
-                        .select(`lifter_id, membership_number, state`)
-                        .in('lifter_id', batch);
-
-                    if (lifterError) {
-                        console.warn("Error fetching lifter details, continuing without them:", lifterError);
-                    } else if (liftersData) {
-                        liftersData.forEach((l: any) => lifterInfoMap.set(String(l.lifter_id), l));
-                    }
-                }
-
-                // 3. Merge and Transform
-                resultsData.forEach(r => {
-                    const lifter = lifterInfoMap.get(String(r.lifter_id));
-                    // Inject lifter info into the result object "usaw_lifters" property to match expected transform structure
-                    // OR just pass both to the transform function. 
-                    // Let's modify the result object to look like the join result expected by transformUsawForExport
-                    r.usaw_lifters = lifter || {};
-                    allRows.push(transformUsawForExport(r));
+                usawItems.forEach(item => {
+                    const resultId = item.unique_id.split('-')[1];
+                    const details = detailsMap.get(resultId);
+                    finalRows.push(transformUsawForDetailedExport(item, details));
                 });
             }
 
-            // 2. Process IWF Data (Use existing data or fetch if table available)
-            const iwfItems = filteredRankings.filter(r => r.federation === 'iwf');
+            // 3. Process IWF Data (Basic info from state, or fetch if table exists)
+            // For now, using state as IWF table schema is not confirmed or requested to have specific lift columns
             if (iwfItems.length > 0) {
-                console.log(`Fetching details for ${iwfItems.length} IWF records...`);
-                // Check if iwf_meet_results table exists by trying a small select
-                // Or just try to select and fallback if error
-                const iwfIds = iwfItems.map(r => r.unique_id.split('-')[1]);
-
-                // Note: 'iwf_meet_results' might not exist or schema differs. 
-                // Wrapping in try/catch to ensure fallback works.
-                try {
-                    const { data: iwfData, error: iwfError } = await supabase
-                        .from("iwf_meet_results")
-                        .select("*")
-                        .in('result_id', iwfIds);
-
-                    if (iwfError) throw iwfError;
-
-                    if (iwfData) {
-                        allRows.push(...iwfData.map(transformIwfForExport));
-                    } else {
-                        throw new Error("No IWF data returned");
-                    }
-                } catch (iwfErr) {
-                    console.warn("Could not fetch detailed IWF data, falling back to basic info:", iwfErr);
-                    allRows.push(...iwfItems.map(transformIwfFromState));
-                }
+                iwfItems.forEach(item => {
+                    finalRows.push(transformIwfFromState(item));
+                });
             }
 
-            console.log(`Generated ${allRows.length} rows for export.`);
-            // GENERATE CSV
-            generateCSV(allRows);
+            // 4. Generate CSV with NEW Column Order
+            const headers = [
+                "Athlete", "Meet Name", "Year", "Date", "Gender", "Weight Class", "Body Weight",
+                "Competition Age", "Age Category",
+                "Snatch 1", "Snatch 2", "Snatch 3", "Best Snatch (kg)",
+                "C&J 1", "C&J 2", "C&J 3", "Best C&J (kg)",
+                "Total (kg)", "Q-Youth", "Q-Points", "Q-Masters",
+                "Federation", "Country", "WSO", "Club"
+            ];
 
-        } catch (e: any) {
-            console.error("Export failed with error object:", e);
-            // Attempt to extract meaningful message
-            let msg = "Unknown error";
-            if (e instanceof Error) msg = e.message;
-            else if (typeof e === 'string') msg = e;
-            else if (typeof e === 'object') msg = JSON.stringify(e);
+            const csvContent = [
+                headers.join(","),
+                ...finalRows.map(row => [
+                    `"${row.athlete}"`,
+                    `"${row.meet_name}"`,
+                    row.year,
+                    row.date,
+                    row.gender,
+                    row.weight_class,
+                    row.body_weight,
+                    row.competition_age,
+                    row.age_category,
+                    row.snatch_1, row.snatch_2, row.snatch_3, row.best_snatch,
+                    row.cj_1, row.cj_2, row.cj_3, row.best_cj,
+                    row.total,
+                    row.q_youth,
+                    row.q_points,
+                    row.q_masters,
+                    row.federation,
+                    row.country,
+                    row.wso,
+                    `"${row.club}"`
+                ].join(","))
+            ].join("\n");
 
-            setError(`Export failed: ${msg}`);
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `weightlifting_export_${timestamp}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+        } catch (err: any) {
+            console.error("Export failed:", err);
+            setError("Export failed: " + err.message);
         } finally {
             setExporting(false);
+            setExportProgress(0);
         }
     };
 
-    const transformUsawForExport = (r: any) => ({
-        "Source": "USAW",
-        "Lifter Name": r.lifter_name,
-        "Membership #": r.usaw_lifters?.membership_number || r.membership_number || "",
-        "State": r.usaw_lifters?.state || "",
-        "Date": new Date(r.date).toLocaleDateString(),
-        "Meet Name": r.meet_name,
-        "Meet Location": r.location || "",
-        "Gender": r.gender,
-        "Age Category": r.age_category,
-        "Weight Class": r.weight_class,
-        "Body Weight": r.body_weight_kg,
-        "Snatch 1": r.snatch_lift_1 || "",
-        "Snatch 2": r.snatch_lift_2 || "",
-        "Snatch 3": r.snatch_lift_3 || "",
-        "Best Snatch": r.best_snatch,
-        "C&J 1": r.cj_lift_1 || "",
-        "C&J 2": r.cj_lift_2 || "",
-        "C&J 3": r.cj_lift_3 || "",
-        "Best C&J": r.best_cj,
-        "Total": r.total,
-        "Q Points": r.qpoints?.toFixed(3) || "",
-        "Q Youth": r.q_youth?.toFixed(3) || "",
-        "Q Masters": r.q_masters?.toFixed(3) || "",
-        "Comp Age": r.competition_age || "",
-        "WSO": r.wso || "",
-        "Club": r.club_name || ""
-    });
+    // Helper: Enrich state data with DB details
+    function transformUsawForDetailedExport(stateItem: AthleteRanking, dbDetail: any) {
+        // Prioritize STATE data for ranking metrics to match JSON source strictly.
+        // Use DB only for details missing from state (Attempts, exact Date).
 
-    const transformIwfForExport = (r: any) => ({
-        "Source": "IWF",
-        "Lifter Name": r.lifter_name,
-        "Membership #": "",
-        "State": "",
-        "Date": new Date(r.date).toLocaleDateString(),
-        "Meet Name": r.meet_name,
-        "Meet Location": "", // IWF might not have this column normalized
-        "Gender": r.gender,
-        "Age Category": r.age_category,
-        "Weight Class": r.weight_class,
-        "Body Weight": r.body_weight_kg,
-        "Snatch 1": r.snatch_1 || "",
-        "Snatch 2": r.snatch_2 || "",
-        "Snatch 3": r.snatch_3 || "",
-        "Best Snatch": r.best_snatch,
-        "C&J 1": r.cj_1 || "",
-        "C&J 2": r.cj_2 || "",
-        "C&J 3": r.cj_3 || "",
-        "Best C&J": r.best_cj,
-        "Total": r.total,
-        "Q Points": r.qpoints?.toFixed(3) || "",
-        "Q Youth": "",
-        "Q Masters": "",
-        "Comp Age": r.competition_age || "",
-        "WSO": "",
-        "Club": "",
-        "Country": r.nation || ""
-    });
+        // Helper to safely format numbers, returning "" for null/undefined
+        const formatNumber = (val: number | undefined | null) => {
+            if (val === null || val === undefined) return "";
+            return val.toFixed(2);
+        };
 
-    const transformIwfFromState = (r: AthleteRanking) => ({
-        "Source": "IWF",
-        "Lifter Name": r.lifter_name,
-        "Membership #": "",
-        "State": "",
-        "Date": new Date(r.last_competition).toLocaleDateString(),
-        "Meet Name": r.last_meet_name,
-        "Meet Location": "",
-        "Gender": r.gender,
-        "Age Category": r.age_category || "",
-        "Weight Class": r.weight_class || "",
-        "Body Weight": r.last_body_weight || "",
-        "Snatch 1": "",
-        "Snatch 2": "",
-        "Snatch 3": "",
-        "Best Snatch": r.best_snatch,
-        "C&J 1": "",
-        "C&J 2": "",
-        "C&J 3": "",
-        "Best C&J": r.best_cj,
-        "Total": r.best_total,
-        "Q Points": r.best_qpoints?.toFixed(3) || "",
-        "Q Youth": "",
-        "Q Masters": "",
-        "Comp Age": r.competition_age || "",
-        "WSO": "",
-        "Club": "",
-        "Country": r.country_code || ""
-    });
+        return {
+            athlete: stateItem.lifter_name,
+            meet_name: dbDetail?.meet_name || stateItem.last_meet_name,
+            year: stateItem.year,
+            date: dbDetail?.date ? new Date(dbDetail.date).toLocaleDateString() : (stateItem.last_competition ? new Date(stateItem.last_competition).toLocaleDateString() : ""),
+            gender: stateItem.gender,
+            weight_class: stateItem.weight_class,
+            body_weight: stateItem.last_body_weight || "",
+            competition_age: stateItem.competition_age || dbDetail?.competition_age || "",
+            age_category: stateItem.age_category,
+            // Attempts (Only in DB)
+            snatch_1: dbDetail?.snatch_lift_1 || "",
+            snatch_2: dbDetail?.snatch_lift_2 || "",
+            snatch_3: dbDetail?.snatch_lift_3 || "",
+            best_snatch: stateItem.best_snatch, // Use State
+            cj_1: dbDetail?.cj_lift_1 || "",
+            cj_2: dbDetail?.cj_lift_2 || "",
+            cj_3: dbDetail?.cj_lift_3 || "",
+            best_cj: stateItem.best_cj, // Use State
+            total: stateItem.best_total, // Use State
+            // Metrics (Use State to avoid "extra" calculations from raw DB rows)
+            // Use 'qpoints' (raw) not 'best_qpoints' (calculated max)
+            q_youth: formatNumber(stateItem.q_youth),
+            q_points: formatNumber(stateItem.qpoints),
+            q_masters: formatNumber(stateItem.q_masters),
+
+            federation: "USAW",
+            country: "USA",
+            wso: stateItem.wso || "",
+            club: stateItem.club_name || ""
+        };
+    }
+
+    // Helper to transform state data for export (IWF fallback)
+    function transformIwfFromState(r: AthleteRanking) {
+        const formatNumber = (val: number | undefined | null) => {
+            if (val === null || val === undefined) return "";
+            return val.toFixed(2);
+        };
+
+        return {
+            athlete: r.lifter_name,
+            meet_name: r.last_meet_name,
+            year: r.year,
+            date: r.last_competition ? new Date(r.last_competition).toLocaleDateString() : "",
+            gender: r.gender,
+            weight_class: r.weight_class,
+            body_weight: r.last_body_weight || "",
+            competition_age: r.competition_age || "",
+            age_category: r.age_category,
+            snatch_1: "", snatch_2: "", snatch_3: "",
+            best_snatch: r.best_snatch,
+            cj_1: "", cj_2: "", cj_3: "",
+            best_cj: r.best_cj,
+            total: r.best_total,
+            q_youth: formatNumber(r.q_youth),
+            q_points: formatNumber(r.qpoints || r.best_qpoints), // Fallback to best if internal IWF structure differs, but try raw first
+            q_masters: formatNumber(r.q_masters),
+
+            federation: "IWF",
+            country: r.country_name || r.country_code || "",
+            wso: "",
+            club: ""
+        };
+    }
+
+
 
     const generateCSV = (data: any[]) => {
         if (!data || data.length === 0) return;
@@ -1701,7 +1698,7 @@ export default function DataExportPage() {
                                             ) : (
                                                 <Download className="h-5 w-5 mr-2" />
                                             )}
-                                            {exporting ? "Generating..." : "Download Export CSV"}
+                                            {exporting ? `Generating (${exportProgress}%)` : "Download Export CSV"}
                                         </button>
                                     )}
                                 </div>
