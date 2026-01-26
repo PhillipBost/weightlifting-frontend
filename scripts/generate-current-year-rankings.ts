@@ -36,6 +36,7 @@ interface USAWRankingResult {
     result_id: number;
     meet_id: number;
     lifter_id: number;
+    internal_id: number | null; // Added internal_id
     membership_number: number | null;
     lifter_name: string;
     gender: string;
@@ -51,6 +52,13 @@ interface USAWRankingResult {
     qpoints: number;
     q_youth: number | null;
     q_masters: number | null;
+    // Added lift attempts
+    snatch_1: string | null;
+    snatch_2: string | null;
+    snatch_3: string | null;
+    cj_1: string | null;
+    cj_2: string | null;
+    cj_3: string | null;
     club_name: string | null;
     wso: string | null;
 }
@@ -74,6 +82,13 @@ interface IWFRankingResult {
     qpoints: number;
     q_youth: number | null;
     q_masters: number | null;
+    // Added lift attempts
+    snatch_1: string | null;
+    snatch_2: string | null;
+    snatch_3: string | null;
+    cj_1: string | null;
+    cj_2: string | null;
+    cj_3: string | null;
     country_code: string;
     country_name: string;
 }
@@ -169,6 +184,12 @@ async function generateUSAWCurrentYear() {
                     qpoints,
                     q_youth,
                     q_masters,
+                    snatch_lift_1,
+                    snatch_lift_2,
+                    snatch_lift_3,
+                    cj_lift_1,
+                    cj_lift_2,
+                    cj_lift_3,
                     club_name,
                     wso
                 `)
@@ -193,21 +214,24 @@ async function generateUSAWCurrentYear() {
 
         console.log(`  Total results: ${allResults.length}`);
 
-        // Get unique lifter IDs and fetch membership numbers
-        console.log('  Fetching membership numbers...');
+        // Get unique lifter IDs and fetch membership numbers AND internal_id
+        console.log('  Fetching membership numbers and internal IDs...');
         const uniqueLifterIds = [...new Set(allResults.map(r => r.lifter_id))];
-        const lifterMap = new Map();
+        const lifterMap = new Map<number, { membership_number: number | null, internal_id: number | null }>();
 
         // Fetch membership numbers in batches
         for (let i = 0; i < uniqueLifterIds.length; i += 1000) {
             const batch = uniqueLifterIds.slice(i, i + 1000);
             const { data: lifters, error } = await supabase
                 .from('usaw_lifters')
-                .select('lifter_id, membership_number')
+                .select('lifter_id, membership_number, internal_id')
                 .in('lifter_id', batch);
 
             if (!error && lifters) {
-                lifters.forEach(l => lifterMap.set(l.lifter_id, l.membership_number));
+                lifters.forEach(l => lifterMap.set(l.lifter_id, {
+                    membership_number: l.membership_number,
+                    internal_id: l.internal_id
+                }));
             }
         }
 
@@ -221,12 +245,15 @@ async function generateUSAWCurrentYear() {
         }
 
         const processedResults: USAWRankingResult[] = allResults.map(result => {
-            const membershipNumber = lifterMap.get(result.lifter_id) || null;
+            const lifterData = lifterMap.get(result.lifter_id);
+            const membershipNumber = lifterData ? lifterData.membership_number : null;
+            const internalId = lifterData ? lifterData.internal_id : null;
 
             return {
                 result_id: result.result_id,
                 meet_id: result.meet_id,
                 lifter_id: result.lifter_id,
+                internal_id: internalId,
                 membership_number: membershipNumber,
                 lifter_name: result.lifter_name,
                 gender: result.gender,
@@ -242,6 +269,12 @@ async function generateUSAWCurrentYear() {
                 qpoints: parseFloat(result.qpoints) || 0,
                 q_youth: result.q_youth ? parseFloat(result.q_youth) : null,
                 q_masters: result.q_masters ? parseFloat(result.q_masters) : null,
+                snatch_1: result.snatch_lift_1 || null,
+                snatch_2: result.snatch_lift_2 || null,
+                snatch_3: result.snatch_lift_3 || null,
+                cj_1: result.cj_lift_1 || null,
+                cj_2: result.cj_lift_2 || null,
+                cj_3: result.cj_lift_3 || null,
                 club_name: result.club_name || null,
                 wso: result.wso || null
             };
@@ -313,6 +346,12 @@ async function generateIWFCurrentYear() {
                     qpoints,
                     q_youth,
                     q_masters,
+                    snatch_lift_1,
+                    snatch_lift_2,
+                    snatch_lift_3,
+                    cj_lift_1,
+                    cj_lift_2,
+                    cj_lift_3,
                     country_code,
                     country_name
                 `)
@@ -391,6 +430,12 @@ async function generateIWFCurrentYear() {
                 qpoints: parseFloat(result.qpoints) || 0,
                 q_youth: result.q_youth ? parseFloat(result.q_youth) : null,
                 q_masters: result.q_masters ? parseFloat(result.q_masters) : null,
+                snatch_1: result.snatch_lift_1 || null,
+                snatch_2: result.snatch_lift_2 || null,
+                snatch_3: result.snatch_lift_3 || null,
+                cj_1: result.cj_lift_1 || null,
+                cj_2: result.cj_lift_2 || null,
+                cj_3: result.cj_lift_3 || null,
                 country_code: result.country_code || "",
                 country_name: result.country_name || ""
             };
@@ -578,7 +623,7 @@ async function generateClubsCurrentYear() {
         console.log(`  Size: ${(stats.size / 1024).toFixed(2)} KB (${allClubs.length} clubs)`);
 
         // Also generate active clubs only (clubs with recent activity)
-        const activeClubs = allClubs.filter(club => 
+        const activeClubs = allClubs.filter(club =>
             club.active_lifters_count && club.active_lifters_count > 0
         );
 
