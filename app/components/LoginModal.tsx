@@ -28,7 +28,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
       } else {
         await login(email, password)
       }
-      
+
       // Clear form and close modal on success
       setEmail('')
       setPassword('')
@@ -84,7 +84,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                 placeholder="Your name"
               />
             </div>
@@ -100,7 +100,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
               placeholder="your@email.com"
             />
           </div>
@@ -116,7 +116,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
               placeholder="Password (min 6 characters)"
             />
           </div>
@@ -129,7 +129,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
             >
               {loading ? 'Please wait...' : (isRegistering ? 'Create Account' : 'Sign In')}
             </button>
-            
+
             <button
               type="button"
               onClick={onClose}
