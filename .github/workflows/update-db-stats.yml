@@ -1,0 +1,45 @@
+name: Update Database Stats
+
+on:
+  schedule:
+    # Run at 04:00 AM UTC daily (which is late night/early morning in US)
+    - cron: '0 4 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  update-stats:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Stats Update Script
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: npx tsx scripts/update-db-stats.ts
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          
+          # Check if there are changes to commit
+          if [[ -n $(git status -s public/data/stats.json) ]]; then
+            git add public/data/stats.json
+            git commit -m "chore: update database stats [skip ci]"
+            git push
+            echo "✓ Successfully updated stats.json"
+          else
+            echo "No changes to stats.json detected."
+          fi

@@ -1,0 +1,14 @@
+{
+  "results": 393357,
+  "athletes": 86785,
+  "meets": 7683,
+  "lastUpdated": "2026-01-27T04:00:48.697Z",
+  "breakdown": {
+    "usawResults": 323418,
+    "iwfResults": 69939,
+    "usawAthletes": 68924,
+    "iwfAthletes": 17861,
+    "usawMeets": 7157,
+    "iwfMeets": 526
+  }
+}

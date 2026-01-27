@@ -67,7 +67,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
                   WeightliftingDB
                 </div>
                 <div className="text-xs text-app-tertiary">
-                  USA Weightlifting Results Database
+                  Olympic Weightlifting Results Database
                 </div>
               </div>
             </Link>

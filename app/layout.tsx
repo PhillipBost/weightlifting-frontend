@@ -7,7 +7,7 @@ import { GlobalHeader } from "./components/GlobalHeader";
 
 export const metadata: Metadata = {
   title: "WeightliftingDB",
-  description: "USA Weightlifting Results Database",
+  description: "Olympic Weightlifting Results Database",
 };
 
 export default function RootLayout({

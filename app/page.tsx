@@ -93,6 +93,22 @@ export default function WeightliftingLandingPage() {
 
   const [placeholderName, setPlaceholderName] = useState('');
   const [placeholderMeet, setPlaceholderMeet] = useState('');
+  const [dbStats, setDbStats] = useState<{ results: number; athletes: number; meets: number } | null>(null);
+
+  useEffect(() => {
+    fetch('/data/stats.json')
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        return res.json();
+      })
+      .then(data => {
+        console.log('[Homepage] Stats received:', data);
+        if (data && typeof data.results === 'number') {
+          setDbStats(data);
+        }
+      })
+      .catch(err => console.error('[Homepage] Stats fetch error:', err));
+  }, []);
 
   useEffect(() => {
     // Initialize search indices
@@ -593,7 +609,7 @@ export default function WeightliftingLandingPage() {
               />
               <div>
                 <h1 className="text-2xl font-bold text-app-primary">WeightliftingDB</h1>
-                <p className="text-sm text-app-tertiary">USA Weightlifting Results Database</p>
+                <p className="text-sm text-app-tertiary">Olympic Weightlifting Results Database</p>
               </div>
             </Link>
 
@@ -610,12 +626,21 @@ export default function WeightliftingLandingPage() {
       <section className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-[1200px] mx-auto text-center">
           <h2 className="text-4xl sm:text-5xl font-bold text-app-primary mb-6">
-            USA Weightlifting
+            Olympic Weightlifting
             <span className="block text-blue-400">Results Database</span>
           </h2>
           <p className="text-lg text-app-secondary mb-12 max-w-2xl mx-auto">
-            Search through thousands of competition results and
-            analyze performance trends from USA Weightlifting athletes.
+            {dbStats ? (
+              <>
+                Search through <span className="text-blue-400 font-bold">{dbStats.results.toLocaleString()}</span> competition results
+                by <span className="text-blue-400 font-bold">{dbStats.athletes.toLocaleString()}</span> athletes
+                across <span className="text-blue-400 font-bold">{dbStats.meets.toLocaleString()}</span> meets
+                from USA and International Olympic Weightlifting.
+              </>
+            ) : (
+              // Fallback / Loading text
+              "Search through thousands of competition results and analyze performance trends from USA and International Olympic Weightlifting."
+            )}
           </p>
 
           {/* Search Interface */}
