@@ -58,6 +58,14 @@ interface AthleteRanking {
     membership_number?: string;
     meet_id?: number | string;
     unique_id: string;
+    // Detailed fields from JSON
+    snatch_1?: string | number;
+    snatch_2?: string | number;
+    snatch_3?: string | number;
+    cj_1?: string | number;
+    cj_2?: string | number;
+    cj_3?: string | number;
+    internal_id?: number | string; // Sport 80 URL ID
 }
 
 interface USAWRankingResult {
@@ -65,6 +73,8 @@ interface USAWRankingResult {
     meet_id: number;
     lifter_id: number;
     membership_number: number | null;
+    member?: string | null; // Support new field name if differing
+    internal_id?: number | string; // Add internal ID
     lifter_name: string;
     gender: string;
     weight_class: string;
@@ -81,6 +91,13 @@ interface USAWRankingResult {
     q_masters: number | null;
     wso?: string | null;
     club_name?: string | null;
+    // Lift attempts
+    snatch_1?: string | number;
+    snatch_2?: string | number;
+    snatch_3?: string | number;
+    cj_1?: string | number;
+    cj_2?: string | number;
+    cj_3?: string | number;
 }
 
 interface IWFRankingResult {
@@ -124,6 +141,15 @@ export default function DataExportPage() {
         Women: ["36kg", "40kg", "44kg", "48kg", "53kg", "58kg", "63kg", "63+kg", "69kg", "69+kg", "77kg", "77+kg", "86kg", "86+kg"],
         Men: ["40kg", "44kg", "48kg", "52kg", "56kg", "60kg", "65kg", "65+kg", "71kg", "79kg", "79+kg", "88kg", "94kg", "94+kg", "110kg", "110+kg"],
     };
+
+    // ... (rest of weight classes constants unchanged) ...
+    // Note: Constants are large, assuming they are unchanged in this block unless specified.
+    // Simplifying replacement to just update interfaces and state init if close.
+    // Ideally target smaller blocks but the interfaces are at start.
+
+    // Skipping down to the mapping logic update (Line ~382 in original)
+    // We need to replace the mapping logic block. using multi-replace for that part separately.
+
 
     // Historical weight classes (November 2018-May 2025)
     const HISTORICAL_2018_2025_WEIGHT_CLASSES = {
@@ -280,7 +306,7 @@ export default function DataExportPage() {
 
     async function loadUSAWRankingsFile(year: number): Promise<USAWRankingResult[]> {
         try {
-            const response = await fetch(`/data/usaw-rankings-${year}.json.gz`);
+            const response = await fetch(`/data/usaw-rankings-${year}.json.gz?t=${Date.now()}`);
             if (!response.ok) throw new Error("File not found");
 
             let json;
@@ -304,7 +330,7 @@ export default function DataExportPage() {
 
     async function loadIWFRankingsFile(year: number): Promise<IWFRankingResult[]> {
         try {
-            const response = await fetch(`/data/iwf-rankings-${year}.json.gz`);
+            const response = await fetch(`/data/iwf-rankings-${year}.json.gz?t=${Date.now()}`);
             if (!response.ok) throw new Error("File not found");
 
             let json;
@@ -372,7 +398,7 @@ export default function DataExportPage() {
                     const batch = lifterIds.slice(i, i + LIFTER_BATCH_SIZE);
                     const { data: liftersData } = await supabase
                         .from("usaw_lifters")
-                        .select(`lifter_id, athlete_name, wso, club_name, membership_number`)
+                        .select(`lifter_id, athlete_name, wso, club_name, membership_number, internal_id`)
                         .in('lifter_id', batch);
                     (liftersData || []).forEach((lifter: any) => lifterInfoMap.set(lifter.lifter_id, lifter));
                 }
@@ -401,13 +427,21 @@ export default function DataExportPage() {
                     last_meet_name: result.meet_name || "",
                     last_body_weight: result.body_weight_kg || "",
                     competition_age: result.competition_age || undefined,
-                    membership_number: lifterInfo?.membership_number || result.membership_number || "",
+                    membership_number: result.member || result.membership_number?.toString() || lifterInfo?.membership_number || "",
+                    internal_id: result.internal_id || lifterInfo?.internal_id || "", // Map internal ID with fallback
                     meet_id: result.meet_id,
                     unique_id: `usaw-${result.result_id}-${index}`,
                     country_code: "USA",
                     country_name: "USA",
                     wso: result.wso || lifterInfo?.wso || "",
-                    club_name: result.club_name || lifterInfo?.club_name || ""
+                    club_name: result.club_name || lifterInfo?.club_name || "",
+                    // New Fields from JSON
+                    snatch_1: result.snatch_1,
+                    snatch_2: result.snatch_2,
+                    snatch_3: result.snatch_3,
+                    cj_1: result.cj_1,
+                    cj_2: result.cj_2,
+                    cj_3: result.cj_3
                 };
             });
 
@@ -441,6 +475,7 @@ export default function DataExportPage() {
                 last_meet_name: result.meet_name,
                 last_body_weight: result.body_weight_kg,
                 competition_age: result.competition_age || undefined,
+                internal_id: result.iwf_lifter_id || "",
                 unique_id: `iwf-${result.db_result_id}-${index}`,
                 country_code: result.country_code,
                 country_name: result.country_name
@@ -704,87 +739,82 @@ export default function DataExportPage() {
     // EXPORT FUNCTION
     const handleExport = async () => {
         setExporting(true);
+        // Progress not needed for instant export, but keeping state reset clean
         setExportProgress(0);
         try {
             const timestamp = new Date().toISOString().slice(0, 10);
             let finalRows: any[] = [];
 
-            // 1. Separate items by federation
+            // 1. Separate items by federation (though logic is same now mostly)
             const usawItems = filteredRankings.filter(r => r.federation === 'usaw');
             const iwfItems = filteredRankings.filter(r => r.federation === 'iwf');
 
-            // 2. Fetch Detailed USAW Data (Lift Attempts)
+            // 2. Process USAW Data (Use State Directly)
             if (usawItems.length > 0) {
-                console.log(`Fetching details for ${usawItems.length} USAW records...`);
-                // Extract result IDs from unique_id "usaw-{result_id}-{index}"
-                const usawIds = usawItems.map(r => r.unique_id.split('-')[1]).filter(id => id && !isNaN(Number(id)));
-
-                const BATCH_SIZE = 100; // Safe batch size for URL length
-                const totalBatches = Math.ceil(usawIds.length / BATCH_SIZE);
-                let fetchedResults: any[] = [];
-
-                for (let i = 0; i < usawIds.length; i += BATCH_SIZE) {
-                    const batchIds = usawIds.slice(i, i + BATCH_SIZE);
-                    const { data, error } = await supabase
-                        .from("usaw_meet_results")
-                        .select(`
-                            result_id, 
-                            snatch_lift_1, snatch_lift_2, snatch_lift_3, best_snatch,
-                            cj_lift_1, cj_lift_2, cj_lift_3, best_cj,
-                            total, date, meet_name, 
-                            q_youth, q_masters, qpoints,
-                            competition_age
-                        `)
-                        .in('result_id', batchIds);
-
-                    if (error) {
-                        console.error("Error fetching batch:", error);
-                        // Fallback: continue with what we have or existing state?
-                        // defaulting to basic state for this batch would be safer but let's try to persist
-                    }
-                    if (data) {
-                        fetchedResults.push(...data);
-                    }
-
-                    // Update progress (0-50% reserved for USAW fetch in mixed, or scaled)
-                    const percentComplete = Math.round(((i + BATCH_SIZE) / usawIds.length) * 100);
-                    setExportProgress(percentComplete);
-                }
-
-                // Map fetched data back to the rankings list to preserve order or just use fetched?
-                // We initially filtered 'filteredRankings'. We want to output THOSE rows but enriched.
-                // Create a lookup map
-                const detailsMap = new Map(fetchedResults.map(r => [String(r.result_id), r]));
-
                 usawItems.forEach(item => {
-                    const resultId = item.unique_id.split('-')[1];
-                    const details = detailsMap.get(resultId);
-                    finalRows.push(transformUsawForDetailedExport(item, details));
+                    finalRows.push(transformUsawForDetailedExport(item));
                 });
             }
 
-            // 3. Process IWF Data (Basic info from state, or fetch if table exists)
-            // For now, using state as IWF table schema is not confirmed or requested to have specific lift columns
+            // 3. Process IWF Data
             if (iwfItems.length > 0) {
                 iwfItems.forEach(item => {
                     finalRows.push(transformIwfFromState(item));
                 });
             }
 
-            // 4. Generate CSV with NEW Column Order
-            const headers = [
-                "Athlete", "Meet Name", "Year", "Date", "Gender", "Weight Class", "Body Weight",
-                "Competition Age", "Age Category",
-                "Snatch 1", "Snatch 2", "Snatch 3", "Best Snatch (kg)",
-                "C&J 1", "C&J 2", "C&J 3", "Best C&J (kg)",
-                "Total (kg)", "Q-Youth", "Q-Points", "Q-Masters",
-                "Federation", "Country", "WSO", "Club"
-            ];
+            // 4. Generate CSV with Conditional Headers/Rows
+            const isIwfOnly = iwfItems.length > 0 && usawItems.length === 0;
+            let headers: string[] = [];
+            let csvRows: string[] = [];
 
-            const csvContent = [
-                headers.join(","),
-                ...finalRows.map(row => [
+            if (isIwfOnly) {
+                // IWF Specific Headers (Dropped: WSO, Club, Membership #; Renamed: Sport 80 ID -> IWF ID)
+                headers = [
+                    "Athlete", "IWF ID", "Meet Name", "Year", "Date", "Gender", "Weight Class", "Body Weight",
+                    "Competition Age", "Age Category",
+                    "Snatch 1", "Snatch 2", "Snatch 3", "Best Snatch (kg)",
+                    "C&J 1", "C&J 2", "C&J 3", "Best C&J (kg)",
+                    "Total (kg)", "Q-Youth", "Q-Points", "Q-Masters",
+                    "Federation", "Country"
+                ];
+
+                csvRows = finalRows.map(row => [
                     `"${row.athlete}"`,
+                    row.internal_id, // IWF ID
+                    `"${row.meet_name}"`,
+                    row.year,
+                    row.date,
+                    row.gender,
+                    row.weight_class,
+                    row.body_weight,
+                    row.competition_age,
+                    row.age_category,
+                    row.snatch_1, row.snatch_2, row.snatch_3, row.best_snatch,
+                    row.cj_1, row.cj_2, row.cj_3, row.best_cj,
+                    row.total,
+                    row.q_youth,
+                    row.q_points,
+                    row.q_masters,
+                    row.federation,
+                    row.country
+                ].join(","));
+
+            } else {
+                // USAW / Mixed Default Headers
+                headers = [
+                    "Athlete", "Membership #", "Sport 80 ID", "Meet Name", "Year", "Date", "Gender", "Weight Class", "Body Weight",
+                    "Competition Age", "Age Category",
+                    "Snatch 1", "Snatch 2", "Snatch 3", "Best Snatch (kg)",
+                    "C&J 1", "C&J 2", "C&J 3", "Best C&J (kg)",
+                    "Total (kg)", "Q-Youth", "Q-Points", "Q-Masters",
+                    "Federation", "Country", "WSO", "Club"
+                ];
+
+                csvRows = finalRows.map(row => [
+                    `"${row.athlete}"`,
+                    row.membership_number,
+                    row.internal_id,
                     `"${row.meet_name}"`,
                     row.year,
                     row.date,
@@ -803,7 +833,12 @@ export default function DataExportPage() {
                     row.country,
                     row.wso,
                     `"${row.club}"`
-                ].join(","))
+                ].join(","));
+            }
+
+            const csvContent = [
+                headers.join(","),
+                ...csvRows
             ].join("\n");
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -824,10 +859,8 @@ export default function DataExportPage() {
         }
     };
 
-    // Helper: Enrich state data with DB details
-    function transformUsawForDetailedExport(stateItem: AthleteRanking, dbDetail: any) {
-        // Prioritize STATE data for ranking metrics to match JSON source strictly.
-        // Use DB only for details missing from state (Attempts, exact Date).
+    // Helper: Enriched state data now has everything
+    function transformUsawForDetailedExport(stateItem: AthleteRanking) {
 
         // Helper to safely format numbers, returning "" for null/undefined
         const formatNumber = (val: number | undefined | null) => {
@@ -837,26 +870,27 @@ export default function DataExportPage() {
 
         return {
             athlete: stateItem.lifter_name,
-            meet_name: dbDetail?.meet_name || stateItem.last_meet_name,
+            membership_number: stateItem.membership_number || "",
+            internal_id: stateItem.internal_id || "",
+            meet_name: stateItem.last_meet_name,
             year: stateItem.year,
-            date: dbDetail?.date ? new Date(dbDetail.date).toLocaleDateString() : (stateItem.last_competition ? new Date(stateItem.last_competition).toLocaleDateString() : ""),
+            date: stateItem.last_competition ? new Date(stateItem.last_competition).toLocaleDateString() : "",
             gender: stateItem.gender,
             weight_class: stateItem.weight_class,
             body_weight: stateItem.last_body_weight || "",
-            competition_age: stateItem.competition_age || dbDetail?.competition_age || "",
+            competition_age: stateItem.competition_age || "",
             age_category: stateItem.age_category,
-            // Attempts (Only in DB)
-            snatch_1: dbDetail?.snatch_lift_1 || "",
-            snatch_2: dbDetail?.snatch_lift_2 || "",
-            snatch_3: dbDetail?.snatch_lift_3 || "",
-            best_snatch: stateItem.best_snatch, // Use State
-            cj_1: dbDetail?.cj_lift_1 || "",
-            cj_2: dbDetail?.cj_lift_2 || "",
-            cj_3: dbDetail?.cj_lift_3 || "",
-            best_cj: stateItem.best_cj, // Use State
-            total: stateItem.best_total, // Use State
-            // Metrics (Use State to avoid "extra" calculations from raw DB rows)
-            // Use 'qpoints' (raw) not 'best_qpoints' (calculated max)
+            // Attempts (Now in State)
+            snatch_1: stateItem.snatch_1 || "",
+            snatch_2: stateItem.snatch_2 || "",
+            snatch_3: stateItem.snatch_3 || "",
+            best_snatch: stateItem.best_snatch,
+            cj_1: stateItem.cj_1 || "",
+            cj_2: stateItem.cj_2 || "",
+            cj_3: stateItem.cj_3 || "",
+            best_cj: stateItem.best_cj,
+            total: stateItem.best_total,
+            // Metrics 
             q_youth: formatNumber(stateItem.q_youth),
             q_points: formatNumber(stateItem.qpoints),
             q_masters: formatNumber(stateItem.q_masters),
@@ -877,6 +911,7 @@ export default function DataExportPage() {
 
         return {
             athlete: r.lifter_name,
+            internal_id: r.internal_id || "",
             meet_name: r.last_meet_name,
             year: r.year,
             date: r.last_competition ? new Date(r.last_competition).toLocaleDateString() : "",

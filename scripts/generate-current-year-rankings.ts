@@ -217,25 +217,26 @@ async function generateUSAWCurrentYear() {
         // Get unique lifter IDs and fetch membership numbers AND internal_id
         console.log('  Fetching membership numbers and internal IDs...');
         const uniqueLifterIds = [...new Set(allResults.map(r => r.lifter_id))];
-        const lifterMap = new Map<number, { membership_number: number | null, internal_id: number | null }>();
+        const lifterMap = new Map<string, { membership_number: number | null, internal_id: number | null }>();
 
         // Fetch membership numbers in batches
-        for (let i = 0; i < uniqueLifterIds.length; i += 1000) {
-            const batch = uniqueLifterIds.slice(i, i + 1000);
+        const BATCH_SIZE = 100;
+        for (let i = 0; i < uniqueLifterIds.length; i += BATCH_SIZE) {
+            const batch = uniqueLifterIds.slice(i, i + BATCH_SIZE);
             const { data: lifters, error } = await supabase
                 .from('usaw_lifters')
                 .select('lifter_id, membership_number, internal_id')
                 .in('lifter_id', batch);
 
             if (!error && lifters) {
-                lifters.forEach(l => lifterMap.set(l.lifter_id, {
+                lifters.forEach(l => lifterMap.set(String(l.lifter_id), {
                     membership_number: l.membership_number,
                     internal_id: l.internal_id
                 }));
             }
         }
 
-        console.log(`  Fetched membership data for ${lifterMap.size} lifters`);
+        console.log(`  Fetched membership data for ${lifterMap.size} lifters. Unique IDs in results: ${uniqueLifterIds.length}.`);
 
         console.log(`  Total results: ${allResults.length}`);
 
@@ -244,8 +245,22 @@ async function generateUSAWCurrentYear() {
             return;
         }
 
+        let matchCount = 0;
+        let missCount = 0;
+
         const processedResults: USAWRankingResult[] = allResults.map(result => {
-            const lifterData = lifterMap.get(result.lifter_id);
+            const resultLifterIdStr = String(result.lifter_id);
+            const lifterData = lifterMap.get(resultLifterIdStr);
+
+            if (lifterData) {
+                matchCount++;
+            } else {
+                missCount++;
+                if (missCount <= 5) {
+                    console.log(`  [WARN] Missing lifter data for ID: ${result.lifter_id} (Type: ${typeof result.lifter_id})`);
+                }
+            }
+
             const membershipNumber = lifterData ? lifterData.membership_number : null;
             const internalId = lifterData ? lifterData.internal_id : null;
 
@@ -279,6 +294,8 @@ async function generateUSAWCurrentYear() {
                 wso: result.wso || null
             };
         });
+
+        console.log(`  Ranking Generation Stats: ${matchCount} Matches, ${missCount} Misses.`);
 
         const dataDir = path.join(process.cwd(), 'public', 'data');
         await fs.mkdir(dataDir, { recursive: true });
