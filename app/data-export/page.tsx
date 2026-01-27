@@ -119,6 +119,12 @@ interface IWFRankingResult {
     qpoints: number;
     q_youth: number | null;
     q_masters: number | null;
+    snatch_1?: string | number;
+    snatch_2?: string | number;
+    snatch_3?: string | number;
+    cj_1?: string | number;
+    cj_2?: string | number;
+    cj_3?: string | number;
     country_code?: string;
     country_name?: string;
 }
@@ -478,7 +484,14 @@ export default function DataExportPage() {
                 internal_id: result.iwf_lifter_id || "",
                 unique_id: `iwf-${result.db_result_id}-${index}`,
                 country_code: result.country_code,
-                country_name: result.country_name
+                country_name: result.country_name,
+                // New Fields from JSON
+                snatch_1: result.snatch_1,
+                snatch_2: result.snatch_2,
+                snatch_3: result.snatch_3,
+                cj_1: result.cj_1,
+                cj_2: result.cj_2,
+                cj_3: result.cj_3
             }));
 
             setIwfRankings(iwfRankingsLocal);
@@ -905,7 +918,7 @@ export default function DataExportPage() {
     // Helper to transform state data for export (IWF fallback)
     function transformIwfFromState(r: AthleteRanking) {
         const formatNumber = (val: number | undefined | null) => {
-            if (val === null || val === undefined) return "";
+            if (val === null || val === undefined || val === 0) return "";
             return val.toFixed(2);
         };
 
@@ -920,9 +933,9 @@ export default function DataExportPage() {
             body_weight: r.last_body_weight || "",
             competition_age: r.competition_age || "",
             age_category: r.age_category,
-            snatch_1: "", snatch_2: "", snatch_3: "",
+            snatch_1: r.snatch_1 || "", snatch_2: r.snatch_2 || "", snatch_3: r.snatch_3 || "",
             best_snatch: r.best_snatch,
-            cj_1: "", cj_2: "", cj_3: "",
+            cj_1: r.cj_1 || "", cj_2: r.cj_2 || "", cj_3: r.cj_3 || "",
             best_cj: r.best_cj,
             total: r.best_total,
             q_youth: formatNumber(r.q_youth),
@@ -1718,7 +1731,22 @@ export default function DataExportPage() {
                                     <div>
                                         <h3 className="text-lg font-semibold text-app-primary">Export Preview</h3>
                                         <p className="text-sm text-app-tertiary mt-1">
-                                            {loading ? 'Analyzing data...' : `${filteredRankings.length.toLocaleString()} records matched`}
+                                            {loading ? 'Analyzing data...' : (
+                                                <>
+                                                    <span className="text-blue-400 font-medium">
+                                                        {filteredRankings.length.toLocaleString()}
+                                                    </span>{' '}
+                                                    results from{' '}
+                                                    <span className="text-blue-400 font-medium">
+                                                        {new Set(filteredRankings.map(r => r.lifter_name)).size.toLocaleString()}
+                                                    </span>{' '}
+                                                    unique athletes participating in{' '}
+                                                    <span className="text-blue-400 font-medium">
+                                                        {new Set(filteredRankings.map(r => r.meet_id || r.last_meet_name)).size.toLocaleString()}
+                                                    </span>{' '}
+                                                    meets
+                                                </>
+                                            )}
                                         </p>
                                     </div>
 
@@ -1744,8 +1772,8 @@ export default function DataExportPage() {
                                     <div className="text-sm text-app-secondary">
                                         <p className="font-medium text-blue-400 mb-1">About Data Exports</p>
                                         <p>
-                                            Exports generate a flattened CSV file containing all filtered result rows from the database.
-                                            The export includes detailed fields (lift attempts, membership info) which are not shown in this preview.
+                                            The generated CSV is a <strong>flattened</strong> file, meaning it combines data from multiple related tables (Athletes, Meets, and Results) into a single row per performance.
+                                            This format simplifies analysis in tools like Excel or Google Sheets by eliminating the need for manual joins.
                                         </p>
                                     </div>
                                 </div>
