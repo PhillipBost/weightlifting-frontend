@@ -126,16 +126,16 @@ export default function ClubDemographics({ data, averageData, className = '' }: 
                     <User className="w-5 h-5 mr-2" />
                     Gender Distribution
                 </h3>
-                <div className="h-[300px] w-full relative">
+                <div className="h-[340px] w-full relative">
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
-                            {/* Inner Pie: National Average */}
+                            {/* Inner Pie: National Average (Increased Size) */}
                             <Pie
                                 data={avgGenderChartData}
                                 cx="50%"
                                 cy="50%"
                                 innerRadius={0}
-                                outerRadius={50}
+                                outerRadius={75}
                                 startAngle={90}
                                 endAngle={-270}
                                 dataKey="value"
@@ -152,13 +152,13 @@ export default function ClubDemographics({ data, averageData, className = '' }: 
                                 ))}
                             </Pie>
 
-                            {/* Outer Pie: This Club */}
+                            {/* Outer Pie: This Club (Increased Size) */}
                             <Pie
                                 data={genderChartData}
                                 cx="50%"
                                 cy="50%"
-                                innerRadius={60}
-                                outerRadius={80}
+                                innerRadius={85}
+                                outerRadius={115}
                                 startAngle={90}
                                 endAngle={-270}
                                 paddingAngle={2}
@@ -187,7 +187,7 @@ export default function ClubDemographics({ data, averageData, className = '' }: 
                     <Users className="w-5 h-5 mr-2" />
                     Age Distribution
                 </h3>
-                <div className="h-[300px] w-full">
+                <div className="h-[400px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
                         <ComposedChart
                             data={ageChartData}
@@ -210,7 +210,7 @@ export default function ClubDemographics({ data, averageData, className = '' }: 
                                     color: isDark ? '#F3F4F6' : '#111827'
                                 }}
                             />
-                            <Legend />
+                            <Legend wrapperStyle={{ paddingTop: '20px' }} />
                             <Line
                                 type="monotone"
                                 dataKey="National Avg"
@@ -221,9 +221,6 @@ export default function ClubDemographics({ data, averageData, className = '' }: 
                             <Bar dataKey="This Club" fill="#10B981" radius={[4, 4, 0, 0]} barSize={20} />
                         </ComposedChart>
                     </ResponsiveContainer>
-                </div>
-                <div className="mt-2 text-xs text-app-tertiary text-center">
-                    Bar = This Club, Line = National Average
                 </div>
             </div>
 
