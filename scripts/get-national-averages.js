@@ -3,12 +3,54 @@ const { createClient } = require('@supabase/supabase-js');
 const path = require('path');
 const fs = require('fs');
 
-const supabaseUrl = 'https://supabasekong-zoss8scsow00wsssgkck0g88.46.62.223.85.sslip.io';
-const supabaseKey = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc2NDM1NTg2MCwiZXhwIjo0OTIwMDI5NDYwLCJyb2xlIjoic2VydmljZV9yb2xlIn0.fscJwL-qBbPw_S0AKMUlbgYGd8uJWEyem0mOTkQ5q6s';
+// Robust environment variable loader for local development
+function loadEnv() {
+    const envFiles = ['.env.local', '.env'];
 
+    for (const file of envFiles) {
+        const envPath = path.resolve(__dirname, '..', file);
+        if (fs.existsSync(envPath)) {
+            console.log(`Loading credentials from ${file}...`);
+            const content = fs.readFileSync(envPath, 'utf8');
+            content.split('\n').forEach(line => {
+                // Initial cleanup
+                let trimmed = line.trim();
+                // Skip comments
+                if (!trimmed || trimmed.startsWith('#')) return;
+
+                // key=value split
+                const equalsIndex = trimmed.indexOf('=');
+                if (equalsIndex !== -1) {
+                    const key = trimmed.substring(0, equalsIndex).trim();
+                    let value = trimmed.substring(equalsIndex + 1).trim();
+
+                    // Remove quotes if present
+                    if ((value.startsWith('"') && value.endsWith('"')) ||
+                        (value.startsWith("'") && value.endsWith("'"))) {
+                        value = value.slice(1, -1);
+                    }
+
+                    // Only set if not already set (process.env priority)
+                    if (!process.env[key]) {
+                        process.env[key] = value;
+                    }
+                }
+            });
+            // Stop after finding the first valid env file (priority order)
+            return;
+        }
+    }
+    console.warn('No .env.local or .env file found in project root.');
+}
+
+loadEnv();
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !supabaseKey) {
-    console.error('Missing Supabase credentials');
+    console.error('Error: Missing Supabase credentials.');
+    console.error('Ensure NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are set in .env.local');
     process.exit(1);
 }
 
@@ -30,7 +72,7 @@ async function calculateAverages() {
 
     // Safety break
     let loopCount = 0;
-    const maxLoops = 100; // Limit to 1 million records approx just in case
+    const maxLoops = 100; // Limit to 1 million records approx
 
     while (fetchMore && loopCount < maxLoops) {
         console.log(`Fetching chunk starting at ${offset}...`);
@@ -41,7 +83,7 @@ async function calculateAverages() {
             .range(offset, offset + chunkSize - 1);
 
         if (error) {
-            console.error('Error:', error);
+            console.error('Error fetching data:', error.message);
             break;
         }
 
@@ -61,6 +103,11 @@ async function calculateAverages() {
     }
 
     console.log(`Total Records Processed: ${allGenders.length}`);
+
+    if (allGenders.length === 0) {
+        console.log('No data found. Check your database connection or date range.');
+        return;
+    }
 
     // Gender Stats
     const totalGender = allGenders.length;
@@ -99,7 +146,7 @@ async function calculateAverages() {
         return getStartAge(a.range) - getStartAge(b.range);
     });
 
-    console.log('\n--- RESULTS ---');
+    console.log('\n--- RESULTS (Copy these to your route.ts) ---');
     console.log('GENDER:');
     console.log(JSON.stringify(genderDist, null, 2));
     console.log('AGE:');
