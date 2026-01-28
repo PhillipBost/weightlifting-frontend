@@ -3,8 +3,12 @@
 import React, { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { MapPin, Users, TrendingUp, Calendar, ExternalLink, Dumbbell, BarChart3 } from "lucide-react"
+import { MapPin, Users, TrendingUp, Calendar, ExternalLink, Dumbbell, BarChart3, PieChart, Map as MapIcon } from "lucide-react"
 import { MetricTooltip } from "../../components/MetricTooltip"
+import ClubDemographics from "../../components/Club/ClubDemographics"
+import dynamic from 'next/dynamic'
+
+const MeetHubSpokeMap = dynamic(() => import('../../components/MeetHubSpokeMap'), { ssr: false })
 
 interface ClubData {
   club_name: string
@@ -21,6 +25,22 @@ interface ClubData {
   quadrant: 'powerhouse' | 'intensive' | 'sleeping-giant' | 'developing'
   quadrant_label: string
 }
+
+interface DemographicsData {
+  clubName: string
+  demographics: {
+    gender: { name: string; value: number }[]
+    age: { range: string; count: number; percentage: number }[]
+  }
+  averageClub: {
+    gender: { name: string; value: number }[]
+    age: { range: string; percentage: number }[]
+  }
+  competitionReach: {
+    spokes: any[]
+  }
+}
+
 
 // Quadrant color helper
 function getQuadrantColor(quadrant: string): string {
@@ -57,6 +77,7 @@ function getQuadrantDescription(quadrant: string): string {
 export default function ClubPage({ params }: { params: Promise<{ slug: string }> }) {
   const router = useRouter()
   const [clubData, setClubData] = useState<ClubData | null>(null)
+  const [demographicsData, setDemographicsData] = useState<DemographicsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [slug, setSlug] = useState<string | null>(null)
@@ -99,7 +120,24 @@ export default function ClubPage({ params }: { params: Promise<{ slug: string }>
       }
     }
 
+    async function fetchDemographics() {
+      try {
+        console.log('Fetching demographics for:', slug)
+        const response = await fetch(`/api/club/${slug}/demographics`)
+        if (response.ok) {
+          const data = await response.json()
+          console.log('Demographics loaded:', data)
+          setDemographicsData(data)
+        } else {
+          console.error('Demographics fetch failed:', response.status, response.statusText)
+        }
+      } catch (err) {
+        console.error('Error fetching demographics:', err)
+      }
+    }
+
     fetchClubData()
+    fetchDemographics()
   }, [slug])
 
   // Loading state
@@ -307,6 +345,50 @@ export default function ClubPage({ params }: { params: Promise<{ slug: string }>
             </div>
           </div>
         </div>
+
+        {/* Demographics & Insights Section */}
+        {demographicsData && (
+          <div className="max-w-[1200px] mt-8">
+            <h2 className="text-xl font-semibold text-app-primary mb-6 flex items-center">
+              <PieChart className="h-5 w-5 mr-2" />
+              Club Demographics
+            </h2>
+
+            <ClubDemographics
+              data={demographicsData.demographics}
+              averageData={demographicsData.averageClub}
+            />
+          </div>
+        )}
+
+        {/* Competition Reach Map */}
+        {demographicsData && clubData && (
+          <div className="max-w-[1200px] mt-8 mb-12">
+            <div className="card-primary p-0 overflow-hidden">
+              <div className="p-4 border-b border-app-secondary">
+                <h2 className="text-xl font-semibold text-app-primary flex items-center">
+                  <MapIcon className="h-5 w-5 mr-2" />
+                  Competition Reach
+                </h2>
+                <p className="text-sm text-app-secondary mt-1">
+                  Map shows competitions attended by club members in the last 2 years (Club Center → Meets).
+                  {demographicsData.competitionReach.spokes.length === 0 && (
+                    <span className="text-red-500 ml-2">(No geographic data found for recent meets)</span>
+                  )}
+                </p>
+              </div>
+              <div className="h-[500px] w-full relative z-0">
+                <MeetHubSpokeMap
+                  meetLat={clubData.latitude}
+                  meetLng={clubData.longitude}
+                  spokes={demographicsData.competitionReach.spokes}
+                  type="meet"
+                  hubType="club"
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

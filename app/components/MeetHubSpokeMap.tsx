@@ -41,15 +41,7 @@ interface Spoke {
   code?: string // For country flags
 }
 
-interface MeetHubSpokeMapProps {
-  meetLat: number
-  meetLng: number
-  spokes: Spoke[]
-  type: 'club' | 'country'
-  className?: string
-  loading?: boolean
-  error?: string | null
-}
+
 
 function FitBounds({ meetLat, meetLng, spokes }: { meetLat: number; meetLng: number; spokes: Spoke[] }) {
   const map = useMap()
@@ -67,10 +59,20 @@ function FitBounds({ meetLat, meetLng, spokes }: { meetLat: number; meetLng: num
   return null
 }
 
-function createHubIcon(theme: 'light' | 'dark') {
+// Icon styles
+type IconType = 'meet' | 'club'
+
+function createHubIcon(theme: 'light' | 'dark', type: IconType = 'meet') {
   const size = 30
-  const bgColor = theme === 'dark' ? '#EF4444' : '#DC2626' // Red for hub
-  const iconColor = theme === 'dark' ? '#FFFFFF' : '#000000'
+  // Meet Hub (Red) or Club Hub (Orange)
+  const bgColor = type === 'club' ? (theme === 'dark' ? '#F59E0B' : '#D97706') : (theme === 'dark' ? '#EF4444' : '#DC2626')
+  const iconColor = theme === 'dark' ? '#FFFFFF' : '#FFFFFF'
+
+  // Icon Logic: Meet = Trophy, Club = Simple Circle/Dot pattern or similar unique club marker
+  // For Club Hub, let's use a distinct SVG or similar to ClubCompetitionMap
+  const innerHtml = type === 'club'
+    ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="6" fill="${iconColor}"/></svg>`
+    : `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${theme === 'light' ? 'white' : iconColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>` // Lucide Trophy SVG manual for string
 
   return new DivIcon({
     html: `
@@ -85,9 +87,10 @@ function createHubIcon(theme: 'light' | 'dark') {
         border: 4px solid white;
         box-shadow: 0 4px 8px rgba(0,0,0,0.3);
       ">
-        <Trophy className="h-4 w-4" style="color: ${iconColor};" />
+        ${innerHtml}
       </div>
     `,
+
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
     popupAnchor: [0, -size / 2],
@@ -95,9 +98,16 @@ function createHubIcon(theme: 'light' | 'dark') {
   })
 }
 
-function createSpokeIcon(type: 'club' | 'country', count: number, theme: 'light' | 'dark', code?: string) {
-  const size = 15 // Fixed size for all spoke endpoints
-  const bgColor = type === 'club' ? (theme === 'dark' ? '#F59E0B' : '#D97706') : (theme === 'dark' ? '#3B82F6' : '#2563EB')
+// type here refers to the SPOKE type
+function createSpokeIcon(type: 'club' | 'country' | 'meet', count: number, theme: 'light' | 'dark', code?: string) {
+  const size = 15 // Standard size for all dots
+  // Colors: Club=Blue/Orange, Country=Blue, Meet=Red
+  const getBgColor = () => {
+    if (type === 'meet') return theme === 'dark' ? '#EF4444' : '#DC2626'
+    if (type === 'club') return theme === 'dark' ? '#F59E0B' : '#D97706'
+    return theme === 'dark' ? '#3B82F6' : '#2563EB'
+  }
+  const bgColor = getBgColor()
   const iconColor = theme === 'dark' ? '#1F2937' : '#FFFFFF'
 
   let html = `
@@ -123,8 +133,11 @@ function createSpokeIcon(type: 'club' | 'country', count: number, theme: 'light'
     `
   }
 
+  // Removed Trophy ID for meet to make it a simple dot like clubs
+
+
   html += `
-      <div style="position: absolute; bottom: -2px; right: -2px; background: white; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: ${bgColor};">
+      <div style="position: absolute; bottom: -2px; right: -2px; background: white; border-radius: 50%; width: 14px; height: 14px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: bold; color: ${bgColor};">
         ${count}
       </div>
     </div>
@@ -139,11 +152,23 @@ function createSpokeIcon(type: 'club' | 'country', count: number, theme: 'light'
   })
 }
 
+interface MeetHubSpokeMapProps {
+  meetLat: number
+  meetLng: number
+  spokes: Spoke[]
+  type: 'club' | 'country' | 'meet' // Spoke Type
+  hubType?: 'meet' | 'club'         // Hub Type (defaults to meet)
+  className?: string
+  loading?: boolean
+  error?: string | null
+}
+
 export default function MeetHubSpokeMap({
   meetLat,
   meetLng,
   spokes,
   type,
+  hubType = 'meet',
   className = "h-[500px] w-full",
   loading = false,
   error = null
@@ -166,7 +191,7 @@ export default function MeetHubSpokeMap({
 
   const tileLayer = getTileLayer()
 
-  const hubIcon = useMemo(() => createHubIcon(theme), [theme])
+  const hubIcon = useMemo(() => createHubIcon(theme, hubType), [theme, hubType])
   const spokeIcons = useMemo(() => spokes.map(spoke => createSpokeIcon(type, spoke.count, theme, spoke.code)), [spokes, type, theme])
 
   const lines = useMemo(() => {
@@ -209,7 +234,7 @@ export default function MeetHubSpokeMap({
   const initialZoom = type === 'club' ? 4 : 2
 
   return (
-    <div className={`${className} relative`}>
+    <div className={`${className} relative`} >
       <MapContainer
         center={[meetLat, meetLng]}
         zoom={spokes.length === 0 ? 10 : initialZoom}
@@ -295,6 +320,6 @@ export default function MeetHubSpokeMap({
           }
         `}</style>
       </MapContainer>
-    </div>
+    </div >
   )
 }
