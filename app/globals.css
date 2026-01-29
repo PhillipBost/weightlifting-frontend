@@ -9,58 +9,110 @@
 :root,
 :root[data-theme="dark"] {
   /* Background System - Warm, comfortable grays */
-  --bg-primary: #111827;      /* gray-900 - main app background */
-  --bg-secondary: #1f2937;    /* gray-800 - card backgrounds */
-  --bg-tertiary: #374151;     /* gray-700 - interactive elements */
-  --bg-surface: #4b5563;      /* gray-600 - elevated surfaces */
-  --bg-hover: #6b7280;        /* gray-500 - hover states */
-  
+  --bg-primary: #111827;
+  /* gray-900 - main app background */
+  --bg-secondary: #1f2937;
+  /* gray-800 - card backgrounds */
+  --bg-tertiary: #374151;
+  /* gray-700 - interactive elements */
+  --bg-surface: #4b5563;
+  /* gray-600 - elevated surfaces */
+  --bg-hover: #6b7280;
+  /* gray-500 - hover states */
+
   /* Background Overlays */
-  --bg-header: rgba(31, 41, 55, 0.8);     /* gray-800 with transparency */
-  --bg-section: rgba(31, 41, 55, 0.5);    /* gray-800 lighter */
-  --bg-backdrop: rgba(17, 24, 39, 0.8);   /* gray-900 backdrop */
-  
+  --bg-header: rgba(31, 41, 55, 0.8);
+  /* gray-800 with transparency */
+  --bg-section: rgba(31, 41, 55, 0.5);
+  /* gray-800 lighter */
+  --bg-backdrop: rgba(17, 24, 39, 0.8);
+  /* gray-900 backdrop */
+
   /* Text Hierarchy - Softer than pure white */
-  --text-primary: #f9fafb;    /* gray-50 - headlines, emphasis */
-  --text-secondary: #e5e7eb;  /* gray-200 - body text, navigation */
-  --text-tertiary: #d1d5db;   /* gray-300 - labels, secondary info */
-  --text-muted: #9ca3af;      /* gray-400 - placeholders, subtle text */
-  --text-disabled: #6b7280;   /* gray-500 - disabled states */
-  
+  --text-primary: #f9fafb;
+  /* gray-50 - headlines, emphasis */
+  --text-secondary: #e5e7eb;
+  /* gray-200 - body text, navigation */
+  --text-tertiary: #d1d5db;
+  /* gray-300 - labels, secondary info */
+  --text-muted: #9ca3af;
+  /* gray-400 - placeholders, subtle text */
+  --text-disabled: #6b7280;
+  /* gray-500 - disabled states */
+
   /* Border System */
-  --border-primary: #374151;  /* gray-700 - main borders */
-  --border-secondary: #374151;/* gray-700 - subtle borders */
-  --border-focus: #3b82f6;    /* blue-500 - focus indicators */
-  --border-hover: #6b7280;    /* gray-500 - hover borders */
-  
+  --border-primary: #374151;
+  /* gray-700 - main borders */
+  --border-secondary: #374151;
+  /* gray-700 - subtle borders */
+  --border-focus: #3b82f6;
+  /* blue-500 - focus indicators */
+  --border-hover: #6b7280;
+  /* gray-500 - hover borders */
+
   /* Interactive Colors - Comfortable, not harsh */
-  --accent-primary: #3b82f6;       /* blue-500 - primary actions */
-  --accent-primary-hover: #2563eb; /* blue-600 - primary hover */
-  --accent-secondary: #6366f1;     /* indigo-500 - secondary actions */
-  --accent-secondary-hover: #4f46e5; /* indigo-600 - secondary hover */
-  
+  --accent-primary: #3b82f6;
+  /* blue-500 - primary actions */
+  --accent-primary-hover: #2563eb;
+  /* blue-600 - primary hover */
+  --accent-secondary: #6366f1;
+  /* indigo-500 - secondary actions */
+  --accent-secondary-hover: #4f46e5;
+  /* indigo-600 - secondary hover */
+
   /* Data Visualization - WCAG compliant but comfortable */
-  --chart-snatch: #60a5fa;      /* blue-400 - softer than pure blue */
-  --chart-cleanjerk: #34d399;   /* emerald-400 - easier on eyes */
-  --chart-total: #fbbf24;       /* amber-400 - warm yellow */
-  --chart-bodyweight: #f472b6;  /* pink-400 - pleasant pink */
-  --chart-qpoints: #a78bfa;     /* violet-400 - soft purple */
-  --chart-qyouth: #22d3ee;      /* cyan-400 - bright but not harsh */
-  --chart-qmasters: #fb923c;    /* orange-400 - warm orange */
-  --chart-failed: #f87171;      /* red-400 - clear but not alarming */
-  
+  --chart-snatch: #60a5fa;
+  /* blue-400 - softer than pure blue */
+  --chart-cleanjerk: #34d399;
+  /* emerald-400 - easier on eyes */
+  --chart-total: #fbbf24;
+  /* amber-400 - warm yellow */
+  --chart-bodyweight: #f472b6;
+  /* pink-400 - pleasant pink */
+  --chart-qpoints: #a78bfa;
+  /* violet-400 - soft purple */
+  --chart-qyouth: #22d3ee;
+  /* cyan-400 - bright but not harsh */
+  --chart-qmasters: #fb923c;
+  /* orange-400 - warm orange */
+  --chart-failed: #f87171;
+  /* red-400 - clear but not alarming */
+
   /* Semantic Colors */
-  --color-success: #10b981;     /* emerald-500 - good lifts */
-  --color-warning: #f59e0b;     /* amber-500 - caution */
-  --color-error: #ef4444;       /* red-500 - failed lifts */
-  --color-info: #3b82f6;        /* blue-500 - information */
-  
+  --color-success: #10b981;
+  /* emerald-500 - good lifts */
+  --color-warning: #f59e0b;
+  /* amber-500 - caution */
+  --color-error: #ef4444;
+  /* red-500 - failed lifts */
+  --color-info: #3b82f6;
+  /* blue-500 - information */
+
   /* Chart Interaction States */
-  --chart-grid: #374151;        /* gray-700 - subtle grid lines */
-  --chart-axis: #9ca3af;        /* gray-400 - axis labels */
-  --chart-tooltip-bg: #1f2937;  /* gray-800 - tooltip background */
-  --chart-tooltip-border: #4b5563; /* gray-600 - tooltip border */
-  --chart-stroke: #ffffff;      /* white stroke for dark theme contrast */
+  --chart-grid: #374151;
+  /* gray-700 - subtle grid lines */
+  --chart-axis: #9ca3af;
+  /* gray-400 - axis labels */
+  --chart-tooltip-bg: #1f2937;
+  /* gray-800 - tooltip background */
+  --chart-tooltip-border: #4b5563;
+  /* gray-600 - tooltip border */
+  --chart-stroke: #ffffff;
+  /* white stroke for dark theme contrast */
+
+  /* GAMX Colors */
+  --chart-gamx-total: #e879f9;
+  /* fuchsia-400 */
+  --chart-gamx-s: #38bdf8;
+  /* sky-400 */
+  --chart-gamx-j: #4ade80;
+  /* green-400 */
+  --chart-gamx-u: #a78bfa;
+  /* violet-400 */
+  --chart-gamx-a: #fb7185;
+  /* rose-400 */
+  --chart-gamx-masters: #fb923c;
+  /* orange-400 */
 }
 
 /* ===========================================
@@ -68,58 +120,110 @@
    =========================================== */
 :root[data-theme="light"] {
   /* Background System - Much softer, creamier backgrounds */
-  --bg-primary: #f7f6f3;       /* warm cream - very soft main background */
-  --bg-secondary: #fefefe;     /* barely off-white - gentle card background */
-  --bg-tertiary: #f0efeb;      /* warm light gray - soft interactive elements */
-  --bg-surface: #e8e6e0;       /* soft beige - gentle elevation */
-  --bg-hover: #ddd9d0;         /* warm tan - subtle hover states */
-  
+  --bg-primary: #f7f6f3;
+  /* warm cream - very soft main background */
+  --bg-secondary: #fefefe;
+  /* barely off-white - gentle card background */
+  --bg-tertiary: #f0efeb;
+  /* warm light gray - soft interactive elements */
+  --bg-surface: #e8e6e0;
+  /* soft beige - gentle elevation */
+  --bg-hover: #ddd9d0;
+  /* warm tan - subtle hover states */
+
   /* Background Overlays - Softer, warmer tones */
-  --bg-header: rgba(247, 246, 243, 0.95);  /* warm cream with transparency */
-  --bg-section: rgba(240, 239, 235, 0.8);  /* warm light gray */
-  --bg-backdrop: rgba(247, 246, 243, 0.9); /* warm cream backdrop */
-  
+  --bg-header: rgba(247, 246, 243, 0.95);
+  /* warm cream with transparency */
+  --bg-section: rgba(240, 239, 235, 0.8);
+  /* warm light gray */
+  --bg-backdrop: rgba(247, 246, 243, 0.9);
+  /* warm cream backdrop */
+
   /* Text Hierarchy - Softer, warmer text colors */
-  --text-primary: #2c2925;     /* warm dark brown - softer than black */
-  --text-secondary: #4a453e;   /* warm dark gray - gentle body text */
-  --text-tertiary: #6b645b;    /* warm medium gray - readable secondary info */
-  --text-muted: #8b8680;       /* warm light gray - subtle text */
-  --text-disabled: #b8b2a7;    /* warm tan - disabled states */
-  
+  --text-primary: #2c2925;
+  /* warm dark brown - softer than black */
+  --text-secondary: #4a453e;
+  /* warm dark gray - gentle body text */
+  --text-tertiary: #6b645b;
+  /* warm medium gray - readable secondary info */
+  --text-muted: #8b8680;
+  /* warm light gray - subtle text */
+  --text-disabled: #b8b2a7;
+  /* warm tan - disabled states */
+
   /* Border System - Softer, warmer borders */
-  --border-primary: #d4cfc4;   /* warm light tan - gentle borders */
-  --border-secondary: #e8e6e0; /* soft beige - very subtle borders */
-  --border-focus: #3b82f6;     /* blue-500 - focus indicators */
-  --border-hover: #b8b2a7;     /* warm tan - hover borders */
-  
+  --border-primary: #d4cfc4;
+  /* warm light tan - gentle borders */
+  --border-secondary: #e8e6e0;
+  /* soft beige - very subtle borders */
+  --border-focus: #3b82f6;
+  /* blue-500 - focus indicators */
+  --border-hover: #b8b2a7;
+  /* warm tan - hover borders */
+
   /* Interactive Colors - Vibrant but comfortable */
-  --accent-primary: #3b82f6;       /* blue-500 - primary actions */
-  --accent-primary-hover: #2563eb; /* blue-600 - primary hover */
-  --accent-secondary: #6366f1;     /* indigo-500 - secondary actions */
-  --accent-secondary-hover: #4f46e5; /* indigo-600 - secondary hover */
-  
+  --accent-primary: #3b82f6;
+  /* blue-500 - primary actions */
+  --accent-primary-hover: #2563eb;
+  /* blue-600 - primary hover */
+  --accent-secondary: #6366f1;
+  /* indigo-500 - secondary actions */
+  --accent-secondary-hover: #4f46e5;
+  /* indigo-600 - secondary hover */
+
   /* Data Visualization - Vibrant, high-contrast colors */
-  --chart-snatch: #2563eb;      /* blue-600 - vibrant blue */
-  --chart-cleanjerk: #16a34a;   /* green-600 - vibrant green */
-  --chart-total: #ca8a04;       /* yellow-600 - vibrant yellow */
-  --chart-bodyweight: #e11d48;  /* rose-600 - vibrant pink */
-  --chart-qpoints: #9333ea;     /* violet-600 - vibrant purple */
-  --chart-qyouth: #0284c7;      /* sky-600 - vibrant cyan */
-  --chart-qmasters: #f97316;    /* orange-500 - vibrant orange */
-  --chart-failed: #dc2626;      /* red-600 - clear red */
-  
+  --chart-snatch: #2563eb;
+  /* blue-600 - vibrant blue */
+  --chart-cleanjerk: #16a34a;
+  /* green-600 - vibrant green */
+  --chart-total: #ca8a04;
+  /* yellow-600 - vibrant yellow */
+  --chart-bodyweight: #e11d48;
+  /* rose-600 - vibrant pink */
+  --chart-qpoints: #9333ea;
+  /* violet-600 - vibrant purple */
+  --chart-qyouth: #0284c7;
+  /* sky-600 - vibrant cyan */
+  --chart-qmasters: #f97316;
+  /* orange-500 - vibrant orange */
+  --chart-failed: #dc2626;
+  /* red-600 - clear red */
+
   /* Semantic Colors - Clear and distinct */
-  --color-success: #16a34a;     /* green-600 - good lifts */
-  --color-warning: #ca8a04;     /* yellow-600 - caution */
-  --color-error: #dc2626;       /* red-600 - failed lifts */
-  --color-info: #3b82f6;        /* blue-500 - information */
-  
+  --color-success: #16a34a;
+  /* green-600 - good lifts */
+  --color-warning: #ca8a04;
+  /* yellow-600 - caution */
+  --color-error: #dc2626;
+  /* red-600 - failed lifts */
+  --color-info: #3b82f6;
+  /* blue-500 - information */
+
   /* Chart Interaction States - Softer visibility */
-  --chart-grid: #d4cfc4;        /* warm light tan - visible but gentle grid lines */
-  --chart-axis: #4a453e;        /* warm dark gray - readable axis labels */
-  --chart-tooltip-bg: #fefefe;  /* barely off-white - gentle tooltip background */
-  --chart-tooltip-border: #b8b2a7; /* warm tan - visible tooltip border */
-  --chart-stroke: #000000;      /* black stroke for light theme contrast */
+  --chart-grid: #d4cfc4;
+  /* warm light tan - visible but gentle grid lines */
+  --chart-axis: #4a453e;
+  /* warm dark gray - readable axis labels */
+  --chart-tooltip-bg: #fefefe;
+  /* barely off-white - gentle tooltip background */
+  --chart-tooltip-border: #b8b2a7;
+  /* warm tan - visible tooltip border */
+  --chart-stroke: #000000;
+  /* black stroke for light theme contrast */
+
+  /* GAMX Colors */
+  --chart-gamx-total: #c026d3;
+  /* fuchsia-600 */
+  --chart-gamx-s: #0284c7;
+  /* sky-600 */
+  --chart-gamx-j: #16a34a;
+  /* green-600 */
+  --chart-gamx-u: #7c3aed;
+  /* violet-600 */
+  --chart-gamx-a: #e11d48;
+  /* rose-600 */
+  --chart-gamx-masters: #ea580c;
+  /* orange-600 */
 }
 
 /* ===========================================
@@ -136,28 +240,67 @@ body {
    COMPONENT UTILITY CLASSES
    =========================================== */
 @layer components {
+
   /* Background Utilities */
-  .bg-app-primary { background-color: var(--bg-primary); }
-  .bg-app-secondary { background-color: var(--bg-secondary); }
-  .bg-app-tertiary { background-color: var(--bg-tertiary); }
-  .bg-app-surface { background-color: var(--bg-surface); }
-  
+  .bg-app-primary {
+    background-color: var(--bg-primary);
+  }
+
+  .bg-app-secondary {
+    background-color: var(--bg-secondary);
+  }
+
+  .bg-app-tertiary {
+    background-color: var(--bg-tertiary);
+  }
+
+  .bg-app-surface {
+    background-color: var(--bg-surface);
+  }
+
   /* Text Utilities */
-  .text-app-primary { color: var(--text-primary); }
-  .text-app-secondary { color: var(--text-secondary); }
-  .text-app-tertiary { color: var(--text-tertiary); }
-  .text-app-muted { color: var(--text-muted); }
-  
+  .text-app-primary {
+    color: var(--text-primary);
+  }
+
+  .text-app-secondary {
+    color: var(--text-secondary);
+  }
+
+  .text-app-tertiary {
+    color: var(--text-tertiary);
+  }
+
+  .text-app-muted {
+    color: var(--text-muted);
+  }
+
   /* Border Utilities */
-  .border-app-primary { border-color: var(--border-primary); }
-  .border-app-secondary { border-color: var(--border-secondary); }
-  
+  .border-app-primary {
+    border-color: var(--border-primary);
+  }
+
+  .border-app-secondary {
+    border-color: var(--border-secondary);
+  }
+
   /* Interactive Utilities */
-  .bg-accent-primary { background-color: var(--accent-primary); }
-  .bg-accent-primary-hover:hover { background-color: var(--accent-primary-hover); }
-  .text-accent-primary { color: var(--accent-primary); }
-  .text-accent-primary-hover:hover { color: var(--accent-primary-hover); }
-  
+  .bg-accent-primary {
+    background-color: var(--accent-primary);
+  }
+
+  .bg-accent-primary-hover:hover {
+    background-color: var(--accent-primary-hover);
+  }
+
+  .text-accent-primary {
+    color: var(--accent-primary);
+  }
+
+  .text-accent-primary-hover:hover {
+    color: var(--accent-primary-hover);
+  }
+
   /* Common Component Patterns */
   .card-primary {
     @apply max-w-[1200px];
@@ -169,10 +312,42 @@ body {
   }
 
   /* Q-Score color utilities */
-  .qpoints-color { color: var(--chart-qpoints); }
-  .qyouth-color { color: var(--chart-qyouth); }
-  .qmasters-color { color: var(--chart-qmasters); }
-  
+  .qpoints-color {
+    color: var(--chart-qpoints);
+  }
+
+  .qyouth-color {
+    color: var(--chart-qyouth);
+  }
+
+  .qmasters-color {
+    color: var(--chart-qmasters);
+  }
+
+  .gamx-total-color {
+    color: var(--chart-gamx-total);
+  }
+
+  .gamx-s-color {
+    color: var(--chart-gamx-s);
+  }
+
+  .gamx-j-color {
+    color: var(--chart-gamx-j);
+  }
+
+  .gamx-u-color {
+    color: var(--chart-gamx-u);
+  }
+
+  .gamx-a-color {
+    color: var(--chart-gamx-a);
+  }
+
+  .gamx-masters-color {
+    color: var(--chart-gamx-masters);
+  }
+
   .card-secondary {
     @apply max-w-[1200px];
     background-color: var(--bg-secondary);
@@ -181,7 +356,7 @@ body {
     border: 1px solid var(--border-primary);
     transition: background-color 0.3s ease, border-color 0.3s ease;
   }
-  
+
   .card-large {
     @apply max-w-[1200px];
     background-color: var(--bg-secondary);
@@ -190,7 +365,7 @@ body {
     border: 1px solid var(--border-secondary);
     transition: background-color 0.3s ease, border-color 0.3s ease;
   }
-  
+
   .card-results {
     @apply max-w-[1200px];
     background-color: var(--bg-secondary);
@@ -199,7 +374,7 @@ body {
     border: 1px solid var(--border-secondary);
     transition: background-color 0.3s ease, border-color 0.3s ease;
   }
-  
+
   .btn-primary {
     background-color: var(--accent-primary);
     color: var(--text-primary);
@@ -207,11 +382,11 @@ body {
     border-radius: 0.5rem;
     transition: all 0.3s ease;
   }
-  
+
   .btn-primary:hover {
     background-color: var(--accent-primary-hover);
   }
-  
+
   .btn-secondary {
     background-color: var(--bg-tertiary);
     color: var(--text-secondary);
@@ -220,11 +395,11 @@ body {
     font-size: 0.75rem;
     transition: all 0.3s ease;
   }
-  
+
   .btn-secondary:hover {
     background-color: var(--bg-surface);
   }
-  
+
   .btn-tertiary {
     background-color: var(--bg-surface);
     color: var(--text-secondary);
@@ -233,11 +408,11 @@ body {
     font-size: 0.75rem;
     transition: all 0.3s ease;
   }
-  
+
   .btn-tertiary:hover {
     background-color: var(--bg-hover);
   }
-  
+
   .input-primary {
     width: 100%;
     padding-left: 3rem;
@@ -251,38 +426,38 @@ body {
     border-radius: 0.75rem;
     transition: all 0.3s ease;
   }
-  
+
   .input-primary::placeholder {
     color: var(--text-muted);
   }
-  
+
   .input-primary:focus {
     outline: none;
     border-color: var(--border-focus);
     box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
   }
-  
+
   /* Text utility variants */
   .text-heading {
     color: var(--text-primary);
     font-weight: 700;
   }
-  
+
   .text-label {
     color: var(--text-tertiary);
     font-weight: 600;
   }
-  
+
   /* Background/Surface patterns */
   .bg-interactive {
     background-color: var(--bg-tertiary);
     transition: background-color 0.3s ease;
   }
-  
+
   .bg-interactive:hover {
     background-color: var(--bg-surface);
   }
-  
+
   /* Chart container */
   .chart-container {
     background-color: var(--bg-secondary);
@@ -291,13 +466,13 @@ body {
     border: 1px solid var(--border-primary);
     transition: background-color 0.3s ease, border-color 0.3s ease;
   }
-  
+
   /* App-specific gradient backgrounds */
   .bg-app-gradient {
     background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
     transition: background 0.3s ease;
   }
-  
+
   .bg-header-blur {
     background-color: var(--bg-header);
     backdrop-filter: blur(8px);

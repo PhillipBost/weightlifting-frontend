@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { createClient } from '../../../lib/supabase/client';
-import { Trophy, Calendar, Weight, TrendingUp, Medal, User, Building, MapPin, ExternalLink, ArrowLeft, BarChart3, Dumbbell, ChevronLeft, ChevronRight, Database } from 'lucide-react';
+import { Trophy, Calendar, Weight, TrendingUp, Medal, User, Building, MapPin, ExternalLink, ArrowLeft, BarChart3, Dumbbell, ChevronLeft, ChevronRight, Database, Activity } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, AreaChart, Area, ScatterChart, Scatter, Brush, ReferenceLine } from 'recharts';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -31,6 +31,23 @@ const getBestQScore = (result: any) => {
   }
 
   return { value: null, type: 'none', style: { color: 'var(--chart-qpoints)' } };
+};
+
+const getBestGamx = (result: any) => {
+  const scores = [
+    { value: result.gamx_total, color: 'var(--chart-gamx-total)' },
+    { value: result.gamx_u, color: 'var(--chart-gamx-u)' },
+    { value: result.gamx_a, color: 'var(--chart-gamx-a)' },
+    { value: result.gamx_masters, color: 'var(--chart-gamx-masters)' }
+  ].filter(s => s.value !== null && s.value !== undefined && s.value > 0);
+
+  if (scores.length === 0) return { value: '-', style: {} };
+
+  const maxScore = scores.reduce((prev, current) => (prev.value > current.value) ? prev : current);
+  return {
+    value: maxScore.value.toFixed(2),
+    style: { color: maxScore.color, fontWeight: 'bold' }
+  };
 };
 
 // Improved export functions
@@ -376,6 +393,19 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
   const [showQMasters, setShowQMasters] = useState(false);
   const [performanceMouseX, setPerformanceMouseX] = useState<number | null>(null);
   const [qScoresMouseX, setQScoresMouseX] = useState<number | null>(null);
+
+  // GAMX State
+  const [autoScaleGamx, setAutoScaleGamx] = useState(true);
+  const [showGamxBrush, setShowGamxBrush] = useState(false);
+  const [gamxMouseX, setGamxMouseX] = useState<number | null>(null);
+
+  const [showGamxTotal, setShowGamxTotal] = useState(true);
+  const [showGamxS, setShowGamxS] = useState(true);
+  const [showGamxJ, setShowGamxJ] = useState(true);
+  const [showGamxU, setShowGamxU] = useState(false);
+  const [showGamxA, setShowGamxA] = useState(false);
+  const [showGamxMasters, setShowGamxMasters] = useState(false);
+  const hasInitializedGamx = useRef(false);
 
   // Add sorting state
   const [sortConfig, setSortConfig] = useState<{
@@ -728,7 +758,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
   }, [results]);
 
   // Prepare chart data
-  const chartData = results
+  const chartData = useMemo(() => results
     .filter(r => r.date && (r.best_snatch || r.best_cj || r.total || r.qpoints || r.q_youth || r.q_masters))
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .map(r => {
@@ -745,6 +775,23 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
         qpointsBackground: r.qpoints || null,
         qYouthBackground: r.q_youth || null,
         qMastersBackground: r.q_masters || null,
+
+        // GAMX Data
+        gamxTotal: r.gamx_total || null,
+        gamxS: r.gamx_s || null,
+        gamxJ: r.gamx_j || null,
+        gamxU: r.gamx_u || null,
+        gamxA: r.gamx_a || null,
+        gamxMasters: r.gamx_masters || null,
+
+        // GAMX Backgrounds
+        gamxTotalBackground: r.gamx_total || null,
+        gamxSBackground: r.gamx_s || null,
+        gamxJBackground: r.gamx_j || null,
+        gamxUBackground: r.gamx_u || null,
+        gamxABackground: r.gamx_a || null,
+        gamxMastersBackground: r.gamx_masters || null,
+
         shortDate: new Date(r.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
         competitionAge: r.competition_age || null,
         dateWithAge: r.competition_age
@@ -781,17 +828,46 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
       });
 
       return baseData;
-    });
+    }), [results]);
 
   const legendFlags = useMemo(() => ({
     hasQYouth: chartData?.some(d => d.qYouth && d.qYouth > 0) || false,
-    hasQMasters: chartData?.some(d => d.qMasters && d.qMasters > 0) || false
+    hasQMasters: chartData?.some(d => d.qMasters && d.qMasters > 0) || false,
+
+    // GAMX Flags
+    hasGamxTotal: chartData?.some(d => d.gamxTotal !== null) || false,
+    hasGamxS: chartData?.some(d => d.gamxS !== null) || false,
+    hasGamxJ: chartData?.some(d => d.gamxJ !== null) || false,
+    hasGamxU: chartData?.some(d => d.gamxU !== null) || false,
+    hasGamxA: chartData?.some(d => d.gamxA !== null) || false,
+    hasGamxMasters: chartData?.some(d => d.gamxMasters !== null) || false,
   }), [chartData]);
 
   useEffect(() => {
-    setShowQYouth(legendFlags.hasQYouth);
-    setShowQMasters(legendFlags.hasQMasters);
-  }, [legendFlags.hasQYouth, legendFlags.hasQMasters]);
+    // Only run this logic once when flags first become available
+    if (hasInitializedGamx.current) return;
+
+    // Check if we actually have any GAMX data to decide if we should initialize
+    const hasAnyGamx = legendFlags.hasGamxTotal || legendFlags.hasGamxS || legendFlags.hasGamxJ ||
+      legendFlags.hasGamxU || legendFlags.hasGamxA || legendFlags.hasGamxMasters;
+
+    if (hasAnyGamx) {
+      setShowQYouth(legendFlags.hasQYouth);
+      setShowQMasters(legendFlags.hasQMasters);
+
+      // Auto-show all relevant GAMX lines if data exists
+      if (legendFlags.hasGamxTotal) setShowGamxTotal(true);
+      if (legendFlags.hasGamxS) setShowGamxS(true);
+      if (legendFlags.hasGamxJ) setShowGamxJ(true);
+      if (legendFlags.hasGamxU) setShowGamxU(true);
+      if (legendFlags.hasGamxA) setShowGamxA(true);
+      if (legendFlags.hasGamxMasters) setShowGamxMasters(true);
+
+      hasInitializedGamx.current = true;
+    }
+  }, [legendFlags]);
+
+
 
   if (loading) {
     return (
@@ -1822,6 +1898,465 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                 </div>
 
               </div>
+
+              {/* GAMX Chart */}
+              <div className="chart-container">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-4">
+                  <h3 className="text-lg font-semibold text-app-primary flex items-center">
+                    <Activity className="h-5 w-5 mr-2" />
+                    {athlete.athlete_name} GAMX Scores
+                  </h3>
+
+                  {/* Controls Container */}
+                  <div className="flex flex-col sm:items-end gap-2 w-full sm:w-auto">
+
+                    {/* Chart Controls & Toggles Row */}
+                    <div className="flex flex-col sm:flex-row sm:justify-end sm:items-center mb-4 gap-4">
+                      {/* Toggles - Wrap nicely on small screens */}
+                      <div className="flex flex-wrap gap-1 border border-app-secondary rounded-lg p-1 w-fit justify-end">
+                        {legendFlags.hasGamxTotal && (
+                          <button
+                            onClick={() => setShowGamxTotal(!showGamxTotal)}
+                            className={`
+                              px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
+                              ${showGamxTotal
+                                ? 'bg-accent-primary text-app-primary'
+                                : 'bg-app-surface text-app-secondary hover:bg-app-hover'
+                              }
+                            `}
+                          >
+                            GAMX-Total
+                          </button>
+                        )}
+
+                        {legendFlags.hasGamxS && (
+                          <button
+                            onClick={() => setShowGamxS(!showGamxS)}
+                            className={`
+                              px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
+                              ${showGamxS
+                                ? 'bg-accent-primary text-app-primary'
+                                : 'bg-app-surface text-app-secondary hover:bg-app-hover'
+                              }
+                            `}
+                          >
+                            GAMX-S
+                          </button>
+                        )}
+
+                        {legendFlags.hasGamxJ && (
+                          <button
+                            onClick={() => setShowGamxJ(!showGamxJ)}
+                            className={`
+                              px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
+                              ${showGamxJ
+                                ? 'bg-accent-primary text-app-primary'
+                                : 'bg-app-surface text-app-secondary hover:bg-app-hover'
+                              }
+                            `}
+                          >
+                            GAMX-J
+                          </button>
+                        )}
+
+                        {legendFlags.hasGamxU && (
+                          <button
+                            onClick={() => setShowGamxU(!showGamxU)}
+                            className={`
+                              px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
+                              ${showGamxU
+                                ? 'bg-accent-primary text-app-primary'
+                                : 'bg-app-surface text-app-secondary hover:bg-app-hover'
+                              }
+                            `}
+                          >
+                            GAMX-U
+                          </button>
+                        )}
+
+                        {legendFlags.hasGamxA && (
+                          <button
+                            onClick={() => setShowGamxA(!showGamxA)}
+                            className={`
+                              px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
+                              ${showGamxA
+                                ? 'bg-accent-primary text-app-primary'
+                                : 'bg-app-surface text-app-secondary hover:bg-app-hover'
+                              }
+                            `}
+                          >
+                            GAMX-A
+                          </button>
+                        )}
+
+                        {legendFlags.hasGamxMasters && (
+                          <button
+                            onClick={() => setShowGamxMasters(!showGamxMasters)}
+                            className={`
+                              px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
+                              ${showGamxMasters
+                                ? 'bg-accent-primary text-app-primary'
+                                : 'bg-app-surface text-app-secondary hover:bg-app-hover'
+                              }
+                            `}
+                          >
+                            GAMX-Masters
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Chart Controls (Auto Scale, Zoom) */}
+                      <div className="flex justify-end w-full sm:w-auto">
+                        <div className="flex space-x-1 border-app-secondary rounded-lg p-1">
+                          <button
+                            onClick={() => setAutoScaleGamx(!autoScaleGamx)}
+                            className={`
+                              px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out whitespace-nowrap
+                              ${autoScaleGamx
+                                ? 'bg-accent-primary text-app-primary'
+                                : 'bg-app-surface text-app-secondary hover:bg-app-hover'
+                              }
+                            `}
+                          >
+                            Auto Scale
+                          </button>
+                          <button
+                            onClick={() => setShowGamxBrush(!showGamxBrush)}
+                            className={`
+                              px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out whitespace-nowrap
+                              ${showGamxBrush
+                                ? 'bg-accent-primary text-app-primary'
+                                : 'bg-app-surface text-app-secondary hover:bg-app-hover'
+                              }
+                            `}
+                          >
+                            Zoom
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-sm text-app-muted mb-4">
+                  <span className="font-bold text-blue-500">G</span>eneralized{' '}
+                  <span className="font-bold text-blue-500">A</span>dditive{' '}
+                  <span className="font-bold text-blue-500">M</span>odel adjusted for se
+                  <span className="font-bold text-blue-500">X</span> (<span className="font-bold text-blue-500">GAMX</span>) scores.
+                </p>
+
+                <ResponsiveContainer width="100%" height={500}>
+                  <LineChart
+                    data={chartData}
+                    margin={{ top: 20, right: 50, left: 20, bottom: 20 }}
+                    onMouseMove={(e) => {
+                      if (e && e.activeLabel && !showGamxBrush) {
+                        setGamxMouseX(Number(e.activeLabel));
+                      }
+                    }}
+                    onMouseLeave={() => setGamxMouseX(null)}
+                  >
+                    {gamxMouseX && !showGamxBrush && (
+                      <ReferenceLine
+                        x={gamxMouseX}
+                        stroke="var(--text-muted)"
+                        strokeWidth={1}
+                        strokeDasharray="2 2"
+                        strokeOpacity={0.6}
+                      />
+                    )}
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" />
+                    <XAxis
+                      type="number"
+                      dataKey="timestamp"
+                      scale="time"
+                      domain={['dataMin', 'dataMax']}
+                      stroke="var(--chart-axis)"
+                      fontSize={11}
+                      tickFormatter={(timestamp) => {
+                        const date = new Date(timestamp);
+                        const year = date.getFullYear().toString().slice(-2);
+                        return `Jan '${year}`;
+                      }}
+                      padding={{ left: 10, right: 10 }}
+                      ticks={(() => {
+                        if (chartData.length === 0) return [];
+                        const minYear = new Date(Math.min(...chartData.map(d => d.timestamp))).getFullYear();
+                        const maxYear = new Date(Math.max(...chartData.map(d => d.timestamp))).getFullYear();
+                        const ticks = [];
+                        for (let year = minYear - 1; year <= maxYear + 1; year++) {
+                          ticks.push(new Date(year, 0, 1).getTime());
+                        }
+                        return ticks;
+                      })()}
+                      allowDataOverflow={true}
+                      label={{
+                        value: 'Competition Date (Competition Age)',
+                        position: 'insideBottom',
+                        offset: -5,
+                        style: {
+                          textAnchor: 'middle',
+                          fill: 'var(--chart-axis)',
+                          fontSize: '12px'
+                        }
+                      }}
+                    />
+                    <YAxis
+                      stroke="var(--chart-axis)"
+                      fontSize={12}
+                      tickFormatter={(value) => value.toFixed(2)}
+                      domain={autoScaleGamx ? ['dataMin - 10', 'dataMax + 10'] : [0, 'dataMax + 5']}
+                      allowDataOverflow={true}
+                      label={{
+                        value: 'Score',
+                        angle: -90,
+                        position: 'insideLeft',
+                        style: {
+                          textAnchor: 'middle',
+                          fill: 'var(--chart-axis)',
+                          fontSize: '12px'
+                        }
+                      }}
+                    />
+                    {!showGamxBrush && (
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'var(--chart-tooltip-bg)',
+                          border: '1px solid var(--chart-tooltip-border)',
+                          borderRadius: '8px',
+                          color: 'var(--text-primary)',
+                          fontSize: '14px',
+                          padding: '12px',
+                          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+                          backdropFilter: 'blur(8px)',
+                        }}
+                        wrapperStyle={{
+                          zIndex: 9999,
+                          backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                          borderRadius: '12px',
+                          padding: '4px'
+                        }}
+                        formatter={(value: any, name: string) => {
+                          if (!value && value !== 0) return ['-', name];
+                          if (typeof value === 'number') {
+                            const formatted = value.toFixed(1);
+                            if (name === 'gamxTotal') return [formatted, 'GAMX-Total'];
+                            if (name === 'gamxS') return [formatted, 'GAMX-S'];
+                            if (name === 'gamxJ') return [formatted, 'GAMX-J'];
+                            if (name === 'gamxU') return [formatted, 'GAMX-U'];
+                            if (name === 'gamxA') return [formatted, 'GAMX-A'];
+                            if (name === 'gamxMasters') return [formatted, 'GAMX-Masters'];
+                            return [formatted, name]; // Fallback
+                          }
+                          return [String(value), name];
+                        }}
+                        labelFormatter={(label, payload) => {
+                          if (payload && payload[0] && payload[0].payload) {
+                            const data = payload[0].payload;
+                            return `${data.meet} - ${data.dateWithAge}`;
+                          }
+                          return `Competition: ${new Date(label).toLocaleDateString()}`;
+                        }}
+                        cursor={false}
+                        animationDuration={150}
+                        allowEscapeViewBox={{ x: false, y: true }}
+                        position={{ x: undefined, y: undefined }}
+                      />
+                    )}
+
+                    {showGamxTotal && chartData.some(d => d.gamxTotal) && (
+                      <>
+                        <Line
+                          dataKey="gamxTotalBackground"
+                          stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} legendType="none" hide={true} />
+                        <Line
+                          dataKey="gamxTotal"
+                          stroke="var(--chart-gamx-total)"
+                          strokeWidth={2.5}
+                          dot={{
+                            fill: 'var(--chart-gamx-total)',
+                            stroke: 'var(--chart-stroke)',
+                            strokeWidth: 0.5,
+                            r: 5,
+                            style: { cursor: 'pointer' }
+                          }}
+                          activeDot={{
+                            r: 8,
+                            stroke: 'var(--chart-stroke)',
+                            strokeWidth: 2,
+                            fill: 'var(--chart-gamx-total)',
+                            style: { cursor: 'pointer' }
+                          }}
+                          name="gamxTotal"
+                          connectNulls={false}
+                        />
+                      </>
+                    )}
+
+                    {showGamxS && chartData.some(d => d.gamxS) && (
+                      <>
+                        <Line
+                          dataKey="gamxSBackground"
+                          stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} legendType="none" hide={true} />
+                        <Line
+                          dataKey="gamxS"
+                          stroke="var(--chart-gamx-s)"
+                          strokeWidth={2.5}
+                          dot={{
+                            fill: 'var(--chart-gamx-s)',
+                            stroke: 'var(--chart-stroke)',
+                            strokeWidth: 0.5,
+                            r: 5,
+                            style: { cursor: 'pointer' }
+                          }}
+                          activeDot={{
+                            r: 8,
+                            stroke: 'var(--chart-stroke)',
+                            strokeWidth: 2,
+                            fill: 'var(--chart-gamx-s)',
+                            style: { cursor: 'pointer' }
+                          }}
+                          name="gamxS"
+                          connectNulls={false}
+                        />
+                      </>
+                    )}
+
+                    {showGamxJ && chartData.some(d => d.gamxJ) && (
+                      <>
+                        <Line
+                          dataKey="gamxJBackground"
+                          stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} legendType="none" hide={true} />
+                        <Line
+                          dataKey="gamxJ"
+                          stroke="var(--chart-gamx-j)"
+                          strokeWidth={2.5}
+                          dot={{
+                            fill: 'var(--chart-gamx-j)',
+                            stroke: 'var(--chart-stroke)',
+                            strokeWidth: 0.5,
+                            r: 5,
+                            style: { cursor: 'pointer' }
+                          }}
+                          activeDot={{
+                            r: 8,
+                            stroke: 'var(--chart-stroke)',
+                            strokeWidth: 2,
+                            fill: 'var(--chart-gamx-j)',
+                            style: { cursor: 'pointer' }
+                          }}
+                          name="gamxJ"
+                          connectNulls={false}
+                        />
+                      </>
+                    )}
+
+                    {showGamxU && chartData.some(d => d.gamxU) && (
+                      <>
+                        <Line
+                          dataKey="gamxUBackground"
+                          stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} legendType="none" hide={true} />
+                        <Line
+                          dataKey="gamxU"
+                          stroke="var(--chart-gamx-u)"
+                          strokeWidth={2.5}
+                          dot={{
+                            fill: 'var(--chart-gamx-u)',
+                            stroke: 'var(--chart-stroke)',
+                            strokeWidth: 0.5,
+                            r: 5,
+                            style: { cursor: 'pointer' }
+                          }}
+                          activeDot={{
+                            r: 8,
+                            stroke: 'var(--chart-stroke)',
+                            strokeWidth: 2,
+                            fill: 'var(--chart-gamx-u)',
+                            style: { cursor: 'pointer' }
+                          }}
+                          name="gamxU"
+                          connectNulls={false}
+                        />
+                      </>
+                    )}
+
+                    {showGamxA && chartData.some(d => d.gamxA) && (
+                      <>
+                        <Line
+                          dataKey="gamxABackground"
+                          stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} legendType="none" hide={true} />
+                        <Line
+                          dataKey="gamxA"
+                          stroke="var(--chart-gamx-a)"
+                          strokeWidth={2.5}
+                          dot={{
+                            fill: 'var(--chart-gamx-a)',
+                            stroke: 'var(--chart-stroke)',
+                            strokeWidth: 0.5,
+                            r: 5,
+                            style: { cursor: 'pointer' }
+                          }}
+                          activeDot={{
+                            r: 8,
+                            stroke: 'var(--chart-stroke)',
+                            strokeWidth: 2,
+                            fill: 'var(--chart-gamx-a)',
+                            style: { cursor: 'pointer' }
+                          }}
+                          name="gamxA"
+                          connectNulls={false}
+                        />
+                      </>
+                    )}
+
+                    {showGamxMasters && chartData.some(d => d.gamxMasters) && (
+                      <>
+                        <Line
+                          dataKey="gamxMastersBackground"
+                          stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} legendType="none" hide={true} />
+                        <Line
+                          dataKey="gamxMasters"
+                          stroke="var(--chart-gamx-masters)"
+                          strokeWidth={2.5}
+                          dot={{
+                            fill: 'var(--chart-gamx-masters)',
+                            stroke: 'var(--chart-stroke)',
+                            strokeWidth: 0.5,
+                            r: 5,
+                            style: { cursor: 'pointer' }
+                          }}
+                          activeDot={{
+                            r: 8,
+                            stroke: 'var(--chart-stroke)',
+                            strokeWidth: 2,
+                            fill: 'var(--chart-gamx-masters)',
+                            style: { cursor: 'pointer' }
+                          }}
+                          name="gamxMasters"
+                          connectNulls={false}
+                        />
+                      </>
+                    )}
+
+                    {showGamxBrush && (
+                      <Brush
+                        key="gamx-brush"
+                        dataKey="timestamp"
+                        height={20}
+                        y={500 - 20}
+                        stroke="var(--text-disabled)"
+                        fill="var(--chart-grid)"
+                        fillOpacity={0.6}
+                        tickFormatter={(timestamp) => {
+                          const date = new Date(timestamp);
+                          const year = date.getFullYear().toString().slice(-0);
+                          return year;
+                        }}
+                      />
+                    )}
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
         )}
@@ -2049,6 +2584,30 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                               Q-Masters
                               <SortIcon column="q_masters" sortConfig={sortConfig} />
                             </th>
+                            <th scope="col" className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort('gamx_total')}>
+                              GAMX-T
+                              <SortIcon column="gamx_total" sortConfig={sortConfig} />
+                            </th>
+                            <th scope="col" className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort('gamx_s')}>
+                              GAMX-S
+                              <SortIcon column="gamx_s" sortConfig={sortConfig} />
+                            </th>
+                            <th scope="col" className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort('gamx_j')}>
+                              GAMX-J
+                              <SortIcon column="gamx_j" sortConfig={sortConfig} />
+                            </th>
+                            <th scope="col" className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort('gamx_u')}>
+                              GAMX-U
+                              <SortIcon column="gamx_u" sortConfig={sortConfig} />
+                            </th>
+                            <th scope="col" className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort('gamx_a')}>
+                              GAMX-A
+                              <SortIcon column="gamx_a" sortConfig={sortConfig} />
+                            </th>
+                            <th scope="col" className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort('gamx_masters')}>
+                              GAMX-M
+                              <SortIcon column="gamx_masters" sortConfig={sortConfig} />
+                            </th>
                           </>
                         ) : (
                           <>
@@ -2108,6 +2667,14 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                               Best Q-Score
                               <SortIcon column="best_q_score" sortConfig={sortConfig} />
                             </th>
+                            <th
+                              scope="col"
+                              className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
+                              onClick={() => handleSort('best_gamx_score')}
+                            >
+                              Best GAMX Score
+                              <SortIcon column="best_gamx_score" sortConfig={sortConfig} />
+                            </th>
                           </>
                         )}
                       </tr>
@@ -2115,6 +2682,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                     <tbody>
                       {displayResults.map((result, index) => {
                         const bestQScore = getBestQScore(result);
+                        const bestGamx = getBestGamx(result);
 
                         return (
                           <tr key={index} className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors" style={{ borderTopColor: 'var(--border-secondary)' }}>
@@ -2149,6 +2717,12 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                                 <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-qyouth)' }}>{result.q_youth || '-'}</td>
                                 <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-qpoints)' }}>{result.qpoints || '-'}</td>
                                 <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-qmasters)' }}>{result.q_masters || '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-gamx-total)' }}>{result.gamx_total ? result.gamx_total.toFixed(2) : '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-gamx-s)' }}>{result.gamx_s ? result.gamx_s.toFixed(2) : '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-gamx-j)' }}>{result.gamx_j ? result.gamx_j.toFixed(2) : '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-gamx-u)' }}>{result.gamx_u ? result.gamx_u.toFixed(2) : '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-gamx-a)' }}>{result.gamx_a ? result.gamx_a.toFixed(2) : '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-gamx-masters)' }}>{result.gamx_masters ? result.gamx_masters.toFixed(2) : '-'}</td>
                               </>
                             ) : (
                               <>
@@ -2167,6 +2741,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                                 <td className="px-2 py-1 whitespace-nowrap text-xs font-semibold" style={{ color: 'var(--chart-cleanjerk)' }}>{result.best_cj ? `${result.best_cj}kg` : '-'}</td>
                                 <td className="px-2 py-1 whitespace-nowrap text-xs font-bold" style={{ color: 'var(--chart-total)' }}>{result.total ? `${result.total}kg` : '-'}</td>
                                 <td className="px-2 py-1 whitespace-nowrap text-xs" style={bestQScore.style}>{bestQScore.value || '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs" style={bestGamx.style}>{bestGamx.value || '-'}</td>
                               </>
                             )}
                           </tr>
