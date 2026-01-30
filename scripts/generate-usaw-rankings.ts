@@ -41,6 +41,12 @@ interface USAWRankingResult {
     qpoints: number;
     q_youth: number | null;
     q_masters: number | null;
+    gamx_u: number | null;
+    gamx_a: number | null;
+    gamx_masters: number | null;
+    gamx_total: number | null;
+    gamx_s: number | null;
+    gamx_j: number | null;
 }
 
 async function generateUSAWRankingsForYear(year: number) {
@@ -73,7 +79,13 @@ async function generateUSAWRankingsForYear(year: number) {
                     total,
                     qpoints,
                     q_youth,
-                    q_masters
+                    q_masters,
+                    gamx_u,
+                    gamx_a,
+                    gamx_masters,
+                    gamx_total,
+                    gamx_s,
+                    gamx_j
                 `)
                 .gte('date', `${year}-01-01`)
                 .lte('date', `${year}-12-31`)
@@ -144,7 +156,13 @@ async function generateUSAWRankingsForYear(year: number) {
                 total: parseFloat(result.total) || 0,
                 qpoints: parseFloat(result.qpoints) || 0,
                 q_youth: result.q_youth ? parseFloat(result.q_youth) : null,
-                q_masters: result.q_masters ? parseFloat(result.q_masters) : null
+                q_masters: result.q_masters ? parseFloat(result.q_masters) : null,
+                gamx_u: result.gamx_u ? parseFloat(result.gamx_u) : null,
+                gamx_a: result.gamx_a ? parseFloat(result.gamx_a) : null,
+                gamx_masters: result.gamx_masters ? parseFloat(result.gamx_masters) : null,
+                gamx_total: result.gamx_total ? parseFloat(result.gamx_total) : null,
+                gamx_s: result.gamx_s ? parseFloat(result.gamx_s) : null,
+                gamx_j: result.gamx_j ? parseFloat(result.gamx_j) : null,
             };
         });
 

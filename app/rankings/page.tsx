@@ -57,6 +57,12 @@ interface AthleteRanking {
   country_name?: string;
   wso?: string;
   club_name?: string;
+  gamx_u?: number;
+  gamx_a?: number;
+  gamx_masters?: number;
+  gamx_total?: number;
+  gamx_s?: number;
+  gamx_j?: number;
 }
 
 interface USAWRankingResult {
@@ -80,6 +86,12 @@ interface USAWRankingResult {
   q_masters: number | null;
   wso?: string | null;
   club_name?: string | null;
+  gamx_u?: number | null;
+  gamx_a?: number | null;
+  gamx_masters?: number | null;
+  gamx_total?: number | null;
+  gamx_s?: number | null;
+  gamx_j?: number | null;
 }
 
 interface IWFRankingResult {
@@ -103,6 +115,12 @@ interface IWFRankingResult {
   q_masters: number | null;
   country_code?: string;
   country_name?: string;
+  gamx_u?: number | null;
+  gamx_a?: number | null;
+  gamx_masters?: number | null;
+  gamx_total?: number | null;
+  gamx_s?: number | null;
+  gamx_j?: number | null;
 }
 
 const getBestQScore = (result: any) => {
@@ -161,7 +179,7 @@ const HISTORICAL_1998_2018_WEIGHT_CLASSES = {
 
 // Performance metrics that should be ranked when sorted by
 // Note: use raw qpoints (open) so youth/masters scores do not affect open ranking
-const PERFORMANCE_METRICS = ['best_total', 'best_snatch', 'best_cj', 'qpoints', 'q_youth', 'q_masters'];
+const PERFORMANCE_METRICS = ['best_total', 'best_snatch', 'best_cj', 'qpoints', 'q_youth', 'q_masters', 'gamx_u', 'gamx_a', 'gamx_masters', 'gamx_total', 'gamx_s', 'gamx_j'];
 
 // Helper function to format selected years for display
 function formatSelectedYears(years: number[]): string {
@@ -235,13 +253,19 @@ function RankingsContent() {
     bestSnatch: true,
     bestCJ: true,
     total: true,
-    qYouth: true,
+    qYouth: false,
     qPoints: true,
-    qMasters: true,
+    qMasters: false,
     compAge: true,
     ageCategory: false,
     date: true,
     meetName: false,
+    gamxU: false,
+    gamxA: false,
+    gamxMasters: false,
+    gamxTotal: true,
+    gamxS: true,
+    gamxJ: true,
   });
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -518,7 +542,13 @@ function RankingsContent() {
             competition_age,
             gender,
             wso,
-            club_name
+            club_name,
+            gamx_u,
+            gamx_a,
+            gamx_masters,
+            gamx_total,
+            gamx_s,
+            gamx_j
           `
           );
 
@@ -595,6 +625,12 @@ function RankingsContent() {
           country_name: "USA",
           wso: result.wso || lifterInfo?.wso || "",
           club_name: result.club_name || lifterInfo?.club_name || "",
+          gamx_u: result.gamx_u || undefined,
+          gamx_a: result.gamx_a || undefined,
+          gamx_masters: result.gamx_masters || undefined,
+          gamx_total: result.gamx_total || undefined,
+          gamx_s: result.gamx_s || undefined,
+          gamx_j: result.gamx_j || undefined,
         };
       });
 
@@ -750,6 +786,12 @@ function RankingsContent() {
             gender,
             country_code,
             country_name,
+            gamx_u,
+            gamx_a,
+            gamx_masters,
+            gamx_total,
+            gamx_s,
+            gamx_j,
             iwf_lifters (
               iwf_lifter_id
             )
@@ -810,6 +852,12 @@ function RankingsContent() {
           unique_id: result.db_result_id ? `iwf-${result.db_result_id}-${index}` : `iwf-gen-${year}-${index}`,
           country_code: result.country_code || "",
           country_name: result.country_name || "",
+          gamx_u: result.gamx_u || undefined,
+          gamx_a: result.gamx_a || undefined,
+          gamx_masters: result.gamx_masters || undefined,
+          gamx_total: result.gamx_total || undefined,
+          gamx_s: result.gamx_s || undefined,
+          gamx_j: result.gamx_j || undefined,
         };
       });
 
@@ -1327,9 +1375,15 @@ function RankingsContent() {
       { key: 'bestSnatch', header: 'Best Snatch (kg)', getValue: (a: AthleteRanking) => a.best_snatch || "" },
       { key: 'bestCJ', header: 'Best C&J (kg)', getValue: (a: AthleteRanking) => a.best_cj || "" },
       { key: 'total', header: 'Best Total (kg)', getValue: (a: AthleteRanking) => a.best_total || "" },
-      { key: 'qYouth', header: 'Q-Youth', getValue: (a: AthleteRanking) => a.q_youth || "" },
-      { key: 'qPoints', header: 'Q-Points', getValue: (a: AthleteRanking) => a.qpoints || "" },
-      { key: 'qMasters', header: 'Q-Masters', getValue: (a: AthleteRanking) => a.q_masters || "" },
+      { key: 'qYouth', header: 'Q-Youth', getValue: (a: AthleteRanking) => a.q_youth ? a.q_youth.toFixed(2) : "" },
+      { key: 'qPoints', header: 'Q-Points', getValue: (a: AthleteRanking) => a.qpoints ? a.qpoints.toFixed(2) : "" },
+      { key: 'qMasters', header: 'Q-Masters', getValue: (a: AthleteRanking) => a.q_masters ? a.q_masters.toFixed(2) : "" },
+      { key: 'gamxU', header: 'GAMX U', getValue: (a: AthleteRanking) => a.gamx_u ? a.gamx_u.toFixed(0) : "" },
+      { key: 'gamxA', header: 'GAMX A', getValue: (a: AthleteRanking) => a.gamx_a ? a.gamx_a.toFixed(0) : "" },
+      { key: 'gamxMasters', header: 'GAMX Masters', getValue: (a: AthleteRanking) => a.gamx_masters ? a.gamx_masters.toFixed(0) : "" },
+      { key: 'gamxTotal', header: 'GAMX Total', getValue: (a: AthleteRanking) => a.gamx_total ? a.gamx_total.toFixed(0) : "" },
+      { key: 'gamxS', header: 'GAMX Snatch', getValue: (a: AthleteRanking) => a.gamx_s ? a.gamx_s.toFixed(0) : "" },
+      { key: 'gamxJ', header: 'GAMX C&J', getValue: (a: AthleteRanking) => a.gamx_j ? a.gamx_j.toFixed(0) : "" },
       { key: 'compAge', header: 'Competition Age', getValue: (a: AthleteRanking) => a.competition_age || "" },
       { key: 'ageCategory', header: 'Age Category', getValue: (a: AthleteRanking) => a.age_category || "" },
       { key: 'date', header: 'Last Competition', getValue: (a: AthleteRanking) => a.last_competition || "" },
@@ -1382,9 +1436,15 @@ function RankingsContent() {
       { key: 'bestSnatch', header: 'Best Snatch', getValue: (a: AthleteRanking) => a.best_snatch || "-" },
       { key: 'bestCJ', header: 'Best C&J', getValue: (a: AthleteRanking) => a.best_cj || "-" },
       { key: 'total', header: 'Best Total', getValue: (a: AthleteRanking) => a.best_total || "-" },
-      { key: 'qYouth', header: 'Q-Youth', getValue: (a: AthleteRanking) => a.q_youth && a.q_youth > 0 ? a.q_youth.toFixed(3) : "-" },
-      { key: 'qPoints', header: 'Q-Points', getValue: (a: AthleteRanking) => a.qpoints && a.qpoints > 0 ? a.qpoints.toFixed(3) : "-" },
-      { key: 'qMasters', header: 'Q-Masters', getValue: (a: AthleteRanking) => a.q_masters && a.q_masters > 0 ? a.q_masters.toFixed(3) : "-" },
+      { key: 'qYouth', header: 'Q-Youth', getValue: (a: AthleteRanking) => a.q_youth && a.q_youth > 0 ? a.q_youth.toFixed(2) : "-" },
+      { key: 'qPoints', header: 'Q-Points', getValue: (a: AthleteRanking) => a.qpoints && a.qpoints > 0 ? a.qpoints.toFixed(2) : "-" },
+      { key: 'qMasters', header: 'Q-Masters', getValue: (a: AthleteRanking) => a.q_masters && a.q_masters > 0 ? a.q_masters.toFixed(2) : "-" },
+      { key: 'gamxU', header: 'GAMX U', getValue: (a: AthleteRanking) => a.gamx_u && a.gamx_u > 0 ? a.gamx_u.toFixed(0) : "-" },
+      { key: 'gamxA', header: 'GAMX A', getValue: (a: AthleteRanking) => a.gamx_a && a.gamx_a > 0 ? a.gamx_a.toFixed(0) : "-" },
+      { key: 'gamxMasters', header: 'GAMX Masters', getValue: (a: AthleteRanking) => a.gamx_masters && a.gamx_masters > 0 ? a.gamx_masters.toFixed(0) : "-" },
+      { key: 'gamxTotal', header: 'GAMX Total', getValue: (a: AthleteRanking) => a.gamx_total && a.gamx_total > 0 ? a.gamx_total.toFixed(0) : "-" },
+      { key: 'gamxS', header: 'GAMX Snatch', getValue: (a: AthleteRanking) => a.gamx_s && a.gamx_s > 0 ? a.gamx_s.toFixed(0) : "-" },
+      { key: 'gamxJ', header: 'GAMX C&J', getValue: (a: AthleteRanking) => a.gamx_j && a.gamx_j > 0 ? a.gamx_j.toFixed(0) : "-" },
       { key: 'compAge', header: 'Comp Age', getValue: (a: AthleteRanking) => a.competition_age || "-" },
       { key: 'ageCategory', header: 'Age Category', getValue: (a: AthleteRanking) => a.age_category || "" },
       { key: 'date', header: 'Date', getValue: (a: AthleteRanking) => a.last_competition ? new Date(a.last_competition).toLocaleDateString() : "-" },
@@ -1606,6 +1666,12 @@ function RankingsContent() {
                             { key: 'qYouth', label: 'Q-Youth' },
                             { key: 'qPoints', label: 'Q-Points' },
                             { key: 'qMasters', label: 'Q-Masters' },
+                            { key: 'gamxU', label: 'GAMX U' },
+                            { key: 'gamxA', label: 'GAMX A' },
+                            { key: 'gamxMasters', label: 'GAMX Masters' },
+                            { key: 'gamxTotal', label: 'GAMX Total' },
+                            { key: 'gamxS', label: 'GAMX Snatch' },
+                            { key: 'gamxJ', label: 'GAMX C&J' },
                             { key: 'compAge', label: 'Comp Age' },
                             { key: 'ageCategory', label: 'Age Category' },
                             { key: 'date', label: 'Date' },
@@ -2544,6 +2610,36 @@ function RankingsContent() {
                         Q-Masters {getSortIcon("q_masters")}
                       </th>
                     )}
+                    {visibleColumns.gamxU && (
+                      <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("gamx_u")}>
+                        GAMX U {getSortIcon("gamx_u")}
+                      </th>
+                    )}
+                    {visibleColumns.gamxA && (
+                      <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("gamx_a")}>
+                        GAMX A {getSortIcon("gamx_a")}
+                      </th>
+                    )}
+                    {visibleColumns.gamxMasters && (
+                      <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("gamx_masters")}>
+                        GAMX M {getSortIcon("gamx_masters")}
+                      </th>
+                    )}
+                    {visibleColumns.gamxTotal && (
+                      <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("gamx_total")}>
+                        GAMX T {getSortIcon("gamx_total")}
+                      </th>
+                    )}
+                    {visibleColumns.gamxS && (
+                      <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("gamx_s")}>
+                        GAMX S {getSortIcon("gamx_s")}
+                      </th>
+                    )}
+                    {visibleColumns.gamxJ && (
+                      <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("gamx_j")}>
+                        GAMX J {getSortIcon("gamx_j")}
+                      </th>
+                    )}
                     {visibleColumns.compAge && (
                       <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("competition_age")}>
                         Comp Age {getSortIcon("competition_age")}
@@ -2668,17 +2764,47 @@ function RankingsContent() {
                         )}
                         {visibleColumns.qYouth && (
                           <td className="px-2 py-1 whitespace-nowrap text-xs font-medium" style={{ color: (athlete.q_youth ?? 0) > 0 ? 'var(--chart-qyouth)' : 'inherit' }}>
-                            {(athlete.q_youth && athlete.q_youth > 0) ? athlete.q_youth.toFixed(3) : '-'}
+                            {(athlete.q_youth && athlete.q_youth > 0) ? athlete.q_youth.toFixed(2) : '-'}
                           </td>
                         )}
                         {visibleColumns.qPoints && (
                           <td className="px-2 py-1 whitespace-nowrap text-xs font-medium" style={{ color: (athlete.qpoints ?? 0) > 0 ? 'var(--chart-qpoints)' : 'inherit' }}>
-                            {(athlete.qpoints && athlete.qpoints > 0) ? athlete.qpoints.toFixed(3) : '-'}
+                            {(athlete.qpoints && athlete.qpoints > 0) ? athlete.qpoints.toFixed(2) : '-'}
                           </td>
                         )}
                         {visibleColumns.qMasters && (
                           <td className="px-2 py-1 whitespace-nowrap text-xs font-medium" style={{ color: (athlete.q_masters ?? 0) > 0 ? 'var(--chart-qmasters)' : 'inherit' }}>
-                            {(athlete.q_masters && athlete.q_masters > 0) ? athlete.q_masters.toFixed(3) : '-'}
+                            {(athlete.q_masters && athlete.q_masters > 0) ? athlete.q_masters.toFixed(2) : '-'}
+                          </td>
+                        )}
+                        {visibleColumns.gamxU && (
+                          <td className="px-2 py-1 whitespace-nowrap text-xs font-medium" style={{ color: (athlete.gamx_u ?? 0) > 0 ? 'var(--chart-gamx-u)' : 'inherit' }}>
+                            {(athlete.gamx_u && athlete.gamx_u > 0) ? athlete.gamx_u.toFixed(0) : '-'}
+                          </td>
+                        )}
+                        {visibleColumns.gamxA && (
+                          <td className="px-2 py-1 whitespace-nowrap text-xs font-medium" style={{ color: (athlete.gamx_a ?? 0) > 0 ? 'var(--chart-gamx-a)' : 'inherit' }}>
+                            {(athlete.gamx_a && athlete.gamx_a > 0) ? athlete.gamx_a.toFixed(0) : '-'}
+                          </td>
+                        )}
+                        {visibleColumns.gamxMasters && (
+                          <td className="px-2 py-1 whitespace-nowrap text-xs font-medium" style={{ color: (athlete.gamx_masters ?? 0) > 0 ? 'var(--chart-gamx-masters)' : 'inherit' }}>
+                            {(athlete.gamx_masters && athlete.gamx_masters > 0) ? athlete.gamx_masters.toFixed(0) : '-'}
+                          </td>
+                        )}
+                        {visibleColumns.gamxTotal && (
+                          <td className="px-2 py-1 whitespace-nowrap text-xs font-medium" style={{ color: (athlete.gamx_total ?? 0) > 0 ? 'var(--chart-gamx-total)' : 'inherit' }}>
+                            {(athlete.gamx_total && athlete.gamx_total > 0) ? athlete.gamx_total.toFixed(0) : '-'}
+                          </td>
+                        )}
+                        {visibleColumns.gamxS && (
+                          <td className="px-2 py-1 whitespace-nowrap text-xs font-medium" style={{ color: (athlete.gamx_s ?? 0) > 0 ? 'var(--chart-gamx-s)' : 'inherit' }}>
+                            {(athlete.gamx_s && athlete.gamx_s > 0) ? athlete.gamx_s.toFixed(0) : '-'}
+                          </td>
+                        )}
+                        {visibleColumns.gamxJ && (
+                          <td className="px-2 py-1 whitespace-nowrap text-xs font-medium" style={{ color: (athlete.gamx_j ?? 0) > 0 ? 'var(--chart-gamx-j)' : 'inherit' }}>
+                            {(athlete.gamx_j && athlete.gamx_j > 0) ? athlete.gamx_j.toFixed(0) : '-'}
                           </td>
                         )}
                         {visibleColumns.compAge && (

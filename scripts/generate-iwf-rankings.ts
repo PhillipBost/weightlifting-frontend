@@ -7,11 +7,11 @@ import dotenv from 'dotenv';
 // Load environment variables from .env.local if it exists
 dotenv.config({ path: '.env.local' });
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_IWF_URL;
-const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_IWF_ANON_KEY;
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_IWF_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_IWF_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 if (!SUPABASE_URL || !SUPABASE_KEY) {
-    console.error('Missing IWF Supabase environment variables (NEXT_PUBLIC_SUPABASE_IWF_URL, NEXT_PUBLIC_SUPABASE_IWF_ANON_KEY)');
+    console.error('Missing IWF Supabase environment variables (NEXT_PUBLIC_SUPABASE_IWF_URL/NEXT_PUBLIC_SUPABASE_URL, ...ANON_KEY)');
     process.exit(1);
 }
 
@@ -41,6 +41,12 @@ interface IWFRankingResult {
     qpoints: number;
     q_youth: number | null;
     q_masters: number | null;
+    gamx_u: number | null;
+    gamx_a: number | null;
+    gamx_masters: number | null;
+    gamx_total: number | null;
+    gamx_s: number | null;
+    gamx_j: number | null;
     country_code?: string;
     country_name?: string;
 }
@@ -79,6 +85,12 @@ async function generateIWFRankingsForYear(year: number) {
                     qpoints,
                     q_youth,
                     q_masters,
+                    gamx_u,
+                    gamx_a,
+                    gamx_masters,
+                    gamx_total,
+                    gamx_s,
+                    gamx_j,
                     country_code,
                     country_name,
                     iwf_lifters!inner(iwf_lifter_id)
@@ -141,6 +153,12 @@ async function generateIWFRankingsForYear(year: number) {
                 qpoints: parseFloat(result.qpoints) || 0,
                 q_youth: result.q_youth ? parseFloat(result.q_youth) : null,
                 q_masters: result.q_masters ? parseFloat(result.q_masters) : null,
+                gamx_u: result.gamx_u ? parseFloat(result.gamx_u) : null,
+                gamx_a: result.gamx_a ? parseFloat(result.gamx_a) : null,
+                gamx_masters: result.gamx_masters ? parseFloat(result.gamx_masters) : null,
+                gamx_total: result.gamx_total ? parseFloat(result.gamx_total) : null,
+                gamx_s: result.gamx_s ? parseFloat(result.gamx_s) : null,
+                gamx_j: result.gamx_j ? parseFloat(result.gamx_j) : null,
                 country_code: result.country_code,
                 country_name: result.country_name
             };
