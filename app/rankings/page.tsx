@@ -1646,6 +1646,12 @@ function RankingsContent() {
                                 ageCategory: true,
                                 date: true,
                                 meetName: true,
+                                gamxU: true,
+                                gamxA: true,
+                                gamxMasters: true,
+                                gamxTotal: true,
+                                gamxS: true,
+                                gamxJ: true,
                               })}
                               className="text-xs text-blue-400 hover:text-blue-300"
                             >
