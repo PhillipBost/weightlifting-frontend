@@ -22,13 +22,13 @@ const getBestQScore = (result: any) => {
   const qMasters = result.q_masters || 0;
 
   if (qPoints >= qYouth && qPoints >= qMasters && qPoints > 0) {
-    return { value: qPoints, type: 'qpoints', style: { color: 'var(--chart-qpoints)' } };
+    return { value: qPoints.toFixed(2), type: 'qpoints', style: { color: 'var(--chart-qpoints)' } };
   }
   if (qYouth >= qMasters && qYouth > 0) {
-    return { value: qYouth, type: 'qyouth', style: { color: 'var(--chart-qyouth)' } };
+    return { value: qYouth.toFixed(2), type: 'qyouth', style: { color: 'var(--chart-qyouth)' } };
   }
   if (qMasters > 0) {
-    return { value: qMasters, type: 'qmasters', style: { color: 'var(--chart-qmasters)' } };
+    return { value: qMasters.toFixed(2), type: 'qmasters', style: { color: 'var(--chart-qmasters)' } };
   }
 
   return { value: null, type: 'none', style: { color: 'var(--chart-qpoints)' } };
@@ -46,7 +46,7 @@ const getBestGamx = (result: any) => {
 
   const maxScore = scores.reduce((prev, current) => (prev.value > current.value) ? prev : current);
   return {
-    value: maxScore.value.toFixed(2),
+    value: maxScore.value.toFixed(0),
     style: { color: maxScore.color, fontWeight: 'bold' }
   };
 };
@@ -1607,6 +1607,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                       fontSize={12}
                       domain={autoScaleQScores ? ['dataMin - 10', 'dataMax + 10'] : [0, 'dataMax + 5']}
                       allowDataOverflow={true}
+                      tickFormatter={(value) => value.toFixed(2)}
                       label={{
                         value: 'Q-Score',
                         angle: -90,
@@ -1639,10 +1640,10 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                         formatter={(value: any, name: string) => {
                           if (!value && value !== 0) return ['-', name];
                           if (typeof value === 'number') {
-                            if (name === 'qpoints') return [value.toFixed(1), 'Q-Points'];
-                            if (name === 'qYouth') return [value.toFixed(1), 'Q-Youth'];
-                            if (name === 'qMasters') return [value.toFixed(1), 'Q-Masters'];
-                            return [value.toFixed(1), name];
+                            if (name === 'qpoints') return [value.toFixed(2), 'Q-Points'];
+                            if (name === 'qYouth') return [value.toFixed(2), 'Q-Youth'];
+                            if (name === 'qMasters') return [value.toFixed(2), 'Q-Masters'];
+                            return [value.toFixed(2), name];
                           } else {
                             return [String(value), name];
                           }
@@ -1979,7 +1980,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                     <YAxis
                       stroke="var(--chart-axis)"
                       fontSize={12}
-                      tickFormatter={(value) => value.toFixed(2)}
+                      tickFormatter={(value) => value.toFixed(0)}
                       domain={autoScaleGamx ? ['dataMin - 10', 'dataMax + 10'] : [0, 'dataMax + 5']}
                       allowDataOverflow={true}
                       label={{
@@ -2014,7 +2015,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                         formatter={(value: any, name: string) => {
                           if (!value && value !== 0) return ['-', name];
                           if (typeof value === 'number') {
-                            const formatted = value.toFixed(1);
+                            const formatted = value.toFixed(0);
                             if (name === 'gamxTotal') return [formatted, 'GAMX-Total'];
                             if (name === 'gamxS') return [formatted, 'GAMX-S'];
                             if (name === 'gamxJ') return [formatted, 'GAMX-J'];
@@ -2585,15 +2586,15 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                                 <td className="px-2 py-1 whitespace-nowrap text-xs">{result.cj_lift_3 || '-'}</td>
                                 <td className="px-2 py-1 whitespace-nowrap text-xs font-semibold" style={{ color: 'var(--chart-cleanjerk)' }}>{result.best_cj ? `${result.best_cj}kg` : '-'}</td>
                                 <td className="px-2 py-1 whitespace-nowrap text-xs font-bold" style={{ color: 'var(--chart-total)' }}>{result.total ? `${result.total}kg` : '-'}</td>
-                                <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-qyouth)' }}>{result.q_youth || '-'}</td>
-                                <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-qpoints)' }}>{result.qpoints || '-'}</td>
-                                <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-qmasters)' }}>{result.q_masters || '-'}</td>
-                                <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-gamx-total)' }}>{result.gamx_total ? result.gamx_total.toFixed(2) : '-'}</td>
-                                <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-gamx-s)' }}>{result.gamx_s ? result.gamx_s.toFixed(2) : '-'}</td>
-                                <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-gamx-j)' }}>{result.gamx_j ? result.gamx_j.toFixed(2) : '-'}</td>
-                                <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-gamx-u)' }}>{result.gamx_u ? result.gamx_u.toFixed(2) : '-'}</td>
-                                <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-gamx-a)' }}>{result.gamx_a ? result.gamx_a.toFixed(2) : '-'}</td>
-                                <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-gamx-masters)' }}>{result.gamx_masters ? result.gamx_masters.toFixed(2) : '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-qyouth)' }}>{result.q_youth ? Number(result.q_youth).toFixed(2) : '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-qpoints)' }}>{result.qpoints ? Number(result.qpoints).toFixed(2) : '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-qmasters)' }}>{result.q_masters ? Number(result.q_masters).toFixed(2) : '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-gamx-total)' }}>{result.gamx_total ? result.gamx_total.toFixed(0) : '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-gamx-s)' }}>{result.gamx_s ? result.gamx_s.toFixed(0) : '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-gamx-j)' }}>{result.gamx_j ? result.gamx_j.toFixed(0) : '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-gamx-u)' }}>{result.gamx_u ? result.gamx_u.toFixed(0) : '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-gamx-a)' }}>{result.gamx_a ? result.gamx_a.toFixed(0) : '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-gamx-masters)' }}>{result.gamx_masters ? result.gamx_masters.toFixed(0) : '-'}</td>
                               </>
                             ) : (
                               <>

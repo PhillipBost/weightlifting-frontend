@@ -61,6 +61,12 @@ interface USAWRankingResult {
     cj_3: string | null;
     club_name: string | null;
     wso: string | null;
+    gamx_u: number | null;
+    gamx_a: number | null;
+    gamx_masters: number | null;
+    gamx_total: number | null;
+    gamx_s: number | null;
+    gamx_j: number | null;
 }
 
 interface IWFRankingResult {
@@ -191,7 +197,13 @@ async function generateUSAWCurrentYear() {
                     cj_lift_2,
                     cj_lift_3,
                     club_name,
-                    wso
+                    wso,
+                    gamx_u,
+                    gamx_a,
+                    gamx_masters,
+                    gamx_total,
+                    gamx_s,
+                    gamx_j
                 `)
                 .gte('date', `${TARGET_YEAR}-01-01`)
                 .lte('date', `${TARGET_YEAR}-12-31`)
@@ -291,7 +303,13 @@ async function generateUSAWCurrentYear() {
                 cj_2: result.cj_lift_2 || null,
                 cj_3: result.cj_lift_3 || null,
                 club_name: result.club_name || null,
-                wso: result.wso || null
+                wso: result.wso || null,
+                gamx_u: result.gamx_u ? parseFloat(result.gamx_u) : null,
+                gamx_a: result.gamx_a ? parseFloat(result.gamx_a) : null,
+                gamx_masters: result.gamx_masters ? parseFloat(result.gamx_masters) : null,
+                gamx_total: result.gamx_total ? parseFloat(result.gamx_total) : null,
+                gamx_s: result.gamx_s ? parseFloat(result.gamx_s) : null,
+                gamx_j: result.gamx_j ? parseFloat(result.gamx_j) : null
             };
         });
 

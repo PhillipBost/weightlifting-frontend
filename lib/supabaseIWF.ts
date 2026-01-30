@@ -12,8 +12,8 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
 // No-op storage to completely isolate IWF client from browser storage
 const noopStorage = {
   getItem: () => null,
-  setItem: () => {},
-  removeItem: () => {}
+  setItem: () => { },
+  removeItem: () => { }
 }
 
 // Lazy singleton - only create when first accessed
@@ -146,6 +146,14 @@ export interface IWFMeetResult {
   qpoints: number | null
   q_masters: number | null
   q_youth: number | null
+
+  // GAMX Scores
+  gamx_total: number | null
+  gamx_s: number | null
+  gamx_j: number | null
+  gamx_u: number | null
+  gamx_a: number | null
+  gamx_masters: number | null
 
   // Year-to-Date Bests (Note: IWF data doesn't currently populate these)
   best_snatch_ytd: number | null

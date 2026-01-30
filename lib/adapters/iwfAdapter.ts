@@ -70,6 +70,14 @@ export interface AdaptedResult {
   q_youth?: number | null;
   q_masters?: number | null;
 
+  // GAMX Scores (preserved for IWF)
+  gamx_total?: number | null;
+  gamx_s?: number | null;
+  gamx_j?: number | null;
+  gamx_u?: number | null;
+  gamx_a?: number | null;
+  gamx_masters?: number | null;
+
   // Year-to-date bests
   best_snatch_ytd?: number | null;
   best_cj_ytd?: number | null;
@@ -179,6 +187,14 @@ export function adaptIWFResult(iwfResult: IWFMeetResult): AdaptedResult {
     qpoints: iwfResult.qpoints ?? undefined,
     q_youth: iwfResult.q_youth ?? undefined,
     q_masters: iwfResult.q_masters ?? undefined,
+
+    // GAMX Scores
+    gamx_total: iwfResult.gamx_total ?? undefined,
+    gamx_s: iwfResult.gamx_s ?? undefined,
+    gamx_j: iwfResult.gamx_j ?? undefined,
+    gamx_u: iwfResult.gamx_u ?? undefined,
+    gamx_a: iwfResult.gamx_a ?? undefined,
+    gamx_masters: iwfResult.gamx_masters ?? undefined,
 
     // Year-to-date bests
     best_snatch_ytd: iwfResult.best_snatch_ytd ?? undefined,
