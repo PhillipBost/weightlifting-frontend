@@ -229,7 +229,7 @@ async function generateUSAWCurrentYear() {
         // Get unique lifter IDs and fetch membership numbers AND internal_id
         console.log('  Fetching membership numbers and internal IDs...');
         const uniqueLifterIds = [...new Set(allResults.map(r => r.lifter_id))];
-        const lifterMap = new Map<string, { membership_number: number | null, internal_id: number | null }>();
+        const lifterMap = new Map<string, { membership_number: number | null, internal_id: number | null, wso: string | null, club_name: string | null }>();
 
         // Fetch membership numbers in batches
         const BATCH_SIZE = 100;
@@ -237,13 +237,15 @@ async function generateUSAWCurrentYear() {
             const batch = uniqueLifterIds.slice(i, i + BATCH_SIZE);
             const { data: lifters, error } = await supabase
                 .from('usaw_lifters')
-                .select('lifter_id, membership_number, internal_id')
+                .select('lifter_id, membership_number, internal_id, wso, club_name')
                 .in('lifter_id', batch);
 
             if (!error && lifters) {
                 lifters.forEach(l => lifterMap.set(String(l.lifter_id), {
                     membership_number: l.membership_number,
-                    internal_id: l.internal_id
+                    internal_id: l.internal_id,
+                    wso: l.wso,
+                    club_name: l.club_name
                 }));
             }
         }
@@ -302,8 +304,8 @@ async function generateUSAWCurrentYear() {
                 cj_1: result.cj_lift_1 || null,
                 cj_2: result.cj_lift_2 || null,
                 cj_3: result.cj_lift_3 || null,
-                club_name: result.club_name || null,
-                wso: result.wso || null,
+                club_name: result.club_name || lifterData?.club_name || null,
+                wso: result.wso || lifterData?.wso || null,
                 gamx_u: result.gamx_u ? parseFloat(result.gamx_u) : null,
                 gamx_a: result.gamx_a ? parseFloat(result.gamx_a) : null,
                 gamx_masters: result.gamx_masters ? parseFloat(result.gamx_masters) : null,

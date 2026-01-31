@@ -47,6 +47,8 @@ interface USAWRankingResult {
     gamx_total: number | null;
     gamx_s: number | null;
     gamx_j: number | null;
+    wso: string | null;
+    club_name: string | null;
 }
 
 async function generateUSAWRankingsForYear(year: number) {
@@ -85,7 +87,9 @@ async function generateUSAWRankingsForYear(year: number) {
                     gamx_masters,
                     gamx_total,
                     gamx_s,
-                    gamx_j
+                    gamx_j,
+                    wso,
+                    club_name
                 `)
                 .gte('date', `${year}-01-01`)
                 .lte('date', `${year}-12-31`)
@@ -116,17 +120,21 @@ async function generateUSAWRankingsForYear(year: number) {
         // Fetch membership numbers separately in batches
         console.log('  Fetching membership numbers...');
         const uniqueLifterIds = [...new Set(allResults.map(r => r.lifter_id))];
-        const lifterMap = new Map<number, number | null>();
+        const lifterMap = new Map<number, { membership_number: number | null, wso: string | null, club_name: string | null }>();
 
         for (let i = 0; i < uniqueLifterIds.length; i += 1000) {
             const batch = uniqueLifterIds.slice(i, i + 1000);
             const { data: lifters, error } = await supabase
                 .from('usaw_lifters')
-                .select('lifter_id, membership_number')
+                .select('lifter_id, membership_number, wso, club_name')
                 .in('lifter_id', batch);
 
             if (!error && lifters) {
-                lifters.forEach(l => lifterMap.set(l.lifter_id, l.membership_number));
+                lifters.forEach(l => lifterMap.set(l.lifter_id, {
+                    membership_number: l.membership_number,
+                    wso: l.wso,
+                    club_name: l.club_name
+                }));
             }
         }
 
@@ -135,7 +143,10 @@ async function generateUSAWRankingsForYear(year: number) {
         // Process and clean up data
         const processedResults: USAWRankingResult[] = allResults.map(result => {
             // Get membership number from the lifterMap
-            const membershipNumber = lifterMap.get(result.lifter_id) || null;
+            const lifterData = lifterMap.get(result.lifter_id);
+            const membershipNumber = lifterData?.membership_number || null;
+            const fallbackWso = lifterData?.wso || null;
+            const fallbackClub = lifterData?.club_name || null;
 
             return {
                 result_id: result.result_id,
@@ -163,6 +174,8 @@ async function generateUSAWRankingsForYear(year: number) {
                 gamx_total: result.gamx_total ? parseFloat(result.gamx_total) : null,
                 gamx_s: result.gamx_s ? parseFloat(result.gamx_s) : null,
                 gamx_j: result.gamx_j ? parseFloat(result.gamx_j) : null,
+                wso: result.wso || fallbackWso || null,
+                club_name: result.club_name || fallbackClub || null,
             };
         });
 
