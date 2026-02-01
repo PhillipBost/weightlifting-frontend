@@ -218,7 +218,7 @@ function RankingsContent() {
     federation: "all",
     sortBy: "best_total",
     sortOrder: ("desc" as any) as 'asc' | 'desc',
-    selectedYears: [2025] as number[], // Default to current year
+    selectedYears: [2026] as number[], // Default to current year
     selectedCountries: [] as string[],
     bodyWeightMin: "",
     bodyWeightMax: "",
@@ -500,7 +500,7 @@ function RankingsContent() {
 
       try {
         const usawPromises = yearsToFetch
-          .filter(year => year >= 2012 && year <= 2025)
+          .filter(year => year >= 2012 && year <= 2026)
           .map(year => loadUSAWRankingsFile(year));
 
         if (usawPromises.length > 0) {
@@ -751,7 +751,7 @@ function RankingsContent() {
 
       try {
         const iwfPromises = yearsToFetch
-          .filter(year => year >= 1998 && year <= 2025)
+          .filter(year => year >= 1998 && year <= 2026)
           .map(year => loadIWFRankingsFile(year));
 
         if (iwfPromises.length > 0) {
