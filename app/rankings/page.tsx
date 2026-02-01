@@ -225,7 +225,7 @@ function RankingsContent() {
     startDate: "",
     endDate: "",
     selectedWSO: [] as string[],
-    selectedWSO: [] as string[],
+
     selectedClubs: [] as string[],
     ageMin: "",
     ageMax: "",
