@@ -1375,6 +1375,8 @@ function RankingsContent() {
       endDate: "",
       selectedWSO: [],
       selectedClubs: [],
+      ageMin: "",
+      ageMax: "",
     });
     setWsoSearch("");
     setClubSearch("");
