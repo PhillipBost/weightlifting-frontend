@@ -225,7 +225,10 @@ function RankingsContent() {
     startDate: "",
     endDate: "",
     selectedWSO: [] as string[],
+    selectedWSO: [] as string[],
     selectedClubs: [] as string[],
+    ageMin: "",
+    ageMax: "",
   });
 
   const [showFilters, setShowFilters] = useState(false);
@@ -992,6 +995,21 @@ function RankingsContent() {
 
         // Exclude athletes with no age data from specific category filters
         return false;
+      });
+    }
+
+
+
+    const minAge = filters.ageMin !== "" ? parseFloat(filters.ageMin) : null;
+    const maxAge = filters.ageMax !== "" ? parseFloat(filters.ageMax) : null;
+    if (minAge !== null || maxAge !== null) {
+      filtered = filtered.filter((athlete) => {
+        const ageValue = athlete.competition_age;
+
+        if (ageValue === undefined || ageValue === null) return false;
+        if (minAge !== null && ageValue < minAge) return false;
+        if (maxAge !== null && ageValue > maxAge) return false;
+        return true;
       });
     }
 
@@ -2316,6 +2334,32 @@ function RankingsContent() {
                           </div>
                         </>
                       )}
+                    </div>
+
+                    {/* Age Range */}
+                    <div className="min-w-0">
+                      <label className="block text-sm font-medium text-gray-300 mb-1">Age Range</label>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          placeholder="Min"
+                          value={filters.ageMin}
+                          onChange={(e) => handleFilterChange("ageMin", e.target.value)}
+                          className="w-28 h-10 px-3 bg-app-tertiary border border-app-primary rounded-xl text-app-primary placeholder-app-tertiary focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <span className="text-gray-400">–</span>
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          placeholder="Max"
+                          value={filters.ageMax}
+                          onChange={(e) => handleFilterChange("ageMax", e.target.value)}
+                          className="w-28 h-10 px-3 bg-app-tertiary border border-app-primary rounded-xl text-app-primary placeholder-app-tertiary focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
                     </div>
 
                     {/* Body Weight Range */}
