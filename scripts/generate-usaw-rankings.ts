@@ -49,6 +49,12 @@ interface USAWRankingResult {
     gamx_j: number | null;
     wso: string | null;
     club_name: string | null;
+    snatch_1?: string | number;
+    snatch_2?: string | number;
+    snatch_3?: string | number;
+    cj_1?: string | number;
+    cj_2?: string | number;
+    cj_3?: string | number;
 }
 
 async function generateUSAWRankingsForYear(year: number) {
@@ -88,6 +94,12 @@ async function generateUSAWRankingsForYear(year: number) {
                     gamx_total,
                     gamx_s,
                     gamx_j,
+                    snatch_lift_1,
+                    snatch_lift_2,
+                    snatch_lift_3,
+                    cj_lift_1,
+                    cj_lift_2,
+                    cj_lift_3,
                     wso,
                     club_name
                 `)
@@ -176,6 +188,12 @@ async function generateUSAWRankingsForYear(year: number) {
                 gamx_j: result.gamx_j ? parseFloat(result.gamx_j) : null,
                 wso: result.wso || fallbackWso || null,
                 club_name: result.club_name || fallbackClub || null,
+                snatch_1: result.snatch_lift_1,
+                snatch_2: result.snatch_lift_2,
+                snatch_3: result.snatch_lift_3,
+                cj_1: result.cj_lift_1,
+                cj_2: result.cj_lift_2,
+                cj_3: result.cj_lift_3
             };
         });
 

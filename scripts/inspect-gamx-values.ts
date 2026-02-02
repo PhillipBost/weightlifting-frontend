@@ -10,11 +10,9 @@ const supabase = createClient(
 
 async function inspectGamx() {
     const { data, error } = await supabase
-        .from('usaw_meet_results')
-        .select('result_id, lifter_name, date, gamx_total, gamx_u, gamx_a, gamx_masters')
-        .gt('date', '2024-01-01')
-        .not('gamx_total', 'is', null)
-        .limit(10);
+        .from('iwf_meet_results')
+        .select('*')
+        .limit(1);
 
     if (error) console.error(error);
     else console.table(data);

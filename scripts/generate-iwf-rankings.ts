@@ -47,6 +47,12 @@ interface IWFRankingResult {
     gamx_total: number | null;
     gamx_s: number | null;
     gamx_j: number | null;
+    snatch_1?: string | number;
+    snatch_2?: string | number;
+    snatch_3?: string | number;
+    cj_1?: string | number;
+    cj_2?: string | number;
+    cj_3?: string | number;
     country_code?: string;
     country_name?: string;
 }
@@ -91,6 +97,12 @@ async function generateIWFRankingsForYear(year: number) {
                     gamx_total,
                     gamx_s,
                     gamx_j,
+                    snatch_lift_1,
+                    snatch_lift_2,
+                    snatch_lift_3,
+                    cj_lift_1,
+                    cj_lift_2,
+                    cj_lift_3,
                     country_code,
                     country_name,
                     iwf_lifters!inner(iwf_lifter_id)
@@ -159,6 +171,12 @@ async function generateIWFRankingsForYear(year: number) {
                 gamx_total: result.gamx_total ? parseFloat(result.gamx_total) : null,
                 gamx_s: result.gamx_s ? parseFloat(result.gamx_s) : null,
                 gamx_j: result.gamx_j ? parseFloat(result.gamx_j) : null,
+                snatch_1: result.snatch_lift_1,
+                snatch_2: result.snatch_lift_2,
+                snatch_3: result.snatch_lift_3,
+                cj_1: result.cj_lift_1,
+                cj_2: result.cj_lift_2,
+                cj_3: result.cj_lift_3,
                 country_code: result.country_code,
                 country_name: result.country_name
             };

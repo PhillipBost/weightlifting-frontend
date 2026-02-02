@@ -58,6 +58,13 @@ interface AthleteRanking {
     membership_number?: string;
     meet_id?: number | string;
     unique_id: string;
+    // GAMX Scores
+    gamx_u?: number | null;
+    gamx_a?: number | null;
+    gamx_masters?: number | null;
+    gamx_total?: number | null;
+    gamx_s?: number | null;
+    gamx_j?: number | null;
     // Detailed fields from JSON
     snatch_1?: string | number;
     snatch_2?: string | number;
@@ -89,6 +96,12 @@ interface USAWRankingResult {
     qpoints: number;
     q_youth: number | null;
     q_masters: number | null;
+    gamx_u?: number | null;
+    gamx_a?: number | null;
+    gamx_masters?: number | null;
+    gamx_total?: number | null;
+    gamx_s?: number | null;
+    gamx_j?: number | null;
     wso?: string | null;
     club_name?: string | null;
     // Lift attempts
@@ -98,6 +111,12 @@ interface USAWRankingResult {
     cj_1?: string | number;
     cj_2?: string | number;
     cj_3?: string | number;
+    snatch_lift_1?: string | number;
+    snatch_lift_2?: string | number;
+    snatch_lift_3?: string | number;
+    cj_lift_1?: string | number;
+    cj_lift_2?: string | number;
+    cj_lift_3?: string | number;
 }
 
 interface IWFRankingResult {
@@ -119,6 +138,12 @@ interface IWFRankingResult {
     qpoints: number;
     q_youth: number | null;
     q_masters: number | null;
+    gamx_u?: number | null;
+    gamx_a?: number | null;
+    gamx_masters?: number | null;
+    gamx_total?: number | null;
+    gamx_s?: number | null;
+    gamx_j?: number | null;
     snatch_1?: string | number;
     snatch_2?: string | number;
     snatch_3?: string | number;
@@ -127,6 +152,12 @@ interface IWFRankingResult {
     cj_3?: string | number;
     country_code?: string;
     country_name?: string;
+    snatch_lift_1?: string | number;
+    snatch_lift_2?: string | number;
+    snatch_lift_3?: string | number;
+    cj_lift_1?: string | number;
+    cj_lift_2?: string | number;
+    cj_lift_3?: string | number;
 }
 
 export default function DataExportPage() {
@@ -388,7 +419,9 @@ export default function DataExportPage() {
                     .select(`
                     result_id, lifter_id, lifter_name, date, meet_name, meet_id,
                     weight_class, age_category, body_weight_kg, best_snatch, best_cj, total,
-                    qpoints, q_youth, q_masters, competition_age, gender, wso, club_name
+                    qpoints, q_youth, q_masters, competition_age, gender, wso, club_name,
+                    gamx_u, gamx_a, gamx_masters, gamx_total, gamx_s, gamx_j,
+                    snatch_lift_1, snatch_lift_2, snatch_lift_3, cj_lift_1, cj_lift_2, cj_lift_3
                 `);
 
                 const minYear = Math.min(...yearsToFetch);
@@ -441,13 +474,20 @@ export default function DataExportPage() {
                     country_name: "USA",
                     wso: result.wso || lifterInfo?.wso || "",
                     club_name: result.club_name || lifterInfo?.club_name || "",
-                    // New Fields from JSON
-                    snatch_1: result.snatch_1,
-                    snatch_2: result.snatch_2,
-                    snatch_3: result.snatch_3,
-                    cj_1: result.cj_1,
-                    cj_2: result.cj_2,
-                    cj_3: result.cj_3
+                    // New Fields from JSON or DB
+                    snatch_1: result.snatch_1 ?? result.snatch_lift_1,
+                    snatch_2: result.snatch_2 ?? result.snatch_lift_2,
+                    snatch_3: result.snatch_3 ?? result.snatch_lift_3,
+                    cj_1: result.cj_1 ?? result.cj_lift_1,
+                    cj_2: result.cj_2 ?? result.cj_lift_2,
+                    cj_3: result.cj_3 ?? result.cj_lift_3,
+                    // GAMX
+                    gamx_u: result.gamx_u,
+                    gamx_a: result.gamx_a,
+                    gamx_masters: result.gamx_masters,
+                    gamx_total: result.gamx_total,
+                    gamx_s: result.gamx_s,
+                    gamx_j: result.gamx_j
                 };
             });
 
@@ -476,6 +516,13 @@ export default function DataExportPage() {
                 q_youth: result.q_youth || undefined,
                 q_masters: result.q_masters || undefined,
                 qpoints: result.qpoints || undefined,
+                // GAMX
+                gamx_u: result.gamx_u,
+                gamx_a: result.gamx_a,
+                gamx_masters: result.gamx_masters,
+                gamx_total: result.gamx_total,
+                gamx_s: result.gamx_s,
+                gamx_j: result.gamx_j,
                 competition_count: 1,
                 last_competition: result.date,
                 last_meet_name: result.meet_name,
@@ -789,6 +836,7 @@ export default function DataExportPage() {
                     "Snatch 1", "Snatch 2", "Snatch 3", "Best Snatch (kg)",
                     "C&J 1", "C&J 2", "C&J 3", "Best C&J (kg)",
                     "Total (kg)", "Q-Youth", "Q-Points", "Q-Masters",
+                    "Gamx U", "Gamx A", "Gamx Masters", "Gamx Total", "Gamx Snatch", "Gamx CJ",
                     "Federation", "Country"
                 ];
 
@@ -809,6 +857,7 @@ export default function DataExportPage() {
                     row.q_youth,
                     row.q_points,
                     row.q_masters,
+                    row.gamx_u, row.gamx_a, row.gamx_masters, row.gamx_total, row.gamx_s, row.gamx_j,
                     row.federation,
                     row.country
                 ].join(","));
@@ -821,6 +870,7 @@ export default function DataExportPage() {
                     "Snatch 1", "Snatch 2", "Snatch 3", "Best Snatch (kg)",
                     "C&J 1", "C&J 2", "C&J 3", "Best C&J (kg)",
                     "Total (kg)", "Q-Youth", "Q-Points", "Q-Masters",
+                    "Gamx U", "Gamx A", "Gamx Masters", "Gamx Total", "Gamx Snatch", "Gamx CJ",
                     "Federation", "Country", "WSO", "Club"
                 ];
 
@@ -842,6 +892,7 @@ export default function DataExportPage() {
                     row.q_youth,
                     row.q_points,
                     row.q_masters,
+                    row.gamx_u, row.gamx_a, row.gamx_masters, row.gamx_total, row.gamx_s, row.gamx_j,
                     row.federation,
                     row.country,
                     row.wso,
@@ -907,6 +958,12 @@ export default function DataExportPage() {
             q_youth: formatNumber(stateItem.q_youth),
             q_points: formatNumber(stateItem.qpoints),
             q_masters: formatNumber(stateItem.q_masters),
+            gamx_u: formatNumber(stateItem.gamx_u),
+            gamx_a: formatNumber(stateItem.gamx_a),
+            gamx_masters: formatNumber(stateItem.gamx_masters),
+            gamx_total: formatNumber(stateItem.gamx_total),
+            gamx_s: formatNumber(stateItem.gamx_s),
+            gamx_j: formatNumber(stateItem.gamx_j),
 
             federation: "USAW",
             country: "USA",
@@ -941,6 +998,12 @@ export default function DataExportPage() {
             q_youth: formatNumber(r.q_youth),
             q_points: formatNumber(r.qpoints || r.best_qpoints), // Fallback to best if internal IWF structure differs, but try raw first
             q_masters: formatNumber(r.q_masters),
+            gamx_u: formatNumber(r.gamx_u),
+            gamx_a: formatNumber(r.gamx_a),
+            gamx_masters: formatNumber(r.gamx_masters),
+            gamx_total: formatNumber(r.gamx_total),
+            gamx_s: formatNumber(r.gamx_s),
+            gamx_j: formatNumber(r.gamx_j),
 
             federation: "IWF",
             country: r.country_name || r.country_code || "",
