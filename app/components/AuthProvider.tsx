@@ -486,11 +486,28 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       const { error } = result
       if (error) {
+        // If session is missing, we're effectively logged out already
+        if (error.message.includes('Auth session missing')) {
+          console.warn('[AUTH] Session was already missing during logout')
+          // Force local state clear since onAuthStateChange might not fire
+          setSession(null)
+          setUser(null)
+          return
+        }
         throw new Error(error.message)
       }
       // Session will be cleared via the onAuthStateChange listener
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+
+      // Handle the specific "Auth session missing!" error if it comes from the throw above or the query itself
+      if (errorMsg.includes('Auth session missing')) {
+        console.warn('[AUTH] Session was already missing (caught in catch block)')
+        setSession(null)
+        setUser(null)
+        return
+      }
+
       console.error('[AUTH] Logout failed:', errorMsg)
 
       // Check health when logout fails

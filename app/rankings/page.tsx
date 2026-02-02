@@ -123,6 +123,22 @@ interface IWFRankingResult {
   gamx_j?: number | null;
 }
 
+interface IWFSanction {
+  id: string;
+  name: string;
+  gender?: string;
+  nation?: string;
+  start_date?: string;
+  end_date?: string;
+  event_type?: string;
+  substance?: string;
+  sanction_year_group?: string;
+  db_lifter_id?: number;
+  created_at?: string;
+  notes?: string;
+  duration?: string;
+}
+
 const getBestQScore = (result: any) => {
   const qYouth = result.q_youth || 0;
   const qPoints = result.qpoints || 0;
@@ -206,6 +222,8 @@ function RankingsContent() {
   const [filteredRankings, setFilteredRankings] = useState<AthleteRanking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [iwfSanctions, setIwfSanctions] = useState<IWFSanction[]>([]);
+  const [loadingSanctions, setLoadingSanctions] = useState(false);
 
   const [filters, setFilters] = useState({
     searchTerm: "",
@@ -229,6 +247,7 @@ function RankingsContent() {
     selectedClubs: [] as string[],
     ageMin: "",
     ageMax: "",
+    sanctionStatus: "all", // "not_currently", "currently", "ever", "never", "all"
   });
 
   const [showFilters, setShowFilters] = useState(false);
@@ -243,6 +262,7 @@ function RankingsContent() {
   const [showClubDropdown, setShowClubDropdown] = useState(false);
   const [showGenderDropdown, setShowGenderDropdown] = useState(false);
   const [showAgeCategoryDropdown, setShowAgeCategoryDropdown] = useState(false);
+  const [showSanctionDropdown, setShowSanctionDropdown] = useState(false);
   const [showColumnVisibility, setShowColumnVisibility] = useState(false);
 
   const [visibleColumns, setVisibleColumns] = useState({
@@ -295,7 +315,7 @@ function RankingsContent() {
 
   useEffect(() => {
     applyFilters();
-  }, [rankings, filters]);
+  }, [rankings, filters, iwfSanctions]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -332,6 +352,47 @@ function RankingsContent() {
       fetchRankingsData(inactiveWeightClasses);
     }
   }, [filters.selectedYears]);
+
+  // Load sanctions data when filter requires it
+  useEffect(() => {
+    if (filters.sanctionStatus !== "all" && iwfSanctions.length === 0 && !loadingSanctions) {
+      loadIWFSanctions();
+    }
+  }, [filters.sanctionStatus]);
+
+  async function loadIWFSanctions() {
+    try {
+      setLoadingSanctions(true);
+      const response = await fetch("/data/iwf-sanctions.json.gz");
+      if (!response.ok) {
+        console.warn("Sanctions data not found, skipping load.");
+        return;
+      }
+
+      let json;
+      const contentEncoding = response.headers.get('Content-Encoding');
+      if (contentEncoding === 'gzip') {
+        json = await response.text();
+      } else {
+        try {
+          const ds = new DecompressionStream('gzip');
+          const decompressedStream = response.body?.pipeThrough(ds);
+          json = decompressedStream ? await new Response(decompressedStream).text() : await response.text();
+        } catch (e) {
+          console.warn('Sanctions decompression failed', e);
+          json = await response.text();
+        }
+      }
+
+      const data: IWFSanction[] = JSON.parse(json);
+      console.log(`Loaded ${data.length} sanctions records`);
+      setIwfSanctions(data);
+    } catch (err) {
+      console.error("Failed to load sanctions:", err);
+    } finally {
+      setLoadingSanctions(false);
+    }
+  }
 
   async function initializeData() {
     let inactiveSet: Set<string> = new Set();
@@ -405,7 +466,11 @@ function RankingsContent() {
 
   async function loadIWFRankingsFile(year: number): Promise<IWFRankingResult[]> {
     const response = await fetch(`/data/iwf-rankings-${year}.json.gz`);
-    if (!response.ok) throw new Error(`Failed to fetch IWF ${year}: ${response.statusText}`);
+    if (!response.ok) {
+      // Suppress error for missing files (e.g. future years)
+      console.warn(`Fetch failed for IWF ${year}, assuming no data.`);
+      return [];
+    }
 
     let json;
     const contentEncoding = response.headers.get('Content-Encoding');
@@ -1086,6 +1151,48 @@ function RankingsContent() {
       });
     }
 
+    // Sanctions Filter
+    if (filters.sanctionStatus !== "all" && iwfSanctions.length > 0) {
+      // Create a map of lifter names to their sanctions for faster lookup
+      const sanctionsMap = new Map<string, IWFSanction[]>();
+      iwfSanctions.forEach(s => {
+        const nameKey = s.name.toLowerCase().trim();
+        if (!sanctionsMap.has(nameKey)) {
+          sanctionsMap.set(nameKey, []);
+        }
+        sanctionsMap.get(nameKey)?.push(s);
+      });
+
+      const now = new Date();
+
+      filtered = filtered.filter(athlete => {
+        const nameKey = athlete.lifter_name.toLowerCase().trim();
+        const athleteSanctions = sanctionsMap.get(nameKey);
+        const hasSanctionHistory = athleteSanctions && athleteSanctions.length > 0;
+
+        // Check if currently serving a sanction
+        const isCurrentlySanctioned = hasSanctionHistory && (athleteSanctions || []).some(s => {
+          if (!s.start_date || !s.end_date) return false; // Assume not current if dates missing
+          const start = new Date(s.start_date);
+          const end = new Date(s.end_date);
+          return now >= start && now <= end;
+        });
+
+        switch (filters.sanctionStatus) {
+          case "currently":
+            return isCurrentlySanctioned;
+          case "not_currently":
+            return !isCurrentlySanctioned;
+          case "ever":
+            return hasSanctionHistory;
+          case "never":
+            return !hasSanctionHistory;
+          default:
+            return true;
+        }
+      });
+    }
+
     // Filter out athletes without scores for the selected ranking metric
     if (filters.rankBy === 'q_youth') {
       filtered = filtered.filter((athlete) => (athlete.q_youth ?? 0) > 0);
@@ -1377,6 +1484,7 @@ function RankingsContent() {
       selectedClubs: [],
       ageMin: "",
       ageMax: "",
+      sanctionStatus: "all",
     });
     setWsoSearch("");
     setClubSearch("");
@@ -1778,6 +1886,91 @@ function RankingsContent() {
                           className="w-full h-10 pl-10 pr-3 bg-app-tertiary border border-app-primary rounded-xl text-app-primary placeholder-app-tertiary focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
+                    </div>
+
+                    {/* Sanction Status */}
+                    <div className="relative">
+                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Sanction Status
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setShowSanctionDropdown(!showSanctionDropdown)}
+                        className="w-full h-10 px-3 bg-app-tertiary border border-app-primary rounded-xl text-app-primary focus:outline-none focus:ring-2 focus:ring-blue-500 text-left flex justify-between items-center"
+                      >
+                        <div className="flex items-center gap-2">
+                          {loadingSanctions && <div className="animate-spin h-3 w-3 border-2 border-current border-t-transparent rounded-full" />}
+                          <span>
+                            {filters.sanctionStatus === "all" && "All Statuses"}
+                            {filters.sanctionStatus === "not_currently" && "Not Currently Sanctioned"}
+                            {filters.sanctionStatus === "currently" && "Currently Sanctioned"}
+                            {filters.sanctionStatus === "ever" && "Ever Sanctioned"}
+                            {filters.sanctionStatus === "never" && "Never Sanctioned"}
+                          </span>
+                        </div>
+                        <ChevronDown className={`h-4 w-4 transition-transform ${showSanctionDropdown ? 'rotate-180' : ''}`} />
+                      </button>
+
+                      {showSanctionDropdown && (
+                        <>
+                          <div
+                            className="fixed inset-0 z-10"
+                            onClick={() => setShowSanctionDropdown(false)}
+                          />
+                          <div className="absolute z-20 w-full mt-1 bg-app-tertiary border border-app-primary rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                            <button
+                              onClick={() => {
+                                handleFilterChange("sanctionStatus", "all");
+                                setShowSanctionDropdown(false);
+                              }}
+                              className={`w-full text-left px-4 py-2 hover:bg-app-accent hover:text-white transition-colors ${filters.sanctionStatus === "all" ? "bg-app-accent text-white" : "text-app-primary"
+                                }`}
+                            >
+                              All Statuses
+                            </button>
+                            <button
+                              onClick={() => {
+                                handleFilterChange("sanctionStatus", "not_currently");
+                                setShowSanctionDropdown(false);
+                              }}
+                              className={`w-full text-left px-4 py-2 hover:bg-app-accent hover:text-white transition-colors ${filters.sanctionStatus === "not_currently" ? "bg-app-accent text-white" : "text-app-primary"
+                                }`}
+                            >
+                              Not Currently Sanctioned
+                            </button>
+                            <button
+                              onClick={() => {
+                                handleFilterChange("sanctionStatus", "currently");
+                                setShowSanctionDropdown(false);
+                              }}
+                              className={`w-full text-left px-4 py-2 hover:bg-app-accent hover:text-white transition-colors ${filters.sanctionStatus === "currently" ? "bg-app-accent text-white" : "text-app-primary"
+                                }`}
+                            >
+                              Currently Sanctioned
+                            </button>
+                            <button
+                              onClick={() => {
+                                handleFilterChange("sanctionStatus", "ever");
+                                setShowSanctionDropdown(false);
+                              }}
+                              className={`w-full text-left px-4 py-2 hover:bg-app-accent hover:text-white transition-colors ${filters.sanctionStatus === "ever" ? "bg-app-accent text-white" : "text-app-primary"
+                                }`}
+                            >
+                              Ever Sanctioned
+                            </button>
+                            <button
+                              onClick={() => {
+                                handleFilterChange("sanctionStatus", "never");
+                                setShowSanctionDropdown(false);
+                              }}
+                              className={`w-full text-left px-4 py-2 hover:bg-app-accent hover:text-white transition-colors ${filters.sanctionStatus === "never" ? "bg-app-accent text-white" : "text-app-primary"
+                                }`}
+                            >
+                              Never Sanctioned
+                            </button>
+                          </div>
+                        </>
+                      )}
                     </div>
 
                     {/* Federation */}
