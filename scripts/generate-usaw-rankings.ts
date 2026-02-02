@@ -27,6 +27,7 @@ interface USAWRankingResult {
     meet_id: number;
     lifter_id: number;
     membership_number: number | null;
+    internal_id?: number | string | null;
     lifter_name: string;
     gender: string;
     weight_class: string;
@@ -132,20 +133,21 @@ async function generateUSAWRankingsForYear(year: number) {
         // Fetch membership numbers separately in batches
         console.log('  Fetching membership numbers...');
         const uniqueLifterIds = [...new Set(allResults.map(r => r.lifter_id))];
-        const lifterMap = new Map<number, { membership_number: number | null, wso: string | null, club_name: string | null }>();
+        const lifterMap = new Map<number, { membership_number: number | null, wso: string | null, club_name: string | null, internal_id: number | string | null }>();
 
         for (let i = 0; i < uniqueLifterIds.length; i += 1000) {
             const batch = uniqueLifterIds.slice(i, i + 1000);
             const { data: lifters, error } = await supabase
                 .from('usaw_lifters')
-                .select('lifter_id, membership_number, wso, club_name')
+                .select('lifter_id, membership_number, wso, club_name, internal_id')
                 .in('lifter_id', batch);
 
             if (!error && lifters) {
                 lifters.forEach(l => lifterMap.set(l.lifter_id, {
                     membership_number: l.membership_number,
                     wso: l.wso,
-                    club_name: l.club_name
+                    club_name: l.club_name,
+                    internal_id: l.internal_id
                 }));
             }
         }
@@ -165,6 +167,7 @@ async function generateUSAWRankingsForYear(year: number) {
                 meet_id: result.meet_id,
                 lifter_id: result.lifter_id,
                 membership_number: membershipNumber,
+                internal_id: lifterData?.internal_id || null,
                 lifter_name: result.lifter_name,
                 gender: result.gender,
                 weight_class: result.weight_class,
