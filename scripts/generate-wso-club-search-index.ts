@@ -12,6 +12,11 @@ dotenv.config({ path: '.env.local' });
 const USAW_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+if (!USAW_URL || !SERVICE_KEY) {
+    console.error('Missing USAW Supabase environment variables');
+    process.exit(1);
+}
+
 const usawClient = createClient(USAW_URL, SERVICE_KEY, {
     auth: { autoRefreshToken: false, persistSession: false }
 });
