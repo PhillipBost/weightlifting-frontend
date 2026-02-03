@@ -211,7 +211,10 @@ export default function WeightliftingLandingPage() {
 
         // --- IWF Search (MiniSearch) ---
         if (!filterSource || filterSource === 'IWF') {
-          const iwfOptions: any = { limit: 50 };
+          const iwfOptions: any = {
+            limit: 50,
+            combineWith: searchName.split(/\s+/).length > 1 ? 'AND' : 'OR'
+          };
           // Extract potential country code (2-3 upper case letters)
           // Only look for country filter if we have explicit terms remaining
           // This is a simple heuristic - can be improved
@@ -248,7 +251,10 @@ export default function WeightliftingLandingPage() {
 
         // --- USAW Search (MiniSearch) ---
         if (!filterSource || filterSource === 'USAW') {
-          const usawOptions: any = { limit: 50 };
+          const usawOptions: any = {
+            limit: 50,
+            combineWith: searchName.split(/\s+/).length > 1 ? 'AND' : 'OR'
+          };
           resultsPromises.push(
             Promise.resolve(usawAthleteSearch.search(searchTerm as any, usawOptions))
               .then(results => results.map(result => ({
