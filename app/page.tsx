@@ -20,6 +20,7 @@ import { usawAthleteSearch } from '../lib/search/usawAthleteSearch';
 import { usawMeetSearch } from '../lib/search/usawMeetSearch';
 import { iwfMeetSearch } from '../lib/search/iwfMeetSearch';
 import { generateAthleteSearchTerms, stripPunctuation } from '../lib/search/searchUtils';
+import MiniSearch from 'minisearch';
 
 // Types for our search results
 interface SearchResult {
@@ -184,36 +185,88 @@ export default function WeightliftingLandingPage() {
         const searchTerms = generateAthleteSearchTerms(query);
         const cleanSearchTerms = searchTerms.map(term => stripPunctuation(term));
 
-        // --- IWF Search (MiniSearch) ---
-        // Use the new client-side MiniSearch index for IWF results
-        // This replaces the complex Supabase query logic for IWF
-        const iwfSearchResults = iwfAthleteSearch.search(query, { limit: 50 });
+        // Parse query for filters
+        let searchName = query;
+        let filterSource: 'IWF' | 'USAW' | null = null;
+        let filterCountry: string | null = null;
 
-        const iwfAthletes: SearchResult[] = iwfSearchResults.map(result => ({
-          athlete_name: result.name,
-          country: result.country, // Country code
-          country_name: getCountryName(result.country),
-          iwf_lifter_id: result.iwfId,
-          db_lifter_id: result.id,
-          gender: result.gender,
-          type: 'athlete',
-          source: 'IWF' as DataSource
-        }));
+        // Check for Source filter
+        if (/\biwf\b/i.test(query)) {
+          filterSource = 'IWF';
+          searchName = searchName.replace(/\biwf\b/gi, '');
+        } else if (/\busaw\b/i.test(query)) {
+          filterSource = 'USAW';
+          searchName = searchName.replace(/\busaw\b/gi, '');
+        }
+
+        searchName = searchName.trim();
+
+        // If query was ONLY "iwf" or "usaw", show generic results?
+        // Or if empty after strip, maybe don't search?
+        // But user might want "iwf" to show top IWF athletes.
+        // MiniSearch needs a term. If empty, search('*')?
+        const searchTerm = searchName.length > 0 ? searchName : MiniSearch.wildcard;
+
+        const resultsPromises = [];
+
+        // --- IWF Search (MiniSearch) ---
+        if (!filterSource || filterSource === 'IWF') {
+          const iwfOptions: any = { limit: 50 };
+          // Extract potential country code (2-3 upper case letters)
+          // Only look for country filter if we have explicit terms remaining
+          // This is a simple heuristic - can be improved
+          if (searchName.length > 0) {
+            const countryMatch = searchName.match(/\b([A-Z]{2,3})\b/);
+            if (countryMatch) {
+              // We don't remove it from query because it matches the country field too, 
+              // but we can enforce it if we want strict filtering.
+              // Let's just rely on the search score unless we want strict.
+              // User asked for "type in... used as a filter".
+              // Let's make it strict if it matches a known pattern?
+              // But "USA" matches "USAW" partially? No, word boundary used.
+              // Let's rely on MiniSearch's `country` field matching for now, 
+              // PLUS the simple "iwf" filter.
+            }
+          }
+
+          resultsPromises.push(
+            Promise.resolve(iwfAthleteSearch.search(searchTerm as any, iwfOptions))
+              .then(results => results.map(result => ({
+                athlete_name: result.name,
+                country: result.country, // Country code
+                country_name: getCountryName(result.country),
+                iwf_lifter_id: result.iwfId,
+                db_lifter_id: result.id,
+                gender: result.gender,
+                type: 'athlete',
+                source: 'IWF' as DataSource
+              })))
+          );
+        } else {
+          resultsPromises.push(Promise.resolve([]));
+        }
 
         // --- USAW Search (MiniSearch) ---
-        // Use the new client-side MiniSearch index for USAW results
-        const usawSearchResults = usawAthleteSearch.search(query, { limit: 50 });
+        if (!filterSource || filterSource === 'USAW') {
+          const usawOptions: any = { limit: 50 };
+          resultsPromises.push(
+            Promise.resolve(usawAthleteSearch.search(searchTerm as any, usawOptions))
+              .then(results => results.map(result => ({
+                lifter_id: result.id.toString(),
+                athlete_name: result.name,
+                membership_number: result.membership_number,
+                wso: result.wso,
+                club_name: result.club,
+                gender: result.gender,
+                type: 'athlete',
+                source: 'USAW' as DataSource
+              })))
+          );
+        } else {
+          resultsPromises.push(Promise.resolve([]));
+        }
 
-        const usawAthletes: SearchResult[] = usawSearchResults.map(result => ({
-          lifter_id: result.id.toString(),
-          athlete_name: result.name,
-          membership_number: result.membership_number,
-          wso: result.wso,
-          club_name: result.club,
-          gender: result.gender,
-          type: 'athlete',
-          source: 'USAW' as DataSource
-        }));
+        const [iwfAthletes, usawAthletes] = await Promise.all(resultsPromises) as [SearchResult[], SearchResult[]];
 
         // Combine and Deduplicate
         // We want to show both USAW and IWF results.
@@ -231,7 +284,7 @@ export default function WeightliftingLandingPage() {
         );
 
         // Sort results
-        const queryLower = query.toLowerCase();
+        const queryLower = searchName.toLowerCase();
         const queryWords = queryLower.split(/\s+/);
         const firstWord = queryWords[0];
 

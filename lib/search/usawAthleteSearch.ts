@@ -73,10 +73,17 @@ export class USAWAthleteSearch {
         return this.initPromise;
     }
 
-    search(query: string, options?: { limit?: number }): SearchResult[] {
+    search(query: string, options?: { gender?: 'M' | 'F', country?: string, limit?: number, filter?: (result: any) => boolean }): SearchResult[] {
         if (!this.searchIndex) return [];
 
-        return this.searchIndex.search(query).slice(0, options?.limit || 20);
+        return this.searchIndex.search(query, {
+            filter: (result) => {
+                if (options?.gender && result.gender !== options.gender) return false;
+                if (options?.country && result.country !== options.country) return false;
+                if (options?.filter && !options.filter(result)) return false;
+                return true;
+            }
+        }).slice(0, options?.limit || 20);
     }
 }
 
