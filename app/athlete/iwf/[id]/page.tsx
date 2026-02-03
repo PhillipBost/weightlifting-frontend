@@ -874,7 +874,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                   <h1 className="text-3xl font-bold text-app-primary mb-2">{athlete.athlete_name}</h1>
                   <div className="flex flex-wrap gap-4 text-sm text-app-secondary">
                     <div className="flex items-center space-x-1">
-                      <span>IWF Athlete ID: {athlete.lifter_id}</span>
+                      <span>IWF Athlete ID: {athlete.iwf_lifter_id || athlete.lifter_id}</span>
                     </div>
                     {athlete.gender && (
                       <div className="flex items-center space-x-1">

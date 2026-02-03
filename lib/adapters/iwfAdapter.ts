@@ -28,6 +28,7 @@ export interface AdaptedAthlete {
   country_code?: string; // Preserve original for reference
   created_at?: string;
   updated_at?: string;
+  iwf_lifter_id?: number | null; // Detailed IWF ID
 }
 
 /**
@@ -116,6 +117,7 @@ export function adaptIWFAthlete(iwfLifter: IWFLifter): AdaptedAthlete {
   return {
     // Map primary ID
     lifter_id: iwfLifter.db_lifter_id,
+    iwf_lifter_id: iwfLifter.iwf_lifter_id, // Map official IWF ID
 
     // Basic info
     athlete_name: iwfLifter.athlete_name,
