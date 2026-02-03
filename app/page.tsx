@@ -32,10 +32,12 @@ interface SearchResult {
   // IWF-specific fields
   country?: string;
   country_name?: string;
-  iwf_lifter_id?: string | number;
+  iwf_lifter_id?: number | null;
   db_lifter_id?: string | number;
   type?: string;
   gender?: string;
+  source?: DataSource;
+  score?: number;
   // Meet fields
   meet_name?: string;
   date?: string;
@@ -45,7 +47,6 @@ interface SearchResult {
   // Meet location fields
   location_text?: string;
   // Source identifier
-  source?: DataSource;
   _relevanceScore?: number;
 }
 
@@ -213,6 +214,8 @@ export default function WeightliftingLandingPage() {
         if (!filterSource || filterSource === 'IWF') {
           const iwfOptions: any = {
             limit: 50,
+            prefix: true,
+            fuzzy: 0.35,
             combineWith: searchName.split(/\s+/).length > 1 ? 'AND' : 'OR'
           };
           // Extract potential country code (2-3 upper case letters)
@@ -242,7 +245,8 @@ export default function WeightliftingLandingPage() {
                 db_lifter_id: result.id,
                 gender: result.gender,
                 type: 'athlete',
-                source: 'IWF' as DataSource
+                source: 'IWF' as DataSource,
+                score: result.score
               })))
           );
         } else {
@@ -253,6 +257,8 @@ export default function WeightliftingLandingPage() {
         if (!filterSource || filterSource === 'USAW') {
           const usawOptions: any = {
             limit: 50,
+            prefix: true,
+            fuzzy: 0.35,
             combineWith: searchName.split(/\s+/).length > 1 ? 'AND' : 'OR'
           };
           resultsPromises.push(
@@ -265,7 +271,8 @@ export default function WeightliftingLandingPage() {
                 club_name: result.club,
                 gender: result.gender,
                 type: 'athlete',
-                source: 'USAW' as DataSource
+                source: 'USAW' as DataSource,
+                score: result.score
               })))
           );
         } else {
@@ -306,16 +313,22 @@ export default function WeightliftingLandingPage() {
           if (aExact && !bExact) return -1;
           if (bExact && !aExact) return 1;
 
-          // For multi-word queries, check if either name contains ALL query words
-          if (queryWords.length > 1) {
-            const aContainsAll = queryWords.every(word => aNameLower.includes(word));
-            const bContainsAll = queryWords.every(word => bNameLower.includes(word));
 
-            if (aContainsAll && !bContainsAll) return -1;
-            if (bContainsAll && !aContainsAll) return 1;
+          // 2. Contains ALL query words (High priority)
+          if (queryWords.length > 1) {
+            const aHasAll = queryWords.every(w => aNameLower.includes(w));
+            const bHasAll = queryWords.every(w => bNameLower.includes(w));
+            if (aHasAll && !bHasAll) return -1;
+            if (bHasAll && !aHasAll) return 1;
           }
 
-          // For single-word queries, prioritize names that START with the query
+          // 3. Search Score (Relevance from MiniSearch)
+          // This handles fuzzy matches correctly where `includes` fails
+          if (a.score && b.score && a.score !== b.score) {
+            return b.score - a.score;
+          }
+
+          // 4. Starts with query (Tie-breaker for single words)
           if (queryWords.length === 1 && firstWord) {
             const aStartsWithQuery = aNameLower.startsWith(firstWord);
             const bStartsWithQuery = bNameLower.startsWith(firstWord);

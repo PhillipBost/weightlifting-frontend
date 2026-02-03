@@ -73,13 +73,13 @@ export class USAWAthleteSearch {
         return this.initPromise;
     }
 
-    search(query: string, options?: { gender?: 'M' | 'F', country?: string, limit?: number, filter?: (result: any) => boolean }): SearchResult[] {
+    search(query: string, options?: any): SearchResult[] {
         if (!this.searchIndex) return [];
 
         return this.searchIndex.search(query, {
+            ...options,
             filter: (result) => {
-                if (options?.gender && result.gender !== options.gender) return false;
-                if (options?.country && result.country !== options.country) return false;
+                if (options?.wso && result.wso !== options.wso) return false;
                 if (options?.filter && !options.filter(result)) return false;
                 return true;
             }
