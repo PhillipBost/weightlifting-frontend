@@ -5,7 +5,8 @@ const scripts = [
     'generate-iwf-search-index.ts',
     'generate-usaw-search-index.ts',
     'generate-usaw-meet-search-index.ts',
-    'generate-iwf-meet-search-index.ts'
+    'generate-iwf-meet-search-index.ts',
+    'generate-wso-club-search-index.ts'
 ];
 
 console.log('🚀 Starting master search index generation...');

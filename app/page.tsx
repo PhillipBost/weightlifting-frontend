@@ -18,6 +18,7 @@ import { ROLES } from '../lib/roles';
 import { iwfAthleteSearch } from '../lib/search/iwfAthleteSearch';
 import { usawAthleteSearch } from '../lib/search/usawAthleteSearch';
 import { usawMeetSearch } from '../lib/search/usawMeetSearch';
+import { wsoClubSearch } from '../lib/search/wsoClubSearch';
 import { iwfMeetSearch } from '../lib/search/iwfMeetSearch';
 import { generateAthleteSearchTerms, stripPunctuation } from '../lib/search/searchUtils';
 import MiniSearch from 'minisearch';
@@ -86,6 +87,15 @@ export default function WeightliftingLandingPage() {
   const [showResults, setShowResults] = useState(false);
   const [showMeetResults, setShowMeetResults] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  // WSO/Club Search State
+  const [wsoClubSearchQuery, setWsoClubSearchQuery] = useState('');
+  const [wsoClubSearchResults, setWsoClubSearchResults] = useState<any[]>([]);
+  const [isWsoClubSearching, setIsWsoClubSearching] = useState(false);
+  const [showWsoClubResults, setShowWsoClubResults] = useState(false);
+  const wsoClubSearchInputRef = useRef<HTMLInputElement>(null);
+  const wsoClubResultsRef = useRef<HTMLDivElement>(null);
+  const placeholderWsoClub = "Search WSOs or Clubs... (e.g., Heavy Metal Barbell Club)";
+
   const searchInputRef = useRef<HTMLInputElement>(null);
   const meetSearchInputRef = useRef<HTMLInputElement>(null);
   const meetResultsRef = useRef<HTMLDivElement>(null);
@@ -139,16 +149,13 @@ export default function WeightliftingLandingPage() {
   ];
 
   const meetNames = [
-    // TODO: Fill in with actual meet names
-    'National Championships',
-    'International',
-    '2017',
-    'American Open',
-    'University Championships',
-    'Youth Championships',
-    'Masters National Championships',
-    'Queen City Classic'
+    'IWF World Championships',
+    'IWF World Cup',
+    'North American Open Finals',
+    'USAW National Championships'
   ];
+
+
 
   const getSearchIcon = (resultType: string) => {
     switch (resultType) {
@@ -525,6 +532,41 @@ export default function WeightliftingLandingPage() {
     []
   );
 
+  // Debounced WSO/Club search function
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const debouncedWsoClubSearch = useCallback(
+    debounce(async (query: string) => {
+      if (!query.trim() || query.length < 2) {
+        setIsWsoClubSearching(false);
+        setWsoClubSearchResults([]);
+        setShowWsoClubResults(false);
+        return;
+      }
+
+      setIsWsoClubSearching(true);
+      try {
+        await wsoClubSearch.init();
+        const results = wsoClubSearch.search(query, { limit: 50 });
+
+        if (results.length === 0) {
+          setWsoClubSearchResults([]);
+          setShowWsoClubResults(true);
+          return;
+        }
+
+        setWsoClubSearchResults(results);
+        setShowWsoClubResults(true);
+      } catch (err) {
+        console.error('WSO/Club Search error:', err);
+        setWsoClubSearchResults([]);
+        setShowWsoClubResults(false);
+      } finally {
+        setIsWsoClubSearching(false);
+      }
+    }, 300),
+    []
+  );
+
   // Handle search input changes
   useEffect(() => {
     if (searchQuery) {
@@ -546,10 +588,25 @@ export default function WeightliftingLandingPage() {
     debouncedMeetSearch(meetSearchQuery);
   }, [meetSearchQuery, debouncedMeetSearch]);
 
+  useEffect(() => {
+    if (wsoClubSearchQuery) {
+      // Clear other searches
+      setSearchQuery('');
+      setSearchResults([]);
+      setShowResults(false);
+      setMeetSearchQuery('');
+      setMeetSearchResults([]);
+      setShowMeetResults(false);
+    }
+    debouncedWsoClubSearch(wsoClubSearchQuery);
+  }, [wsoClubSearchQuery, debouncedWsoClubSearch]);
+
   // Set random placeholder name on mount
   useEffect(() => {
     const randomName = athleteNames[Math.floor(Math.random() * athleteNames.length)];
     setPlaceholderName(randomName);
+    const randomMeet = meetNames[Math.floor(Math.random() * meetNames.length)];
+    setPlaceholderMeet(randomMeet);
   }, []);
 
   // Handle click outside to close dropdowns
@@ -574,6 +631,14 @@ export default function WeightliftingLandingPage() {
         !meetSearchInputRef.current.closest('.relative')?.contains(target) &&
         !meetResultsRef.current?.contains(target)) {
         setShowMeetResults(false);
+      }
+
+      // Close WSO/Club search dropdown if clicking outside
+      if (showWsoClubResults &&
+        wsoClubSearchInputRef.current &&
+        !wsoClubSearchInputRef.current.closest('.relative')?.contains(target) &&
+        !wsoClubResultsRef.current?.contains(target)) {
+        setShowWsoClubResults(false);
       }
     };
 
@@ -657,6 +722,13 @@ export default function WeightliftingLandingPage() {
     setMeetSearchResults([]);
     setShowMeetResults(false);
     meetSearchInputRef.current?.focus();
+  };
+
+  const clearWsoClubSearch = () => {
+    setWsoClubSearchQuery('');
+    setWsoClubSearchResults([]);
+    setShowWsoClubResults(false);
+    wsoClubSearchInputRef.current?.focus();
   };
 
   const { user } = useAuth();
@@ -959,6 +1031,124 @@ export default function WeightliftingLandingPage() {
                   ) : meetSearchQuery.length >= 2 ? (
                     <div className="p-4 text-center text-app-muted">
                       No results found for &apos;{meetSearchQuery}&apos;
+                    </div>
+                  ) : null}
+                </div>
+              )}
+            </div>
+
+            {/* WSO/Club Search Bar */}
+            <div className="relative">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (wsoClubSearchQuery.trim().length >= 2 && !isWsoClubSearching) {
+                    setIsWsoClubSearching(true);
+                    debouncedWsoClubSearch(wsoClubSearchQuery);
+                  }
+                }}
+                className="relative"
+              >
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 w-6 h-6 flex items-center justify-center">
+                  {isWsoClubSearching ? (
+                    <Loader2 className="animate-spin h-4 w-4 text-blue-400" />
+                  ) : (
+                    <MapPin className="h-4 w-4 text-app-muted" />
+                  )}
+                </div>
+                <input
+                  ref={wsoClubSearchInputRef}
+                  type="text"
+                  id="wso-club-search"
+                  name="wsoClubSearch"
+                  value={wsoClubSearchQuery}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setWsoClubSearchQuery(value);
+                    if (value.length >= 2) {
+                      setIsWsoClubSearching(true);
+                    } else {
+                      setIsWsoClubSearching(false);
+                      setWsoClubSearchResults([]);
+                      setShowWsoClubResults(false);
+                    }
+                  }}
+                  onFocus={() => {
+                    setShowResults(false);
+                    setShowMeetResults(false);
+                  }}
+                  placeholder={placeholderWsoClub}
+                  className={`pl-12 input-primary ${isWsoClubSearching ? 'animate-pulse border-blue-400' : ''}`}
+                  aria-busy={isWsoClubSearching}
+                  autoComplete="off"
+                />
+
+                {/* Clear button */}
+                {wsoClubSearchQuery && (
+                  <button
+                    type="button"
+                    onClick={clearWsoClubSearch}
+                    className="absolute right-16 top-1/2 transform -translate-y-1/2 text-app-muted hover:text-app-primary transition-colors"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+
+                <button
+                  type="submit"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors flex items-center space-x-2"
+                >
+                  <span className="hidden sm:inline">Search</span>
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </form>
+
+              {/* WSO/Club Search Results Dropdown */}
+              {showWsoClubResults && (
+                <div
+                  ref={wsoClubResultsRef}
+                  className="absolute top-full left-0 right-0 mt-2 bg-app-secondary border border-app-primary rounded-xl shadow-xl z-20 max-h-96 overflow-y-auto"
+                >
+                  {isWsoClubSearching ? (
+                    <div className="p-4 text-center text-app-muted">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-400 mx-auto mb-2"></div>
+                      Searching...
+                    </div>
+                  ) : wsoClubSearchResults.length > 0 ? (
+                    <div className="py-2">
+                      {wsoClubSearchResults.map((result) => (
+                        <Link
+                          key={result.id}
+                          href={result.type === 'WSO' ? `/WSO/${result.slug}` : `/club/${result.slug}`}
+                          data-search-result="wso-club"
+                          onClick={() => setShowWsoClubResults(false)}
+                          className="w-full px-4 py-3 text-left bg-interactive transition-colors flex items-center space-x-3 hover:bg-orange-500/10"
+                        >
+                          {result.type === 'WSO' ? (
+                            <MapPin className="h-5 w-5 text-app-muted" />
+                          ) : (
+                            <Dumbbell className="h-5 w-5 text-app-muted" />
+                          )}
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <div className="text-app-primary font-medium">{result.name}</div>
+                              <span className={`text-xs font-semibold px-2 py-1 rounded-full border ${result.type === 'WSO'
+                                ? 'bg-blue-500/10 text-blue-500 border-blue-500/20'
+                                : 'bg-orange-500/10 text-orange-500 border-orange-500/20'
+                                }`}>
+                                {result.type}
+                              </span>
+                            </div>
+                            <div className="text-sm text-app-tertiary">
+                              {result.location}
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  ) : wsoClubSearchQuery.length >= 2 ? (
+                    <div className="p-4 text-center text-app-muted">
+                      No results found for &apos;{wsoClubSearchQuery}&apos;
                     </div>
                   ) : null}
                 </div>
