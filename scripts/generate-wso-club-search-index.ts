@@ -117,13 +117,26 @@ async function generateWsoClubIndex() {
         // 3. Fetch Countries
         console.log('Fetching Countries from iwf_lifters (distinct)...');
 
-        const { data: lifters, error: countryError } = await usawClient
-            .from('iwf_lifters')
-            .select('country_name, country_code')
-            .range(0, 4999); // Fetch first 5000 to get a good sample of countries
+        const countryMap = new Map<string, { name: string, code: string }>();
+        let offset = 0;
+        const batchSize = 1000;
+        let hasMore = true;
 
-        if (!countryError && lifters) {
-            const countryMap = new Map<string, { name: string, code: string }>();
+        while (hasMore) {
+            const { data: lifters, error: countryError } = await usawClient
+                .from('iwf_lifters')
+                .select('country_name, country_code')
+                .range(offset, offset + batchSize - 1);
+
+            if (countryError) {
+                console.warn(`Error fetching countries at offset ${offset}: ${countryError.message}`);
+                break;
+            }
+
+            if (!lifters || lifters.length === 0) {
+                hasMore = false;
+                break;
+            }
 
             lifters.forEach((l: any) => {
                 const name = l.country_name;
@@ -133,21 +146,27 @@ async function generateWsoClubIndex() {
                 }
             });
 
-            countryMap.forEach(({ name, code }) => {
-                documents.push({
-                    id: `country-${code || name}`,
-                    name: name,
-                    type: 'Country',
-                    location: 'International',
-                    slug: createSlug(name),
-                    state: '',
-                    searchableText: `${name} ${code || ''}`.toLowerCase()
-                });
-            });
-            console.log(`✅ Added ${countryMap.size} Countries`);
-        } else {
-            console.warn(`Could not fetch countries from iwf_lifters: ${countryError?.message}.`);
+            console.log(`  Processed ${offset + lifters.length} lifters, found ${countryMap.size} unique countries so far...`);
+
+            if (lifters.length < batchSize) {
+                hasMore = false;
+            } else {
+                offset += batchSize;
+            }
         }
+
+        countryMap.forEach(({ name, code }) => {
+            documents.push({
+                id: `country-${code || name}`,
+                name: name,
+                type: 'Country',
+                location: 'International',
+                slug: createSlug(name),
+                state: '',
+                searchableText: `${name} ${code || ''}`.toLowerCase()
+            });
+        });
+        console.log(`✅ Added ${countryMap.size} Countries`);
 
         // Build Index
         console.log(`Building MiniSearch index with ${documents.length} items...`);

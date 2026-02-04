@@ -17,11 +17,19 @@ export class WsoClubSearch {
     constructor() { }
 
     async init() {
-        if (this.isInitialized) return;
-        if (this.initPromise) return this.initPromise;
+        if (this.isInitialized) {
+            console.log('[WsoClubSearch] Already initialized');
+            return;
+        }
+        if (this.initPromise) {
+            console.log('[WsoClubSearch] Init in progress, waiting...');
+            return this.initPromise;
+        }
 
+        console.log('[WsoClubSearch] Starting initialization...');
         this.initPromise = (async () => {
             try {
+                console.log('[WsoClubSearch] Fetching /data/wso-club-search-index.json.gz');
                 const response = await fetch('/data/wso-club-search-index.json.gz');
                 if (!response.ok) {
                     throw new Error(`Failed to fetch index: ${response.statusText}`);
@@ -55,6 +63,7 @@ export class WsoClubSearch {
                     }
                 }
 
+                console.log('[WsoClubSearch] Loading JSON into MiniSearch...');
                 this.searchIndex = MiniSearch.loadJSON(json, {
                     fields: ['name', 'location', 'searchableText'],
                     storeFields: ['id', 'name', 'type', 'location', 'slug', 'state'],
@@ -65,10 +74,12 @@ export class WsoClubSearch {
                     }
                 }) as unknown as MiniSearch<WsoClubResult>;
 
+                const docCount = this.searchIndex.documentCount;
+                console.log(`[WsoClubSearch] ✅ Initialized successfully with ${docCount} documents`);
                 this.isInitialized = true;
 
             } catch (error) {
-                console.error('Failed to initialize WSO/Club search:', error);
+                console.error('[WsoClubSearch] ❌ Failed to initialize:', error);
                 this.initPromise = null; // Allow retry
                 // Do not throw, just log error so app doesn't crash on init
             }
@@ -78,7 +89,12 @@ export class WsoClubSearch {
     }
 
     search(query: string, options?: { limit?: number }): SearchResult[] {
-        if (!this.searchIndex) return [];
+        console.log(`[WsoClubSearch] search() called with query: "${query}", isInitialized: ${this.isInitialized}, hasIndex: ${!!this.searchIndex}`);
+
+        if (!this.searchIndex) {
+            console.warn('[WsoClubSearch] Search index not initialized, returning empty results');
+            return [];
+        }
 
         // MiniSearch's search returns items with 'score' and stored fields.
         const rawResults = this.searchIndex.search(query);

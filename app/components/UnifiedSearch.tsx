@@ -222,6 +222,7 @@ export function UnifiedSearch({ placeholder = "Search athletes, meets, or type '
             // 4. Search Clubs/WSOs/Countries
             // We search this index for Countries too.
             const wsoClubResults = wsoClubSearch.search(cleanedQuery, searchOptions);
+            console.log('[UnifiedSearch] WSO/Club search results:', wsoClubResults.length, wsoClubResults);
 
             wsoClubResults.forEach(r => {
                 // Determine Category & Type
@@ -239,9 +240,14 @@ export function UnifiedSearch({ placeholder = "Search athletes, meets, or type '
                     icon = <Filter className="h-4 w-4" />;
                 }
 
+                console.log(`[UnifiedSearch] Processing ${r.name} - type: ${type}, category: ${category}, isIwfOnly: ${isIwfOnly}`);
+
                 // Filtering Logic
                 // If it's a Club/WSO, only show if NOT IWF-only (and maybe check Country=USA)
-                if ((type === 'club' || type === 'wso') && skipUsaw) return;
+                if ((type === 'club' || type === 'wso') && isIwfOnly) {
+                    console.log(`[UnifiedSearch] Skipping ${r.name} due to IWF filter`);
+                    return;
+                }
 
                 // If it's a Country, show it (as a filter suggestion)
                 // Limit counts manually
@@ -250,6 +256,7 @@ export function UnifiedSearch({ placeholder = "Search athletes, meets, or type '
                     if (currentCount >= 4) return;
                 }
 
+                console.log(`[UnifiedSearch] Adding ${r.name} to suggestions`);
                 allSuggestions.push({
                     id: `${type}-${r.id}`,
                     label: type === 'country' ? `Country: ${r.name}` : r.name,
@@ -534,7 +541,7 @@ export function UnifiedSearch({ placeholder = "Search athletes, meets, or type '
                             </div>
 
                             {/* Right Column: Filters (Sticky Sidebar) */}
-                            <div className="block w-full sm:w-[260px] border-t sm:border-t-0 sm:border-l border-gray-200 dark:border-gray-800 bg-app-tertiary/5 py-2 sticky top-0 h-fit">
+                            <div className="block w-full sm:w-[260px] border-t sm:border-t-0 sm:border-l border-[#374151]/30 bg-app-tertiary/5 py-2 sticky top-0 h-fit">
                                 <div className="px-4 py-2 text-xs font-bold text-app-tertiary uppercase tracking-wider mb-2">
                                     Filter Options
                                 </div>
