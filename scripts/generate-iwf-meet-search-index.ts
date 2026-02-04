@@ -10,11 +10,11 @@ import dotenv from 'dotenv';
 // If not (e.g., in GitHub Actions), environment variables are already set
 dotenv.config({ path: '.env.local' });
 
-const IWF_URL = process.env.NEXT_PUBLIC_SUPABASE_IWF_URL;
-const IWF_KEY = process.env.NEXT_PUBLIC_SUPABASE_IWF_ANON_KEY;
+const IWF_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const IWF_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 if (!IWF_URL || !IWF_KEY) {
-    console.error('Missing IWF Supabase environment variables (NEXT_PUBLIC_SUPABASE_IWF_URL, NEXT_PUBLIC_SUPABASE_IWF_ANON_KEY)');
+    console.error('Missing Supabase environment variables (NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY)');
     process.exit(1);
 }
 
@@ -53,32 +53,44 @@ async function generateIWFMeetIndex() {
         console.log('Fetching meets from Supabase...');
 
         while (hasMore) {
-            // Fetch meets with location
-            const { data, error } = await supabase
+            // Fetch meets (without join, as it seems unreliable or misconfigured)
+            const { data: meets, error: meetsError } = await supabase
                 .from('iwf_meets')
-                .select(`
-                    db_meet_id,
-                    meet,
-                    date,
-                    level,
-                    iwf_meet_id,
-                    iwf_meet_locations (
-                        city,
-                        country,
-                        location_text
-                    )
-                `)
+                .select('db_meet_id, meet, date, level, iwf_meet_id')
                 .range(page * pageSize, (page + 1) * pageSize - 1);
 
-            if (error) {
-                throw new Error(`Error fetching meets: ${error.message}`);
+            if (meetsError) {
+                throw new Error(`Error fetching meets: ${meetsError.message}`);
             }
 
-            if (data && data.length > 0) {
-                allMeets.push(...data);
+            if (meets && meets.length > 0) {
+                // Fetch corresponding locations
+                const meetIds = meets.map(m => m.iwf_meet_id);
+                const { data: locations, error: locError } = await supabase
+                    .from('iwf_meet_locations')
+                    .select('*')
+                    .in('iwf_meet_id', meetIds);
+
+                if (locError) {
+                    console.error('Error fetching locations:', locError);
+                    // Continue with empty locations
+                }
+
+                // Map locations to meets
+                const locationsMap = new Map(locations?.map(l => [l.iwf_meet_id, l]));
+
+                const enrichedMeets = meets.map(meet => {
+                    const location = locationsMap.get(meet.iwf_meet_id) || {};
+                    return {
+                        ...meet,
+                        iwf_meet_locations: [location] // Mock structure to match previous logic
+                    };
+                });
+
+                allMeets.push(...enrichedMeets);
                 console.log(`Fetched ${allMeets.length} meets...`);
                 page++;
-                if (data.length < pageSize) hasMore = false;
+                if (meets.length < pageSize) hasMore = false;
             } else {
                 hasMore = false;
             }
@@ -92,13 +104,13 @@ async function generateIWFMeetIndex() {
             return {
                 id: meet.db_meet_id,
                 iwfId: meet.iwf_meet_id,
-                name: meet.meet,
-                date: meet.date,
+                name: meet.meet || '',
+                date: meet.date || '',
                 level: meet.level || '',
                 city: location.city || '',
                 country: location.country || '',
-                searchableText: `${meet.meet} ${location.city || ''} ${location.country || ''} ${location.location_text || ''}`.toLowerCase(),
-                displaySlug: meet.meet.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+                searchableText: `${meet.meet || ''} ${location.city || ''} ${location.country || ''} ${location.location_text || ''}`.toLowerCase(),
+                displaySlug: (meet.meet || '').toLowerCase().replace(/[^a-z0-9]+/g, '-')
             };
         });
 
