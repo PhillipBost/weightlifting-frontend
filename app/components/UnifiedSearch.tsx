@@ -348,7 +348,7 @@ export function UnifiedSearch({ placeholder }: UnifiedSearchProps) {
             // 4. Search Clubs/WSOs/Countries
             // We search this index for Countries too.
             const wsoClubResults = wsoClubSearch.search(cleanedQuery, searchOptions);
-            console.log('[UnifiedSearch] WSO/Club search results:', wsoClubResults.length, wsoClubResults);
+
 
             wsoClubResults.forEach(r => {
                 // Determine Category & Type
@@ -366,12 +366,13 @@ export function UnifiedSearch({ placeholder }: UnifiedSearchProps) {
                     icon = <Filter className="h-4 w-4" />;
                 }
 
-                console.log(`[UnifiedSearch] Processing ${r.name} - type: ${type}, category: ${category}, isIwfOnly: ${isIwfOnly}`);
 
                 // Filtering Logic
-                // If it's a Club/WSO, only show if NOT IWF-only (and maybe check Country=USA)
-                if ((type === 'club' || type === 'wso') && isIwfOnly) {
-                    console.log(`[UnifiedSearch] Skipping ${r.name} due to IWF filter`);
+                // If it's a Club/WSO, only show if NOT IWF-only AND NOT a non-USA country filter
+                // (User Rule: "IF any country other than the United states is selected... clubs and WSOs should be excluded")
+                const hasNonUsaCountry = targetCountries.length > 0 && targetCountries.some(c => !['usa', 'united states', 'us'].includes(c));
+
+                if ((type === 'club' || type === 'wso') && (isIwfOnly || hasNonUsaCountry)) {
                     return;
                 }
 
@@ -382,7 +383,6 @@ export function UnifiedSearch({ placeholder }: UnifiedSearchProps) {
                     if (currentCount >= 4) return;
                 }
 
-                console.log(`[UnifiedSearch] Adding ${r.name} to suggestions`);
                 allSuggestions.push({
                     id: `${type}-${r.id}`,
                     label: type === 'country' ? `Country: ${r.name}` : r.name,
