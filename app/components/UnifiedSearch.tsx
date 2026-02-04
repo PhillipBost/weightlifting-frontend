@@ -33,12 +33,89 @@ interface SuggestionItem {
 
 // --- Component ---
 
-export function UnifiedSearch({ placeholder = "Search athletes, meets, or type 'Women', 'USAW', 'China'..." }: UnifiedSearchProps) {
+// --- Placeholder Cycling Configuration ---
+// Each category has its own list of examples that will cycle within that category
+const PLACEHOLDER_EXAMPLES = {
+    athletes: [
+        "Martha Rogers",
+        "Lasha Talakhadze",
+        "Christopher Yandle",
+        // "Daniel Dodd",       
+        "Karlos Nasar",
+        "Li Fabin",
+        "Olivia Reeves",
+        "Caine Wilkes",
+        "Hampton Morris",
+        "Mary Theisen-Lappen",
+        "Kolbi Ferguson",
+        "Caden Cahoy",
+        "Aaron Williams",
+        "Ryan Grimsland",
+        "Gabe Chhum",
+        "Ella Nicholson",
+        "Katie Estep",
+        "Miranda Ulrey",
+        "Sophia Shaft",
+        "Anna McElderry"
+    ],
+    meets: [
+        "IWF World Championships",
+        "Pan American Championships",
+        "American Open Series",
+        "Junior Nationals",
+        "Olympic Games",
+        "Queen City Classic",
+        "Charlotte Team Cup"
+    ],
+    wsos: [
+        "Alabama",
+        "California North Central",
+        "California South",
+        "Carolina",
+        "DMV",
+        "Florida",
+        "Georgia",
+        "Hawaii and International",
+        "Illinois",
+        "Indiana",
+        "Iowa-Nebraska",
+        "Michigan",
+        "Minnesota-Dakotas",
+        "Missouri Valley",
+        "Mountain North",
+        "Mountain South",
+        "New England",
+        "New Jersey",
+        "New York",
+        "Ohio",
+        "Pacific Northwest",
+        "Pennsylvania-West Virginia",
+        "Southern",
+        "Tennessee-Kentucky",
+        "Texas-Oklahoma",
+        "Wisconsin"
+    ],
+    clubs: [
+        "Heavy Metal Barbell Club"  // Static - only one example
+    ]
+};
+
+const PLACEHOLDER_CATEGORIES = ["athletes", "meets", "wsos", "clubs"] as const;
+
+export function UnifiedSearch({ placeholder }: UnifiedSearchProps) {
     const router = useRouter();
     const [query, setQuery] = useState('');
     const [isOpen, setIsOpen] = useState(false);
     const [suggestions, setSuggestions] = useState<SuggestionItem[]>([]);
     const [isSearching, setIsSearching] = useState(false);
+    const [categoryIndex, setCategoryIndex] = useState(0);
+    // Initialize with 0 to avoid hydration mismatch (server vs client)
+    const [exampleIndices, setExampleIndices] = useState({
+        athletes: 0,
+        meets: 0,
+        wsos: 0,
+        clubs: 0
+    });
 
     // Active filters (chips)
     const [activeFilters, setActiveFilters] = useState<{ type: string; value: string }[]>([]);
@@ -46,6 +123,41 @@ export function UnifiedSearch({ placeholder = "Search athletes, meets, or type '
 
     const containerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+
+    // Randomize initial examples on mount (client-side only)
+    useEffect(() => {
+        setExampleIndices({
+            athletes: Math.floor(Math.random() * PLACEHOLDER_EXAMPLES.athletes.length),
+            meets: Math.floor(Math.random() * PLACEHOLDER_EXAMPLES.meets.length),
+            wsos: Math.floor(Math.random() * PLACEHOLDER_EXAMPLES.wsos.length),
+            clubs: Math.floor(Math.random() * PLACEHOLDER_EXAMPLES.clubs.length)
+        });
+    }, []);
+
+    // Cycle through placeholder categories and examples
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCategoryIndex((prevCategoryIndex) => {
+                const nextCategoryIndex = (prevCategoryIndex + 1) % PLACEHOLDER_CATEGORIES.length;
+                const nextCategory = PLACEHOLDER_CATEGORIES[nextCategoryIndex];
+
+                // Pick a random example for the NEXT category so it's fresh when displayed
+                setExampleIndices((prev) => ({
+                    ...prev,
+                    [nextCategory]: Math.floor(Math.random() * PLACEHOLDER_EXAMPLES[nextCategory].length)
+                }));
+
+                return nextCategoryIndex;
+            });
+        }, 3000); // Change every 3 seconds
+
+        return () => clearInterval(interval);
+    }, []);
+
+    // Generate current placeholder text
+    const currentCategory = PLACEHOLDER_CATEGORIES[categoryIndex];
+    const currentExample = PLACEHOLDER_EXAMPLES[currentCategory][exampleIndices[currentCategory as keyof typeof exampleIndices]];
+    const currentPlaceholder = `Search for ${currentCategory === 'athletes' ? 'athlete names' : currentCategory === 'meets' ? 'meets' : currentCategory === 'wsos' ? 'WSOs' : 'barbell clubs'} (e.g. ${currentExample})`;
 
     // --- Search Logic ---
 
@@ -409,7 +521,7 @@ export function UnifiedSearch({ placeholder = "Search athletes, meets, or type '
                 <input
                     ref={inputRef}
                     className="flex-1 bg-transparent border-none outline-none text-app-primary placeholder:text-app-tertiary/50 min-w-[120px] p-2"
-                    placeholder={activeFilters.length > 0 ? "Add more filters or search..." : placeholder}
+                    placeholder={activeFilters.length > 0 ? "Add more filters or search..." : currentPlaceholder}
                     value={query}
                     onChange={(e) => {
                         setQuery(e.target.value);
