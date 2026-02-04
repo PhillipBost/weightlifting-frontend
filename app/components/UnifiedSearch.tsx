@@ -205,9 +205,11 @@ export function UnifiedSearch({ placeholder }: UnifiedSearchProps) {
             const genderFilter = activeFilters.find(f => f.type === 'gender');
             const targetGender = genderFilter?.value; // 'male' or 'female'
 
-            // Determine active country filter
-            const countryFilter = activeFilters.find(f => f.type === 'country');
-            const targetCountry = countryFilter?.value;
+            // Determine active country filters (Multi-select OR logic)
+            const targetCountries = activeFilters
+                .filter(f => f.type === 'country')
+                .map(f => f.value.toLowerCase());
+            // const targetCountry = countryFilter?.value; // Old logic
 
             // 2. Search Athletes (Combined)
             // TODO: Ensure search indices are initialized. They are likely init'd in page.tsx or global context.
@@ -228,24 +230,30 @@ export function UnifiedSearch({ placeholder }: UnifiedSearchProps) {
             };
 
             // USAW Athletes (Skip if IWF only or Country filter is set (unless USA))
-            // USAW is effectively USA only, so if targetCountry is set and NOT 'USA'/'United States', skip USAW.
-            const isUsaFilter = targetCountry && ['usa', 'united states', 'us'].includes(targetCountry.toLowerCase());
-            const skipUsaw = isIwfOnly || (targetCountry && !isUsaFilter);
+            // USAW is effectively USA only, so if targetCountries is set and 'USA'/'United States' is NOT in it, skip USAW.
+            const isUsaFilter = targetCountries.length > 0 && targetCountries.some(c => ['usa', 'united states', 'us'].includes(c));
+            // If countries ARE selected, but none of them are USA, then we skip USAW.
+            // If NO countries are selected, we show USAW (unless IWF only).
+            const skipUsaw = isIwfOnly || (targetCountries.length > 0 && !isUsaFilter);
+
+            // 2b. Search Athletes (Combined & Ranked)
+            // We search both indices (if allowed), combine results, sort by relevance, and then limit.
+            // This ensures the best matches appear first regardless of federation source.
+
+            const combinedAthletes: SuggestionItem[] = [];
 
             if (!skipUsaw) {
                 const usawResults = usawAthleteSearch.search(cleanedQuery, searchOptions);
-                const filteredUsaw = usawResults.filter(r => {
+                usawResults.forEach(r => {
+                    // Filter Logic: Gender
                     if (targetGender) {
                         const recGender = r.gender.toLowerCase();
                         const isRecFemale = recGender.startsWith('f') || recGender === 'women';
                         const targetIsFemale = targetGender === 'female';
-                        if (isRecFemale !== targetIsFemale) return false;
+                        if (isRecFemale !== targetIsFemale) return;
                     }
-                    return true;
-                });
 
-                filteredUsaw.slice(0, 8).forEach(r => {
-                    allSuggestions.push({
+                    combinedAthletes.push({
                         id: `usaw-${r.id}`,
                         label: r.name,
                         subLabel: `${r.gender} • ${r.club || r.state || 'N/A'} • #${r.membership_number || ''}`,
@@ -257,22 +265,22 @@ export function UnifiedSearch({ placeholder }: UnifiedSearchProps) {
                 });
             }
 
-            // IWF Athletes (Skip if USAW only)
             if (!isUsawOnly) {
                 const iwfResults = iwfAthleteSearch.search(cleanedQuery, searchOptions);
-                const filteredIwf = iwfResults.filter(r => {
+                iwfResults.forEach(r => {
+                    // Filter Logic: Gender & Country
                     if (targetGender) {
                         const recGender = r.gender.toLowerCase();
                         const isRecFemale = recGender.startsWith('f') || recGender === 'women';
                         const targetIsFemale = targetGender === 'female';
-                        if (isRecFemale !== targetIsFemale) return false;
+                        if (isRecFemale !== targetIsFemale) return;
                     }
-                    if (targetCountry && r.country_name?.toLowerCase() !== targetCountry.toLowerCase() && r.country?.toLowerCase() !== targetCountry.toLowerCase()) return false;
-                    return true;
-                });
+                    if (targetCountries.length > 0) {
+                        const rCountry = (r.country_name || r.country || '').toLowerCase();
+                        if (!targetCountries.includes(rCountry)) return;
+                    }
 
-                filteredIwf.slice(0, 8).forEach(r => {
-                    allSuggestions.push({
+                    combinedAthletes.push({
                         id: `iwf-${r.id}`,
                         label: r.name,
                         subLabel: `${r.gender} • ${r.country} • #${r.id}`,
@@ -283,6 +291,12 @@ export function UnifiedSearch({ placeholder }: UnifiedSearchProps) {
                     });
                 });
             }
+
+            // Sort by Score Descending -> Push Top 10 to allSuggestions
+            combinedAthletes
+                .sort((a, b) => (b.score || 0) - (a.score || 0))
+                .slice(0, 10)
+                .forEach(item => allSuggestions.push(item));
 
             // 3. Search Meets
             if (!skipUsaw) {
@@ -305,11 +319,11 @@ export function UnifiedSearch({ placeholder }: UnifiedSearchProps) {
                 // Filter IWF meets by country if needed? Usually meets are in a country.
                 const filteredIwfMeets = iwfMeets.filter(r => {
                     // Check if targetCountry matches the meet's country
-                    if (targetCountry) {
-                        if (r.country && r.country.toLowerCase() === targetCountry.toLowerCase()) return true;
-                        // Some meets might have country code or full name mismatch, but we start with strict equality for now.
-                        // Or if country is part of the location string if country field is missing.
-                        // The index has 'country' field.
+                    if (targetCountries.length > 0) {
+                        const rCountry = (r.country || '').toLowerCase();
+                        // Logic: if meet doesn't have country, maybe we skip or allow?
+                        // Let's strict filter if country is known.
+                        if (rCountry && targetCountries.includes(rCountry)) return true;
                         return false;
                     }
                     return true;
@@ -436,12 +450,11 @@ export function UnifiedSearch({ placeholder }: UnifiedSearchProps) {
                 return newFilters;
             });
 
-            // Smart Clear: Only clear query if it's a single word or matches the filter label exactly.
-            // This preserves multi-word queries like "Name Country" so the name part isn't lost.
-            const isSingleTerm = !query.trim().includes(' ');
+            // Smart Clear: ONLY clear query if it matches the filter label exactly (Intent: "I searched for this filter").
+            // If the user typed a query and added a filter via sidebar, we should preserve the query.
             const isExactMatch = item.label.toLowerCase() === query.trim().toLowerCase();
 
-            if (isSingleTerm || isExactMatch) {
+            if (isExactMatch) {
                 setQuery('');
             }
             // Else keep the query (e.g. "Genadi blr" -> keeps "Genadi blr" after adding filter)
@@ -666,7 +679,7 @@ export function UnifiedSearch({ placeholder }: UnifiedSearchProps) {
                                                 <button
                                                     key={item.id}
                                                     onClick={() => handleSelect(item)}
-                                                    className="w-full text-left px-4 py-2 hover:bg-app-tertiary/10 flex items-center gap-2 transition-colors group"
+                                                    className="w-[calc(100%-16px)] mx-2 text-left px-3 py-1.5 hover:bg-app-primary/5 border border-transparent hover:border-app-primary/20 rounded-full flex items-center gap-2 transition-all group mb-1"
                                                 >
                                                     <div className="text-app-tertiary group-hover:text-app-primary transition-colors">
                                                         {item.icon}
