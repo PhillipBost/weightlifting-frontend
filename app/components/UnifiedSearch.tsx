@@ -675,20 +675,22 @@ export function UnifiedSearch({ placeholder }: UnifiedSearchProps) {
                                     if (!items || items.length === 0) return null;
                                     return (
                                         <div key={cat}>
-                                            {items.map(item => (
-                                                <button
-                                                    key={item.id}
-                                                    onClick={() => handleSelect(item)}
-                                                    className="w-[calc(100%-16px)] mx-2 text-left px-3 py-1.5 hover:bg-app-primary/5 border border-transparent hover:border-app-primary/20 rounded-full flex items-center gap-2 transition-all group mb-1"
-                                                >
-                                                    <div className="text-app-tertiary group-hover:text-app-primary transition-colors">
-                                                        {item.icon}
-                                                    </div>
-                                                    <span className="text-sm text-app-secondary group-hover:text-app-primary font-medium truncate">
-                                                        {item.label}
-                                                    </span>
-                                                </button>
-                                            ))}
+                                            <div className="flex flex-wrap gap-2 px-3 mb-2">
+                                                {items.map(item => (
+                                                    <button
+                                                        key={item.id}
+                                                        onClick={() => handleSelect(item)}
+                                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-app-primary/10 bg-app-surface/50 hover:bg-app-primary/5 hover:border-app-primary/30 transition-all group"
+                                                    >
+                                                        <div className="text-app-tertiary group-hover:text-app-primary transition-colors">
+                                                            {item.icon}
+                                                        </div>
+                                                        <span className="text-app-secondary group-hover:text-app-primary truncate max-w-[150px]">
+                                                            {item.label}
+                                                        </span>
+                                                    </button>
+                                                ))}
+                                            </div>
                                             <div className="my-2 h-px bg-app-primary/5 mx-4 last:hidden" />
                                         </div>
                                     );
