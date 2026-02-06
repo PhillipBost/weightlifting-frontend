@@ -1035,7 +1035,7 @@ export default function DataExportPage() {
     };
 
     return (
-        <AuthGuard requireAnyRole={[ROLES.ADMIN, ROLES.RESEARCHER, ROLES.USAW_NATIONAL_TEAM_COACH]}>
+        <AuthGuard requireAnyRole={[ROLES.ADMIN, ROLES.RESEARCHER, ROLES.USAW_NATIONAL_TEAM_COACH, ROLES.VIP]}>
             <div className="min-h-screen bg-app-gradient">
                 {/* Header */}
                 <header className="bg-header-blur border-b border-app-secondary sticky top-0 z-10 backdrop-blur-md">

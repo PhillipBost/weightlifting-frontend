@@ -102,7 +102,8 @@ export default function WeightliftingLandingPage() {
   const canViewRankings =
     !!user &&
     (user.role === ROLES.ADMIN ||
-      user.role === ROLES.USAW_NATIONAL_TEAM_COACH);
+      user.role === ROLES.USAW_NATIONAL_TEAM_COACH ||
+      user.role === ROLES.VIP);
 
   return (
     <div className="min-h-screen bg-app-gradient">
@@ -227,8 +228,8 @@ export default function WeightliftingLandingPage() {
               </Link>
             )}
 
-            {/* Upcoming Meets Navigation Card - visible only to Admin */}
-            {user?.role === ROLES.ADMIN && (
+            {/* Upcoming Meets Navigation Card - visible only to Admin and VIP */}
+            {(user?.role === ROLES.ADMIN || user?.role === ROLES.VIP) && (
               <Link href="/upcoming-meets" className="group h-full">
                 <div className="bg-app-secondary border border-app-primary rounded-xl p-6 hover:bg-app-hover transition-all duration-200 hover:shadow-lg hover:scale-105 h-full flex flex-col justify-between">
                   <div className="flex items-center space-x-4">
@@ -277,8 +278,8 @@ export default function WeightliftingLandingPage() {
               </Link>
             )}
 
-            {/* Data Export Navigation Card - visible to Admin, Researcher, and National Team Coach */}
-            {!!user && (user.role === ROLES.ADMIN || user.role === ROLES.RESEARCHER || user.role === ROLES.USAW_NATIONAL_TEAM_COACH) && (
+            {/* Data Export Navigation Card - visible to Admin, Researcher, National Team Coach, and VIP */}
+            {!!user && (user.role === ROLES.ADMIN || user.role === ROLES.RESEARCHER || user.role === ROLES.USAW_NATIONAL_TEAM_COACH || user.role === ROLES.VIP) && (
               <Link href="/data-export" className="group h-full">
                 <div className="bg-app-secondary border border-app-primary rounded-xl p-6 hover:bg-app-hover transition-all duration-200 hover:shadow-lg hover:scale-105 h-full flex flex-col justify-between">
                   <div className="flex items-center space-x-4">

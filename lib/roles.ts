@@ -4,6 +4,7 @@ export const ROLES = {
   USAW_NATIONAL_TEAM_COACH: "usaw_national_team_coach",
   RESEARCHER: "researcher",
   PREMIUM: "premium",
+  VIP: "vip",
   DEFAULT: "default",
 } as const;
 

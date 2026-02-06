@@ -3199,6 +3199,7 @@ export default function RankingsPage() {
         ROLES.ADMIN,
         ROLES.COACH,
         ROLES.USAW_NATIONAL_TEAM_COACH,
+        ROLES.VIP,
       ]}
       fallback={
         <div className="flex items-center justify-center min-h-screen">

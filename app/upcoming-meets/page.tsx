@@ -2441,7 +2441,7 @@ function RankingsContent() {
 export default function RankingsPage() {
   return (
     <AuthGuard
-      requireRole={ROLES.ADMIN}
+      requireAnyRole={[ROLES.ADMIN, ROLES.VIP]}
       fallback={
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">

@@ -49,6 +49,13 @@ export function RoleSelector({ currentRole, onRoleChange, disabled = false, isCu
       color: 'text-emerald-500'
     },
     {
+      value: ROLES.VIP,
+      label: 'VIP',
+      description: 'All features except system admin',
+      icon: <Crown className="h-4 w-4" />,
+      color: 'text-yellow-500'
+    },
+    {
       value: ROLES.ADMIN,
       label: 'Admin',
       description: 'Full system access',
