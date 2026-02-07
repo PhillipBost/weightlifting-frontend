@@ -173,6 +173,10 @@ export default function AdminPage() {
               <div className="text-sm text-app-secondary">USAW Coaches</div>
             </div>
             <div className="card-primary text-center">
+              <div className="text-2xl font-bold text-yellow-500">{roleStats[ROLES.VIP] || 0}</div>
+              <div className="text-sm text-app-secondary">VIPs</div>
+            </div>
+            <div className="card-primary text-center">
               <div className="text-2xl font-bold text-red-500">{roleStats[ROLES.ADMIN] || 0}</div>
               <div className="text-sm text-app-secondary">Admins</div>
             </div>
