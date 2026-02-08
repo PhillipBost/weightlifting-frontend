@@ -1092,6 +1092,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                       fontSize={12}
                       domain={autoScalePerformance ? ['dataMin - 10', 'dataMax + 10'] : [0, 'dataMax + 5']}
                       allowDataOverflow={true}
+                      tickFormatter={(value) => +value.toFixed(2)}
                       label={{
                         value: 'Weight (kg)',
                         angle: -90,
