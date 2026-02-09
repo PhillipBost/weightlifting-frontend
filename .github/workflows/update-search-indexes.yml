@@ -50,4 +50,5 @@ jobs:
           git config user.email "actions@github.com"
           git add public/data/*-search-index.json.gz
           git commit -m "chore: update search indexes [automated]"
+          git pull --rebase origin main
           git push
