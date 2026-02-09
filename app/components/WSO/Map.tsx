@@ -8,13 +8,13 @@ import { PathOptions } from "leaflet"
 import "leaflet/dist/leaflet.css"
 import "leaflet-defaulticon-compatibility"
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css"
-import { useWSOMapData } from "../../hooks/useWSOMapData"
 import { useTheme } from "../ThemeProvider"
 
 interface MapProps {
   className?: string
   center?: [number, number]
   zoom?: number
+  wsoData: any[]
 }
 
 // Simple state borders component using local GeoJSON file
@@ -60,10 +60,11 @@ function StateBordersLayer({ theme }: { theme: 'light' | 'dark' }) {
 export default function Map({
   className = "h-96 w-full",
   center = [39.8283, -98.5795],
-  zoom = 4
+  zoom = 4,
+  wsoData
 }: MapProps) {
-  const { wsoData, loading, error } = useWSOMapData()
   const { theme } = useTheme()
+
 
   // Simplified 5-color palettes for better visual harmony
   const colorPalettes = {
@@ -179,7 +180,7 @@ export default function Map({
     layer.bindPopup(popupContent)
 
     layer.on({
-      mouseover: function(e: any) {
+      mouseover: function (e: any) {
         const hoveredLayer = e.target
         const currentColor = hoveredLayer.options.fillColor
 
@@ -192,11 +193,11 @@ export default function Map({
         })
         hoveredLayer.bringToFront()
       },
-      mouseout: function(e: any) {
+      mouseout: function (e: any) {
         const hoveredLayer = e.target
         const wsoName = feature.properties?.wso_name
         const wso = wsoData?.find(w => w.name === wsoName)
-        
+
         // Restore all WSO polygons to default opacity
         if (hoveredLayer._map) {
           hoveredLayer._map.eachLayer((otherLayer: any) => {
@@ -219,32 +220,12 @@ export default function Map({
     const r = Math.min(255, Math.max(0, parseInt(hex.slice(0, 2), 16) + amount))
     const g = Math.min(255, Math.max(0, parseInt(hex.slice(2, 4), 16) + amount))
     const b = Math.min(255, Math.max(0, parseInt(hex.slice(4, 6), 16) + amount))
-    
+
     return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`
   }
 
 
-  if (loading) {
-    return (
-      <div className={`${className} relative flex items-center justify-center bg-app-tertiary rounded-lg border border-app-secondary`}>
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
-          <div className="text-app-muted">Loading WSO boundaries...</div>
-        </div>
-      </div>
-    )
-  }
 
-  if (error) {
-    return (
-      <div className={`${className} relative flex items-center justify-center bg-app-tertiary rounded-lg border border-app-secondary`}>
-        <div className="text-center">
-          <div className="text-red-500 mb-2">Error loading WSO boundaries</div>
-          <div className="text-app-muted text-sm">{error}</div>
-        </div>
-      </div>
-    )
-  }
 
   const tileLayer = getTileLayer()
 
@@ -254,9 +235,9 @@ export default function Map({
       <style jsx global>{`
         .wso-polygon {
           filter: ${theme === 'dark'
-            ? 'drop-shadow(0 0 1px rgba(255,255,255,0.1))'
-            : 'drop-shadow(0 0 1px rgba(0,0,0,0.3))'
-          };
+          ? 'drop-shadow(0 0 1px rgba(255,255,255,0.1))'
+          : 'drop-shadow(0 0 1px rgba(0,0,0,0.3))'
+        };
         }
         .leaflet-interactive {
           transition: all 0.2s ease-in-out;
@@ -277,7 +258,7 @@ export default function Map({
           border: none !important;
         }
       `}</style>
-      
+
       <MapContainer
         center={center}
         zoom={zoom}
