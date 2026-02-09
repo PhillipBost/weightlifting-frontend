@@ -17,6 +17,7 @@ import { generateAthleteSearchTerms, stripPunctuation } from '@/lib/search/searc
 
 interface UnifiedSearchProps {
     placeholder?: string;
+    variant?: 'hero' | 'header';
 }
 
 type SearchCategory = 'Athletes' | 'Meets' | 'Clubs' | 'WSO' | 'Countries' | 'Filters';
@@ -102,7 +103,7 @@ const PLACEHOLDER_EXAMPLES = {
 
 const PLACEHOLDER_CATEGORIES = ["athletes", "meets", "wsos", "clubs"] as const;
 
-export function UnifiedSearch({ placeholder }: UnifiedSearchProps) {
+export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchProps) {
     const router = useRouter();
     const [query, setQuery] = useState('');
     const [isOpen, setIsOpen] = useState(false);
@@ -152,6 +153,18 @@ export function UnifiedSearch({ placeholder }: UnifiedSearchProps) {
         }, 3000); // Change every 3 seconds
 
         return () => clearInterval(interval);
+    }, []);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
     // Generate current placeholder text
@@ -348,6 +361,7 @@ export function UnifiedSearch({ placeholder }: UnifiedSearchProps) {
             // 4. Search Clubs/WSOs/Countries
             // We search this index for Countries too.
             const wsoClubResults = wsoClubSearch.search(cleanedQuery, searchOptions);
+            console.log('[UnifiedSearch] WSOClub search for:', cleanedQuery, 'returned', wsoClubResults.length, 'results');
 
 
             wsoClubResults.forEach(r => {
@@ -373,6 +387,7 @@ export function UnifiedSearch({ placeholder }: UnifiedSearchProps) {
                 const hasNonUsaCountry = targetCountries.length > 0 && targetCountries.some(c => !['usa', 'united states', 'us'].includes(c));
 
                 if ((type === 'club' || type === 'wso') && (isIwfOnly || hasNonUsaCountry)) {
+                    console.log('[UnifiedSearch] Filtering out', type, r.name, '- isIwfOnly:', isIwfOnly, 'hasNonUsaCountry:', hasNonUsaCountry);
                     return;
                 }
 
@@ -383,6 +398,7 @@ export function UnifiedSearch({ placeholder }: UnifiedSearchProps) {
                     if (currentCount >= 4) return;
                 }
 
+                console.log('[UnifiedSearch] Adding', type, r.name, 'to suggestions');
                 allSuggestions.push({
                     id: `${type}-${r.id}`,
                     label: type === 'country' ? `Country: ${r.name}` : r.name,
@@ -436,10 +452,22 @@ export function UnifiedSearch({ placeholder }: UnifiedSearchProps) {
                 // Enforce mutual exclusivity for Federation filters
                 if (item.data.type === 'federation') {
                     newFilters = newFilters.filter(f => f.type !== 'federation');
+                    // USAW is country-specific, so clear any country filters
+                    if (item.data.value === 'USAW') {
+                        newFilters = newFilters.filter(f => f.type !== 'country');
+                    }
                 }
                 // Enforce mutual exclusivity for Gender filters
                 if (item.data.type === 'gender') {
                     newFilters = newFilters.filter(f => f.type !== 'gender');
+                }
+                // Smart federation switching: non-US countries should use IWF
+                if (item.data.type === 'country' && item.data.value !== 'United States') {
+                    // Remove USAW if present, add IWF
+                    newFilters = newFilters.filter(f => !(f.type === 'federation' && f.value === 'USAW'));
+                    if (!newFilters.some(f => f.type === 'federation' && f.value === 'IWF')) {
+                        newFilters.push({ type: 'federation', value: 'IWF' });
+                    }
                 }
 
                 // Check if already exists
@@ -494,7 +522,6 @@ export function UnifiedSearch({ placeholder }: UnifiedSearchProps) {
         }
     };
 
-
     // --- Render Helpers ---
 
     const groupedSuggestions = suggestions.reduce((acc, item) => {
@@ -505,27 +532,29 @@ export function UnifiedSearch({ placeholder }: UnifiedSearchProps) {
 
     const categoryOrder: SearchCategory[] = ['Filters', 'Countries', 'WSO', 'Clubs', 'Meets', 'Athletes'];
 
+    const isHeader = variant === 'header';
 
     return (
-        <div className="relative w-full max-w-4xl mx-auto z-50 pointer-events-auto" ref={containerRef}>
+        <div className={`relative w-full ${isHeader ? 'max-w-md' : 'max-w-4xl'} mx-auto z-[9999] pointer-events-auto`} ref={containerRef}>
             {/* Search Bar Container */}
             <div className={`
-                flex flex-wrap items-center gap-2 p-2 
-                bg-app-surface/95 backdrop-blur-sm border border-app-primary 
-                rounded-2xl shadow-2xl transition-all duration-300
+                flex flex-wrap items-center gap-2 isolate
+                ${isHeader ? 'p-1.5 rounded-lg border-app-primary dark:border-white/30 bg-search-popup dark:backdrop-blur-[var(--blur-search-header)] backdrop-blur-[var(--blur-search-header)]' : 'p-2 rounded-2xl border-app-primary bg-search-popup shadow-2xl dark:backdrop-blur-[var(--blur-search-main)] backdrop-blur-[var(--blur-search-main)]'}
+                border 
+                transition-all duration-300
                 focus-within:ring-2 focus-within:ring-blue-500/50
             `}>
-                <Search className="h-5 w-5 text-app-tertiary ml-2" />
+                <Search className={`${isHeader ? 'h-4 w-4' : 'h-5 w-5'} text-app-tertiary ${isHeader ? 'ml-1' : 'ml-2'}`} />
 
                 {/* Active Filters Chips */}
                 {activeFilters.map((filter, idx) => (
-                    <div key={idx} className="flex items-center gap-1 bg-transparent border border-app-tertiary px-2 py-1 rounded-full text-xs font-medium text-app-primary animate-in fade-in zoom-in duration-200">
+                    <div key={idx} className={`flex items-center gap-1 bg-blue-500 border border-blue-600 ${isHeader ? 'px-1.5 py-0.5 text-[10px]' : 'px-2 py-1 text-xs'} rounded-full font-medium text-white animate-in fade-in zoom-in duration-200`}>
                         <span className="capitalize">{filter.type}: {filter.value}</span>
                         <button
                             onClick={() => setActiveFilters(activeFilters.filter((_, i) => i !== idx))}
-                            className="hover:text-red-400 transition-colors"
+                            className="hover:text-red-200 transition-colors"
                         >
-                            <X className="h-3 w-3" />
+                            <X className={`${isHeader ? 'h-2.5 w-2.5' : 'h-3 w-3'}`} />
                         </button>
                     </div>
                 ))}
@@ -533,8 +562,8 @@ export function UnifiedSearch({ placeholder }: UnifiedSearchProps) {
                 {/* Input Input */}
                 <input
                     ref={inputRef}
-                    className="flex-1 bg-transparent border-none outline-none text-app-primary placeholder:text-app-tertiary/50 min-w-[120px] p-2"
-                    placeholder={activeFilters.length > 0 ? "Add more filters or search..." : currentPlaceholder}
+                    className={`flex-1 bg-transparent border-none outline-none text-app-primary placeholder:text-app-tertiary/50 min-w-[100px] ${isHeader ? 'p-1 text-sm' : 'p-2'}`}
+                    placeholder={activeFilters.length > 0 ? "Add more..." : (isHeader ? "Search..." : currentPlaceholder)}
                     value={query}
                     onChange={(e) => {
                         setQuery(e.target.value);
@@ -550,15 +579,21 @@ export function UnifiedSearch({ placeholder }: UnifiedSearchProps) {
                 />
 
                 {query && (
-                    <button onClick={() => setQuery('')} className="p-1 hover:text-app-primary text-app-tertiary transition-colors">
-                        <X className="h-4 w-4" />
+                    <button onClick={() => {
+                        setQuery('');
+                        setActiveFilters([]);
+                    }} className="p-1 hover:text-app-primary text-app-tertiary transition-colors">
+                        <X className={`${isHeader ? 'h-3.5 w-3.5' : 'h-4 w-4'}`} />
                     </button>
                 )}
             </div>
 
             {/* Suggestions Dropdown */}
             {isOpen && (query.length >= 2 || suggestions.length > 0) && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-app-surface/95 backdrop-blur-md border border-app-primary rounded-xl shadow-2xl overflow-hidden max-h-[70vh] overflow-y-auto">
+                <div className={`
+                    absolute top-full mt-2 bg-search-popup border border-app-primary rounded-xl shadow-2xl overflow-hidden max-h-[70vh] overflow-y-auto
+                    ${isHeader ? 'left-0 w-64 sm:right-0 sm:left-auto sm:w-[85vw] sm:max-w-3xl dark:backdrop-blur-[var(--blur-search-header)] backdrop-blur-[var(--blur-search-header)]' : 'left-0 right-0 w-full dark:backdrop-blur-[var(--blur-search-main)] backdrop-blur-[var(--blur-search-main)]'}
+                `}>
                     {isSearching ? (
                         <div className="p-4 text-center text-app-tertiary text-sm">Searching...</div>
                     ) : suggestions.length === 0 ? (
@@ -666,7 +701,7 @@ export function UnifiedSearch({ placeholder }: UnifiedSearchProps) {
                             </div>
 
                             {/* Right Column: Filters (Sticky Sidebar) */}
-                            <div className="block w-full sm:w-[260px] border-t sm:border-t-0 sm:border-l border-[#374151]/30 bg-app-tertiary/5 py-2 sticky top-0 h-fit">
+                            <div className="block w-full sm:w-[260px] shrink-0 border-t sm:border-t-0 sm:border-l border-[#374151]/30 bg-app-tertiary/5 py-2 sticky top-0 h-fit">
                                 <div className="px-4 py-2 text-xs font-bold text-app-tertiary uppercase tracking-wider mb-2">
                                     Filter Options
                                 </div>
@@ -680,7 +715,7 @@ export function UnifiedSearch({ placeholder }: UnifiedSearchProps) {
                                                     <button
                                                         key={item.id}
                                                         onClick={() => handleSelect(item)}
-                                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-app-primary/10 bg-app-surface/50 hover:bg-app-primary/5 hover:border-app-primary/30 transition-all group"
+                                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-app-primary/30 dark:border-app-primary/10 bg-app-surface/50 hover:bg-app-primary/5 hover:border-app-primary/40 transition-all group"
                                                     >
                                                         <div className="text-app-tertiary group-hover:text-app-primary transition-colors">
                                                             {item.icon}
@@ -703,10 +738,6 @@ export function UnifiedSearch({ placeholder }: UnifiedSearchProps) {
                 </div>
             )}
 
-            {/* Simple Backdrop to close */}
-            {isOpen && (
-                <div className="fixed inset-0 z-[-1]" onClick={() => setIsOpen(false)} />
-            )}
         </div>
     );
 }

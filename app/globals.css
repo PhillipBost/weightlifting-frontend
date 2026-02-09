@@ -27,7 +27,12 @@
   /* gray-800 lighter */
   --bg-backdrop: rgba(17, 24, 39, 0.8);
   /* gray-900 backdrop */
-
+  --bg-search-popup: rgba(31, 41, 55, .6);
+  /* Adjusted to 60% opacity for visibility control */
+  --blur-search-main: 20px;
+  /* Dark mode main search blur */
+  --blur-search-header: 20px;
+  /* Dark mode header search blur */
   /* Text Hierarchy - Softer than pure white */
   --text-primary: #f9fafb;
   /* gray-50 - headlines, emphasis */
@@ -138,7 +143,12 @@
   /* warm light gray */
   --bg-backdrop: rgba(247, 246, 243, 0.9);
   /* warm cream backdrop */
-
+  --bg-search-popup: rgba(254, 254, 254, 0.6);
+  /* Adjusted to 5% opacity for visibility control */
+  --blur-search-main: 12px;
+  /* Light mode main search blur */
+  --blur-search-header: 24px;
+  /* Light mode header search blur */
   /* Text Hierarchy - Softer, warmer text colors */
   --text-primary: #2c2925;
   /* warm dark brown - softer than black */
@@ -256,6 +266,14 @@ body {
 
   .bg-app-surface {
     background-color: var(--bg-surface);
+  }
+
+  .bg-search-popup {
+    background-color: var(--bg-search-popup);
+  }
+
+  .backdrop-blur-search {
+    backdrop-filter: blur(var(--blur-search-popup)) !important;
   }
 
   /* Text Utilities */
@@ -475,7 +493,6 @@ body {
 
   .bg-header-blur {
     background-color: var(--bg-header);
-    backdrop-filter: blur(8px);
     transition: background-color 0.3s ease;
   }
 }
