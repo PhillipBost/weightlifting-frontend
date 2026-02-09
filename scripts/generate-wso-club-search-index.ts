@@ -21,6 +21,10 @@ const usawClient = createClient(USAW_URL, SERVICE_KEY, {
     auth: { autoRefreshToken: false, persistSession: false }
 });
 
+// Log which database we're connecting to (mask for security)
+const urlMask = USAW_URL ? `${USAW_URL.substring(0, 30)}...` : 'undefined';
+console.log(`[DB Connection] Connecting to: ${urlMask}`);
+
 interface SearchIndexParams {
     id: string;
     name: string;
@@ -61,6 +65,18 @@ async function generateWsoClubIndex() {
     const documents: SearchIndexParams[] = [];
 
     try {
+        // Test: Verify service role can access data (should bypass RLS)
+        console.log('🔍 Testing database access with service role...');
+        const { data: testResults, error: testError, count: testCount } = await usawClient
+            .from('usaw_meet_results')
+            .select('result_id', { count: 'exact', head: true });
+
+        if (testError) {
+            console.error('❌ Service role test failed:', testError);
+        } else {
+            console.log(`✅ Service role working - usaw_meet_results has ${testCount} rows`);
+        }
+
         // 1. Fetch WSOs
         console.log('Fetching WSOs from usaw_wso_information...');
         const { data: wsos, error: wsoError, count } = await usawClient
