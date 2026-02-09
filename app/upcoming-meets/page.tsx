@@ -2391,7 +2391,7 @@ function RankingsContent() {
                           onClick={() => typeof page === 'number' && setCurrentPage(page)}
                           disabled={page === '...'}
                           className={`px-3 py-2 text-sm font-medium rounded-lg ${page === currentPage
-                            ? 'bg-accent-primary text-app-primary border border-accent-primary'
+                            ? 'bg-accent-primary text-white border border-accent-primary'
                             : page === '...'
                               ? 'text-app-muted cursor-default'
                               : 'text-app-secondary bg-app-tertiary border border-app-secondary hover:bg-app-surface'

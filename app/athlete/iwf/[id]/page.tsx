@@ -327,7 +327,7 @@ const Pagination = ({ currentPage, totalPages, totalResults, onPageChange }: {
               onClick={() => typeof page === 'number' && onPageChange(page)}
               disabled={page === '...'}
               className={`px-3 py-2 text-sm font-medium rounded-lg ${page === currentPage
-                ? 'bg-accent-primary text-app-primary border border-accent-primary'
+                ? 'bg-accent-primary text-white border border-accent-primary'
                 : page === '...'
                   ? 'text-app-muted cursor-default'
                   : 'text-app-secondary bg-app-tertiary border border-app-secondary hover:bg-app-surface'
@@ -936,7 +936,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                         className={`
 						  px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
 						  ${showSnatch
-                            ? 'bg-accent-primary text-app-primary'
+                            ? 'bg-accent-primary text-white'
                             : 'bg-app-surface text-app-secondary hover:bg-app-hover'
                           }
 						`}
@@ -948,7 +948,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                         className={`
 						  px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
 						  ${showCleanJerk
-                            ? 'bg-accent-primary text-app-primary'
+                            ? 'bg-accent-primary text-white'
                             : 'bg-app-surface text-app-secondary hover:bg-app-hover'
                           }
 						`}
@@ -960,7 +960,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                         className={`
 						  px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
 						  ${showTotal
-                            ? 'bg-accent-primary text-app-primary'
+                            ? 'bg-accent-primary text-white'
                             : 'bg-app-surface text-app-secondary hover:bg-app-hover'
                           }
 						`}
@@ -972,7 +972,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                         className={`
 						  px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
 						  ${showAttempts
-                            ? 'bg-accent-primary text-app-primary'
+                            ? 'bg-accent-primary text-white'
                             : 'bg-app-surface text-app-secondary hover:bg-app-hover'
                           }
 						`}
@@ -984,7 +984,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                         className={`
 						  px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
 						  ${showBodyweight
-                            ? 'bg-accent-primary text-app-primary'
+                            ? 'bg-accent-primary text-white'
                             : 'bg-app-surface text-app-secondary hover:bg-app-hover'
                           }
 						`}
@@ -1002,7 +1002,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                             className={`
 						  px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
 						  ${autoScalePerformance
-                                ? 'bg-accent-primary text-app-primary'           // Blue when ON
+                                ? 'bg-accent-primary text-white'           // Blue when ON
                                 : 'bg-app-surface text-app-secondary hover:bg-app-hover'  // Gray when OFF
                               }
 						`}
@@ -1014,7 +1014,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                             className={`
 						  px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
 						  ${showPerformanceBrush
-                                ? 'bg-accent-primary text-app-primary'           // Blue when ON
+                                ? 'bg-accent-primary text-white'           // Blue when ON
                                 : 'bg-app-surface text-app-secondary hover:bg-app-hover'  // Gray when OFF
                               }
 						`}
@@ -1467,7 +1467,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                         className={`
 						  px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
 						  ${showQPoints
-                            ? 'bg-accent-primary text-app-primary'
+                            ? 'bg-accent-primary text-white'
                             : 'bg-app-surface text-app-secondary hover:bg-app-hover'
                           }`}
                       >
@@ -1479,7 +1479,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                           className={`
 						  px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
 						  ${showQYouth
-                              ? 'bg-accent-primary text-app-primary'
+                              ? 'bg-accent-primary text-white'
                               : 'bg-app-surface text-app-secondary hover:bg-app-hover'
                             }
 						`}
@@ -1493,7 +1493,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                           className={`
 						  px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
 						  ${showQMasters
-                              ? 'bg-accent-primary text-app-primary'
+                              ? 'bg-accent-primary text-white'
                               : 'bg-app-surface text-app-secondary hover:bg-app-hover'
                             }
 						`}
@@ -1511,7 +1511,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                           className={`
 						px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
 						${autoScaleQScores
-                              ? 'bg-accent-primary text-app-primary'           // Blue when ON
+                              ? 'bg-accent-primary text-white'           // Blue when ON
                               : 'bg-app-surface text-app-secondary hover:bg-app-hover'  // Gray when OFF
                             }
 					  `}
@@ -1524,7 +1524,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                           className={`
 						px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
 						${showQScoresBrush
-                              ? 'bg-accent-primary text-app-primary'           // Blue when ON
+                              ? 'bg-accent-primary text-white'           // Blue when ON
                               : 'bg-app-surface text-app-secondary hover:bg-app-hover'  // Gray when OFF
                             }
 					  `}
@@ -1797,7 +1797,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                             className={`
                               px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
                               ${showGamxTotal
-                                ? 'bg-accent-primary text-app-primary'
+                                ? 'bg-accent-primary text-white'
                                 : 'bg-app-surface text-app-secondary hover:bg-app-hover'
                               }
                             `}
@@ -1812,7 +1812,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                             className={`
                               px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
                               ${showGamxS
-                                ? 'bg-accent-primary text-app-primary'
+                                ? 'bg-accent-primary text-white'
                                 : 'bg-app-surface text-app-secondary hover:bg-app-hover'
                               }
                             `}
@@ -1827,7 +1827,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                             className={`
                               px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
                               ${showGamxJ
-                                ? 'bg-accent-primary text-app-primary'
+                                ? 'bg-accent-primary text-white'
                                 : 'bg-app-surface text-app-secondary hover:bg-app-hover'
                               }
                             `}
@@ -1842,7 +1842,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                             className={`
                               px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
                               ${showGamxU
-                                ? 'bg-accent-primary text-app-primary'
+                                ? 'bg-accent-primary text-white'
                                 : 'bg-app-surface text-app-secondary hover:bg-app-hover'
                               }
                             `}
@@ -1857,7 +1857,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                             className={`
                               px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
                               ${showGamxA
-                                ? 'bg-accent-primary text-app-primary'
+                                ? 'bg-accent-primary text-white'
                                 : 'bg-app-surface text-app-secondary hover:bg-app-hover'
                               }
                             `}
@@ -1872,7 +1872,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                             className={`
                               px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out
                               ${showGamxMasters
-                                ? 'bg-accent-primary text-app-primary'
+                                ? 'bg-accent-primary text-white'
                                 : 'bg-app-surface text-app-secondary hover:bg-app-hover'
                               }
                             `}
@@ -1890,7 +1890,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                             className={`
                               px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out whitespace-nowrap
                               ${autoScaleGamx
-                                ? 'bg-accent-primary text-app-primary'
+                                ? 'bg-accent-primary text-white'
                                 : 'bg-app-surface text-app-secondary hover:bg-app-hover'
                               }
                             `}
@@ -1902,7 +1902,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                             className={`
                               px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out whitespace-nowrap
                               ${showGamxBrush
-                                ? 'bg-accent-primary text-app-primary'
+                                ? 'bg-accent-primary text-white'
                                 : 'bg-app-surface text-app-secondary hover:bg-app-hover'
                               }
                             `}
