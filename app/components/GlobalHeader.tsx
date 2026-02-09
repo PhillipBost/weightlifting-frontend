@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
@@ -8,6 +8,7 @@ import { ArrowLeft } from "lucide-react";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 import { UserMenu } from "./UserMenu";
 import { UnifiedSearch } from "./UnifiedSearch";
+import { LoginModal } from "./LoginModal";
 
 interface GlobalHeaderProps {
   /**
@@ -32,6 +33,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
 }) => {
   const router = useRouter();
   const pathname = usePathname();
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   // Do NOT render on Home. Home has its own dedicated header.
   if (pathname === "/") {
@@ -95,23 +97,19 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
               <ThemeSwitcher />
             </div>
 
-            {/* Mobile User Menu / Desktop User Menu */}
-            <div className="sm:hidden ml-1">
-              <UserMenu />
-            </div>
-            <div className="hidden sm:block">
-            </div>
-            {/* Simple UserMenu for mobile? Or existing one is responsive? 
-                 UserMenu usually has an avatar. 
-                 Let's keep elements but rely on flex shrinking if needed.
-                 Actually, simpler to just show Search and Menu on mobile if space is tight.
-             */}
-            <div className="sm:hidden">
-              <UserMenu showOnlyWhenLoggedIn />
+            {/* User Menu */}
+            <div className="flex items-center ml-1">
+              <UserMenu onLoginClick={() => setShowLoginModal(true)} />
             </div>
           </div>
         </div>
       </div>
+
+      {/* Login Modal */}
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+      />
     </header>
   );
 };
