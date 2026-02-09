@@ -361,7 +361,6 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
             // 4. Search Clubs/WSOs/Countries
             // We search this index for Countries too.
             const wsoClubResults = wsoClubSearch.search(cleanedQuery, searchOptions);
-            console.log('[UnifiedSearch] WSOClub search for:', cleanedQuery, 'returned', wsoClubResults.length, 'results');
 
 
             wsoClubResults.forEach(r => {
@@ -387,7 +386,6 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
                 const hasNonUsaCountry = targetCountries.length > 0 && targetCountries.some(c => !['usa', 'united states', 'us'].includes(c));
 
                 if ((type === 'club' || type === 'wso') && (isIwfOnly || hasNonUsaCountry)) {
-                    console.log('[UnifiedSearch] Filtering out', type, r.name, '- isIwfOnly:', isIwfOnly, 'hasNonUsaCountry:', hasNonUsaCountry);
                     return;
                 }
 
@@ -398,7 +396,6 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
                     if (currentCount >= 4) return;
                 }
 
-                console.log('[UnifiedSearch] Adding', type, r.name, 'to suggestions');
                 allSuggestions.push({
                     id: `${type}-${r.id}`,
                     label: type === 'country' ? `Country: ${r.name}` : r.name,

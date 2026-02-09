@@ -62,7 +62,7 @@ async function generateWsoClubIndex() {
 
     try {
         // 1. Fetch WSOs
-        console.log('Fetching WSOs from wso_information...');
+        console.log('Fetching WSOs from usaw_wso_information...');
         const { data: wsos, error: wsoError } = await usawClient
             .from('usaw_wso_information')
             .select('wso_id, name, states');
@@ -85,10 +85,13 @@ async function generateWsoClubIndex() {
                 });
             });
             console.log(`✅ Added ${wsos.length} WSOs`);
+            if (wsos.length === 0) {
+                console.warn('⚠️  WARNING: No WSOs found in usaw_wso_information table!');
+            }
         }
 
         // 2. Fetch Clubs
-        console.log('Fetching Clubs from clubs...');
+        console.log('Fetching Clubs from usaw_clubs...');
         const { data: clubs, error: clubError } = await usawClient
             .from('usaw_clubs')
             .select('club_name, address, latitude, longitude, geocode_display_name');
@@ -112,6 +115,9 @@ async function generateWsoClubIndex() {
                 });
             });
             console.log(`✅ Added ${clubs.length} Clubs`);
+            if (clubs.length === 0) {
+                console.warn('⚠️  WARNING: No Clubs found in usaw_clubs table!');
+            }
         }
 
         // 3. Fetch Countries
