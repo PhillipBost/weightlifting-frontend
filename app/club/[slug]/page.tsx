@@ -1,15 +1,19 @@
-"use client"
+import { Suspense } from 'react'
+import type { Metadata } from 'next'
+import { createClient } from '@supabase/supabase-js'
+import { notFound } from 'next/navigation'
+import ClubDetailClient from '../../components/Club/ClubDetailClient'
 
-import React, { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { MapPin, Users, TrendingUp, Calendar, ExternalLink, Dumbbell, BarChart3, PieChart, Map as MapIcon } from "lucide-react"
-import { MetricTooltip } from "../../components/MetricTooltip"
-import ClubDemographics from "../../components/Club/ClubDemographics"
-import dynamic from 'next/dynamic'
+// Initialize Supabase Admin client for server-side fetching
+// Using Service Role key to bypass RLS and ensure complete data access
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
 
-const MeetHubSpokeMap = dynamic(() => import('../../components/MeetHubSpokeMap'), { ssr: false })
+// Enable ISR with 24-hour revalidation
+export const revalidate = 86400
 
+// Types
 interface ClubData {
   club_name: string
   active_lifters_count: number
@@ -26,370 +30,318 @@ interface ClubData {
   quadrant_label: string
 }
 
-interface DemographicsData {
-  clubName: string
-  demographics: {
-    gender: { name: string; value: number }[]
-    age: { range: string; count: number; percentage: number }[]
-  }
-  averageClub: {
-    gender: { name: string; value: number }[]
-    age: { range: string; percentage: number }[]
-  }
-  competitionReach: {
-    spokes: any[]
-  }
-}
+// Helper function to parse location from geocode display name or address
+function parseLocation(club: any): { city: string; state: string } {
+  const displayName = club.geocode_display_name || club.address || ''
+  const parts = displayName.split(',').map((p: string) => p.trim())
 
+  if (parts.length >= 2) {
+    const state = parts[parts.length - 1]
+    const city = parts[parts.length - 2]
 
-// Quadrant color helper
-function getQuadrantColor(quadrant: string): string {
-  switch (quadrant) {
-    case 'powerhouse':
-      return '#10B981' // Green
-    case 'intensive':
-      return '#3B82F6' // Blue
-    case 'sleeping-giant':
-      return '#F59E0B' // Amber
-    case 'developing':
-      return '#EF4444' // Red
-    default:
-      return '#6B7280' // Gray
-  }
-}
-
-// Quadrant description helper
-function getQuadrantDescription(quadrant: string): string {
-  switch (quadrant) {
-    case 'powerhouse':
-      return 'High member count with high activity per member - successful large clubs'
-    case 'intensive':
-      return 'Lower member count but very high activity per member - efficient small clubs'
-    case 'sleeping-giant':
-      return 'High member count but lower activity per member - clubs with growth opportunity'
-    case 'developing':
-      return 'Lower member count and lower activity per member - developing clubs with growth potential'
-    default:
-      return 'Club classification based on membership size and competitive activity'
-  }
-}
-
-export default function ClubPage({ params }: { params: Promise<{ slug: string }> }) {
-  const router = useRouter()
-  const [clubData, setClubData] = useState<ClubData | null>(null)
-  const [demographicsData, setDemographicsData] = useState<DemographicsData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [slug, setSlug] = useState<string | null>(null)
-
-  useEffect(() => {
-    async function unwrapParams() {
-      const resolvedParams = await params
-      setSlug(resolvedParams.slug)
+    if (state && !state.match(/^\d/) && state.length <= 20) {
+      return { city, state }
     }
-    unwrapParams()
-  }, [params])
+  }
 
-  useEffect(() => {
-    if (!slug) return
+  return { city: '', state: '' }
+}
 
-    async function fetchClubData() {
-      try {
-        setLoading(true)
-        setError(null)
+// Helper to calculate quadrant
+function calculateQuadrant(liftersCount: number, activityFactor: number) {
+  let quadrant: 'powerhouse' | 'intensive' | 'sleeping-giant' | 'developing'
+  let quadrant_label: string
 
-        const response = await fetch(`/api/club/${slug}`)
+  if (liftersCount >= 20 && activityFactor >= 2.75) {
+    quadrant = 'powerhouse'
+    quadrant_label = 'Powerhouse'
+  } else if (liftersCount <= 19 && activityFactor >= 2.25) {
+    quadrant = 'intensive'
+    quadrant_label = 'Intensive'
+  } else if (liftersCount >= 20 && activityFactor < 2.75) {
+    quadrant = 'sleeping-giant'
+    quadrant_label = 'Sleeping Giant'
+  } else {
+    quadrant = 'developing'
+    quadrant_label = 'Developing'
+  }
 
-        if (!response.ok) {
-          if (response.status === 404) {
-            setError('Club not found')
-          } else {
-            setError('Failed to load club data')
+  return { quadrant, quadrant_label }
+}
+
+// 5-year age buckets helper
+function getAgeBucket(age: number): string {
+  if (age < 15) return 'Under 15'
+  if (age >= 100) return '100+'
+  const start = Math.floor(age / 5) * 5
+  return `${start}-${start + 4}`
+}
+
+async function getClubData(slug: string) {
+  try {
+    // 1. Find the club
+    const words = slug.split('-').filter(w => w.length > 0)
+    const processedWords = words.map(word => {
+      if (word.length === 2) return word.split('').join('%')
+      return word
+    })
+    const simplePattern = processedWords.join('%')
+
+    const { data: clubsData, error: clubsError } = await supabaseAdmin
+      .from('usaw_clubs')
+      .select(`
+        club_name,
+        active_lifters_count,
+        activity_factor,
+        total_participations,
+        recent_meets_count,
+        address,
+        latitude,
+        longitude,
+        wso_geography,
+        geocode_display_name
+      `)
+      .ilike('club_name', `%${simplePattern}%`)
+      .not('latitude', 'is', null)
+      .not('longitude', 'is', null)
+      .limit(10)
+
+    if (clubsError || !clubsData || clubsData.length === 0) {
+      return null
+    }
+
+    // Determine best match
+    const targetSlug = slug.toLowerCase()
+    let bestMatch = clubsData[0]
+
+    // Exact match check
+    const exactMatch = clubsData.find(club => {
+      const clubSlug = (club.club_name || '').toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')
+      return clubSlug === targetSlug
+    })
+
+    if (exactMatch) bestMatch = exactMatch
+
+    const { city, state } = parseLocation(bestMatch)
+    const { quadrant, quadrant_label } = calculateQuadrant(
+      bestMatch.active_lifters_count || 0,
+      Number(bestMatch.activity_factor || 0)
+    )
+
+    const clubData: ClubData = {
+      club_name: bestMatch.club_name,
+      active_lifters_count: bestMatch.active_lifters_count || 0,
+      activity_factor: Number(bestMatch.activity_factor || 0),
+      total_participations: bestMatch.total_participations || 0,
+      recent_meets_count: bestMatch.recent_meets_count || 0,
+      address: bestMatch.address || '',
+      city,
+      state,
+      latitude: Number(bestMatch.latitude),
+      longitude: Number(bestMatch.longitude),
+      wso_geography: bestMatch.wso_geography || '',
+      quadrant,
+      quadrant_label
+    }
+
+    // 2. Fetch Demographics
+    const twoYearsAgo = new Date()
+    twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2)
+    const dateStr = twoYearsAgo.toISOString().split('T')[0]
+
+    const { data: results } = await supabaseAdmin
+      .from('usaw_meet_results')
+      .select('gender, competition_age, meet_name, date, meet_id')
+      .eq('club_name', bestMatch.club_name)
+      .gte('date', dateStr)
+
+    // Process demographics
+    const genderCounts: Record<string, number> = { M: 0, F: 0 }
+    const ageCounts: Record<string, number> = {}
+    const meetsAttended = new Set<string>()
+    let totalEntries = 0
+    let totalAgeEntries = 0
+
+    if (results) {
+      results.forEach(r => {
+        if (r.gender === 'M' || r.gender === 'F') {
+          genderCounts[r.gender]++
+          totalEntries++
+        }
+        if (r.competition_age) {
+          const bucket = getAgeBucket(r.competition_age)
+          ageCounts[bucket] = (ageCounts[bucket] || 0) + 1
+          totalAgeEntries++
+        }
+        const meetKey = r.meet_id ? String(r.meet_id) : `${r.meet_name}|${r.date}`
+        meetsAttended.add(meetKey)
+      })
+    }
+
+    const demographics = {
+      gender: [
+        { name: 'Male', value: totalEntries ? (genderCounts.M / totalEntries) * 100 : 0 },
+        { name: 'Female', value: totalEntries ? (genderCounts.F / totalEntries) * 100 : 0 }
+      ],
+      age: Object.entries(ageCounts)
+        .map(([range, count]) => ({
+          range,
+          count,
+          percentage: totalAgeEntries ? (count / totalAgeEntries) * 100 : 0
+        }))
+        .sort((a, b) => {
+          const getStartAge = (range: string) => {
+            if (range === 'Under 15') return 0
+            if (range === '100+') return 100
+            return parseInt(range.split('-')[0])
           }
-          setLoading(false)
-          return
-        }
+          return getStartAge(a.range) - getStartAge(b.range)
+        })
+    }
 
-        const data = await response.json()
-        setClubData(data)
-        setLoading(false)
-      } catch (err) {
-        console.error('Error fetching club data:', err)
-        setError('An unexpected error occurred')
-        setLoading(false)
+    // 3. Fetch Competition Reach (Spokes)
+    let spokes: any[] = []
+    const uniqueMeetIds = Array.from(meetsAttended).filter(m => !m.includes('|')).map(m => parseInt(m))
+
+    if (uniqueMeetIds.length > 0) {
+      const { data: meetsData } = await supabaseAdmin
+        .from('usaw_meets')
+        .select('meet_id, latitude, longitude, city, state, Meet')
+        .in('meet_id', uniqueMeetIds)
+        .not('latitude', 'is', null)
+
+      const foundMeetIds = new Set<number>()
+      if (meetsData) {
+        meetsData.forEach(m => {
+          spokes.push({
+            name: m.Meet || m.city || 'Unknown Meet',
+            lat: m.latitude,
+            lng: m.longitude,
+            count: results ? results.filter(r => r.meet_id === m.meet_id).length : 0,
+            meet_id: m.meet_id
+          })
+          foundMeetIds.add(m.meet_id)
+        })
+      }
+
+      // Try locations table for missing IDs
+      const missingIds = uniqueMeetIds.filter(id => !foundMeetIds.has(id))
+      if (missingIds.length > 0) {
+        const { data: locData } = await supabaseAdmin
+          .from('usaw_meet_locations')
+          .select('meet_id, latitude, longitude, city, state, meet_name')
+          .in('meet_id', missingIds)
+          .not('latitude', 'is', null)
+
+        if (locData) {
+          locData.forEach(l => {
+            spokes.push({
+              name: l.meet_name || l.city || 'Unknown Location',
+              lat: l.latitude,
+              lng: l.longitude,
+              count: results ? results.filter(r => r.meet_id === l.meet_id).length : 0,
+              meet_id: l.meet_id
+            })
+          })
+        }
       }
     }
 
-    async function fetchDemographics() {
-      try {
-        console.log('Fetching demographics for:', slug)
-        const response = await fetch(`/api/club/${slug}/demographics`)
-        if (response.ok) {
-          const data = await response.json()
-          console.log('Demographics loaded:', data)
-          setDemographicsData(data)
-        } else {
-          console.error('Demographics fetch failed:', response.status, response.statusText)
+    // Static averages
+    const avgGenderDist = [
+      { name: 'Male', value: 48.0 },
+      { name: 'Female', value: 52.0 }
+    ]
+    const avgAgeDist = [
+      { range: 'Under 15', percentage: 11.9 },
+      { range: '15-19', percentage: 16.8 },
+      { range: '20-24', percentage: 13.4 },
+      { range: '25-29', percentage: 14.3 },
+      { range: '30-34', percentage: 12.1 },
+      { range: '35-39', percentage: 10.3 },
+      { range: '40-44', percentage: 8.6 },
+      { range: '45-49', percentage: 5.1 },
+      { range: '50-54', percentage: 2.9 },
+      { range: '55-59', percentage: 2.0 },
+      { range: '60-64', percentage: 1.2 },
+      { range: '65-69', percentage: 0.8 },
+      { range: '70-74', percentage: 0.4 },
+      { range: '75-79', percentage: 0.2 },
+      { range: '80-84', percentage: 0.05 },
+      { range: '85-89', percentage: 0.0 },
+      { range: '90-94', percentage: 0.0 }
+    ]
+
+    return {
+      clubData,
+      demographicsData: {
+        clubName: bestMatch.club_name,
+        demographics,
+        averageClub: {
+          gender: avgGenderDist,
+          age: avgAgeDist
+        },
+        competitionReach: {
+          spokes
         }
-      } catch (err) {
-        console.error('Error fetching demographics:', err)
       }
     }
 
-    fetchClubData()
-    fetchDemographics()
-  }, [slug])
-
-  // Loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-app-gradient">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="card-large">
-            <div className="animate-pulse space-y-4">
-              <div className="h-8 bg-app-tertiary rounded w-3/4"></div>
-              <div className="h-4 bg-app-tertiary rounded w-1/2"></div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="h-20 bg-app-tertiary rounded"></div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
+  } catch (err) {
+    console.error('Error fetching club data:', err)
+    return null
   }
+}
 
-  // Error state
-  if (error || !clubData) {
-    return (
-      <div className="min-h-screen bg-app-gradient">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="card-large">
-            <div className="text-center py-12">
-              <div className="text-red-500 text-xl mb-4">{error || 'Club not found'}</div>
-              <p className="text-app-secondary mb-6">
-                The club you're looking for doesn't exist or couldn't be loaded.
-              </p>
-              <Link
-                href="/club"
-                className="inline-flex items-center space-x-2 px-4 py-2 bg-accent-primary text-white rounded hover:bg-accent-secondary transition-colors"
-              >
-                <span>View All Clubs</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params
+  const words = slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+
+  return {
+    title: `${words} - Weightlifting Club Profile`,
+    description: `View club statistics, demographics, and competition history for ${words}.`,
   }
+}
 
-  const quadrantColor = getQuadrantColor(clubData.quadrant)
+// Generate static params for all clubs to pre-render at build time
+export async function generateStaticParams() {
+  try {
+    const { data: clubs } = await supabaseAdmin
+      .from('usaw_clubs')
+      .select('club_name')
+      .not('latitude', 'is', null)
+      .limit(1000) // Limit to 1000 most active clubs for initial build to avoid timeout
+
+    if (!clubs) return []
+
+    return clubs.map((club) => ({
+      slug: club.club_name
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '')
+    }))
+  } catch (err) {
+    console.error('Error generating static params:', err)
+    return []
+  }
+}
+
+export default async function ClubPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const data = await getClubData(slug)
+
+  if (!data) {
+    notFound()
+  }
 
   return (
-    <div className="min-h-screen bg-app-gradient">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Club Profile Header */}
-        <div className="max-w-[1200px] card-primary mb-6">
-          <div className="flex items-start justify-between gap-4">
-            {/* Club Name and Location */}
-            <div>
-              <h1 className="text-3xl font-bold text-app-primary mb-2">
-                {clubData.club_name}
-              </h1>
-              <div className="flex items-center space-x-2 text-app-secondary">
-                <MapPin className="h-4 w-4" />
-                <span>
-                  {clubData.city && clubData.state ? `${clubData.city}, ${clubData.state}` : clubData.address}
-                </span>
-              </div>
-              {clubData.wso_geography && (
-                <div className="flex items-center space-x-2 text-app-tertiary text-sm mt-1">
-                  <Dumbbell className="h-4 w-4" />
-                  <span>WSO: {clubData.wso_geography}</span>
-                </div>
-              )}
-            </div>
-
-            {/* External Link */}
-            <div className="flex flex-col gap-2">
-              <a
-                href="https://usaweightlifting.sport80.com/public/widget/7"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors"
-              >
-                <ExternalLink className="h-4 w-4" />
-                <span>Club Directory</span>
-              </a>
-            </div>
-          </div>
-        </div>
-
-        {/* Club Statistics */}
-        <div className="max-w-[1200px]">
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold text-app-primary mb-6 flex items-center">
-              <BarChart3 className="h-5 w-5 mr-2" />
-              Club Statistics
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
-            {/* Active Lifters */}
-            <div className="card-primary text-center">
-              <MetricTooltip
-                title="Active Lifters"
-                description="Number of unique competitive lifters associated with this club in recent competitions"
-                methodology="Counted from meet results data over the past 12-24 months"
-              >
-                <div className="flex flex-col items-center">
-                  <Users className="h-8 w-8 text-accent-primary mb-2" />
-                  <div className="text-app-secondary text-sm mb-1">Active Lifters</div>
-                  <div className="text-3xl font-bold text-app-primary">
-                    {clubData.active_lifters_count}
-                  </div>
-                </div>
-              </MetricTooltip>
-            </div>
-
-            {/* Activity Factor */}
-            <div className="card-primary text-center">
-              <MetricTooltip
-                title="Activity Factor"
-                description="Average competitions per lifter - measures how actively club members compete"
-                methodology="Total participations divided by active lifters count"
-              >
-                <div className="flex flex-col items-center">
-                  <TrendingUp className="h-8 w-8 text-accent-primary mb-2" />
-                  <div className="text-app-secondary text-sm mb-1">Activity Factor</div>
-                  <div className="text-3xl font-bold text-app-primary">
-                    {clubData.activity_factor.toFixed(2)}
-                  </div>
-                </div>
-              </MetricTooltip>
-            </div>
-
-            {/* Total Participations */}
-            <div className="card-primary text-center">
-              <MetricTooltip
-                title="Total Participations"
-                description="Total number of competition entries by club members"
-                methodology="Sum of all meet participations by active club members"
-              >
-                <div className="flex flex-col items-center">
-                  <Dumbbell className="h-8 w-8 text-accent-primary mb-2" />
-                  <div className="text-app-secondary text-sm mb-1">Total Participations</div>
-                  <div className="text-3xl font-bold text-app-primary">
-                    {clubData.total_participations}
-                  </div>
-                </div>
-              </MetricTooltip>
-            </div>
-
-            {/* Recent Meets */}
-            <div className="card-primary text-center">
-              <MetricTooltip
-                title="Recent Meets"
-                description="Number of different competitions club members have attended recently"
-                methodology="Count of unique meets with club member participation in recent period"
-              >
-                <div className="flex flex-col items-center">
-                  <Calendar className="h-8 w-8 text-accent-primary mb-2" />
-                  <div className="text-app-secondary text-sm mb-1">Recent Meets</div>
-                  <div className="text-3xl font-bold text-app-primary">
-                    {clubData.recent_meets_count}
-                  </div>
-                </div>
-              </MetricTooltip>
-            </div>
-          </div>
-        </div>
-
-        {/* About Section */}
-        <div className="max-w-[1200px] card-primary">
-          <div className="flex items-start justify-between gap-4 mb-4">
-            <h2 className="text-xl font-semibold text-app-primary">About This Club</h2>
-
-            {/* Quadrant Badge */}
-            <div>
-              <MetricTooltip
-                title={`${clubData.quadrant_label} Club`}
-                description={getQuadrantDescription(clubData.quadrant)}
-                methodology="Classification based on active member count and competition activity factor relative to all clubs"
-              >
-                <div
-                  className="px-4 py-2 rounded-lg text-white font-semibold shadow-lg"
-                  style={{ backgroundColor: quadrantColor }}
-                >
-                  {clubData.quadrant_label}
-                </div>
-              </MetricTooltip>
-            </div>
-          </div>
-
-          <div className="space-y-3 text-app-secondary">
-            <p>
-              <strong>{clubData.club_name}</strong> is classified as a <strong style={{ color: quadrantColor }}>{clubData.quadrant_label}</strong> club,
-              with {clubData.active_lifters_count} active competitive lifters and an activity factor of {clubData.activity_factor.toFixed(2)} competitions per lifter.
-            </p>
-            <p className="text-sm">
-              {getQuadrantDescription(clubData.quadrant)}
-            </p>
-            <div className="pt-4 border-t border-app-secondary">
-              <p className="text-sm text-app-tertiary">
-                Data reflects recent competitive activity and may not include all club members or recreational lifters.
-                For official club information and contact details, please visit the USA Weightlifting club directory.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Demographics & Insights Section */}
-        {demographicsData && (
-          <div className="max-w-[1200px] mt-8">
-            <h2 className="text-xl font-semibold text-app-primary mb-6 flex items-center">
-              <PieChart className="h-5 w-5 mr-2" />
-              Club Demographics
-            </h2>
-
-            <ClubDemographics
-              data={demographicsData.demographics}
-              averageData={demographicsData.averageClub}
-            />
-          </div>
-        )}
-
-        {/* Competition Reach Map */}
-        {demographicsData && clubData && (
-          <div className="max-w-[1200px] mt-8 mb-12">
-            <div className="card-primary p-0 overflow-hidden">
-              <div className="p-4 border-b border-app-secondary">
-                <h2 className="text-xl font-semibold text-app-primary flex items-center">
-                  <MapIcon className="h-5 w-5 mr-2" />
-                  Competition Reach
-                </h2>
-                <p className="text-sm text-app-secondary mt-1">
-                  Map shows competitions attended by club members in the last 2 years (Club Center → Meets).
-                  {demographicsData.competitionReach.spokes.length === 0 && (
-                    <span className="text-red-500 ml-2">(No geographic data found for recent meets)</span>
-                  )}
-                </p>
-              </div>
-              <div className="h-[500px] w-full relative z-0">
-                <MeetHubSpokeMap
-                  meetLat={clubData.latitude}
-                  meetLng={clubData.longitude}
-                  spokes={demographicsData.competitionReach.spokes}
-                  type="meet"
-                  hubType="club"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+    <Suspense fallback={<div className="min-h-screen bg-app-gradient flex items-center justify-center p-8 text-xl text-app-primary">Loading Club Data...</div>}>
+      <ClubDetailClient
+        clubData={data.clubData}
+        demographicsData={data.demographicsData}
+      />
+    </Suspense>
   )
 }
