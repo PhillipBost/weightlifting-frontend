@@ -14,6 +14,10 @@ interface ClubMapProps {
   className?: string
   center?: [number, number]
   zoom?: number
+  clubData?: {
+    clubs: any[]
+    stats: any
+  }
 }
 
 // Simple state borders component using local GeoJSON data
@@ -56,10 +60,14 @@ function StateBordersLayer({ theme }: { theme: 'light' | 'dark' }) {
 export default function ClubMap({
   className = "h-[600px] w-full",
   center = [39.8283, -98.5795],
-  zoom = 4
+  zoom = 4,
+  clubData: propClubData
 }: ClubMapProps) {
-  const { clubData, loading, error } = useClubData()
+  const { clubData: hookClubData, loading, error } = useClubData()
   const { theme } = useTheme()
+
+  // Use prop data if provided, otherwise use hook data
+  const clubData = propClubData || hookClubData
 
   // Toggle states
   const [filterByActivity, setFilterByActivity] = React.useState(false)
@@ -113,7 +121,7 @@ export default function ClubMap({
     })
   }
 
-  if (loading) {
+  if (!clubData && loading) {
     return (
       <div className={`${className} relative flex items-center justify-center bg-app-tertiary rounded-lg border border-app-secondary`}>
         <div className="text-center">
@@ -124,7 +132,7 @@ export default function ClubMap({
     )
   }
 
-  if (error) {
+  if (!clubData && error) {
     return (
       <div className={`${className} relative flex items-center justify-center bg-app-tertiary rounded-lg border border-app-secondary`}>
         <div className="text-center">
@@ -189,9 +197,9 @@ export default function ClubMap({
                   style={{ backgroundColor: theme === 'dark' ? '#F59E0B' : '#D97706' }}
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="6" cy="12" r="3" fill={theme === 'dark' ? '#1F2937' : '#FFFFFF'}/>
-                    <circle cx="18" cy="12" r="3" fill={theme === 'dark' ? '#1F2937' : '#FFFFFF'}/>
-                    <rect x="7" y="11" width="10" height="2" fill={theme === 'dark' ? '#1F2937' : '#FFFFFF'}/>
+                    <circle cx="6" cy="12" r="3" fill={theme === 'dark' ? '#1F2937' : '#FFFFFF'} />
+                    <circle cx="18" cy="12" r="3" fill={theme === 'dark' ? '#1F2937' : '#FFFFFF'} />
+                    <rect x="7" y="11" width="10" height="2" fill={theme === 'dark' ? '#1F2937' : '#FFFFFF'} />
                   </svg>
                 </div>
               </div>

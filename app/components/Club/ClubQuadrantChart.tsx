@@ -55,17 +55,17 @@ function CustomXAxisLabel({ viewBox, theme }: any) {
       const rect = iconRef.current.getBoundingClientRect()
       const tooltipWidth = 320
       const tooltipHeight = 130
-      
+
       // Position tooltip well above the icon to avoid cursor overlap
       // Use larger offset to ensure cursor doesn't obscure content
       let top = rect.top - tooltipHeight - 25
-      
+
       // Offset horizontally from mouse cursor to prevent overlap
       // If mouse is on left side of icon, shift tooltip right, and vice versa
       const iconCenterX = rect.left + rect.width / 2
       const offsetFromMouse = mousePos.x < iconCenterX ? 40 : -40
       let left = iconCenterX - tooltipWidth / 2 + offsetFromMouse
-      
+
       // Keep within viewport
       if (left < 8) left = 8
       if (left + tooltipWidth > window.innerWidth - 8) {
@@ -75,7 +75,7 @@ function CustomXAxisLabel({ viewBox, theme }: any) {
         // If no space above, show below with extra clearance
         top = rect.bottom + 25
       }
-      
+
       setPosition({ top, left })
     }
   }, [showTooltip, mousePos])
@@ -107,7 +107,7 @@ function CustomXAxisLabel({ viewBox, theme }: any) {
   }, [])
 
   if (!viewBox) return null
-  
+
   const { x, y, width, height } = viewBox
   const centerX = x + width / 2
 
@@ -195,15 +195,15 @@ function CustomYAxisLabel({ viewBox, theme }: any) {
       const rect = iconRef.current.getBoundingClientRect()
       const tooltipWidth = 320
       const tooltipHeight = 130
-      
+
       // Position tooltip to the right of the icon with extra clearance
       let left = rect.right + 25
-      
+
       // Offset vertically from mouse cursor to prevent overlap
       const iconCenterY = rect.top + rect.height / 2
       const offsetFromMouse = mousePos.y < iconCenterY ? 30 : -30
       let top = iconCenterY - tooltipHeight / 2 + offsetFromMouse
-      
+
       // Keep within viewport
       if (top < 8) top = 8
       if (top + tooltipHeight > window.innerHeight - 8) {
@@ -213,7 +213,7 @@ function CustomYAxisLabel({ viewBox, theme }: any) {
         // Show on left if no space on right
         left = rect.left - tooltipWidth - 25
       }
-      
+
       setPosition({ top, left })
     }
   }, [showTooltip, mousePos])
@@ -245,7 +245,7 @@ function CustomYAxisLabel({ viewBox, theme }: any) {
   }, [])
 
   if (!viewBox) return null
-  
+
   const { x, y, width, height } = viewBox
   const centerY = y + height / 2
 
@@ -592,21 +592,31 @@ function QuadrantLabel({
   )
 }
 
+interface ClubQuadrantChartProps {
+  className?: string
+  height?: number
+  quadrantData?: any
+}
+
 export default function ClubQuadrantChart({
   className = "w-full",
-  height = 600
+  height = 600,
+  quadrantData: propQuadrantData
 }: ClubQuadrantChartProps) {
-  const { quadrantData, loading, error } = useClubQuadrantData()
+  const { quadrantData: hookQuadrantData, loading, error } = useClubQuadrantData()
   const { theme } = useTheme()
   const router = useRouter()
 
+  // Use prop data if provided, otherwise use hook data
+  const quadrantData = propQuadrantData || hookQuadrantData
+
   // Zoom state management
-  const [zoomDomain, setZoomDomain] = React.useState<{x: [number, number], y: [number, number]} | null>(null)
+  const [zoomDomain, setZoomDomain] = React.useState<{ x: [number, number], y: [number, number] } | null>(null)
 
   // Sticky tooltip state
   const [stickyTooltip, setStickyTooltip] = React.useState<any>(null)
-  const [tooltipPosition, setTooltipPosition] = React.useState<{x: number, y: number} | null>(null)
-  
+  const [tooltipPosition, setTooltipPosition] = React.useState<{ x: number, y: number } | null>(null)
+
   // Zoom state for mouse wheel and touch gestures - must be before conditional returns
   const chartRef = React.useRef<HTMLDivElement>(null)
   const touchRef = React.useRef<{ distance: number | null, center: { x: number, y: number } | null }>({
@@ -624,46 +634,46 @@ export default function ClubQuadrantChart({
   // Handle mouse wheel zoom
   const handleWheel = React.useCallback((e: WheelEvent) => {
     e.preventDefault()
-    
+
     if (!chartRef.current) return
-    
+
     const rect = chartRef.current.getBoundingClientRect()
     const mouseX = e.clientX - rect.left
     const mouseY = e.clientY - rect.top
-    
+
     // Calculate mouse position as percentage of chart
     const xPercent = mouseX / rect.width
     const yPercent = 1 - (mouseY / rect.height) // Invert Y axis
-    
+
     const currentXDomain = zoomDomain?.x || xDomainRef.current
     const currentYDomain = zoomDomain?.y || yDomainRef.current
-    
+
     const xRange = currentXDomain[1] - currentXDomain[0]
     const yRange = currentYDomain[1] - currentYDomain[0]
-    
+
     // Zoom factor (negative delta = zoom in, positive = zoom out)
     const zoomFactor = e.deltaY > 0 ? 1.1 : 0.9
-    
+
     const newXRange = xRange * zoomFactor
     const newYRange = yRange * zoomFactor
-    
+
     // Calculate new domain centered on mouse position
     const mouseXValue = currentXDomain[0] + xRange * xPercent
     const mouseYValue = currentYDomain[0] + yRange * yPercent
-    
+
     const newXDomain: [number, number] = [
       Math.max(0, mouseXValue - newXRange * xPercent),
       mouseXValue + newXRange * (1 - xPercent)
     ]
-    
+
     const newYDomain: [number, number] = [
       Math.max(0, mouseYValue - newYRange * yPercent),
       mouseYValue + newYRange * (1 - yPercent)
     ]
-    
+
     setZoomDomain({ x: newXDomain, y: newYDomain })
   }, [zoomDomain])
-  
+
   // Handle touch gestures for pinch zoom
   const handleTouchStart = React.useCallback((e: TouchEvent) => {
     if (e.touches.length === 2) {
@@ -676,56 +686,56 @@ export default function ClubQuadrantChart({
       }
     }
   }, [])
-  
+
   const handleTouchMove = React.useCallback((e: TouchEvent) => {
     if (e.touches.length === 2 && touchRef.current.distance && chartRef.current) {
       e.preventDefault()
-      
+
       const dx = e.touches[0].clientX - e.touches[1].clientX
       const dy = e.touches[0].clientY - e.touches[1].clientY
       const newDistance = Math.sqrt(dx * dx + dy * dy)
-      
+
       const zoomFactor = touchRef.current.distance / newDistance
-      
+
       const currentXDomain = zoomDomain?.x || xDomainRef.current
       const currentYDomain = zoomDomain?.y || yDomainRef.current
-      
+
       const xRange = currentXDomain[1] - currentXDomain[0]
       const yRange = currentYDomain[1] - currentYDomain[0]
-      
+
       const newXRange = xRange * zoomFactor
       const newYRange = yRange * zoomFactor
-      
+
       const rect = chartRef.current.getBoundingClientRect()
       const centerX = touchRef.current.center!.x - rect.left
       const centerY = touchRef.current.center!.y - rect.top
-      
+
       const xPercent = centerX / rect.width
       const yPercent = 1 - (centerY / rect.height)
-      
+
       const centerXValue = currentXDomain[0] + xRange * xPercent
       const centerYValue = currentYDomain[0] + yRange * yPercent
-      
+
       const newXDomain: [number, number] = [
         Math.max(0, centerXValue - newXRange * xPercent),
         centerXValue + newXRange * (1 - xPercent)
       ]
-      
+
       const newYDomain: [number, number] = [
         Math.max(0, centerYValue - newYRange * yPercent),
         centerYValue + newYRange * (1 - yPercent)
       ]
-      
+
       setZoomDomain({ x: newXDomain, y: newYDomain })
       touchRef.current.distance = newDistance
     }
   }, [zoomDomain])
-  
+
   const handleTouchEnd = React.useCallback(() => {
     touchRef.current.distance = null
     touchRef.current.center = null
   }, [])
-  
+
   // Track mouse position for fallback tooltip positioning
   const handleMouseMove = React.useCallback((e: MouseEvent) => {
     mousePositionRef.current = { x: e.clientX, y: e.clientY }
@@ -830,7 +840,7 @@ export default function ClubQuadrantChart({
     }
   }, [stickyTooltip])
 
-  if (loading) {
+  if (!quadrantData && loading) {
     return (
       <div className={`${className} flex items-center justify-center bg-app-tertiary rounded-lg border border-app-secondary`} style={{ height }}>
         <div className="text-center">
@@ -841,12 +851,12 @@ export default function ClubQuadrantChart({
     )
   }
 
-  if (error) {
+  if (!quadrantData && (error || !quadrantData)) {
     return (
       <div className={`${className} flex items-center justify-center bg-app-tertiary rounded-lg border border-app-secondary`} style={{ height }}>
         <div className="text-center">
-          <div className="text-red-500 mb-2">Error loading quadrant data</div>
-          <div className="text-app-muted text-sm">{error}</div>
+          <div className="text-red-500 mb-2">Error loading quadrant analysis</div>
+          <div className="text-app-muted text-sm">{error || "No data available"}</div>
         </div>
       </div>
     )
@@ -865,12 +875,12 @@ export default function ClubQuadrantChart({
   const { clubs, stats, boundaries } = quadrantData
 
   // Use club name hash for deterministic jitter with overlap detection
-  const jitteredClubs = clubs.map(club => {
+  const jitteredClubs = clubs.map((club: any) => {
     // Create a simple hash from club name for deterministic positioning
-    const hash = club.club_name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+    const hash = club.club_name.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0)
     let jitterX = ((hash % 100) / 100 - 0.5) * 0.8
     let jitterY = ((hash % 50) / 50 - 0.5) * 0.08
-    
+
     return {
       ...club,
       active_lifters_count_display: club.active_lifters_count + jitterX,
@@ -878,36 +888,36 @@ export default function ClubQuadrantChart({
       hash // Store hash for further jitter adjustment
     }
   })
-  
+
   // Iteratively increase jitter for overlapping points
-  const adjustedClubs = jitteredClubs.map((club, index) => {
+  const adjustedClubs = jitteredClubs.map((club: any, index: number) => {
     let x = club.active_lifters_count_display
     let y = club.activity_factor_display
     let jitterMultiplier = 1
-    
+
     // Check for overlaps (within 0.5 units)
     const OVERLAP_THRESHOLD = 0.5
     let hasOverlap = true
     let iterations = 0
     const MAX_ITERATIONS = 5
-    
+
     while (hasOverlap && iterations < MAX_ITERATIONS) {
       hasOverlap = false
-      
+
       for (let i = 0; i < jitteredClubs.length; i++) {
         if (i === index) continue
-        
+
         const other = jitteredClubs[i]
         const dx = x - other.active_lifters_count_display
         const dy = y - other.activity_factor_display
         const distance = Math.sqrt(dx * dx + dy * dy)
-        
+
         if (distance < OVERLAP_THRESHOLD) {
           hasOverlap = true
           break
         }
       }
-      
+
       if (hasOverlap) {
         jitterMultiplier += 1
         const baseJitterX = ((club.hash % 100) / 100 - 0.5) * 0.8
@@ -917,38 +927,38 @@ export default function ClubQuadrantChart({
         iterations++
       }
     }
-    
+
     return {
       ...club,
       active_lifters_count_display: x,
       activity_factor_display: y
     }
   })
-  
+
   // Calculate proximity factors after jittering
-  const clubsWithProximity = adjustedClubs.map((club, index) => {
+  const clubsWithProximity = adjustedClubs.map((club: any, index: number) => {
     const x = club.active_lifters_count_display
     const y = club.activity_factor_display
-    
+
     // Calculate distance to nearest neighbor using displayed coordinates
     let minDistance = Infinity
-    adjustedClubs.forEach((otherClub, otherIndex) => {
+    adjustedClubs.forEach((otherClub: any, otherIndex: number) => {
       if (index === otherIndex) return
-      
+
       const dx = x - otherClub.active_lifters_count_display
       const dy = y - otherClub.activity_factor_display
       const distance = Math.sqrt(dx * dx + dy * dy)
-      
+
       if (distance < minDistance) {
         minDistance = distance
       }
     })
-    
+
     // Normalize proximity factor based on distance
     // Closer points (distance < 2) get smaller proximityFactor
     // Isolated points (distance > 10) get larger proximityFactor
     const proximityFactor = Math.min(1, Math.max(0, (minDistance - 2) / 8))
-    
+
     return {
       ...club,
       proximityFactor
@@ -956,13 +966,13 @@ export default function ClubQuadrantChart({
   })
 
   // Calculate chart domain with some padding
-  const maxLifters = Math.max(...clubs.map(c => c.active_lifters_count))
-  const maxActivity = Math.max(...clubs.map(c => c.activity_factor))
-  const minActivity = Math.min(...clubs.map(c => c.activity_factor))
+  const maxLifters = Math.max(...clubs.map((c: any) => c.active_lifters_count))
+  const maxActivity = Math.max(...clubs.map((c: any) => c.activity_factor))
+  const minActivity = Math.min(...clubs.map((c: any) => c.activity_factor))
 
   const xDomain: [number, number] = [0, maxLifters + Math.ceil(maxLifters * 0.1)]
   const yDomain: [number, number] = [Math.max(0, minActivity - 0.5), maxActivity + 0.5]
-  
+
   // Update domain refs for zoom callbacks
   xDomainRef.current = xDomain
   yDomainRef.current = yDomain
@@ -1094,7 +1104,7 @@ export default function ClubQuadrantChart({
               shape={CustomDot}
               onClick={handleScatterClick}
             >
-              {clubsWithProximity.map((club, index) => (
+              {clubsWithProximity.map((club: any, index: number) => (
                 <Cell
                   key={`cell-${index}`}
                   fill={getQuadrantColor(club.quadrant, theme)}
@@ -1107,41 +1117,41 @@ export default function ClubQuadrantChart({
 
       {/* Quadrant labels - overlaid on chart */}
       <QuadrantLabel
-          x={15}
-          y={10}
-          label="Intensive"
-          count={stats.intensive.count}
-          color={getQuadrantColor('intensive', theme)}
-          description="High activity per member"
-          onZoom={() => handleQuadrantZoom('intensive')}
-        />
-        <QuadrantLabel
-          x={75}
-          y={10}
-          label="Powerhouse"
-          count={stats.powerhouse.count}
-          color={getQuadrantColor('powerhouse', theme)}
-          description="Large and active"
-          onZoom={() => handleQuadrantZoom('powerhouse')}
-        />
-        <QuadrantLabel
-          x={15}
-          y={75}
-          label="Developing"
-          count={stats.developing.count}
-          color={getQuadrantColor('developing', theme)}
-          description="Needs support"
-          onZoom={() => handleQuadrantZoom('developing')}
-        />
-        <QuadrantLabel
-          x={75}
-          y={75}
-          label="Sleeping Giant"
-          count={stats['sleeping-giant']?.count || 0}
-          color={getQuadrantColor('sleeping-giant', theme)}
-          description="Room for growth"
-          onZoom={() => handleQuadrantZoom('sleeping-giant')}
-        />
+        x={15}
+        y={10}
+        label="Intensive"
+        count={stats.intensive.count}
+        color={getQuadrantColor('intensive', theme)}
+        description="High activity per member"
+        onZoom={() => handleQuadrantZoom('intensive')}
+      />
+      <QuadrantLabel
+        x={75}
+        y={10}
+        label="Powerhouse"
+        count={stats.powerhouse.count}
+        color={getQuadrantColor('powerhouse', theme)}
+        description="Large and active"
+        onZoom={() => handleQuadrantZoom('powerhouse')}
+      />
+      <QuadrantLabel
+        x={15}
+        y={75}
+        label="Developing"
+        count={stats.developing.count}
+        color={getQuadrantColor('developing', theme)}
+        description="Needs support"
+        onZoom={() => handleQuadrantZoom('developing')}
+      />
+      <QuadrantLabel
+        x={75}
+        y={75}
+        label="Sleeping Giant"
+        count={stats['sleeping-giant']?.count || 0}
+        color={getQuadrantColor('sleeping-giant', theme)}
+        description="Room for growth"
+        onZoom={() => handleQuadrantZoom('sleeping-giant')}
+      />
 
       {/* Legend */}
       <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -1175,9 +1185,9 @@ export default function ClubQuadrantChart({
                 </div>
               </div>
               <div className={`space-y-1 text-xs ${theme === 'dark' ? 'text-gray-200' : 'text-gray-600'}`}>
-                <div>{quadrantStats.count} clubs</div>
-                <div>Avg Lifters: {quadrantStats.avgLifters}</div>
-                <div>Avg Activity: {quadrantStats.avgActivity}</div>
+                <div>{(quadrantStats as any)?.count || 0} clubs</div>
+                <div>Avg Lifters: {(quadrantStats as any)?.avgLifters || 0}</div>
+                <div>Avg Activity: {(quadrantStats as any)?.avgActivity || 0}</div>
               </div>
             </div>
           )

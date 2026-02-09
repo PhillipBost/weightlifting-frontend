@@ -1,295 +1,203 @@
-"use client"
+import { createClient } from '@supabase/supabase-js'
+import { Metadata } from 'next'
+import ClubDirectoryClient from '../components/Club/ClubDirectoryClient'
 
-import React from "react"
-import dynamic from "next/dynamic"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import Image from "next/image"
-import { ArrowLeft, Database, ExternalLink } from "lucide-react"
-import { ThemeSwitcher } from "../components/ThemeSwitcher"
-import { MetricTooltip } from "../components/MetricTooltip"
-import { useClubData } from "../hooks/useClubData"
+// Enable ISR with 24-hour revalidation
+export const revalidate = 86400
 
-// Club Statistics Summary Component
-function ClubSummary() {
-  const { clubData, loading, error } = useClubData()
+// Initialize Supabase Admin client for server-side fetching
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-  if (loading) {
-    return (
-      <div className="card-large">
-        <div className="animate-pulse">
-          <div className="mb-4">
-            <div className="h-6 bg-app-tertiary rounded mb-2 w-48"></div>
-            <div className="h-4 bg-app-tertiary rounded w-64"></div>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="text-center">
-                <div className="h-4 bg-app-tertiary rounded mb-2 w-20 mx-auto"></div>
-                <div className="h-8 bg-app-tertiary rounded w-16 mx-auto"></div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (error || !clubData) {
-    return (
-      <div className="card-large">
-        <p className="text-red-500">Error loading club information: {error}</p>
-      </div>
-    )
-  }
-
-  const { stats } = clubData
-
-  return (
-    <div className="card-large">
-      <h1 className="text-3xl font-bold text-app-primary mb-6">
-        Barbell Clubs
-      </h1>
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold text-app-primary mb-2">
-          USA Weightlifting Clubs Overview
-        </h2>
-        <p className="text-app-secondary">
-          Summary statistics for all registered barbell clubs. Competition clubs have had at least one lifter compete in the last 24 months.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-2 gap-6">
-        <div className="text-center">
-          <MetricTooltip
-            title="Total Clubs"
-            description="Total number of registered barbell clubs nationwide"
-            methodology="Counts all clubs in the official club directory with valid location data"
-          >
-            <div className="text-app-secondary text-sm mb-1">Total Clubs</div>
-            <div className="text-2xl font-bold text-app-primary">
-              {stats.totalClubs}
-            </div>
-          </MetricTooltip>
-        </div>
-
-        <div className="text-center">
-          <MetricTooltip
-            title="Competition Clubs"
-            description="Clubs with competitive activity in the last 24 months"
-            methodology="Clubs with at least one lifter who has competed in a sanctioned meet within the past 24 months"
-          >
-            <div className="text-app-secondary text-sm mb-1">Competition Clubs</div>
-            <div className="text-2xl font-bold text-app-primary">
-              {stats.activeClubs}
-            </div>
-          </MetricTooltip>
-        </div>
-      </div>
-
-      {/* External Link */}
-      <div className="pt-4 border-t border-app-secondary">
-        <a
-          href="https://usaweightlifting.sport80.com/public/widget/7"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors"
-        >
-          <ExternalLink className="h-4 w-4" />
-          <span>Official Club Directory</span>
-        </a>
-      </div>
-    </div>
-  )
+export const metadata: Metadata = {
+  title: 'Club Directory - USA Weightlifting',
+  description: 'Directory of all USA Weightlifting barbell clubs, including locations, active lifter statistics, and quadrant analysis.',
 }
 
-// Dynamically import the Club Map component with SSR disabled
-const ClubMap = dynamic(() => import("../components/Club/ClubMap"), {
-  ssr: false,
-  loading: () => (
-    <div className="h-96 w-full bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center">
-      <div className="text-gray-500 dark:text-gray-400">Loading map...</div>
-    </div>
-  ),
-})
+// Helper function to parse city and state from geocode display name or address
+function parseLocation(club: { geocode_display_name: string | null; address: string | null }): { city: string; state: string } {
+  const displayName = club.geocode_display_name || club.address || ''
+  const parts = displayName.split(',').map(p => p.trim())
 
-// Dynamically import the Club Quadrant Chart component with SSR disabled
-const ClubQuadrantChart = dynamic(() => import("../components/Club/ClubQuadrantChart"), {
-  ssr: false,
-  loading: () => (
-    <div className="h-96 w-full bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center">
-      <div className="text-gray-500 dark:text-gray-400">Loading analysis...</div>
-    </div>
-  ),
-})
+  // Common formats: "City, State" or "Address, City, State" or "Address, City, State, Country"
+  if (parts.length >= 2) {
+    const state = parts[parts.length - 1]
+    const city = parts[parts.length - 2]
 
-// Dynamically import the Club Bubble Chart component with SSR disabled
-/*
-const ClubBubbleChart = dynamic(() => import("../components/Club/ClubBubbleChart"), {
-  ssr: false,
-  loading: () => (
-    <div className="h-96 w-full bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center">
-      <div className="text-gray-500 dark:text-gray-400">Loading bubble chart...</div>
-    </div>
-  ),
-})
-*/
+    // Filter out country names and zip codes
+    if (state && !state.match(/^\d/) && state.length <= 20) {
+      return { city, state }
+    }
+  }
 
-// Dynamically import the Active Club Historical Chart component with SSR disabled
-/*
-const ActiveClubHistoricalChart = dynamic(() => import("../components/Club/ActiveClubHistoricalChart"), {
-  ssr: false,
-  loading: () => (
-    <div className="h-96 w-full bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center">
-      <div className="text-gray-500 dark:text-gray-400">Loading active club chart...</div>
-    </div>
-  ),
-})
-*/
+  return { city: '', state: '' }
+}
 
-export default function ClubPage() {
-  const router = useRouter()
+async function getClubData() {
+  try {
+    // 1. Fetch club locations data
+    const { data: clubsData, error: clubsError } = await supabase
+      .from('usaw_clubs')
+      .select('club_name, address, latitude, longitude, geocode_display_name, active_lifters_count')
+      .not('latitude', 'is', null)
+      .not('longitude', 'is', null)
 
-  return (
-    <div className="min-h-screen bg-app-gradient">
-        <div className="max-w-[1248px] mx-auto px-4 py-8">
-        <div className="space-y-6">
+    if (clubsError) throw clubsError
 
-          {/* Content Sections */}
-          <div className="space-y-6">
-            {/* Club Summary Statistics */}
-            <ClubSummary />
+    // Transform to match expected format
+    const clubLocations = (clubsData || []).map((club, index) => {
+      const { city, state } = parseLocation(club)
 
-            {/* Map Container */}
-            <div className="card-large">
-              <div className="mb-4">
-                <h2 className="text-xl font-semibold text-app-primary mb-2">
-                  Club Locations Map
-                </h2>
-                <p className="text-app-secondary">
-                  Interactive map showing all registered barbell club locations. Toggle filters to explore active clubs and state boundaries.
-                </p>
-              </div>
+      return {
+        id: index + 1,
+        name: club.club_name,
+        address: club.address || '',
+        latitude: Number(club.latitude),
+        longitude: Number(club.longitude),
+        city,
+        state,
+        recentMemberCount: club.active_lifters_count || 0
+      }
+    }).filter(club =>
+      !isNaN(club.latitude) && !isNaN(club.longitude) &&
+      club.latitude >= -90 && club.latitude <= 90 &&
+      club.longitude >= -180 && club.longitude <= 180
+    )
 
-              <ClubMap />
-            </div>
+    // 2. Fetch quadrant data
+    const { data: quadrantClubsData, error: quadrantError } = await supabase
+      .from('usaw_clubs')
+      .select('club_name, address, latitude, longitude, geocode_display_name, wso_geography, active_lifters_count, activity_factor, total_participations, recent_meets_count')
+      .not('latitude', 'is', null)
+      .not('longitude', 'is', null)
+      .gt('active_lifters_count', 0) // Only competition clubs
 
-            {/* Club Development Asymmetric Quadrant Plot */}
-            <div className="card-large">
-              <div className="mb-4">
-                <h2 className="text-xl font-semibold text-app-primary mb-2">
-                  Club Development Asymmetric Quadrant Plot
-                </h2>
-                <p className="text-app-secondary">
-                  Scatter plot visualization categorizing clubs by member count and activity level.
-                  Hover over points for detailed club information and click to explore individual club pages.
-                  Note that point location on the graph isn't exactly precise due to 'jitter' setting which allows for visualization of overlapping points.
-                </p>
-              </div>
+    if (quadrantError) throw quadrantError
 
-              <ClubQuadrantChart />
-            </div>
+    // Hard-coded quad quadrant thresholds
+    const LIFTERS_THRESHOLD = 20
+    const ACTIVITY_THRESHOLD_POWERHOUSE = 2.75
+    const ACTIVITY_THRESHOLD_INTENSIVE = 2.25
 
-            {/* Club Comprehensive Bubble Chart
-            <div className="card-large">
-              <div className="mb-4">
-                <h2 className="text-xl font-semibold text-app-primary mb-2">
-                  Comprehensive Club Profile Bubble Chart
-                </h2>
-                <p className="text-app-secondary">
-                  Four-dimensional visualization showing active lifters (X-axis), activity factor (Y-axis),
-                  total participations (bubble size), and recent meets count (color intensity).
-                </p>
-                <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                  <div className="flex items-center space-x-2">
-                    <div className="text-app-secondary">
-                      <strong>X-axis:</strong> Active lifters count
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="text-app-secondary">
-                      <strong>Y-axis:</strong> Activity factor (competitions per lifter)
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="text-app-secondary">
-                      <strong>Bubble size:</strong> Total participations
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="text-app-secondary">
-                      <strong>Color intensity:</strong> Recent meets count
-                    </div>
-                  </div>
-                </div>
-              </div>
+    // Categorize clubs into quadrants
+    const enhancedClubs = (quadrantClubsData || []).map(club => {
+      const { city, state } = parseLocation(club)
+      const activityFactor = club.activity_factor || 0
 
-              <ClubBubbleChart />
-            </div>
-            */}
+      let quadrant: 'powerhouse' | 'intensive' | 'sleeping-giant' | 'developing'
+      let quadrant_label: string
 
-            {/* Active Club Performance Trends
-            <div className="card-large">
-              <div className="mb-4">
-                <h2 className="text-xl font-semibold text-app-primary mb-2">
-                  Active Club Performance Trends
-                </h2>
-                <p className="text-app-secondary">
-                  Rolling 12-month active membership trends for currently active weightlifting clubs. Focus on clubs with recent competitive activity using meaningful historical data.
-                </p>
-                <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                  <div className="flex items-center space-x-2">
-                    <div className="text-app-secondary">
-                      <strong>Data Source:</strong> Rolling 12-month active membership snapshots
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="text-app-secondary">
-                      <strong>Club Selection:</strong> Currently active clubs ranked by recent, peak, or average activity
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="text-app-secondary">
-                      <strong>Time Range:</strong> Configurable from 2 years to full historical data
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="text-app-secondary">
-                      <strong>Focus:</strong> Only clubs with current competitive activity
-                    </div>
-                  </div>
-                </div>
-              </div>
+      if (club.active_lifters_count >= 20 && activityFactor >= 2.75) {
+        quadrant = 'powerhouse'
+        quadrant_label = 'Powerhouse'
+      } else if (club.active_lifters_count <= 19 && activityFactor >= 2.25) {
+        quadrant = 'intensive'
+        quadrant_label = 'Intensive'
+      } else if (club.active_lifters_count >= 20 && activityFactor < 2.75) {
+        quadrant = 'sleeping-giant'
+        quadrant_label = 'Sleeping Giant'
+      } else {
+        quadrant = 'developing'
+        quadrant_label = 'Developing'
+      }
 
-              <ActiveClubHistoricalChart />
-            </div>
-            */}
+      return {
+        club_name: club.club_name,
+        active_lifters_count: club.active_lifters_count,
+        activity_factor: Number(activityFactor.toFixed(2)),
+        total_participations: club.total_participations || 0,
+        recent_meets_count: club.recent_meets_count || 0,
+        address: club.address || '',
+        city,
+        state,
+        latitude: Number(club.latitude),
+        longitude: Number(club.longitude),
+        wso_geography: club.wso_geography || '',
+        quadrant,
+        quadrant_label
+      }
+    })
 
-            {/* Additional Information
-            <div className="card-large">
-              <div className="mb-4">
-                <h2 className="text-xl font-semibold text-app-primary mb-2">
-                  About Club Data
-                </h2>
-                <div className="space-y-3 text-app-secondary">
-                  <p>
-                    This directory includes all registered USA Weightlifting barbell clubs with location data.
-                    Club activity is measured by recent competitive participation from club members.
-                  </p>
-                  <p>
-                    Click on any club marker to view details and access individual club pages with member information,
-                    performance metrics, and competition history.
-                  </p>
-                  <p>
-                    Use the map controls to filter by active clubs only or toggle state boundaries for geographic context.
-                  </p>
-                </div>
-              </div>
-            </div>
-            */}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+    // Calculate quadrant statistics
+    const stats = {
+      powerhouse: { count: 0, avgLifters: 0, avgActivity: 0 },
+      intensive: { count: 0, avgLifters: 0, avgActivity: 0 },
+      'sleeping-giant': { count: 0, avgLifters: 0, avgActivity: 0 },
+      developing: { count: 0, avgLifters: 0, avgActivity: 0 }
+    }
+
+    enhancedClubs.forEach(club => {
+      const quadrantStats = stats[club.quadrant]
+      quadrantStats.count++
+      quadrantStats.avgLifters += club.active_lifters_count
+      quadrantStats.avgActivity += club.activity_factor
+    })
+
+    // Calculate averages
+    Object.keys(stats).forEach(quadrant => {
+      const quadrantKey = quadrant as keyof typeof stats
+      const quadrantStats = stats[quadrantKey]
+      if (quadrantStats.count > 0) {
+        quadrantStats.avgLifters = Math.round((quadrantStats.avgLifters / quadrantStats.count) * 10) / 10
+        quadrantStats.avgActivity = Math.round((quadrantStats.avgActivity / quadrantStats.count) * 100) / 100
+      }
+    })
+
+    // 3. Calculate overall stats
+    const totalClubs = clubLocations.length
+    const activeClubs = clubLocations.filter(club => club.recentMemberCount > 0).length
+    const states = clubLocations.map(club => club.state).filter(Boolean)
+    const uniqueStates = new Set(states)
+    const statesCount = uniqueStates.size
+    const totalMembers = clubLocations.reduce((sum, club) => sum + club.recentMemberCount, 0)
+    const averageMembersPerClub = totalClubs > 0 ? Math.round(totalMembers / totalClubs * 10) / 10 : 0
+
+    return {
+      clubLocations,
+      quadrantData: {
+        clubs: enhancedClubs,
+        stats,
+        boundaries: {
+          liftersMedian: LIFTERS_THRESHOLD,
+          activityMedian: ACTIVITY_THRESHOLD_POWERHOUSE
+        },
+        totalClubs: enhancedClubs.length
+      },
+      clubStats: {
+        totalClubs,
+        activeClubs,
+        statesCount,
+        averageMembersPerClub
+      }
+    }
+  } catch (err) {
+    console.error('Error fetching club data:', err)
+    return {
+      clubLocations: [],
+      quadrantData: {
+        clubs: [],
+        stats: {
+          powerhouse: { count: 0, avgLifters: 0, avgActivity: 0 },
+          intensive: { count: 0, avgLifters: 0, avgActivity: 0 },
+          'sleeping-giant': { count: 0, avgLifters: 0, avgActivity: 0 },
+          developing: { count: 0, avgLifters: 0, avgActivity: 0 }
+        },
+        boundaries: { liftersMedian: 0, activityMedian: 0 },
+        totalClubs: 0
+      },
+      clubStats: {
+        totalClubs: 0,
+        activeClubs: 0,
+        statesCount: 0,
+        averageMembersPerClub: 0
+      }
+    }
+  }
+}
+
+export default async function ClubDirectoryPage() {
+  const clubData = await getClubData()
+
+  return <ClubDirectoryClient clubData={clubData} />
 }
