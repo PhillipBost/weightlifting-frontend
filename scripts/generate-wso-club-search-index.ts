@@ -63,11 +63,16 @@ async function generateWsoClubIndex() {
     try {
         // 1. Fetch WSOs
         console.log('Fetching WSOs from usaw_wso_information...');
-        const { data: wsos, error: wsoError } = await usawClient
+        const { data: wsos, error: wsoError, count } = await usawClient
             .from('usaw_wso_information')
-            .select('wso_id, name, states');
+            .select('wso_id, name, states', { count: 'exact' });
 
-        if (wsoError) throw new Error(`WSO fetch error: ${wsoError.message}`);
+        if (wsoError) {
+            console.error('WSO fetch error:', wsoError);
+            throw new Error(`WSO fetch error: ${wsoError.message}`);
+        }
+
+        console.log(`Query returned: ${wsos?.length || 0} rows (count: ${count})`);
 
         if (wsos) {
             wsos.forEach((wso: any) => {
@@ -87,16 +92,25 @@ async function generateWsoClubIndex() {
             console.log(`✅ Added ${wsos.length} WSOs`);
             if (wsos.length === 0) {
                 console.warn('⚠️  WARNING: No WSOs found in usaw_wso_information table!');
+                console.warn('⚠️  This might be due to:');
+                console.warn('   - Row-Level Security (RLS) policies blocking access');
+                console.warn('   - Service role key lacking permissions');
+                console.warn('   - Empty table in this environment');
             }
         }
 
         // 2. Fetch Clubs
         console.log('Fetching Clubs from usaw_clubs...');
-        const { data: clubs, error: clubError } = await usawClient
+        const { data: clubs, error: clubError, count: clubCount } = await usawClient
             .from('usaw_clubs')
-            .select('club_name, address, latitude, longitude, geocode_display_name');
+            .select('club_name, address, latitude, longitude, geocode_display_name', { count: 'exact' });
 
-        if (clubError) throw new Error(`Club fetch error: ${clubError.message}`);
+        if (clubError) {
+            console.error('Club fetch error:', clubError);
+            throw new Error(`Club fetch error: ${clubError.message}`);
+        }
+
+        console.log(`Query returned: ${clubs?.length || 0} rows (count: ${clubCount})`);
 
         if (clubs) {
             clubs.forEach((club: any, index: number) => {
@@ -117,6 +131,10 @@ async function generateWsoClubIndex() {
             console.log(`✅ Added ${clubs.length} Clubs`);
             if (clubs.length === 0) {
                 console.warn('⚠️  WARNING: No Clubs found in usaw_clubs table!');
+                console.warn('⚠️  This might be due to:');
+                console.warn('   - Row-Level Security (RLS) policies blocking access');
+                console.warn('   - Service role key lacking permissions');
+                console.warn('   - Empty table in this environment');
             }
         }
 
