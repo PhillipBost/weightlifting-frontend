@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Search, TrendingUp, Trophy, Users, Calendar, CalendarDays, CalendarFold, MapPinned, Weight, Dumbbell, Database, Filter, ArrowRight, Github, Heart, X, User, MapPin, Loader2, Shield } from 'lucide-react';
+import { Search, TrendingUp, Trophy, Users, Calendar, CalendarDays, CalendarFold, MapPinned, Weight, Dumbbell, Database, Filter, ArrowRight, Github, Heart, X, User, MapPin, Loader2, Shield, Archive } from 'lucide-react';
+
 
 
 import { useRouter } from 'next/navigation';
@@ -247,6 +248,31 @@ export default function WeightliftingLandingPage() {
                   </div>
                   <div className="flex items-center mt-4 text-sm text-purple-400 group-hover:text-purple-300 transition-colors">
                     <span>View upcoming meets</span>
+                    <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+              </Link>
+            )}
+
+            {/* Results Archive Navigation Card - visible only to Admin and VIP */}
+            {(user?.role === ROLES.ADMIN || user?.role === ROLES.VIP) && (
+              <Link href="/archive" className="group h-full">
+                <div className="bg-app-secondary border border-app-primary rounded-xl p-6 hover:bg-app-hover transition-all duration-200 hover:shadow-lg hover:scale-105 h-full flex flex-col justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="bg-indigo-500/10 rounded-full p-3 group-hover:bg-indigo-500/20 transition-colors">
+                      <Archive className="h-6 w-6 text-indigo-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-app-primary group-hover:text-indigo-400 transition-colors">
+                        Results Archive
+                      </h3>
+                      <p className="text-sm text-app-tertiary mt-1">
+                        Browse historical meet results
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center mt-4 text-sm text-indigo-400 group-hover:text-indigo-300 transition-colors">
+                    <span>View archive</span>
                     <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>
