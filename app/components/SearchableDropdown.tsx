@@ -20,7 +20,9 @@ interface SearchableDropdownProps<T> {
     triggerClassName?: string;
     dropdownClassName?: string;
     disabled?: boolean;
+    disableSearch?: boolean;
 }
+
 
 export function SearchableDropdown<T>({
     label,
@@ -34,8 +36,10 @@ export function SearchableDropdown<T>({
     // Default values matching the current "Premium" styling in RankingsPage (now base size)
     triggerClassName = "w-full flex items-center justify-between h-10 px-3 bg-app-tertiary border border-app-primary rounded-xl text-app-primary focus:outline-none focus:ring-2 focus:ring-blue-500",
     dropdownClassName = "absolute z-20 mt-1 w-full max-h-64 overflow-y-auto bg-app-surface border border-app-primary rounded-xl shadow-lg p-2",
-    disabled = false
+    disabled = false,
+    disableSearch = false
 }: SearchableDropdownProps<T>) {
+
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     // Virtualization: only render this many items initially
@@ -135,21 +139,23 @@ export function SearchableDropdown<T>({
                     <div className={dropdownClassName} onScroll={handleScroll}>
                         {/* Header: Search + Actions */}
                         <div className="bg-app-surface z-10 space-y-2 p-1 mb-1">
-                            {/* Search Bar */}
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    placeholder="Search..."
-                                    value={searchTerm}
-                                    onChange={(e) => {
-                                        setSearchTerm(e.target.value);
-                                        setVisibleCount(20); // Reset scroll on search
-                                    }}
-                                    className="w-full h-9 pl-8 pr-2 bg-app-tertiary border border-app-primary rounded text-sm text-app-primary placeholder:text-app-muted focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    autoFocus
-                                />
-                                <Search className="absolute left-3 top-2.5 h-4 w-4 text-app-tertiary" />
-                            </div>
+                            {/* Search Bar - Conditionally Rendered */}
+                            {!disableSearch && (
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        placeholder="Search..."
+                                        value={searchTerm}
+                                        onChange={(e) => {
+                                            setSearchTerm(e.target.value);
+                                            setVisibleCount(20); // Reset scroll on search
+                                        }}
+                                        className="w-full h-9 pl-8 pr-2 bg-app-tertiary border border-app-primary rounded text-sm text-app-primary placeholder:text-app-muted focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        autoFocus
+                                    />
+                                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-app-tertiary" />
+                                </div>
+                            )}
 
                             {/* Actions Row */}
                             <div className="flex justify-between items-center px-1">

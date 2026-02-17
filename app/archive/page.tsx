@@ -8,9 +8,12 @@ import { ResultsArchiveContent } from "./components/ResultsArchiveContent";
 export default function ResultsArchivePage() {
     return (
         <AuthGuard requireAnyRole={[ROLES.ADMIN, ROLES.VIP]}>
-            <div className="container mx-auto px-4 py-8">
-                <h1 className="text-3xl font-bold mb-6">Results Archive</h1>
-                <ResultsArchiveContent />
+            <div className="min-h-screen bg-app-primary">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    <div className="max-w-[1200px] mx-auto">
+                        <ResultsArchiveContent />
+                    </div>
+                </div>
             </div>
         </AuthGuard>
     );
