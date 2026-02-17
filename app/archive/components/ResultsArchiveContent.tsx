@@ -29,7 +29,7 @@ import { SearchableDropdown } from '../../components/SearchableDropdown';
 import { getCountryFlagComponent } from '../../utils/countryFlags';
 
 // Types
-interface Meet {
+export interface Meet {
     id: string;
     datasetId: string | number; // original ID
     name: string;
@@ -58,13 +58,13 @@ interface FilterState {
     endDate?: string;
 }
 
-export function ResultsArchiveContent() {
+export function ResultsArchiveContent({ initialMeets = [] }: { initialMeets?: Meet[] }) {
     const supabase = createClient();
 
     // State
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [meets, setMeets] = useState<Meet[]>([]);
+    const [meets, setMeets] = useState<Meet[]>(initialMeets);
 
     // Filter Options
     const [wsoOptions, setWsoOptions] = useState<string[]>([]);
@@ -108,148 +108,38 @@ export function ResultsArchiveContent() {
         link: false
     });
 
-    // Initial Data Fetch
+    // Extract filter options when meets data changes
     useEffect(() => {
-        fetchData();
-    }, []);
+        if (!meets.length) return;
 
-    async function fetchData() {
-        setLoading(true);
-        setError(null);
-        try {
-            // 1. Fetch USAW Meets from 'usaw_meets' table
-            const { data: usawData, error: usawError } = await supabase
-                .from('usaw_meets')
-                .select('meet_id, Meet, Date, location_text, city, state, URL, wso_geography, elevation_meters, Results, Level')
-                .order('Date', { ascending: false });
+        // Extract WSO Options (USAW only)
+        const wsos = Array.from(new Set(
+            meets
+                .filter(m => m.federation === 'USAW')
+                .map(m => m.wso)
+                .filter(Boolean) as string[]
+        )).sort();
+        setWsoOptions(wsos);
 
-            if (usawError) throw usawError;
-            console.log('Raw USAW Data Sample:', usawData?.slice(0, 2));
+        // Extract State Options (USAW only)
+        const states = Array.from(new Set(
+            meets
+                .filter(m => m.federation === 'USAW')
+                .map(m => m.state)
+                .filter(Boolean) as string[]
+        )).sort();
+        setStateOptions(states);
 
-            // 2. Fetch IWF Meets from 'iwf_meets' table
-            console.log('Fetching IWF Data...');
-            const { data: iwfData, error: iwfError } = await supabaseIWF
-                .from('iwf_meets')
-                .select(`
-                    iwf_meet_id,
-                    db_meet_id,
-                    meet,
-                    date,
-                    url,
-                    results,
-                    iwf_meet_locations (
-                        location_text,
-                        city,
-                        country
-                    )
-                `)
-                .order('date', { ascending: false });
-
-            if (iwfError) throw iwfError;
-            console.log('Raw IWF Data Sample:', iwfData?.slice(0, 2));
-
-            // Map USAW to unified interface
-            const usawMeets: Meet[] = (usawData || []).map((m: any) => {
-                let loc = m.location_text;
-                if (!loc && (m.city || m.state)) {
-                    loc = [m.city, m.state].filter(Boolean).join(', ');
-                }
-
-                // Level Inference
-                let level = m.Level;
-                if (!level) {
-                    const nameLower = m.Meet.toLowerCase();
-                    if (nameLower.includes('national') ||
-                        nameLower.includes('american open') ||
-                        nameLower.includes('north american')) {
-                        level = 'National';
-                    } else {
-                        level = 'Local';
-                    }
-                }
-
-                return {
-                    id: `usaw_${m.meet_id}`,
-                    datasetId: m.meet_id,
-                    name: m.Meet,
-                    date: m.Date,
-                    location: loc || 'Unknown Location',
-                    federation: 'USAW',
-                    url: m.URL,
-                    elevation: m.elevation_meters,
-                    wso: m.wso_geography,
-                    athleteCount: m.Results,
-                    state: m.state,
-                    country: 'USA',
-                    level: level
-                };
-            });
-
-            // Map IWF to unified interface
-            const iwfMeets: Meet[] = (iwfData || []).map((m: any) => {
-                // Handle 1:1 or 1:Many relationship gracefully
-                const locDataRaw = m.iwf_meet_locations;
-                const locData = Array.isArray(locDataRaw) ? locDataRaw[0] : locDataRaw;
-
-                let loc = locData?.location_text;
-                if (!loc && (locData?.city || locData?.country)) {
-                    loc = [locData.city, locData.country].filter(Boolean).join(', ');
-                }
-
-                return {
-                    id: `iwf_${m.iwf_meet_id}`,
-                    datasetId: m.db_meet_id,
-                    name: m.meet,
-                    date: m.date,
-                    location: loc || 'Unknown Location',
-                    federation: 'IWF',
-                    url: m.url,
-                    athleteCount: m.results,
-                    country: locData?.country,
-                    level: 'International'
-                };
-            });
-
-            const allMeets = [...usawMeets, ...iwfMeets].sort((a, b) =>
-                new Date(b.date).getTime() - new Date(a.date).getTime()
-            );
-
-            setMeets(allMeets);
-
-            // Debug: Check specific meet WSO issue
-            const problemMeet = allMeets.find(m => m.name.includes('Handle Barbell'));
-            if (problemMeet) {
-                console.warn('DEBUG: Problem Meet Data:', {
-                    name: problemMeet.name,
-                    wso: problemMeet.wso,
-                    state: problemMeet.state,
-                    location: problemMeet.location
-                });
-            }
-
-            // Extract WSO Options
-            const wsos = Array.from(new Set(usawMeets.map(m => m.wso).filter(Boolean) as string[])).sort();
-            setWsoOptions(wsos);
-
-            // Extract State Options
-            const states = Array.from(new Set(usawMeets.map(m => m.state).filter(Boolean) as string[])).sort();
-            console.log('Extracted States:', states.slice(0, 10)); // Debug states
-            setStateOptions(states);
-
-            // Extract Country Options
-            const countries = Array.from(new Set([
-                'USA',
-                ...iwfMeets.map(m => m.country).filter(Boolean) as string[]
-            ])).sort();
-            setCountryOptions(countries);
-
-        } catch (err: any) {
-            console.error('Error fetching archive data:', err);
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    }
+        // Extract Country Options
+        const countries = Array.from(new Set([
+            'USA',
+            ...meets
+                .filter(m => m.federation === 'IWF')
+                .map(m => m.country)
+                .filter(Boolean) as string[]
+        ])).sort();
+        setCountryOptions(countries);
+    }, [meets]);
 
     // Handlers
     const handleFilterChange = (key: keyof FilterState, value: any) => {
