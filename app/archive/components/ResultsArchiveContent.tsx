@@ -633,53 +633,53 @@ export function ResultsArchiveContent({ initialMeets = [] }: { initialMeets?: Me
                         </div>
                     ) : filteredMeets.length > 0 ? (
                         <div className="overflow-x-auto">
-                            <table className="w-full text-left table-fixed">
+                            <table className="w-full text-left">
                                 <thead className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200">
                                     <tr>
                                         {visibleColumns.date && (
-                                            <th className="px-2 py-1 w-[90px] text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none group whitespace-nowrap" onClick={() => handleSort('date')}>
+                                            <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none group whitespace-nowrap" onClick={() => handleSort('date')}>
                                                 Date {getSortIcon('date')}
                                             </th>
                                         )}
                                         {visibleColumns.name && (
-                                            <th className="px-2 py-1 w-[25%] text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none group whitespace-nowrap" onClick={() => handleSort('name')}>
+                                            <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none group whitespace-nowrap" onClick={() => handleSort('name')}>
                                                 Meet Name {getSortIcon('name')}
                                             </th>
                                         )}
                                         {visibleColumns.location && (
-                                            <th className="px-2 py-1 w-[20%] text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none group whitespace-nowrap" onClick={() => handleSort('location')}>
+                                            <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none group whitespace-nowrap" onClick={() => handleSort('location')}>
                                                 Location {getSortIcon('location')}
                                             </th>
                                         )}
                                         {visibleColumns.federation && (
-                                            <th className="px-2 py-1 w-[70px] text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none group whitespace-nowrap" onClick={() => handleSort('federation')}>
+                                            <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none group whitespace-nowrap" onClick={() => handleSort('federation')}>
                                                 SOURCE {getSortIcon('federation')}
                                             </th>
                                         )}
                                         {/* State - Hidden if IWF selected AND no USAW */}
                                         {visibleColumns.state && (!(filters.selectedSources.includes('IWF') && !filters.selectedSources.includes('USAW'))) && (
-                                            <th className="px-2 py-1 w-[60px] text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none group whitespace-nowrap" onClick={() => handleSort('state')}>
+                                            <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none group whitespace-nowrap" onClick={() => handleSort('state')}>
                                                 State {getSortIcon('state')}
                                             </th>
                                         )}
                                         {/* WSO - Hidden if IWF selected AND no USAW */}
                                         {visibleColumns.wso && (!(filters.selectedSources.includes('IWF') && !filters.selectedSources.includes('USAW'))) && (
-                                            <th className="px-2 py-1 w-[150px] text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none group whitespace-nowrap" onClick={() => handleSort('wso')}>
+                                            <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none group whitespace-nowrap" onClick={() => handleSort('wso')}>
                                                 WSO {getSortIcon('wso')}
                                             </th>
                                         )}
                                         {visibleColumns.level && (
-                                            <th className="px-2 py-1 w-[100px] text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none group whitespace-nowrap" onClick={() => handleSort('level')}>
+                                            <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none group whitespace-nowrap" onClick={() => handleSort('level')}>
                                                 Level {getSortIcon('level')}
                                             </th>
                                         )}
                                         {visibleColumns.athleteCount && (
-                                            <th className="px-2 py-1 w-[100px] text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none group whitespace-nowrap" onClick={() => handleSort('athleteCount')}>
+                                            <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none group whitespace-nowrap" onClick={() => handleSort('athleteCount')}>
                                                 Participants {getSortIcon('athleteCount')}
                                             </th>
                                         )}
                                         {visibleColumns.link && (
-                                            <th className="px-2 py-1 w-[80px] text-right text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider whitespace-nowrap">
+                                            <th className="px-2 py-1 text-right text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider whitespace-nowrap">
                                                 Ext. Link
                                             </th>
                                         )}
@@ -707,7 +707,7 @@ export function ResultsArchiveContent({ initialMeets = [] }: { initialMeets?: Me
                                                     </td>
                                                 )}
                                                 {visibleColumns.name && (
-                                                    <td className="px-2 py-1 font-medium truncate text-xs" title={meet.name}>
+                                                    <td className="px-2 py-1 font-medium whitespace-nowrap text-xs">
                                                         <Link
                                                             href={destinationUrl}
                                                             className="text-blue-400 hover:text-blue-300 hover:underline"
@@ -717,7 +717,7 @@ export function ResultsArchiveContent({ initialMeets = [] }: { initialMeets?: Me
                                                     </td>
                                                 )}
                                                 {visibleColumns.location && (
-                                                    <td className="px-2 py-1 truncate text-xs" title={meet.location}>
+                                                    <td className="px-2 py-1 whitespace-nowrap text-xs">
                                                         {meet.location}
                                                     </td>
                                                 )}
@@ -733,13 +733,13 @@ export function ResultsArchiveContent({ initialMeets = [] }: { initialMeets?: Me
                                                 )}
                                                 {/* State - Hidden if IWF selected AND no USAW */}
                                                 {visibleColumns.state && (!(filters.selectedSources.includes('IWF') && !filters.selectedSources.includes('USAW'))) && (
-                                                    <td className="px-2 py-1 text-xs truncate">
+                                                    <td className="px-2 py-1 text-xs whitespace-nowrap">
                                                         {meet.state || '-'}
                                                     </td>
                                                 )}
                                                 {/* WSO - Hidden if IWF selected AND no USAW */}
                                                 {visibleColumns.wso && (!(filters.selectedSources.includes('IWF') && !filters.selectedSources.includes('USAW'))) && (
-                                                    <td className="px-2 py-1 text-xs truncate">
+                                                    <td className="px-2 py-1 text-xs whitespace-nowrap">
                                                         {meet.wso ? (
                                                             <Link
                                                                 href={`/WSO/${meet.wso.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').trim()}`}
@@ -751,7 +751,7 @@ export function ResultsArchiveContent({ initialMeets = [] }: { initialMeets?: Me
                                                     </td>
                                                 )}
                                                 {visibleColumns.level && (
-                                                    <td className="px-2 py-1 text-xs truncate">
+                                                    <td className="px-2 py-1 text-xs whitespace-nowrap">
                                                         {meet.level || '-'}
                                                     </td>
                                                 )}
