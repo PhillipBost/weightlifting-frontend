@@ -95,6 +95,5 @@ export const config = {
     '/admin/:path*',
     '/rankings/:path*',
     '/upcoming-meets/:path*',
-    '/archive/:path*',
   ],
 }

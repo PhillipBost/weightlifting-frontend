@@ -143,7 +143,7 @@ export default function WeightliftingLandingPage() {
             <span className="block text-blue-400">Results Database</span>
           </h2>
           <p className="text-xl text-app-tertiary mb-8 leading-relaxed">
-            Search through <span className="font-bold text-blue-500">394,112</span> competition results by <span className="font-bold text-blue-500">86,613</span> athletes across <span className="font-bold text-blue-500">7,699</span> meets from USA and International Olympic Weightlifting.
+            Search through <span className="font-bold text-blue-500">{dbStats?.results ? dbStats.results.toLocaleString() : '394,908'}</span> competition results by <span className="font-bold text-blue-500">{dbStats?.athletes ? dbStats.athletes.toLocaleString() : '86,877'}</span> athletes across <span className="font-bold text-blue-500">{dbStats?.meets ? dbStats.meets.toLocaleString() : '7,720'}</span> meets from USA and International Olympic Weightlifting.
           </p>
 
           <div className="w-full max-w-4xl mx-auto mt-8">
@@ -255,29 +255,27 @@ export default function WeightliftingLandingPage() {
             )}
 
             {/* Results Archive Navigation Card - visible only to Admin and VIP */}
-            {(user?.role === ROLES.ADMIN || user?.role === ROLES.VIP) && (
-              <Link href="/archive" className="group h-full">
-                <div className="bg-app-secondary border border-app-primary rounded-xl p-6 hover:bg-app-hover transition-all duration-200 hover:shadow-lg hover:scale-105 h-full flex flex-col justify-between">
-                  <div className="flex items-center space-x-4">
-                    <div className="bg-indigo-500/10 rounded-full p-3 group-hover:bg-indigo-500/20 transition-colors">
-                      <Archive className="h-6 w-6 text-indigo-400" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-app-primary group-hover:text-indigo-400 transition-colors">
-                        Results Archive
-                      </h3>
-                      <p className="text-sm text-app-tertiary mt-1">
-                        Browse historical meet results
-                      </p>
-                    </div>
+            <Link href="/archive" className="group h-full">
+              <div className="bg-app-secondary border border-app-primary rounded-xl p-6 hover:bg-app-hover transition-all duration-200 hover:shadow-lg hover:scale-105 h-full flex flex-col justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="bg-indigo-500/10 rounded-full p-3 group-hover:bg-indigo-500/20 transition-colors">
+                    <Archive className="h-6 w-6 text-indigo-400" />
                   </div>
-                  <div className="flex items-center mt-4 text-sm text-indigo-400 group-hover:text-indigo-300 transition-colors">
-                    <span>View archive</span>
-                    <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  <div>
+                    <h3 className="text-lg font-semibold text-app-primary group-hover:text-indigo-400 transition-colors">
+                      Results Archive
+                    </h3>
+                    <p className="text-sm text-app-tertiary mt-1">
+                      Browse historical meet results
+                    </p>
                   </div>
                 </div>
-              </Link>
-            )}
+                <div className="flex items-center mt-4 text-sm text-indigo-400 group-hover:text-indigo-300 transition-colors">
+                  <span>View archive</span>
+                  <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </div>
+            </Link>
 
             {/* Admin Dashboard Navigation Card - visible only to Admin */}
             {user?.role === ROLES.ADMIN && (

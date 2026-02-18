@@ -1,6 +1,4 @@
 import React from "react";
-import { AuthGuard } from "../components/AuthGuard";
-import { ROLES } from "../../lib/roles";
 import { ResultsArchiveContent, Meet } from "./components/ResultsArchiveContent";
 import { createClient } from '@supabase/supabase-js';
 import { supabaseIWF } from "../../lib/supabaseIWF"; // We can still use this for IWF or just use the admin client for both if they are same DB.
@@ -123,14 +121,12 @@ export default async function ResultsArchivePage() {
     const initialMeets = await getArchiveData();
 
     return (
-        <AuthGuard requireAnyRole={[ROLES.ADMIN, ROLES.VIP]}>
-            <div className="min-h-screen bg-app-primary">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <div className="max-w-[1200px] mx-auto">
-                        <ResultsArchiveContent initialMeets={initialMeets} />
-                    </div>
+        <div className="min-h-screen bg-app-primary">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="max-w-[1200px] mx-auto">
+                    <ResultsArchiveContent initialMeets={initialMeets} />
                 </div>
             </div>
-        </AuthGuard>
+        </div>
     );
 }

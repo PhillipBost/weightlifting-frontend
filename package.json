@@ -15,7 +15,8 @@
     "generate-rankings": "npx tsx scripts/generate-usaw-rankings.ts && npx tsx scripts/generate-iwf-rankings.ts",
     "generate-rankings-current": "npx tsx scripts/generate-current-year-rankings.ts",
     "generate-wso-club-index": "npx tsx scripts/generate-wso-club-search-index.ts",
-    "generate-all": "npm run generate-static && npm run generate-search && npm run generate-rankings"
+    "generate-stats": "npx tsx scripts/update-db-stats.ts",
+    "generate-all": "npm run generate-static && npm run generate-search && npm run generate-rankings && npm run generate-stats"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
