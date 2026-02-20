@@ -277,30 +277,28 @@ export default function WeightliftingLandingPage() {
               </div>
             </Link>
 
-            {/* Lift Til Ya Die Mirror - visible only to Admin and VIP */}
-            {!!user && (user.role === ROLES.ADMIN || user.role === ROLES.VIP) && (
-              <Link href="/LiftTilYaDie/index.html" className="group h-full" target="_blank">
-                <div className="bg-app-secondary border border-app-primary rounded-xl p-6 hover:bg-app-hover transition-all duration-200 hover:shadow-lg hover:scale-105 h-full flex flex-col justify-between">
-                  <div className="flex items-center space-x-4">
-                    <div className="bg-yellow-500/10 rounded-full p-3 group-hover:bg-yellow-500/20 transition-colors">
-                      <Weight className="h-6 w-6 text-yellow-500" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-app-primary group-hover:text-yellow-400 transition-colors">
-                        LiftTilYaDie.com Site Archive
-                      </h3>
-                      <p className="text-sm text-app-tertiary mt-1">
-                        Mirror of Butch Curry's original site (1998-2020)
-                      </p>
-                    </div>
+            {/* Lift Til Ya Die Mirror - publicly visible */}
+            <Link href="/LiftTilYaDie/index.html" className="group h-full" target="_blank">
+              <div className="bg-app-secondary border border-app-primary rounded-xl p-6 hover:bg-app-hover transition-all duration-200 hover:shadow-lg hover:scale-105 h-full flex flex-col justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="bg-yellow-500/10 rounded-full p-3 group-hover:bg-yellow-500/20 transition-colors">
+                    <Weight className="h-6 w-6 text-yellow-500" />
                   </div>
-                  <div className="flex items-center mt-4 text-sm text-yellow-500 group-hover:text-yellow-400 transition-colors">
-                    <span>Visit mirror</span>
-                    <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  <div>
+                    <h3 className="text-lg font-semibold text-app-primary group-hover:text-yellow-400 transition-colors">
+                      LiftTilYaDie.com Site Archive
+                    </h3>
+                    <p className="text-sm text-app-tertiary mt-1">
+                      Mirror of Butch Curry's original site (1998-2020)
+                    </p>
                   </div>
                 </div>
-              </Link>
-            )}
+                <div className="flex items-center mt-4 text-sm text-yellow-500 group-hover:text-yellow-400 transition-colors">
+                  <span>Visit mirror</span>
+                  <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </div>
+            </Link>
 
             {/* Admin Dashboard Navigation Card - visible only to Admin */}
             {user?.role === ROLES.ADMIN && (

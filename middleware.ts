@@ -83,32 +83,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
-  // Special protection for LiftTilYaDie mirror - strict Role Based Access Control
-  if (request.nextUrl.pathname.startsWith('/LiftTilYaDie')) {
-    const { data: { user }, error } = await supabase.auth.getUser()
-
-    if (error || !user) {
-      const redirectUrl = request.nextUrl.clone();
-      redirectUrl.pathname = '/';
-      redirectUrl.searchParams.set('auth', 'required');
-      return NextResponse.redirect(redirectUrl);
-    }
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    // Roles allowed to access the mirror
-    const allowedRoles = ['admin', 'vip', 'researcher', 'usaw_national_team_coach'];
-    if (!profile || !allowedRoles.includes(profile.role)) {
-      console.log(`[MIDDLEWARE] Access denied to /LiftTilYaDie for user ${user.id} with role ${profile?.role}`);
-      const redirectUrl = request.nextUrl.clone();
-      redirectUrl.pathname = '/';
-      return NextResponse.redirect(redirectUrl);
-    }
-  }
 
   return response;
 }
@@ -122,6 +96,5 @@ export const config = {
     '/admin/:path*',
     '/rankings/:path*',
     '/upcoming-meets/:path*',
-    '/LiftTilYaDie/:path*',
   ],
 }
