@@ -1,0 +1,65 @@
+﻿Archive root: C:\Users\phill\Desktop\Bost Laboratory Services\Weightlifting\weightlifting-frontend\public\LiftTilYaDie
+Reading w8lift.htm...
+python : Traceback 
+(most recent call 
+last):
+At line:1 char:1
++ python scripts/ind
+ex_results.py 2>&1 
+| Out-File 
+-FilePath 
+scripts/out ...
++ ~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
+    + CategoryInfo  
+            : NotS  
+  pecified: (Trac   
+ eback (most rec    
+ent call last):    
+:String) [], Re    
+moteException
+    + FullyQualifie 
+   dErrorId : Nati  
+  veCommandError
+ 
+  File "C:\Users\phi
+ll\Desktop\Bost 
+Laboratory Services\
+Weightlifting\weight
+lifting-frontend\scr
+ipts\index_results.p
+y", line 544, in 
+<module>
+    main()
+  File "C:\Users\phi
+ll\Desktop\Bost 
+Laboratory Services\
+Weightlifting\weight
+lifting-frontend\scr
+ipts\index_results.p
+y", line 468, in 
+main
+    print(f"  
+\u2192 
+{len(linked_paths)} 
+linked hrefs found 
+in w8lift.htm")
+  File "C:\Program F
+iles\Python312\Lib\e
+ncodings\cp1252.py",
+ line 19, in encode
+    return codecs.ch
+armap_encode(input,s
+elf.errors,encoding_
+table)[0]
+           ^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^
+^^^^^^
+UnicodeEncodeError: 
+'charmap' codec 
+can't encode 
+character '\u2192' 
+in position 2: 
+character maps to 
+<undefined>

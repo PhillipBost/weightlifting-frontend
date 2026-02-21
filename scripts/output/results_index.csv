@@ -1,0 +1,548 @@
+filename,pool,file_path,linked_from_root,meet_name,date_raw,date_start,date_end,location,source,file_size_bytes,notes
+00AmOpen.htm,root,public/LiftTilYaDie/00AmOpen.htm,False,2000 AMERICAN OPEN,"DECEMBER 1-3, 2000",2000-12-01,2000-12-03,"BUFFALO, NY",,117301,duplicate_exists_in_Results
+00CalStates.htm,root,public/LiftTilYaDie/00CalStates.htm,False,2000 California State Championships,"May 20, 2000",2000-17-20,2000-17-20,"Sacramento State University, Sacramento, CA",,36416,duplicate_exists_in_Results
+00GldWst.htm,root,public/LiftTilYaDie/00GldWst.htm,False,2000 Golden West Open,"November 5, 2000",2000-11-05,2000-11-05,"Cal State Sacramento, Sacramento, CA",,26960,duplicate_exists_in_Results
+00JrNats.htm,root,public/LiftTilYaDie/00JrNats.htm,False,2000 USAW JUNIOR NATIONALS,"February 11 - 13, 2000",2000-02-11,2000-02-13,"USA WEIGHTLIFTING JUNIOR NATIONALS Shreveport, LA",,119040,duplicate_exists_in_Results; has_record_notations
+00NoGuts.htm,root,public/LiftTilYaDie/00NoGuts.htm,False,2000 NO GUTS ~ NO GLORY OPEN,2000,2000,,,Jim Schmitz,30000,duplicate_exists_in_Results
+00OlyTry.htm,root,public/LiftTilYaDie/00OlyTry.htm,False,2000 USAW OLYMPIC TRYOUTS,"July 22, 2000",2000-07-22,2000-07-22,"USA WEIGHTLIFTING OLYMPIC TRYOUTS New Orleans, LA",,26609,duplicate_exists_in_Results; has_record_notations
+00SrNats.htm,root,public/LiftTilYaDie/00SrNats.htm,False,2000 USAW SENIOR NATIONALS,"March 10 - 12, 2000",2000-03-10,2000-03-12,"USA WEIGHTLIFTING SENIOR NATIONALS Frederick, MD",,87699,duplicate_exists_in_Results
+01AmOpen.htm,root,public/LiftTilYaDie/01AmOpen.htm,False,2001 AMERICAN OPEN,"DECEMBER 7 - 9, 2001",2001-12-07,2001-12-09,DOMESTIC DIVISION,,160242,duplicate_exists_in_Results; has_record_notations; large_file_possibly_multi_meet
+01GldWst.htm,root,public/LiftTilYaDie/01GldWst.htm,False,2001 Golden West Open,"November 3, 2001",2001-11-03,2001-11-03,"Chico State University, Chico, CA",,39015,duplicate_exists_in_Results
+01JrNats.htm,root,public/LiftTilYaDie/01JrNats.htm,False,2001 NATIONAL JUNIORS,"MARCH 16 - 18, 2001",2001-03-16,2001-03-18,JUNIOR NATIONALS,,257252,duplicate_exists_in_Results; has_record_notations; large_file_possibly_multi_meet
+01NoGuts.htm,root,public/LiftTilYaDie/01NoGuts.htm,False,2001 NO GUTS ~ NO GLORY OPEN,2001,2001,,,,33747,duplicate_exists_in_Results
+01SrNats.htm,root,public/LiftTilYaDie/01SrNats.htm,False,2001 SENIOR NATIONALS,"APRIL 20 - 22, 2001",2001-04-20,2001-04-22,SENIOR NATIONALS,,71704,duplicate_exists_in_Results; has_record_notations
+01TryOut.htm,root,public/LiftTilYaDie/01TryOut.htm,False,2001 USA Weightlifting World Team Tryouts,"June 16, 2001",2001-06-16,2001-06-16,"World Team Tryouts Dallas, TX",,27957,duplicate_exists_in_Results; has_record_notations
+92BltBkl.htm,root,public/LiftTilYaDie/92BltBkl.htm,False,1992 Belt Buckle Open,"August 16, 1992",1992-08-16,1992-08-16,MWC Training Center,,14632,duplicate_exists_in_Results
+92GldWst.htm,root,public/LiftTilYaDie/92GldWst.htm,False,1992 Golden West,"December 12, 1992",1992-12-12,1992-12-12,MWC Training Center,Jim Schmitz,14713,duplicate_exists_in_Results
+92NorCal.htm,root,public/LiftTilYaDie/92NorCal.htm,False,1992 Northern California Open,"June 14, 1992",1992-06-14,1992-06-14,Marin Training Center,Jim Schmitz,10901,duplicate_exists_in_Results
+93BerMug.htm,root,public/LiftTilYaDie/93BerMug.htm,False,1993 Northern California/Beer Mug Open,"June 5, 1993",1993-06-05,1993-06-05,Marin Training Center,,6711,duplicate_exists_in_Results
+93BltBkl.htm,root,public/LiftTilYaDie/93BltBkl.htm,False,1993 Belt Buckle Open,"August 8, 1993",1993-08-08,1993-08-08,The Sports Palace,Jim Schmitz,5663,duplicate_exists_in_Results
+93CalSt.htm,root,public/LiftTilYaDie/93CalSt.htm,False,1993 California State Championships,"March 13, 1993",1993-03-13,1993-03-13,MWC Training Center,Jim Schmitz,15926,duplicate_exists_in_Results
+94AmOpen.htm,root,public/LiftTilYaDie/94AmOpen.htm,False,1994 AMERICAN OPEN,"December 12-14, 1994",1994-12-12,1994-12-14,Northern Arizona University,,56696,duplicate_exists_in_Results
+94GldWst.htm,root,public/LiftTilYaDie/94GldWst.htm,False,1994 Golden West Open,December 1994,1994-12,,Marin Training Center,Jim Schmitz,10246,duplicate_exists_in_Results
+94Marin.htm,root,public/LiftTilYaDie/94Marin.htm,False,1994 Marin Open,"March 16, 1994",1994-03-16,1994-03-16,Marin Training Center,,11286,duplicate_exists_in_Results
+94NorCal.htm,root,public/LiftTilYaDie/94NorCal.htm,False,1994 Northern California Open,1994,1994,,Marin Training Center,,12619,duplicate_exists_in_Results
+95GldWst.htm,root,public/LiftTilYaDie/95GldWst.htm,False,1995 Golden West,"March 25, 1995",1995-03-25,1995-03-25,Marin Training Center,,13210,duplicate_exists_in_Results
+95Marin.htm,root,public/LiftTilYaDie/95Marin.htm,False,1995 MARIN OPEN,"November 11, 1995",1995-11-11,1995-11-11,Marin Training Center,,14857,duplicate_exists_in_Results
+95NorCal.htm,root,public/LiftTilYaDie/95NorCal.htm,False,1995 Northern California Open,"June 3, 1995",1995-06-03,1995-06-03,Marin Training Center,Jim Schmitz,11539,duplicate_exists_in_Results
+95SrNats.htm,root,public/LiftTilYaDie/95SrNats.htm,False,1995 Senior Nationals,"April 28-30, 1995",1995-04-28,1995-04-30,William Saroyan Theater,,46547,duplicate_exists_in_Results
+96CalSt.htm,root,public/LiftTilYaDie/96CalSt.htm,False,1996 California State Championships,"January 27, 1996",1996-01-27,1996-01-27,Marin Training Center,Jim Schmitz,14290,duplicate_exists_in_Results
+96Marin.htm,root,public/LiftTilYaDie/96Marin.htm,False,1996 MARIN Open Weightlifting Championships,"March 16, 1996",1996-03-16,1996-03-16,Marin Training Center,,12920,duplicate_exists_in_Results
+96WestHS.htm,root,public/LiftTilYaDie/96WestHS.htm,False,1996 Sacramento State University High School Weightlifting Championships,1996,1996,,High School Weightlifting Championships,,10340,duplicate_exists_in_Results
+97AmOpen.htm,root,public/LiftTilYaDie/97AmOpen.htm,False,1997 USAW American Open,"November 7-9, 1997",1997-11-07,1997-11-09,"Joseph, MO",,92946,duplicate_exists_in_Results
+97BltBkl.htm,root,public/LiftTilYaDie/97BltBkl.htm,False,1997 Belt Buckle Open,"August 10, 1997",1997-08-10,1997-08-10,The Sports Palace,Jim Schmitz,13321,duplicate_exists_in_Results
+97GldWst.htm,root,public/LiftTilYaDie/97GldWst.htm,False,1997 Golden West Open Championships,"October 4, 1997",1997-10-04,1997-10-04,Sacramento State University,Jim Schmitz,13935,duplicate_exists_in_Results
+97SacOpn.htm,root,public/LiftTilYaDie/97SacOpn.htm,False,1997 Sacramento Open,"December 13, 1997",1997-12-13,1997-12-13,Sacramento State University,,7868,duplicate_exists_in_Results
+97TryOut.htm,root,public/LiftTilYaDie/97TryOut.htm,False,1997 USAW World Team Tryouts,"August 23, 1997",1997-08-23,1997-08-23,"World Team Tryouts Boise, ID",,16562,duplicate_exists_in_Results
+97WestHS.htm,root,public/LiftTilYaDie/97WestHS.htm,False,1997 Western States High School Weightlifting Championships,1997,1997,,Weightlifting Championships,,19550,duplicate_exists_in_Results
+98BltBkl.htm,root,public/LiftTilYaDie/98BltBkl.htm,False,1998 Belt Buckle Open,"August 23, 1998",1998-08-23,1998-08-23,Sacramento State University,,13554,duplicate_exists_in_Results
+98CALSt.htm,root,public/LiftTilYaDie/98CALSt.htm,False,1998 California State Weightlifting Championships,"March 29, 1998",1998-03-29,1998-03-29,"The Sports Palace, San Francisco, CA",,19504,duplicate_exists_in_Results
+98GldWst.htm,root,public/LiftTilYaDie/98GldWst.htm,False,1998 Golden West Open,"November 1, 1998",1998-11-01,1998-11-01,"Flexit Gym, Mountain View, CA",,9149,duplicate_exists_in_Results
+98NorCal.htm,root,public/LiftTilYaDie/98NorCal.htm,False,1998 Northern California/Sacramento Open,"May 23, 1998",1998-17-23,1998-17-23,Sacramento Open,,31994,duplicate_exists_in_Results
+98SrNats.htm,root,public/LiftTilYaDie/98SrNats.htm,False,1998 USAW SENIOR NATIONALS,"April 24 - 26, 1998",1998-04-24,1998-04-26,"Flagstaff, AZ",,74372,duplicate_exists_in_Results
+98TryOut.htm,root,public/LiftTilYaDie/98TryOut.htm,False,1998 USA Weightlifting World Team Tryouts,"August 29, 1998",1998-08-29,1998-08-29,"World Team Tryouts Houston, TX",,17322,duplicate_exists_in_Results
+98WestHS.htm,root,public/LiftTilYaDie/98WestHS.htm,False,1998 Western States High School Weightlifting Championships,1998,1998,,Weightlifting,,19809,duplicate_exists_in_Results
+99AmOpen.htm,root,public/LiftTilYaDie/99AmOpen.htm,False,1999 American Open - Men,"DECEMBER 17-19, 1999",1999-12-17,1999-12-19,"TACOMA, WA",,112578,duplicate_exists_in_Results
+99BltBkl.htm,root,public/LiftTilYaDie/99BltBkl.htm,False,1999 Belt Buckle Open,"August 22, 1999",1999-08-22,1999-08-22,Sacramento State University,Jim Schmitz,28621,
+99GldWst.htm,root,public/LiftTilYaDie/99GldWst.htm,False,1999 Golden West Open,"October 10, 1999",1999-10-10,1999-10-10,"Flexit Gym, Mountain View, CA",Jim Schmitz,30631,duplicate_exists_in_Results
+99LstChn.htm,root,public/LiftTilYaDie/99LstChn.htm,False,1999 Sacramento Last Chance,"March 27, 1999",1999-03-27,1999-03-27,Sacramento State University,,8743,duplicate_exists_in_Results
+99NCalHS.htm,root,public/LiftTilYaDie/99NCalHS.htm,False,1999 NorCal High School Championships,"May 30, 1999",1999-17-30,1999-17-30,"Sacramento State University - Sacramento, CA",,14493,duplicate_exists_in_Results
+99NorCal.htm,root,public/LiftTilYaDie/99NorCal.htm,False,1999 Northern California/Sacramento Open,"May 29, 1999",1999-17-29,1999-17-29,Sacramento Open,Jim Schmitz,19169,duplicate_exists_in_Results
+99SrNats.htm,root,public/LiftTilYaDie/99SrNats.htm,False,1999 USAW SENIOR NATIONALS,"April 23 - 25, 1999",1999-04-23,1999-04-25,"USA WEIGHTLIFTING SENIOR NATIONALS Saint Joseph, MO",,91264,duplicate_exists_in_Results
+PanAmMen.htm,root,public/LiftTilYaDie/PanAmMen.htm,False,1999 PAN AM GAMES - MEN,,,,,,31477,duplicate_exists_in_Results
+PanAmWmn.htm,root,public/LiftTilYaDie/PanAmWmn.htm,False,1999 PAN AM GAMES - WOMEN,,,,,,25181,duplicate_exists_in_Results
+00AmOpen.htm,Results,public/LiftTilYaDie/Results/00AmOpen.htm,True,2000 AMERICAN OPEN,"DECEMBER 1-3, 2000",2000-12-01,2000-12-03,"BUFFALO, NY",,158214,duplicate_exists_in_root; has_record_notations; large_file_possibly_multi_meet
+00CalStates.htm,Results,public/LiftTilYaDie/Results/00CalStates.htm,False,2000 CALIFORNIA STATE CHAMPIONSHIPS,2000,2000,,,,18370,duplicate_exists_in_root
+00GldWst.htm,Results,public/LiftTilYaDie/Results/00GldWst.htm,False,2000 Golden West Open,"November 5, 2000",2000-11-05,2000-11-05,"Cal State Sacramento, Sacramento, CA",,28575,duplicate_exists_in_root
+00HighDesert.htm,Results,public/LiftTilYaDie/Results/00HighDesert.htm,False,2000 HIGH DESERT OPEN,2000,2000,,"HIGH DESERT OPEN RENO, NV",,7048,
+00JrNats.htm,Results,public/LiftTilYaDie/Results/00JrNats.htm,False,2000 USAW JUNIOR NATIONALS,"February 11 - 13, 2000",2000-02-11,2000-02-13,"USA WEIGHTLIFTING JUNIOR NATIONALS Shreveport, LA",,118911,duplicate_exists_in_root; has_record_notations
+00NatJrs.htm,Results,public/LiftTilYaDie/Results/00NatJrs.htm,True,2000 USAW NATIONAL JUNIORS,"February 11 - 13, 2000",2000-02-11,2000-02-13,"USA WEIGHTLIFTING NATIONAL JUNIORS Shreveport, LA",,133328,has_record_notations
+00NoGuts.htm,Results,public/LiftTilYaDie/Results/00NoGuts.htm,False,2000 NO GUTS ~ NO GLORY OPEN,2000,2000,,,Jim Schmitz,33859,duplicate_exists_in_root
+00NSA.htm,Results,public/LiftTilYaDie/Results/00NSA.htm,True,2000 NATIONAL SCHOOLAGE CHAMPIONSHIPS,DEC 1988,1988-12,,"NATIONAL SCHOOLAGE CHAMPIONSHIPS CHARLESTON, IL",Denis Reno's Newsletter,65014,
+00OlyTry.htm,Results,public/LiftTilYaDie/Results/00OlyTry.htm,True,2000 USAW OLYMPIC TRYOUTS,"July 22, 2000",2000-07-22,2000-07-22,"USA WEIGHTLIFTING OLYMPIC TRYOUTS New Orleans, LA",,31289,duplicate_exists_in_root; has_record_notations
+00PWAChp.htm,Results,public/LiftTilYaDie/Results/00PWAChp.htm,False,2000 PWA Championships,2000,2000,,,Jim Schmitz,29876,
+00SacLastChanceI.htm,Results,public/LiftTilYaDie/Results/00SacLastChanceI.htm,False,2000 SACRAMENTO LAST CHANCE I,"Nov 9, 2020",2020-11-09,2020-11-09,,,2996,
+00SacLastChanceII.htm,Results,public/LiftTilYaDie/Results/00SacLastChanceII.htm,False,2000 SACRAMENTO LAST CHANCE II,"Nov 9, 2020",2020-11-09,2020-11-09,,,3268,
+00SrNats.htm,Results,public/LiftTilYaDie/Results/00SrNats.htm,True,2000 USAW SENIOR NATIONALS,"March 10 - 12, 2000",2000-03-10,2000-03-12,"USA WEIGHTLIFTING SENIOR NATIONALS Frederick, MD",,101613,duplicate_exists_in_root
+01AmOpen.htm,Results,public/LiftTilYaDie/Results/01AmOpen.htm,True,2001 AMERICAN OPEN,"DECEMBER 7 - 9, 2001",2001-12-07,2001-12-09,DOMESTIC DIVISION,,161803,duplicate_exists_in_root; has_record_notations; large_file_possibly_multi_meet
+01GldWst.htm,Results,public/LiftTilYaDie/Results/01GldWst.htm,False,2001 Golden West Open,"November 3, 2001",2001-11-03,2001-11-03,"Chico State University, Chico, CA",,39013,duplicate_exists_in_root
+01HighDesert.htm,Results,public/LiftTilYaDie/Results/01HighDesert.htm,False,2001 HIGH DESERT OPEN,2001,2001,,"HIGH DESERT OPEN RENO, NV",,13080,
+01JrNats.htm,Results,public/LiftTilYaDie/Results/01JrNats.htm,False,2001 NATIONAL JUNIORS,"MARCH 16 - 18, 2001",2001-03-16,2001-03-18,JUNIOR NATIONALS,,257224,duplicate_exists_in_root; has_record_notations; large_file_possibly_multi_meet
+01NatJrs.htm,Results,public/LiftTilYaDie/Results/01NatJrs.htm,True,2001 NATIONAL JUNIORS,"MARCH 16 - 18, 2001",2001-03-16,2001-03-18,NATIONAL JUNIORS,,257224,has_record_notations; large_file_possibly_multi_meet
+01NoGuts.htm,Results,public/LiftTilYaDie/Results/01NoGuts.htm,False,2001 NO GUTS ~ NO GLORY OPEN,2001,2001,,,,33745,duplicate_exists_in_root
+01NorCal.htm,Results,public/LiftTilYaDie/Results/01NorCal.htm,False,2001 NORTHERN CALIFORNIA/SACRAMENTO OPEN,2001,2001,,"Sacramento Open SACRAMENTO, CA",,19566,
+01PWAChp.htm,Results,public/LiftTilYaDie/Results/01PWAChp.htm,False,2001 PWA Championships,2001,2001,,,Jim Schmitz,29849,
+01SrNats.htm,Results,public/LiftTilYaDie/Results/01SrNats.htm,True,2001 SENIOR NATIONALS,"APRIL 20 - 22, 2001",2001-04-20,2001-04-22,SENIOR NATIONALS,,115246,duplicate_exists_in_root; has_record_notations
+01TryOut.htm,Results,public/LiftTilYaDie/Results/01TryOut.htm,True,2001 USA Weightlifting World Team Tryouts,"June 16, 2001",2001-06-16,2001-06-16,"World Team Tryouts Dallas, TX",,27930,duplicate_exists_in_root; has_record_notations
+02AmOpen.htm,Results,public/LiftTilYaDie/Results/02AmOpen.htm,True,2002 AMERICAN OPEN,"DECEMBER 6 - 8, 2002",2002-12-06,2002-12-08,DOMESTIC DIVISION,,152330,has_record_notations; large_file_possibly_multi_meet
+02BadMother.htm,Results,public/LiftTilYaDie/Results/02BadMother.htm,False,2002 BAD MOTHER OPEN,"July 27, 2002",2002-07-27,2002-07-27,Game Farm Park Amphitheater,,29804,
+02GldWst.htm,Results,public/LiftTilYaDie/Results/02GldWst.htm,False,39th ANNUAL GOLDEN WEST OPEN,2002,2002,,"A N N U A L GOLDEN WEST OPEN South San Francisco, CA",,36196,
+02HighDesert.htm,Results,public/LiftTilYaDie/Results/02HighDesert.htm,False,2002 High Desert Open Results,2002,2002,,"Reno, NV",Jim Schmitz,33093,
+02JrNats.htm,Results,public/LiftTilYaDie/Results/02JrNats.htm,False,2002 JUNIOR NATIONALS,"March 8 - 10, 2002",2002-03-08,2002-03-10,"USA WEIGHTLIFTING JUNIOR NATIONALS Manhattan Beach, CA",,275836,has_record_notations; large_file_possibly_multi_meet
+02NatJrs.htm,Results,public/LiftTilYaDie/Results/02NatJrs.htm,True,2002 NATIONAL JUNIORS,"March 8 - 10, 2002",2002-03-08,2002-03-10,"USA WEIGHTLIFTING NATIONAL JUNIORS Manhattan Beach, CA",,233960,has_record_notations; large_file_possibly_multi_meet
+02NoGutsNoGlory.htm,Results,public/LiftTilYaDie/Results/02NoGutsNoGlory.htm,False,2002 NO GUTS/NO CLORY OPEN,2002,2002,,"Rancho Cordova, CA",Jim Schmitz,18953,
+02NSA.htm,Results,public/LiftTilYaDie/Results/02NSA.htm,True,2002 JUNIOR OLYMPICS & NATIONAL SCHOOLAGE CHAMPIONSHIPS,"June 7 - 9, 2002",2002-06-07,2002-06-09,"LOUIS, MO",Denis Reno's Newsletter,78525,
+02PWAChp.htm,Results,public/LiftTilYaDie/Results/02PWAChp.htm,False,2002 PWA CHAMPIONSHIPS,2002,2002,,,,54076,
+02PWAJrChp.htm,Results,public/LiftTilYaDie/Results/02PWAJrChp.htm,False,2002 PWA JUNIOR CHAMPIONSHIPS,2002,2002,,,,21269,
+02SrNats.htm,Results,public/LiftTilYaDie/Results/02SrNats.htm,True,2002 SENIOR NATIONALS,"April 26 - 28, 2002",2002-04-26,2002-04-28,"USA WEIGHTLIFTING SENIOR NATIONALS New York City, NY",,84083,has_record_notations
+03AmOpen.htm,Results,public/LiftTilYaDie/Results/03AmOpen.htm,True,2003 AMERICAN OPEN,"DECEMBER 5 - 7, 2003",2003-12-05,2003-12-07,"AMERICAN OPEN ATLANTA, GA",,116059,has_record_notations
+03GldWst.htm,Results,public/LiftTilYaDie/Results/03GldWst.htm,False,40th ANNUAL GOLDEN WEST OPEN,2003,2003,,"A N N U A L GOLDEN WEST OPEN South San Francisco, CA",,31865,
+03HighDesert.htm,Results,public/LiftTilYaDie/Results/03HighDesert.htm,False,2003 High Desert Open Results,2003,2003,,"Reno, NV",,22275,
+03JrNats.htm,Results,public/LiftTilYaDie/Results/03JrNats.htm,False,2003 JUNIOR NATIONALS,"March 28 - 30, 2003",2003-03-28,2003-03-30,"USA WEIGHTLIFTING JUNIOR NATIONALS Altamonte Springs, FL",,146048,has_record_notations
+03JrNatsTemp.htm,Results,public/LiftTilYaDie/Results/03JrNatsTemp.htm,False,2003 JUNIOR NATIONALS,"March 28 - 30, 2003",2003-03-28,2003-03-30,"USA WEIGHTLIFTING JUNIOR NATIONALS Altamonte Springs, FL",,93226,possible_draft_or_temp; has_record_notations
+03NatJrs.htm,Results,public/LiftTilYaDie/Results/03NatJrs.htm,True,2003 NATIONAL JUNIORS,"March 28 - 30, 2003",2003-03-28,2003-03-30,"USA WEIGHTLIFTING NATIONAL JUNIORS Altamonte Springs, FL",,146048,has_record_notations
+03NoGutsNoGlory.htm,Results,public/LiftTilYaDie/Results/03NoGutsNoGlory.htm,False,2003 NO GUTS/NO GLORY OPEN,2003,2003,,"No Glory OPEN CSUS Aquatic Center Rancho Cordova, CA",Jim Schmitz,21251,
+03NorCal.htm,Results,public/LiftTilYaDie/Results/03NorCal.htm,False,2003 NORTHERN CALIFORNIA/SACRAMENTO OPEN,2003,2003,,,Jim Schmitz,13549,
+03PWAChp.htm,Results,public/LiftTilYaDie/Results/03PWAChp.htm,False,2003 PACIFIC WEIGHTLIFTING ASSOCIATION CHAMPIONSHIP,2003,2003,,,,44296,has_record_notations
+03SrNats.htm,Results,public/LiftTilYaDie/Results/03SrNats.htm,True,2003 USAW SENIOR NATIONALS,"May 16 - 18, 2003",2003-17-16,2003-17-18,"USA WEIGHTLIFTING SENIOR NATIONALS Chattanooga, TN",,90561,has_record_notations
+03TitanGames.htm,Results,public/LiftTilYaDie/Results/03TitanGames.htm,False,2003 TITAN GAMES,"February 14 - 15, 2003",2003-02-14,2003-02-15,"TITAN GAMES San Jose, CA",,15041,
+03TitanWomen.htm,Results,public/LiftTilYaDie/Results/03TitanWomen.htm,False,2003 TITAN GAMES,"February 14 - 15, 2003",2003-02-14,2003-02-15,"TITAN GAMES San Jose, CA",,15041,
+04AmOpen.htm,Results,public/LiftTilYaDie/Results/04AmOpen.htm,True,2004 AMERICAN OPEN,"DECEMBER 3 - 5, 2004",2004-12-03,2004-12-05,"AMERICAN OPEN SHREVEPORT, LA",,115630,has_record_notations
+04CalStates.htm,Results,public/LiftTilYaDie/Results/04CalStates.htm,False,2004 CALIFORNIA STATES WEIGHTLIFTING CHAMPIONSHIP,2004,2004,,,Jim Schmitz,24199,
+04GldWst.htm,Results,public/LiftTilYaDie/Results/04GldWst.htm,False,41st ANNUAL GOLDEN WEST OPEN,2004,2004,,"A N N U A L GOLDEN WEST OPEN South San Francisco, CA",,38765,has_record_notations
+04HighDesert.htm,Results,public/LiftTilYaDie/Results/04HighDesert.htm,False,2004 High Desert Open,2004,2004,,"Reno, NV",Jim Schmitz,23493,
+04JrNats.htm,Results,public/LiftTilYaDie/Results/04JrNats.htm,False,2004 JUNIOR NATIONALS,"Feb 13 - 15, 2004",2004-02-13,2004-02-15,"Schaumburg, IL",,110320,has_record_notations
+04NatJrs.htm,Results,public/LiftTilYaDie/Results/04NatJrs.htm,True,2004 NATIONAL JUNIORS,"Feb 13 - 15, 2004",2004-02-13,2004-02-15,"Schaumburg, IL",,110320,has_record_notations
+04NoGutsNoGlory.htm,Results,public/LiftTilYaDie/Results/04NoGutsNoGlory.htm,False,2004 NO GUTS/NO GLORY OPEN,2004,2004,,"Rancho Cordova, CA",,35156,
+04NSA.htm,Results,public/LiftTilYaDie/Results/04NSA.htm,True,2004 NATIONAL SCHOOLAGE CHAMPIONSHIPS,"June 25 - 27, 2004",2004-06-25,2004-06-27,"Vineland, NJ",Denis Reno's Newsletter,131403,
+04OlyTry.htm,Results,public/LiftTilYaDie/Results/04OlyTry.htm,True,2004 USAW OLYMPIC TRYOUTS,"MAY 6-8, 2004",2004-17-06,2004-17-08,"USA WEIGHTLIFTING OLYMPIC TRYOUTS Saint Joseph, MO",,61658,has_record_notations
+04PWAChp.htm,Results,public/LiftTilYaDie/Results/04PWAChp.htm,False,2004 PACIFIC WEIGHTLIFTING ASSOCIATION CHAMPIONSHIP,2004,2004,,,,34540,
+04SrNats.htm,Results,public/LiftTilYaDie/Results/04SrNats.htm,True,2004 SENIOR NATIONALS,"MAR 12 - 14, 2004",2004-03-12,2004-03-14,"Merrillville, IN",,95893,has_record_notations
+05AmOpen.htm,Results,public/LiftTilYaDie/Results/05AmOpen.htm,True,2005 AMERICAN OPEN,"DECEMBER 2 - 4, 2005",2005-12-02,2005-12-04,"AMERICAN OPEN KISSIMMEE, FL",,107259,has_record_notations
+05GldWst.htm,Results,public/LiftTilYaDie/Results/05GldWst.htm,False,2005 GOLDEN WEST OPEN,2005,2005,,"San Carlos, CA",,36105,has_record_notations
+05HighDesert.htm,Results,public/LiftTilYaDie/Results/05HighDesert.htm,False,2005 HIGH DESERT OPEN,"Nov 9, 2020",2020-11-09,2020-11-09,"Reno, NV",Jim Schmitz,7955,
+05JCC.htm,Results,public/LiftTilYaDie/Results/05JCC.htm,False,2005 JUMP CAMP CLASSIC,"MAY 22, 2005",2005-17-22,2005-17-22,"LOS ALTOS, CA",,24754,
+05JrNats.htm,Results,public/LiftTilYaDie/Results/05JrNats.htm,False,2005 USAW NATIONAL JUNIORS,"APRIL 1-3, 2005",2005-04-01,2005-04-03,"PAUL, MN",,117122,has_record_notations
+05NatJrs.htm,Results,public/LiftTilYaDie/Results/05NatJrs.htm,True,2005 USAW NATIONAL JUNIORS,"APRIL 1-3, 2005",2005-04-01,2005-04-03,"PAUL, MN",,117122,has_record_notations
+05NoGutsNoGlory.htm,Results,public/LiftTilYaDie/Results/05NoGutsNoGlory.htm,False,2005 NO GUTS/NO GLORY OPEN,"August 7, 2005",2005-08-07,2005-08-07,,,31120,has_record_notations
+05NorCal.htm,Results,public/LiftTilYaDie/Results/05NorCal.htm,False,2005 NORTHERN CALIFORNIA OPEN,2005,2005,,"San Carlos, CA",,33651,has_record_notations
+05NSA.htm,Results,public/LiftTilYaDie/Results/05NSA.htm,True,2005 NATIONAL SCHOOLAGE CHAMPIONSHIPS,"June 17 - 19, 2005",2005-06-17,2005-06-19,"USA WEIGHTLIFTING National Schoolage Championships MERRILLVILLE, IN",Denis Reno's Newsletter,123172,
+05PWAChp.htm,Results,public/LiftTilYaDie/Results/05PWAChp.htm,False,2005 PACIFIC WEIGHTLIFTING ASSOCIATION CHAMPIONSHIP,2005,2005,,"PWA Championships South San Francisco, CA",,42688,has_record_notations
+05PWAJrChp.htm,Results,public/LiftTilYaDie/Results/05PWAJrChp.htm,False,2005 PACIFIC WEIGHTLIFTING ASSOCIATION SCHOOLAGE & JUNIOR CHAMPIONSHIP,2005,2005,,"Los Altos, CA",,28001,
+05SrNats.htm,Results,public/LiftTilYaDie/Results/05SrNats.htm,True,2005 SENIOR NATIONALS,2005,2005,,"Cleveland, OH",,79511,has_record_notations
+06AmOpen.htm,Results,public/LiftTilYaDie/Results/06AmOpen.htm,True,2006 USAW AMERICAN OPEN,"December 1 - 3, 2006",2006-12-01,2006-12-03,"USA WEIGHTLIFTING AMERICAN OPEN Birmingham, AL",,94368,has_record_notations
+06CalStateGames.htm,Results,public/LiftTilYaDie/Results/06CalStateGames.htm,False,2006 CALIFORNIA STATE GAMES & CHAMPIONSHIPS,2006,2006,,"San Francisco, CA",,51678,has_record_notations
+06Collegiates.htm,Results,public/LiftTilYaDie/Results/06Collegiates.htm,True,2006 NATIONAL COLLEGIATE CHAMPIONSHIPS,"APRIL 29-30, 2006",2006-04-29,2006-04-30,"NATIONAL COLLEGIATES Merrillville, IN",,43045,has_record_notations
+06GldWst.htm,Results,public/LiftTilYaDie/Results/06GldWst.htm,False,2006 GOLDEN WEST OPEN,2006,2006,,"San Francisco, CA",,40793,has_record_notations
+06JrNats.htm,Results,public/LiftTilYaDie/Results/06JrNats.htm,False,2006 NATIONAL JUNIORS,"March 10 - 12, 2006",2006-03-10,2006-03-12,"USA WEIGHTLIFTING NATIONAL JUNIORS Altamonte Springs, FL",,104703,has_record_notations
+06NatJrs.htm,Results,public/LiftTilYaDie/Results/06NatJrs.htm,True,2006 NATIONAL JUNIORS,"March 10 - 12, 2006",2006-03-10,2006-03-12,"USA WEIGHTLIFTING NATIONAL JUNIORS Altamonte Springs, FL",,104972,has_record_notations
+06NorCal.htm,Results,public/LiftTilYaDie/Results/06NorCal.htm,False,2006 NORTHERN CALIFRONIA OPEN,2006,2006,,"San Francisco, CA",,39870,has_record_notations
+06NSA.htm,Results,public/LiftTilYaDie/Results/06NSA.htm,True,2006 NATIONAL SCHOOLAGE CHAMPIONSHIPS,"JUNE   23 - 24, 2006",2006-06-23,2006-06-24,"USA WEIGHTLIFTING National Schoolage Championships DETROIT, MI",,103860,has_record_notations
+06PacificOpen.htm,Results,public/LiftTilYaDie/Results/06PacificOpen.htm,False,2006 PACIFIC OPEN,"February 5, 2006",2006-02-05,2006-02-05,"SAN JOSE, CA",,5754,has_record_notations
+06PanAmTeamTrials.htm,Results,public/LiftTilYaDie/Results/06PanAmTeamTrials.htm,True,2006 PAN AM TEAM QUALIFIER,2006,2006,,,,23103,has_record_notations
+06PWAChp.htm,Results,public/LiftTilYaDie/Results/06PWAChp.htm,False,2006 PACIFIC WEIGHTLIFTING ASSOCIATION CHAMPIONSHIPS,2006,2006,,"San Francisco, CA",,47049,has_record_notations
+06PWAJrChp.htm,Results,public/LiftTilYaDie/Results/06PWAJrChp.htm,False,2006 PACIFIC WEIGHTLIFTING ASSOCIATION SCHOOLAGE & JUNIOR CHAMPIONSHIP,2006,2006,,"Los Altos, CA",,17728,
+06SrNats.htm,Results,public/LiftTilYaDie/Results/06SrNats.htm,True,2006 SENIOR NATIONALS,2006,2006,,"SHREVEPORT, LA",,79226,has_record_notations
+06TKHighSchool.htm,Results,public/LiftTilYaDie/Results/06TKHighSchool.htm,False,2006 TOMMY KONO HIGH SCHOOL CHALLENGE,2006,2006,,"Sacramento, CA",,17882,
+06TKOpen.htm,Results,public/LiftTilYaDie/Results/06TKOpen.htm,False,2006 TOMMY KONO/IRON DRAGON OPEN,2006,2006,,"Sacramento, CA",Jim Schmitz,21719,has_record_notations
+07AmOpen.htm,Results,public/LiftTilYaDie/Results/07AmOpen.htm,True,2007 USAW AMERICAN OPEN,"December 2, 2007",2007-12-02,2007-12-02,"USA WEIGHTLIFTING AMERICAN OPEN Birmingham, AL",,95022,has_record_notations
+07Collegiates.htm,Results,public/LiftTilYaDie/Results/07Collegiates.htm,True,2007 NATIONAL COLLEGIATE CHAMPIONSHIPS,"APRIL 14-15, 2007",2007-04-14,2007-04-15,,,82709,has_record_notations
+07GldWst.htm,Results,public/LiftTilYaDie/Results/07GldWst.htm,False,2007 GOLDEN WEST OPEN,"November 4, 2007",2007-11-04,2007-11-04,"Los Altos, CA",,51091,has_record_notations
+07HFLCQ.htm,Results,public/LiftTilYaDie/Results/07HFLCQ.htm,False,2007 HASSLE FREE LAST CHANCE QUALIFIER,"Nov 9, 2020",2020-11-09,2020-11-09,"San Francisco, CA",,7446,
+07JrNats.htm,Results,public/LiftTilYaDie/Results/07JrNats.htm,False,2007 NATIONAL JUNIORS,"March 9 - 11, 2007",2007-03-09,2007-03-11,"USA WEIGHTLIFTING NATIONAL JUNIORS Merrillville, IN",,77404,
+07LincolnJrOpen.htm,Results,public/LiftTilYaDie/Results/07LincolnJrOpen.htm,False,2007 LINCOLN HIGH SCHOOL JUNIOR OPEN,2007,2007,,"San Francisco, CA",,31095,has_record_notations
+07NatJrs.htm,Results,public/LiftTilYaDie/Results/07NatJrs.htm,True,2007 NATIONAL JUNIORS,"March 9 - 11, 2007",2007-03-09,2007-03-11,"USA WEIGHTLIFTING NATIONAL JUNIORS Merrillville, IN",,77787,
+07NorCal.htm,Results,public/LiftTilYaDie/Results/07NorCal.htm,False,2007 NORTHERN CALIFORNIA OPEN,"MAY 20, 2007",2007-17-20,2007-17-20,"Los Altos, CA",,43520,has_record_notations
+07NSA.htm,Results,public/LiftTilYaDie/Results/07NSA.htm,True,2007 NATIONAL SCHOOLAGE CHAMPIONSHIPS,"July 1, 2007",2007-07-01,2007-07-01,"USA WEIGHTLIFTING National Schoolage Championships SPRINGFIELD, MO",,131981,has_record_notations
+07PWAChp.htm,Results,public/LiftTilYaDie/Results/07PWAChp.htm,False,2007 PACIFIC WEIGHTLIFTING ASSOCIATION CHAMPIONSHIP,2007,2007,,"San Francisco, CA",,46048,has_record_notations
+07PWAJrChp.htm,Results,public/LiftTilYaDie/Results/07PWAJrChp.htm,False,2007 PACIFIC WEIGHTLIFTING ASSOCIATION JUNIOR CHAMPIONSHIP,2007,2007,,"San Francisco, CA",,23752,has_record_notations
+07Redwood.htm,Results,public/LiftTilYaDie/Results/07Redwood.htm,False,2007 REDWOOD EMPIRE CHAMPIONSHIPS,2007,2007,,"Cotati, CA",Jim Schmitz,29898,has_record_notations
+07SacHighChallenge.htm,Results,public/LiftTilYaDie/Results/07SacHighChallenge.htm,False,2007 SACRAMENTO HIGH SCHOOL CHALLENGE,2007,2007,,"Sacramento, CA",,19788,
+07SacHighJrOpen.htm,Results,public/LiftTilYaDie/Results/07SacHighJrOpen.htm,False,2007 SACRAMENTO HIGH SCHOOL JUNIOR OPEN,2007,2007,,"Sacramento, CA",,32883,has_record_notations
+07SrNats.htm,Results,public/LiftTilYaDie/Results/07SrNats.htm,True,2007 USA WEIGHTLIFTING SENIOR NATIONALS,"MAY 11 - 13, 2007",2007-17-11,2007-17-13,"USA WEIGHTLIFTING SENIOR NATIONALS Schaumburg, IL",,85603,has_record_notations
+07SrQualifier.htm,Results,public/LiftTilYaDie/Results/07SrQualifier.htm,False,2007 SENIOR NATIONALS QUALIFIER & JUNIOR OPEN,2007,2007,,"Sacramento, CA",,36186,has_record_notations
+07TKOpen.htm,Results,public/LiftTilYaDie/Results/07TKOpen.htm,False,2007 TOMMY KONO OPEN,2007,2007,,"Sacramento, CA",,39331,has_record_notations
+07TryOut.htm,Results,public/LiftTilYaDie/Results/07TryOut.htm,True,2007 WORLD TEAM SECONDARY QUALIFIER,"MARCH 2, 2007",2007-03-02,2007-03-02,"USAW WORLD TEAM SECONDARY QUALIFIER COLUMBUS, OH",,27498,has_record_notations
+08AmOpen.htm,Results,public/LiftTilYaDie/Results/08AmOpen.htm,True,2008 USAW AMERICAN OPEN,"December 5-7, 2008",2008-12-05,2008-12-07,"USA WEIGHTLIFTING AMERICAN OPEN Chandler, AZ",,92858,has_record_notations
+08AtlasOpen.htm,Results,public/LiftTilYaDie/Results/08AtlasOpen.htm,False,2008 ATLAS OPEN,2008,2008,,"Sacramento, CA",,23893,has_record_notations
+08Collegiates.htm,Results,public/LiftTilYaDie/Results/08Collegiates.htm,True,2008 NATIONAL COLLEGIATE CHAMPIONSHIPS,"APRIL 11-13, 2008",2008-04-11,2008-04-13,,,90323,has_record_notations
+08GldWst.htm,Results,public/LiftTilYaDie/Results/08GldWst.htm,False,2008 GOLDEN WEST OPEN,"November 9, 2008",2008-11-09,2008-11-09,"Los Altos, CA",,49626,has_record_notations
+08HSFTeam.htm,Results,public/LiftTilYaDie/Results/08HSFTeam.htm,False,2008 HASSLE FREE JUNIOR TEAM CHALLENGE,"December 13, 2008",2008-12-13,2008-12-13,"San Franciso, CA",,42829,
+08HSPowerClean.htm,Results,public/LiftTilYaDie/Results/08HSPowerClean.htm,False,2008 NATIONAL HIGH SCHOOL POWER CLEAN CHAMPIONSHIPS,"MAY 16, 2008",2008-17-16,2008-17-16,"NATIONAL HIGH SCHOOL POWER CLEAN CHAMPIONSHIPS LAS VEGAS, NV",,12417,has_record_notations
+08LincolnJrOpen.htm,Results,public/LiftTilYaDie/Results/08LincolnJrOpen.htm,False,2008 LINCOLN JUNIOR OPEN,"March 15, 2008",2008-03-15,2008-03-15,"Sacramento, CA",,43504,has_record_notations
+08NatJrs.htm,Results,public/LiftTilYaDie/Results/08NatJrs.htm,True,2008 NATIONAL JUNIORS,"February 8 - 10, 2008",2008-02-08,2008-02-10,"USA WEIGHTLIFTING NATIONAL JUNIORS Chattanooga, TN",,70075,has_record_notations
+08NorCal.htm,Results,public/LiftTilYaDie/Results/08NorCal.htm,False,2008 NORTHERN CALIFORNIA OPEN,"MAY 25, 2008",2008-17-25,2008-17-25,"Los Altos, CA",,52310,has_record_notations
+08NSA.htm,Results,public/LiftTilYaDie/Results/08NSA.htm,True,2008 NATIONAL SCHOOLAGE CHAMPIONSHIPS,"June 20 - 22, 2008",2008-06-20,2008-06-22,"ORLANDO, FL",,218485,large_file_possibly_multi_meet
+08OlyTry.htm,Results,public/LiftTilYaDie/Results/08OlyTry.htm,True,2008 USAW OLYMPIC TRYOUTS,"MAY 15 - 16, 2008",2008-17-15,2008-17-16,"USA WEIGHTLIFTING OLYMPIC TRYOUTS ATLANTA, GA",,40231,has_record_notations
+08PWAChp.htm,Results,public/LiftTilYaDie/Results/08PWAChp.htm,False,2008 PACIFIC WEIGHTLIFTING ASSOCIATION CHAMPIONSHIP,"March 16, 2008",2008-03-16,2008-03-16,"Rohnert Park, CA",Jim Schmitz,36437,
+08PWAJrChp.htm,Results,public/LiftTilYaDie/Results/08PWAJrChp.htm,False,2008 PACIFIC WEIGHTLIFTING ASSOCIATION JUNIOR CHAMPIONSHIP,"January 13, 2008",2008-01-13,2008-01-13,"San Francisco, CA",,60865,has_record_notations
+08Redwood.htm,Results,public/LiftTilYaDie/Results/08Redwood.htm,False,2008 REDWOOD EMPIRE CHAMPIONSHIPS,2008,2008,,"Cotati, CA",,40517,has_record_notations
+08SacHighJrOpen.htm,Results,public/LiftTilYaDie/Results/08SacHighJrOpen.htm,False,2008 SACRAMENTO HIGH SCHOOL JUNIOR OPEN,"February 16, 2008",2008-02-16,2008-02-16,"Sacramento, CA",,50515,has_record_notations
+08SpringJrOpen.htm,Results,public/LiftTilYaDie/Results/08SpringJrOpen.htm,False,2008 SPRING JUNIOR OPEN,"April 27, 2008",2008-04-27,2008-04-27,"Sacramento, CA",,33632,has_record_notations
+08SrNats.htm,Results,public/LiftTilYaDie/Results/08SrNats.htm,True,2008 USA WEIGHTLIFTING SENIOR NATIONALS,"MAR 2, 2008",2008-03-02,2008-03-02,"USA WEIGHTLIFTING SENIOR NATIONALS Columbus, OH",,99029,has_record_notations
+08SrQualifier.htm,Results,public/LiftTilYaDie/Results/08SrQualifier.htm,False,2008 SENIOR NATIONALS QUALIFIER,2008,2008,,"Sacramento, CA",,10428,has_record_notations
+08TKOpen.htm,Results,public/LiftTilYaDie/Results/08TKOpen.htm,False,2008 TOMMY KONO OPEN,2008,2008,,"Sacramento, CA",,71347,has_record_notations
+09AmOpen.htm,Results,public/LiftTilYaDie/Results/09AmOpen.htm,True,2009 USAW AMERICAN OPEN,"December 11 - 13, 2009",2009-12-11,2009-12-13,"USA WEIGHTLIFTING AMERICAN OPEN Mobile, AL",,71520,
+09AtlasOpen.htm,Results,public/LiftTilYaDie/Results/09AtlasOpen.htm,False,ATLAS OPEN II,"Nov 9, 2020",2020-11-09,2020-11-09,"Sacramento, CA",,10932,
+09BadGirl.htm,Results,public/LiftTilYaDie/Results/09BadGirl.htm,False,2009 BAD GIRL OPEN,"JANUARY 18, 2009",2009-01-18,2009-01-18,"Los Altos, CA",,30177,
+09BadGirlII.htm,Results,public/LiftTilYaDie/Results/09BadGirlII.htm,False,2009 BAD GIRL OPEN II,"OCTOBER 18, 2009",2009-10-18,2009-10-18,"Los Altos, CA",,26793,
+09CalStrengthOpen.htm,Results,public/LiftTilYaDie/Results/09CalStrengthOpen.htm,False,2009 CALIFORNIA STRENGTH OPEN,"September 27, 2009",2009-09-27,2009-09-27,"San Ramon, CA",,39396,has_record_notations
+09Collegiates.htm,Results,public/LiftTilYaDie/Results/09Collegiates.htm,True,2009 NATIONAL COLLEGIATE CHAMPIONSHIPS,"APRIL 17-19, 2009",2009-04-17,2009-04-19,"NATIONAL COLLEGIATES Shreveport, LA",,75594,has_record_notations
+09DaritoisMemorial.xls,Results,public/LiftTilYaDie/Results/09DaritoisMemorial.xls,False,,2009,2009,,,,637440,xls_file
+09GldWst.htm,Results,public/LiftTilYaDie/Results/09GldWst.htm,False,2009 DON WILSON GOLDEN WEST OPEN,2009,2009,,"Sacramento, CA",,62537,has_record_notations
+09HSFTeam.htm,Results,public/LiftTilYaDie/Results/09HSFTeam.htm,False,2009 HASSLE FREE JUNIOR TEAM CHALLENGE,"April 18, 2009",2009-04-18,2009-04-18,"San Franciso, CA",,36549,
+09MDM.htm,Results,public/LiftTilYaDie/Results/09MDM.htm,False,2009 MOTHER'S DAY MADNESS INVITATIONAL,"May 10, 2009",2009-17-10,2009-17-10,"San Ramon, CA",,8506,
+09NatJrs.htm,Results,public/LiftTilYaDie/Results/09NatJrs.htm,True,2009 NATIONAL JUNIORS,"March 20 - 22, 2009",2009-03-20,2009-03-22,"USA WEIGHTLIFTING NATIONAL JUNIORS Foster City, CA",,64875,
+09NorCal.htm,Results,public/LiftTilYaDie/Results/09NorCal.htm,False,2009 NORTHERN CALIFORNIA OPEN,"MAY 3, 2009",2009-17-03,2009-17-03,"Los Altos, CA",,52655,has_record_notations
+09NSA.htm,Results,public/LiftTilYaDie/Results/09NSA.htm,True,2009 NATIONAL SCHOOLAGE CHAMPIONSHIPS,"June 19 - 21, 2009",2009-06-19,2009-06-21,"USA WEIGHTLIFTING National Schoolage Championships GAINESVILLE, GA",,191423,large_file_possibly_multi_meet
+09PanAmTeamTrials.htm,Results,public/LiftTilYaDie/Results/09PanAmTeamTrials.htm,True,2009 PAN AM TEAM SECONDARY QUALIFIER,2009,2009,,"PAN AM TEAM SECONDARY QUALIFIER Foster City, CA",,19359,has_record_notations
+09PWAChp.htm,Results,public/LiftTilYaDie/Results/09PWAChp.htm,False,2009 PACIFIC WEIGHTLIFTING ASSOCIATION CHAMPIONSHIP,"February 21, 2009",2009-02-21,2009-02-21,"Sacramento, CA",,57027,has_record_notations
+09Redwood.htm,Results,public/LiftTilYaDie/Results/09Redwood.htm,False,2009 REDWOOD EMPIRE CHAMPIONSHIPS,2009,2009,,"Cotati, CA",,37299,
+09SacJrOpen.htm,Results,public/LiftTilYaDie/Results/09SacJrOpen.htm,False,2009 SACRAMENTO JUNIOR OPEN,"January 24, 2009",2009-01-24,2009-01-24,"Sacramento, CA",,50092,has_record_notations
+09SpringFest.htm,Results,public/LiftTilYaDie/Results/09SpringFest.htm,False,2009 WERKSAN SPRINGFEST,"May 23, 2009",2009-17-23,2009-17-23,"Sacramento, CA",,51495,has_record_notations
+09SrNats.htm,Results,public/LiftTilYaDie/Results/09SrNats.htm,True,2009 USA WEIGHTLIFTING SENIOR NATIONALS,"JUNE 4 - 7, 2009",2009-06-04,2009-06-07,"USA WEIGHTLIFTING SENIOR NATIONALS Chicago, IL",,53583,
+09TKOpen.htm,Results,public/LiftTilYaDie/Results/09TKOpen.htm,False,2009 TOMMY KONO OPEN,2009,2009,,"Sacramento, CA",,42055,has_record_notations
+10AmOpen.htm,Results,public/LiftTilYaDie/Results/10AmOpen.htm,True,2010 USAW AMERICAN OPEN,"December 10 - 12, 2010",2010-12-10,2010-12-12,"USA WEIGHTLIFTING AMERICAN OPEN Cincinnati, OH",,92015,has_record_notations
+10AtlasOpen.htm,Results,public/LiftTilYaDie/Results/10AtlasOpen.htm,False,ATLAS OPEN III,2010,2010,,"Sacramento, CA",Jim Schmitz,24026,has_record_notations
+10CalStrengthClassic.htm,Results,public/LiftTilYaDie/Results/10CalStrengthClassic.htm,False,2010 CALIFORNIA STRENGTH CLASSIC,"March 28, 2010",2010-03-28,2010-03-28,"San Ramon, CA",,35225,has_record_notations
+10CalStrengthOpen.htm,Results,public/LiftTilYaDie/Results/10CalStrengthOpen.htm,False,2010 CALIFORNIA STRENGTH OPEN,"October 3, 2010",2010-10-03,2010-10-03,"San Ramon, CA",,26710,has_record_notations
+10GldWst.htm,Results,public/LiftTilYaDie/Results/10GldWst.htm,False,2010 DON WILSON GOLDEN WEST OPEN,"November 6-7, 2010",2010-11-06,2010-11-07,"San Ramon, CA",,37886,has_record_notations
+10LastChanceSchoolage.htm,Results,public/LiftTilYaDie/Results/10LastChanceSchoolage.htm,False,2010 LAST CHANCE SCHOOLAGE QUALIFIER,2010,2010,,"Los Altos, CA",,20704,
+10LincolnSchoolage.htm,Results,public/LiftTilYaDie/Results/10LincolnSchoolage.htm,False,2010 LINCOLN SCHOOLAGE MEET,2010,2010,,"San Francisco, CA",,15082,
+10NatJrs.htm,Results,public/LiftTilYaDie/Results/10NatJrs.htm,True,2010 NATIONAL JUNIOR CHAMPIONSHIPS,"February  26-28, 2010",2010-02-26,2010-02-28,"USA WEIGHTLIFTING NATIONAL JUNIOR CHAMPIONSHIPS Rochester, MN",,57098,has_record_notations
+10NorCal.htm,Results,public/LiftTilYaDie/Results/10NorCal.htm,False,2010 NORTHERN CALIFORNIA OPEN,"MAY 15, 2010",2010-17-15,2010-17-15,"Novato, CA",,26391,has_record_notations
+10NSA.htm,Results,public/LiftTilYaDie/Results/10NSA.htm,True,2010 NATIONAL SCHOOLAGE CHAMPIONSHIPS,"June 25 - 27, 2010",2010-06-25,2010-06-27,"USA WEIGHTLIFTING National Schoolage Championships FOSTER CITY, CA",,123574,has_record_notations
+10PWAChp.htm,Results,public/LiftTilYaDie/Results/10PWAChp.htm,False,2010 PACIFIC WEIGHTLIFTING ASSOCIATION CHAMPIONSHIP,"January 30, 2010",2010-01-30,2010-01-30,"Sacramento, CA",,27352,has_record_notations
+10PWAMasterChp.htm,Results,public/LiftTilYaDie/Results/10PWAMasterChp.htm,False,2010 PACIFIC WEIGHTLIFTING ASSOCIATION MASTERS CHAMPIONSHIP,"March 6, 2010",2010-03-06,2010-03-06,"Sacramento, CA",,12434,has_record_notations
+10Redwood.htm,Results,public/LiftTilYaDie/Results/10Redwood.htm,False,2010 REDWOOD EMPIRE CHAMPIONSHIPS,2010,2010,,"Cotati, CA",,26135,has_record_notations
+10SrNats.htm,Results,public/LiftTilYaDie/Results/10SrNats.htm,True,2010 SENIOR NATIONAL CHAMPIONSHIPS,"June 11-13, 2010",2010-06-11,2010-06-13,"USA WEIGHTLIFTING SENIOR NATIONAL CHAMPIONSHIPS Peoria, IL",,59242,
+10TKOpen.htm,Results,public/LiftTilYaDie/Results/10TKOpen.htm,False,2010 TOMMY KONO OPEN,2010,2010,,"Sacramento, CA",,33753,has_record_notations
+11AmOpen.htm,Results,public/LiftTilYaDie/Results/11AmOpen.htm,True,2011 USAW AMERICAN OPEN,"December 2 - 4, 2011",2011-12-02,2011-12-04,"USA WEIGHTLIFTING AMERICAN OPEN Mobile, AL",,88953,has_record_notations
+11Collegiates.htm,Results,public/LiftTilYaDie/Results/11Collegiates.htm,True,2011 NATIONAL COLLEGIATE CHAMPIONSHIPS,"APRIL 8-10, 2011",2011-04-08,2011-04-10,"NATIONAL COLLEGIATES Shreveport, LA",,63231,
+11Cougar.htm,Results,public/LiftTilYaDie/Results/11Cougar.htm,False,2011 COUGAR CLASSIC,"Nov 9, 2020",2020-11-09,2020-11-09,"Placerville, CA",,5759,
+11FCO.htm,Results,public/LiftTilYaDie/Results/11FCO.htm,False,2011 FRIENDLY CITY OPEN,2011,2011,,"Rhonert Park, CA",,22093,has_record_notations
+11GldWst.htm,Results,public/LiftTilYaDie/Results/11GldWst.htm,False,2011 DON WILSON GOLDEN WEST OPEN,"October 22-23, 2011",2011-10-22,2011-10-23,"San Ramon, CA",,28015,has_record_notations
+11HFO.htm,Results,public/LiftTilYaDie/Results/11HFO.htm,False,2011 HASSLE FREE OPEN,2011,2011,,"San Francisco, CA",,28204,has_record_notations
+11Lincoln.htm,Results,public/LiftTilYaDie/Results/11Lincoln.htm,False,2011 LINCOLN OPEN,2011,2011,,"San Francisco, CA",,16563,
+11Midtown.htm,Results,public/LiftTilYaDie/Results/11Midtown.htm,False,2ND ANNUAL MIDTOWN CLASSIC,"JUNE 18, 2011",2011-06-18,2011-06-18,"Sacramento, CA",,26701,has_record_notations
+11NatJrs.htm,Results,public/LiftTilYaDie/Results/11NatJrs.htm,True,2011 NATIONAL JUNIOR CHAMPIONSHIPS,"February  18-20, 2011",2011-02-18,2011-02-20,"USA WEIGHTLIFTING NATIONAL JUNIOR CHAMPIONSHIPS Houston, TX",,57617,
+11NorCal.htm,Results,public/LiftTilYaDie/Results/11NorCal.htm,False,2011 NORTHERN CALIFORNIA OPEN,"MAY 22, 2011",2011-17-22,2011-17-22,"Los Altos, CA",,34104,has_record_notations
+11NSA.htm,Results,public/LiftTilYaDie/Results/11NSA.htm,True,2011 NATIONAL SCHOOLAGE CHAMPIONSHIPS,"JUNE 24 - 26, 2011",2011-06-24,2011-06-26,"USA WEIGHTLIFTING NATIONAL SCHOOLAGE CHAMPIONSHIPS Flowery Branch, GA",,112666,
+11PWAChp.htm,Results,public/LiftTilYaDie/Results/11PWAChp.htm,False,2011 PACIFIC WEIGHTLIFTING ASSOCIATION CHAMPIONSHIP,"April 3, 2011",2011-04-03,2011-04-03,"San Francisco, CA",,29015,has_record_notations
+11PWAJrChp.htm,Results,public/LiftTilYaDie/Results/11PWAJrChp.htm,False,2011 PWA JUNIOR CHAMPIONSHIPS,2011,2011,,"Sacramento, CA",,25173,has_record_notations
+11PWARec.htm,Results,public/LiftTilYaDie/Results/11PWARec.htm,False,2011 PWA RECORD BREAKERS,2011,2011,,"San Francisco, CA",,39370,has_record_notations
+11PWASAChp.htm,Results,public/LiftTilYaDie/Results/11PWASAChp.htm,False,2011 PWA SCHOOLAGE CHAMPIONSHIPS,2011,2011,,"Sacramento, CA",,19908,has_record_notations
+11Redwood.htm,Results,public/LiftTilYaDie/Results/11Redwood.htm,False,2011 REDWOOD EMPIRE CHAMPIONSHIPS,2011,2011,,"Cotati, CA",,31743,has_record_notations
+11SrNats.htm,Results,public/LiftTilYaDie/Results/11SrNats.htm,True,2011 SENIOR NATIONAL CHAMPIONSHIPS,"July 15-17, 2011",2011-07-15,2011-07-17,"USA WEIGHTLIFTING SENIOR NATIONAL CHAMPIONSHIPS Council Bluffs, IA",,85648,
+11TBrooks.htm,Results,public/LiftTilYaDie/Results/11TBrooks.htm,False,T BROOKS OPEN,2011,2011,,"Sacramento, CA",,25996,has_record_notations
+11TKOpen.htm,Results,public/LiftTilYaDie/Results/11TKOpen.htm,False,2011 TOMMY KONO OPEN - VI,2011,2011,,"Sacramento, CA",,48158,has_record_notations
+12AmOpen.htm,Results,public/LiftTilYaDie/Results/12AmOpen.htm,True,2012 USAW AMERICAN OPEN,"December 2, 2012",2012-12-02,2012-12-02,"YOUTH WORLD TRIALS Palm Springs, CA",,109006,has_record_notations
+12CAInvitational.htm,Results,public/LiftTilYaDie/Results/12CAInvitational.htm,False,2012 CATALYST ATHLETICS SUMMER INVITATIONAL,"August 26, 2012",2012-08-26,2012-08-26,"Sunnyvale, CA",,9466,has_record_notations
+12CAQualifier.htm,Results,public/LiftTilYaDie/Results/12CAQualifier.htm,False,2012 CATALYST ATHLETICS LAST CHANCE QUALIFIER,"February 5, 2012",2012-02-05,2012-02-05,"Sunnyvale, CA",,14387,has_record_notations
+12Columbus.htm,Results,public/LiftTilYaDie/Results/12Columbus.htm,False,2012 COLUMBUS DAY OPEN,"October 7, 2012",2012-10-07,2012-10-07,"San Francisco, CA",,18239,has_record_notations
+12Cougar.htm,Results,public/LiftTilYaDie/Results/12Cougar.htm,False,2012 COUGAR CLASSIC,2012,2012,,"Placerville, CA",,8822,has_record_notations
+12GldWst.htm,Results,public/LiftTilYaDie/Results/12GldWst.htm,False,2012 DON WILSON GOLDEN WEST OPEN,"November 4, 2012",2012-11-04,2012-11-04,,,37390,has_record_notations
+12HassleFreeSchoolage.htm,Results,public/LiftTilYaDie/Results/12HassleFreeSchoolage.htm,False,2012 SAC HIGH SCHOOLAGE QUALIFIER & OPEN,"APRIL 7, 2012",2012-04-07,2012-04-07,"Sacramento, CA",,15344,
+12LaborDay.htm,Results,public/LiftTilYaDie/Results/12LaborDay.htm,False,2012 LABOR DAY OPEN,"September 2, 2012",2012-09-02,2012-09-02,"San Francisco, CA",,18688,has_record_notations
+12MarMadness.htm,Results,public/LiftTilYaDie/Results/12MarMadness.htm,False,2012 MARCH MADNESS OPEN,"March 11, 2012",2012-03-11,2012-03-11,"Sacramento, CA",,8632,
+12Midtown.htm,Results,public/LiftTilYaDie/Results/12Midtown.htm,False,3RD ANNUAL MIDTOWN CLASSIC,"JUNE 16, 2012",2012-06-16,2012-06-16,"Sacramento, CA",,37227,has_record_notations
+12NatJrs.htm,Results,public/LiftTilYaDie/Results/12NatJrs.htm,True,2012 NATIONAL JUNIOR CHAMPIONSHIPS,"January  27-29, 2012",2012-01-27,2012-01-29,"USA WEIGHTLIFTING NATIONAL JUNIOR CHAMPIONSHIPS Itasca, IL",,56233,has_record_notations
+12NorCal.htm,Results,public/LiftTilYaDie/Results/12NorCal.htm,False,2012 NORTHERN CALIFORNIA OPEN,"MAY 6, 2012",2012-17-06,2012-17-06,"Elk Grove, CA",,27871,has_record_notations
+12NYC.htm,Results,public/LiftTilYaDie/Results/12NYC.htm,True,2012 NATIONAL YOUTH CHAMPIONSHIPS,"JUNE 22 - 24, 2012",2012-06-22,2012-06-24,"USA WEIGHTLIFTING NATIONAL YOUTH CHAMPIONSHIPS Dearborn, MI",,111353,has_record_notations
+12PresDay.htm,Results,public/LiftTilYaDie/Results/12PresDay.htm,False,2012 PRESIDENTS DAY BASH,"February 18, 2012",2012-02-18,2012-02-18,"San Francisco, CA",,28720,has_record_notations
+12PWAChp.htm,Results,public/LiftTilYaDie/Results/12PWAChp.htm,False,2012 PACIFIC WEIGHTLIFTING ASSOCIATION CHAMPIONSHIP,"January 21-22, 2012",2012-01-21,2012-01-22,"San Francisco, CA",,36310,has_record_notations
+12PWARec.htm,Results,public/LiftTilYaDie/Results/12PWARec.htm,False,2012 PWA RECORD BREAKERS,2012,2012,,"San Francisco, CA",,29933,has_record_notations
+12Redwood.htm,Results,public/LiftTilYaDie/Results/12Redwood.htm,False,2012 REDWOOD EMPIRE CHAMPIONSHIPS,2012,2012,,"Cotati, CA",,34489,has_record_notations
+12RiverTown.htm,Results,public/LiftTilYaDie/Results/12RiverTown.htm,False,2012 RIVERTOWN CLASSIC,2012,2012,,"Petaluma, CA",,23685,has_record_notations
+12SacHiOpenI.htm,Results,public/LiftTilYaDie/Results/12SacHiOpenI.htm,False,2012 SACRAMENTO HIGH OPEN I,"January 15, 2012",2012-01-15,2012-01-15,"Sacramento, CA",,9983,has_record_notations
+12SrNats.htm,Results,public/LiftTilYaDie/Results/12SrNats.htm,True,2012 USA WEIGHTLIFTING SENIOR NATIONALS & WOMEN'S OLYMPIC TRIALS,"MAR 2-4, 2012",2012-03-02,2012-03-04,"USA WEIGHTLIFTING SENIOR NATIONALS Columbus, OH",,98913,has_record_notations
+12TKOpen.htm,Results,public/LiftTilYaDie/Results/12TKOpen.htm,False,2012 TOMMY KONO OPEN - VII,2012,2012,,"Sacramento, CA",,37321,has_record_notations
+12United.htm,Results,public/LiftTilYaDie/Results/12United.htm,False,2012 UNITED BARBELL OPEN,"September 23, 2012",2012-09-23,2012-09-23,"Oakland, CA",,24356,has_record_notations
+12VetDay.htm,Results,public/LiftTilYaDie/Results/12VetDay.htm,False,2012 VETERANS DAY OPEN,"November 11, 2012",2012-11-11,2012-11-11,"San Francisco, CA",,28571,has_record_notations
+12WmnOlyTry.htm,Results,public/LiftTilYaDie/Results/12WmnOlyTry.htm,True,2012 WOMEN'S OLYMPIC TRIALS,"MARCH 4, 2012",2012-03-04,2012-03-04,"S OLYMPIC TRIALS COLUMBUS, OH",,10418,has_record_notations
+13AmOpen.htm,Results,public/LiftTilYaDie/Results/13AmOpen.htm,True,2013 USAW AMERICAN OPEN,"December 6-8, 2013",2013-12-06,2013-12-08,"USA WEIGHTLIFTING AMERICAN OPEN Dallas, TX",,164161,has_record_notations; large_file_possibly_multi_meet
+13CAInvitational.htm,Results,public/LiftTilYaDie/Results/13CAInvitational.htm,False,2013 CATALYST ATHLETICS ENSIGN GRAY INVITATIONAL,"October 12, 2013",2013-10-12,2013-10-12,"Sunnyvale, CA",,10524,
+13Collegiates.htm,Results,public/LiftTilYaDie/Results/13Collegiates.htm,True,Content Unavailable - Lift Til Ya Die,2013,2013,,,,677,stub_file_677b
+13Fall.htm,Results,public/LiftTilYaDie/Results/13Fall.htm,False,2013 FALL CLASSIC,2013,2013,,"San Francisco, CA",,33239,has_record_notations
+13GldWst.htm,Results,public/LiftTilYaDie/Results/13GldWst.htm,False,2013 DON WILSON GOLDEN WEST OPEN,"November 2-3, 2013",2013-11-02,2013-11-03,,,18748,has_record_notations
+13Kilos.htm,Results,public/LiftTilYaDie/Results/13Kilos.htm,False,CAFFEINE & KILOS INVITATIONAL 2013,"September 15, 2013",2013-09-15,2013-09-15,"McClellan, CA",,13375,has_record_notations
+13Max.htm,Results,public/LiftTilYaDie/Results/13Max.htm,False,2013 MAX'S GYM OPEN,"October 20, 2013",2013-10-20,2013-10-20,"Oakland, CA",,35474,has_record_notations
+13Midtown.htm,Results,public/LiftTilYaDie/Results/13Midtown.htm,False,4TH ANNUAL MIDTOWN CLASSIC,"DECEMBER 14, 2013",2013-12-14,2013-12-14,"Sacramento, CA",,41309,has_record_notations
+13NatJrs.htm,Results,public/LiftTilYaDie/Results/13NatJrs.htm,True,2013 NATIONAL JUNIOR CHAMPIONSHIPS,"February 16 - 17, 2013",2013-02-16,2013-02-17,"USA WEIGHTLIFTING NATIONAL JUNIORS Foster City, CA",,70828,has_record_notations
+13NorCal.htm,Results,public/LiftTilYaDie/Results/13NorCal.htm,False,2013 NORTHERN CALIFORNIA OPEN,2013,2013,,"Sacramento, CA",,41993,has_record_notations
+13NYC.htm,Results,public/LiftTilYaDie/Results/13NYC.htm,True,2013 USA WEIGHTLIFTING NATIONAL YOUTH CHAMPIONSHIPS,"JUNE 28-30, 2013",2013-06-28,2013-06-30,"USA WEIGHTLIFTING NATIONAL YOUTH CHAMPIONSHIPS Saint Joseph, MO",,142389,has_record_notations
+13PWAChp.htm,Results,public/LiftTilYaDie/Results/13PWAChp.htm,False,2013 PWA CHAMPIONSHIPS,2013,2013,,"San Francisco, CA",,40415,has_record_notations
+13PWAJrChp.htm,Results,public/LiftTilYaDie/Results/13PWAJrChp.htm,False,2013 PWA JUNIOR CHAMPIONSHIPS,2013,2013,,"San Francisco, CA",,16404,
+13PWASenior.htm,Results,public/LiftTilYaDie/Results/13PWASenior.htm,False,2013 PWA SENIOR OPEN,2013,2013,,"San Francisco, CA",,33325,has_record_notations
+13PWAYouth.htm,Results,public/LiftTilYaDie/Results/13PWAYouth.htm,False,2013 PWA YOUTH CHAMPIONSHIPS & OPEN,2013,2013,,"San Francisco, CA",,19903,has_record_notations
+13Redwood.htm,Results,public/LiftTilYaDie/Results/13Redwood.htm,False,2012 REDWOOD EMPIRE CHAMPIONSHIPS,2013,2013,,"Cotati, CA",,34585,has_record_notations
+13RiverTown.htm,Results,public/LiftTilYaDie/Results/13RiverTown.htm,False,2013 RIVERTOWN CLASSIC,2013,2013,,"Petaluma, CA",,38743,has_record_notations
+13SpringOpen.htm,Results,public/LiftTilYaDie/Results/13SpringOpen.htm,False,2013 PWA MASTERS & SPRING OPEN,2013,2013,,"San Francisco, CA",,24831,has_record_notations
+13SrNats.htm,Results,public/LiftTilYaDie/Results/13SrNats.htm,True,2013 USA WEIGHTLIFTING SENIOR NATIONALS,"JULY 26-27, 2013",2013-07-26,2013-07-27,"USA WEIGHTLIFTING SENIOR NATIONALS CINCINNATI, OH",,89315,has_record_notations
+13Sundial.htm,Results,public/LiftTilYaDie/Results/13Sundial.htm,False,2013 SUNDIAL OPEN,"September 1, 2013",2013-09-01,2013-09-01,,,12149,has_record_notations
+13TKOpen.htm,Results,public/LiftTilYaDie/Results/13TKOpen.htm,False,2013 TOMMY KONO OPEN - VIII,2013,2013,,"Sacramento, CA",,42512,has_record_notations
+13University.htm,Results,public/LiftTilYaDie/Results/13University.htm,True,2013 UNIVERSITY NATIONALS WEIGHTLIFTING CHAMPIONSHIPS & PAC-WORLD TRIALS SESSIONS,"APRIL 5-7, 2013",2013-04-05,2013-04-07,"WORLD TEAM TRIALS Johnson City, TN",,90452,
+13VetDay.htm,Results,public/LiftTilYaDie/Results/13VetDay.htm,False,2013 KEVIN SAN VETERANS DAY OPEN,"November 10, 2013",2013-11-10,2013-11-10,"San Francisco, CA",,23509,
+13WarriorZ.htm,Results,public/LiftTilYaDie/Results/13WarriorZ.htm,False,2013 WARRIORZ OPEN,"JUNE 1, 2013",2013-06-01,2013-06-01,"Elk Grove, CA",Jim Schmitz,29633,has_record_notations
+14AmOpen.htm,Results,public/LiftTilYaDie/Results/14AmOpen.htm,True,2014 USAW AMERICAN OPEN,"December 12-14, 2014",2014-12-12,2014-12-14,"USA WEIGHTLIFTING AMERICAN OPEN Washington, DC",,144822,has_record_notations
+14BLCity.htm,Results,public/LiftTilYaDie/Results/14BLCity.htm,False,2014 BIGGEST LITTLE CITY OPEN,"September 14, 2014",2014-09-14,2014-09-14,"Reno, NV",,15439,
+14GldWst.htm,Results,public/LiftTilYaDie/Results/14GldWst.htm,False,2014 DON WILSON GOLDEN WEST OPEN,"November 1-2, 2014",2014-11-01,2014-11-02,"San Ramon, CA",,45622,has_record_notations
+14HSFOpen.htm,Results,public/LiftTilYaDie/Results/14HSFOpen.htm,False,2014 HASSLE FREE OPEN & INVITATIONAL,"MARCH 8-9, 2014",2014-03-08,2014-03-09,"INVITATIONAL FOSTER CITY, CA",,70478,has_record_notations
+14HSFRecord.htm,Results,public/LiftTilYaDie/Results/14HSFRecord.htm,False,2014 HASSLE FREE RECORD BREAKERS,"December 19-21, 2014",2014-12-19,2014-12-21,"San Francisco, CA",,81600,has_record_notations
+14JrLastChance.htm,Results,public/LiftTilYaDie/Results/14JrLastChance.htm,False,2014 NATIONAL JUNIORS LAST CHANCE QUALIFIER,"December 13, 2014",2014-12-13,2014-12-13,"Palo Alto, CA",,5995,
+14Kilos.htm,Results,public/LiftTilYaDie/Results/14Kilos.htm,False,2014 CAFFEINE & KILOS INVITATIONAL,"September 20, 2014",2014-09-20,2014-09-20,"McClellan, CA",,11601,has_record_notations
+14Max.htm,Results,public/LiftTilYaDie/Results/14Max.htm,False,2014 MAX'S GYM OPEN,"October 12, 2014",2014-10-12,2014-10-12,"Oakland, CA",,39498,has_record_notations
+14Memorial.htm,Results,public/LiftTilYaDie/Results/14Memorial.htm,False,2014 MEMORIAL WEEKEND OPEN,"MAY 25, 2014",2014-17-25,2014-17-25,"San Francisco, CA",,29089,has_record_notations
+14MLK.htm,Results,public/LiftTilYaDie/Results/14MLK.htm,False,2014 MLK DAY OPEN,"January 19, 2014",2014-01-19,2014-01-19,"San Francisco, CA",,37865,has_record_notations
+14NatJrs.htm,Results,public/LiftTilYaDie/Results/14NatJrs.htm,True,2014 USA WEIGHTLIFTING NATIONAL JUNIORS,"FEBRUARY 2, 2014",2014-02-02,2014-02-02,"USA WEIGHTLIFTING NATIONAL JUNIORS AURORA, CO",,100650,has_record_notations
+14NCL-I.htm,Results,public/LiftTilYaDie/Results/14NCL-I.htm,False,2014 NORTH COAST LEAGUE I,"February 22, 2014",2014-02-22,2014-02-22,"Napa, CA",,7588,
+14NCL-II.htm,Results,public/LiftTilYaDie/Results/14NCL-II.htm,False,2014 NORTH COAST LEAGUE II,"March 22, 2014",2014-03-22,2014-03-22,"San Rafael, CA",,10246,
+14NCL-III.htm,Results,public/LiftTilYaDie/Results/14NCL-III.htm,False,2014 NORTH COAST LEAGUE III,"May 31, 2014",2014-17-31,2014-17-31,"Petaluma, CA",,18067,
+14NCL-V.htm,Results,public/LiftTilYaDie/Results/14NCL-V.htm,False,2014 NORTH COAST LEAGUE V,"October 4, 2014",2014-10-04,2014-10-04,"Santa Rosa, CA",,10451,
+14NCLChamps.htm,Results,public/LiftTilYaDie/Results/14NCLChamps.htm,False,2014 NORTH COAST LEAGUE CHAMPIONSHIPS,"December 6, 2014",2014-12-06,2014-12-06,"San Rafael, CA",,19188,
+14NorCal.htm,Results,public/LiftTilYaDie/Results/14NorCal.htm,False,2014 NORTHERN CALIFORNIA OPEN,2014,2014,,"Sacramento, CA",,34962,has_record_notations
+14NYC.pdf,Results,public/LiftTilYaDie/Results/14NYC.pdf,False,,2014,2014,,,,910196,pdf_file
+14NYC_viewer.htm,Results,public/LiftTilYaDie/Results/14NYC_viewer.htm,True,2014 NYC Results (PDF),2014,2014,,,,541,pdf_viewer_stub
+14NYLast.htm,Results,public/LiftTilYaDie/Results/14NYLast.htm,False,2014 NATIONAL YOUTH LAST CHANCE QUALIFIER,"April 26, 2014",2014-04-26,2014-04-26,"Petaluma, CA",,5091,
+14PresDay.htm,Results,public/LiftTilYaDie/Results/14PresDay.htm,False,2014 PRESIDENTS DAY OPEN,"February 16, 2014",2014-02-16,2014-02-16,"San Francisco, CA",,43937,has_record_notations
+14PWAChp.htm,Results,public/LiftTilYaDie/Results/14PWAChp.htm,False,2014 PWA CHAMPIONSHIPS,"May 3-4, 2014",2014-17-03,2014-17-04,"Emeryville, CA",,41213,has_record_notations
+14PWAJrChp.htm,Results,public/LiftTilYaDie/Results/14PWAJrChp.htm,False,2014 PWA JUNIOR CHAMPIONSHIPS & MASTER OPEN,"MARCH 7, 2014",2014-03-07,2014-03-07,"MASTER OPEN FOSTER CITY, CA",,22178,has_record_notations
+14Redwood.htm,Results,public/LiftTilYaDie/Results/14Redwood.htm,False,2014 REDWOOD EMPIRE CHAMPIONSHIPS,2014,2014,,"Cotati, CA",,35601,has_record_notations
+14RenoTrials.htm,Results,public/LiftTilYaDie/Results/14RenoTrials.htm,False,2014 RENO INTERNATIONAL TRIALS SESSIONS,"APRIL 5-6, 2014",2014-04-05,2014-04-06,"Reno, NV",,13479,
+14SacHiI.htm,Results,public/LiftTilYaDie/Results/14SacHiI.htm,False,2014 SACRAMENTO HIGH OPEN I,"April 19, 2014",2014-04-19,2014-04-19,"Sacramento, CA",,32393,has_record_notations
+14SAFOpen.htm,Results,public/LiftTilYaDie/Results/14SAFOpen.htm,False,2014 STONE AGE FUEL OPEN,"JUNE 22, 2014",2014-06-22,2014-06-22,"Reno, NV",,15324,
+14SrNats.htm,Results,public/LiftTilYaDie/Results/14SrNats.htm,True,2014 USA WEIGHTLIFTING SENIOR NATIONALS,"JULY 18-20, 2014",2014-07-18,2014-07-20,"USA WEIGHTLIFTING SENIOR NATIONALS SALT LAKE CITY, UT",,155684,has_record_notations; large_file_possibly_multi_meet
+14Sundial.htm,Results,public/LiftTilYaDie/Results/14Sundial.htm,False,2014 SUNDIAL BRIDGE OPEN,"August 31, 2014",2014-08-31,2014-08-31,,,10783,
+14TKOpen.htm,Results,public/LiftTilYaDie/Results/14TKOpen.htm,False,2014 TOMMY KONO OPEN - IX,2014,2014,,"Sacramento, CA",,47632,has_record_notations
+14University.htm,Results,public/LiftTilYaDie/Results/14University.htm,True,2014 UNIVERSITY NATIONALS WEIGHTLIFTING CHAMPIONSHIPS & WORLD TRIALS SESSIONS,"SEPTEMBER 26-28, 2014",2014-09-26,2014-09-28,"WORLD TEAM TRIALS Albuquerque, NM",,133749,has_record_notations
+14Visalia.htm,Results,public/LiftTilYaDie/Results/14Visalia.htm,False,2014 VISALIA LIFT OFF,"JUNE 28, 2014",2014-06-28,2014-06-28,"Visalia, CA",,26870,has_record_notations
+14VisaliaFall.htm,Results,public/LiftTilYaDie/Results/14VisaliaFall.htm,False,2014 VISALIA FALL LIFT OFF,"NOVEMBER 22, 2014",2014-11-22,2014-11-22,"Visalia, CA",,27727,
+14WarriorZ.htm,Results,public/LiftTilYaDie/Results/14WarriorZ.htm,False,2014 WARRIORZ OPEN,"August 16, 2014",2014-08-16,2014-08-16,"Elk Grove, CA",,14716,has_record_notations
+14Wine.htm,Results,public/LiftTilYaDie/Results/14Wine.htm,False,2014 CTS WINE COUNTRY CLASSIC,"April 12, 2014",2014-04-12,2014-04-12,"Napa, CA",,32141,has_record_notations
+15AmOpen.htm,Results,public/LiftTilYaDie/Results/15AmOpen.htm,True,2015 USAW AMERICAN OPEN,"December 3-6, 2015",2015-12-03,2015-12-06,"RENO, NV",,322230,large_file_possibly_multi_meet
+15BCClassic.htm,Results,public/LiftTilYaDie/Results/15BCClassic.htm,False,2015 BUTCH CURRY CLASSIC,2015,2015,,"Elk Grove, CA",,26161,
+15BLCity.htm,Results,public/LiftTilYaDie/Results/15BLCity.htm,False,2015 BIGGEST LITTLE CITY OPEN,"July 12, 2015",2015-07-12,2015-07-12,"Reno, NV",,15216,
+15CalState.htm,Results,public/LiftTilYaDie/Results/15CalState.htm,False,2015 CALIFORNIA STATE CHAMPIONSHIPS,"MAY 24, 2015",2015-17-24,2015-17-24,"Visalia, CA",,31608,has_record_notations
+15HSFSpringBreaker.htm,Results,public/LiftTilYaDie/Results/15HSFSpringBreaker.htm,False,2015 HASSLE FREE SPRING BREAKER,"March 28-29, 2015",2015-03-28,2015-03-29,"San Francisco, CA",,61468,has_record_notations
+15Kilos.htm,Results,public/LiftTilYaDie/Results/15Kilos.htm,False,2015 CAFFEINE & KILOS INVITATIONAL,"September 19, 2015",2015-09-19,2015-09-19,"McClellan, CA",,44617,
+15LiftMore.htm,Results,public/LiftTilYaDie/Results/15LiftMore.htm,False,2015 LIFT MORE OPEN,"September 6, 2015",2015-09-06,2015-09-06,"Bakersfield, CA",,18890,has_record_notations
+15MaxLastChance.htm,Results,public/LiftTilYaDie/Results/15MaxLastChance.htm,False,2015 MAX'S GYM LAST CHANCE QUALIFIER,2015,2015,,"Oakland, CA",,9684,has_record_notations
+15NatJrs.htm,Results,public/LiftTilYaDie/Results/15NatJrs.htm,True,2015 USA WEIGHTLIFTING NATIONAL JUNIORS,"FEBRUARY 13-15, 2015",2015-02-13,2015-02-15,"USA WEIGHTLIFTING NATIONAL JUNIORS OKLAHOMA CITY, OK",,83397,has_record_notations
+15NCLYouth.htm,Results,public/LiftTilYaDie/Results/15NCLYouth.htm,False,2015 NORTH COAST LEAGUE YOUTH CHAMPIONSHIPS,"May 23, 2015",2015-17-23,2015-17-23,"Petaluma, CA",,11927,has_record_notations
+15NorCal.htm,Results,public/LiftTilYaDie/Results/15NorCal.htm,False,2015 NORTHERN CALIFORNIA OPEN,2015,2015,,"Sacramento, CA",,37662,
+15NYC.pdf,Results,public/LiftTilYaDie/Results/15NYC.pdf,False,,2015,2015,,,,1047244,pdf_file
+15NYC_viewer.htm,Results,public/LiftTilYaDie/Results/15NYC_viewer.htm,True,2015 NYC Results (PDF),2015,2015,,,,541,pdf_viewer_stub
+15Occam.htm,Results,public/LiftTilYaDie/Results/15Occam.htm,False,2015 OCCAM OPEN,"September 13, 2015",2015-09-13,2015-09-13,"Lodi, CA",,21831,
+15PWAChp.htm,Results,public/LiftTilYaDie/Results/15PWAChp.htm,False,2015 PWA CHAMPIONSHIPS,"June 12-14, 2015",2015-06-12,2015-06-14,"Reno, NV",,57891,has_record_notations
+15PWAJrMLK.htm,Results,public/LiftTilYaDie/Results/15PWAJrMLK.htm,False,2015 PWA JUNIOR CHAMPIONSHIPS & MLK DAY OPEN,2015,2015,,"San Francisco, CA",,25909,
+15Redwood.htm,Results,public/LiftTilYaDie/Results/15Redwood.htm,False,2015 REDWOOD EMPIRE CHAMPIONSHIPS,2015,2015,,"Cotati, CA",,33221,
+15RiverTown.htm,Results,public/LiftTilYaDie/Results/15RiverTown.htm,False,2015 RIVERTOWN CLASSIC,2015,2015,,"Petaluma, CA",,33181,
+15SacHiI.htm,Results,public/LiftTilYaDie/Results/15SacHiI.htm,False,2015 SACRAMENTO HIGH OPEN I,"February 21, 2015",2015-02-21,2015-02-21,"Sacramento, CA",,17921,
+15SrNats.htm,Results,public/LiftTilYaDie/Results/15SrNats.htm,True,2015 USA WEIGHTLIFTING SENIOR NATIONALS,"August 14-16, 2015",2015-08-14,2015-08-16,"USA WEIGHTLIFTING SENIOR NATIONALS DALLAS, TX",,165646,has_record_notations; large_file_possibly_multi_meet
+15Wine.htm,Results,public/LiftTilYaDie/Results/15Wine.htm,False,2015 CTS WINE COUNTRY CLASSIC,"March 8, 2015",2015-03-08,2015-03-08,"Napa, CA",,37581,has_record_notations
+16AmOpen.htm,Results,public/LiftTilYaDie/Results/16AmOpen.htm,True,2016 USA WEIGHTLIFTING AMERICAN OPEN,"DECEMBER 8-11, 2016",2016-12-08,2016-12-11,"USA WEIGHTLIFTING AMERICAN OPEN ORLANDO, FL",,265248,has_record_notations; large_file_possibly_multi_meet
+16NatJrs.htm,Results,public/LiftTilYaDie/Results/16NatJrs.htm,True,2016 USA WEIGHTLIFTING NATIONAL JUNIORS,"FEBRUARY 19-21, 2016",2016-02-19,2016-02-21,"USA WEIGHTLIFTING NATIONAL JUNIORS PHILADELPHIA, PA",,150025,has_record_notations; large_file_possibly_multi_meet
+16NYC.htm,Results,public/LiftTilYaDie/Results/16NYC.htm,True,2016 USA WEIGHTLIFTING NATIONAL YOUTH CHAMPIONSHIPS,"JULY 23-26, 2016",2016-07-23,2016-07-26,"USA WEIGHTLIFTING NATIONAL YOUTH CHAMPIONSHIPS AUSTIN, TX",,289936,has_record_notations; large_file_possibly_multi_meet
+16SrNats.htm,Results,public/LiftTilYaDie/Results/16SrNats.htm,True,2016 USA WEIGHTLIFTING SENIOR NATIONALS & OLYMPIC TRIALS,"MAY 6-8, 2016",2016-17-06,2016-17-08,"OLYMPIC TRIALS SALT LAKE CITY, UT",,144584,has_record_notations
+17NatJrs.htm,Results,public/LiftTilYaDie/Results/17NatJrs.htm,True,2017 USA WEIGHTLIFTING JUNIOR NATIONALS,"FEBRUARY 24-26, 2017",2017-02-24,2017-02-26,"USA WEIGHTLIFTING JUNIOR NATIONALS KANSAS CITY, MO",,154248,has_record_notations; large_file_possibly_multi_meet
+17SrNats.htm,Results,public/LiftTilYaDie/Results/17SrNats.htm,True,2017 USA WEIGHTLIFTING SENIOR NATIONALS,"MAY 12-14, 2017",2017-17-12,2017-17-14,"USA WEIGHTLIFTING SENIOR NATIONALS CHICAGO, IL",,152913,has_record_notations; large_file_possibly_multi_meet
+18SrNats.htm,Results,public/LiftTilYaDie/Results/18SrNats.htm,True,Content Unavailable - Lift Til Ya Die,2018,2018,,,,677,stub_file_677b
+1992AMRecords.htm,Results,public/LiftTilYaDie/Results/1992AMRecords.htm,True,1896 - 1992 AMERICAN RECORDS,2019,2019,,Senior Men,,29939,
+19SrNats.htm,Results,public/LiftTilYaDie/Results/19SrNats.htm,True,2019 USAW NATIONAL CHAMPIONSHIPS,"MAY 10-12, 2019",2019-17-10,2019-17-12,"MEMPHIS, TN",,151234,large_file_possibly_multi_meet
+2006NatSchoolAge.htm,Results,public/LiftTilYaDie/Results/2006NatSchoolAge.htm,False,2006 NATIONAL SCHOOLAGE CHAMPIONSHIPS,"JUNE   23 - 24, 2006",2006-06-23,2006-06-24,"USA WEIGHTLIFTING National Schoolage Championships DETROIT, MI",,103896,has_record_notations
+33SrNats.htm,Results,public/LiftTilYaDie/Results/33SrNats.htm,True,1933 SENIOR NATIONALS,1933,1933,,"World's Fair, Chicago, IL",,16332,
+34SrNats.htm,Results,public/LiftTilYaDie/Results/34SrNats.htm,True,1934 SENIOR NATIONALS,"May 27, 1934",1934-17-27,1934-17-27,"Brooklyn, NY",,15322,
+35SrNats.htm,Results,public/LiftTilYaDie/Results/35SrNats.htm,True,1935 SENIOR NATIONALS,1935,1935,,"SENIOR NATIONALS CINCINNATI, OH",,15256,
+36SrNats.htm,Results,public/LiftTilYaDie/Results/36SrNats.htm,True,1936 SENIOR NATIONALS AND FINAL OLYMPIC TRYOUTS,"JULY 3 - 4, 1936",1936-07-03,1936-07-04,FINAL OLYMPIC TRYOUTS,,22700,
+37NorCal.htm,Results,public/LiftTilYaDie/Results/37NorCal.htm,False,1937 NORTHERN CALIFORNIA WEIGHTLIFTING CHAMPIONSHIPS,"Nov 9, 2020",2020-11-09,2020-11-09,Weightlifting Championships,,5334,
+37SrNats.htm,Results,public/LiftTilYaDie/Results/37SrNats.htm,True,1937 SENIOR NATIONALS,1937,1937,,"Michigan Alkali Club, Wyandotte, MI",,12573,has_record_notations
+37Watsonville.htm,Results,public/LiftTilYaDie/Results/37Watsonville.htm,False,1937 WATSONVILLE MEET,"Nov 9, 2020",2020-11-09,2020-11-09,Watsonville Y. M. C. A.,,2593,
+38NorCal.htm,Results,public/LiftTilYaDie/Results/38NorCal.htm,False,1938 NORTHERN CALIFORNIA OPEN WEIGHTLIFTING CHAMPIONSHIPS,"JUNE 5, 1938",1938-06-05,1938-06-05,"UVAS DAM, CA",,5332,has_record_notations
+38SrNats.htm,Results,public/LiftTilYaDie/Results/38SrNats.htm,True,1938 SENIOR NATIONALS,"MAY 29 - 30, 1938",1938-17-29,1938-17-30,"WOONSOCKET, RI",,19127,has_record_notations
+39SrNats.htm,Results,public/LiftTilYaDie/Results/39SrNats.htm,True,1939 SENIOR NATIONALS,"JULY 2 - 4, 1939",1939-07-02,1939-07-04,"CHICAGO, IL",,19680,has_record_notations
+40NorCal.htm,Results,public/LiftTilYaDie/Results/40NorCal.htm,False,1940 NORTHERN CALIFORNIA WEIGHTLIFTING CHAMPIONSHIPS,"March 9, 1940",1940-03-09,1940-03-09,Weightlifting Championships,,6857,
+40SrNats.htm,Results,public/LiftTilYaDie/Results/40SrNats.htm,True,1940 SENIOR NATIONALS AND FINAL OLYMPIC TRYOUTS,"MAY 25, 1940",1940-17-25,1940-17-25,FINAL OLYMPIC TRYOUTS,,19051,has_record_notations
+41CalTeam.htm,Results,public/LiftTilYaDie/Results/41CalTeam.htm,False,1941 CALIFORNIA TEAM CONTEST,"February 9, 1941",1941-02-09,1941-02-09,"California Team Contest San Francisco, CA",,4891,
+41NorCal.htm,Results,public/LiftTilYaDie/Results/41NorCal.htm,False,1941 NORTHERN CALIFORNIA WEIGHTLIFTING CHAMPIONSHIPS,"JAN 25, 1941",1941-01-25,1941-01-25,Weightlifting Championships,,11087,has_record_notations
+41PWAChp.htm,Results,public/LiftTilYaDie/Results/41PWAChp.htm,False,1941 PACIFIC ASSOCIATION of the AAU WEIGHTLIFTING CHAMPIONSHIPS,"Nov 9, 2020",2020-11-09,2020-11-09,Weightlifting Championships,,8094,
+41SacYMCA.htm,Results,public/LiftTilYaDie/Results/41SacYMCA.htm,False,1941 SACRAMENTO Y. M. C. A. WEIGHTLIFTING CHAMPIONSHIPS,"Nov 9, 2020",2020-11-09,2020-11-09,Weightlifting Championships,,3619,
+41SrNats.htm,Results,public/LiftTilYaDie/Results/41SrNats.htm,True,1941 SENIOR NATIONALS,"MAY 23 - 24, 1941",1941-17-23,1941-17-24,"PHILADELPHIA, PA",,13734,has_record_notations
+41YMCAOpen.htm,Results,public/LiftTilYaDie/Results/41YMCAOpen.htm,False,1941 Y. M. C. A. OPEN WEIGHTLIFTING CHAMPIONSHIPS,"MARCH 1, 1941",1941-03-01,1941-03-01,CENTRAL BRANCH YMCA,,8969,
+42SanFran.htm,Results,public/LiftTilYaDie/Results/42SanFran.htm,False,1942 SAN FRANCISCO OPEN WEIGHTLIFTING CHAMPIONSHIPS,"Nov 9, 2020",2020-11-09,2020-11-09,Central Branch YMCA,,5719,
+42SanQ.htm,Results,public/LiftTilYaDie/Results/42SanQ.htm,False,1942 MEET AT SAN QUENTIN,"Nov 9, 2020",2020-11-09,2020-11-09,(FROM STRENGTH & HEALTH MAGAZINE),,4204,
+42SrNats.htm,Results,public/LiftTilYaDie/Results/42SrNats.htm,True,1942 SENIOR NATIONALS,"MAY 24, 1942",1942-17-24,1942-17-24,"Veteran's Memorial Clubhouse - Cincinnati, OH",Hise Report,13411,
+43SrNats.htm,Results,public/LiftTilYaDie/Results/43SrNats.htm,True,1943 SENIOR NATIONALS,"JUNE 26 - 27, 1943",1943-06-26,1943-06-27,"LOS ANGELES, CA",,7117,
+43YMCAOpen.htm,Results,public/LiftTilYaDie/Results/43YMCAOpen.htm,False,1943 Y. M. C. A. OPEN WEIGHTLIFTING CHAMPIONSHIPS,"Nov 9, 2020",2020-11-09,2020-11-09,(FROM STRENGTH & HEALTH MAGAZINE),,4348,
+44SrNats.htm,Results,public/LiftTilYaDie/Results/44SrNats.htm,True,1944 SENIOR NATIONALS,1944,1944,,"CHATTANOOGA, TN",Hise Report,9645,has_record_notations
+45NorCal.htm,Results,public/LiftTilYaDie/Results/45NorCal.htm,False,1945 NORTHERN CALIFORNIA WEIGHTLIFTING CHAMPIONSHIPS,"MAY 5, 1945",1945-17-05,1945-17-05,Weightlifting Championships,,3339,
+45SrNats.htm,Results,public/LiftTilYaDie/Results/45SrNats.htm,True,1945 SENIOR NATIONALS,"JUNE 2 - 3, 1945",1945-06-02,1945-06-03,"HOLLYWOOD, CA",,8913,
+46SrNats.htm,Results,public/LiftTilYaDie/Results/46SrNats.htm,True,1946 SENIOR NATIONALS,"JUNE 1 - 2, 1946",1946-06-01,1946-06-02,"DETROIT BOYS CLUB - DETROIT, MI",,14505,has_record_notations
+47SanQ.htm,Results,public/LiftTilYaDie/Results/47SanQ.htm,False,1942 MEET AT SAN QUENTIN,"March 16, 1947",1947-03-16,1947-03-16,SAN QUENTIN,,4065,
+47SrNats.htm,Results,public/LiftTilYaDie/Results/47SrNats.htm,True,1947 SENIOR NATIONALS,"JUNE 28 - 29, 1947",1947-06-28,1947-06-29,"LANE HIGH SCHOOL - CHICAGO, IL",,20529,has_record_notations
+48OlyTry.htm,Results,public/LiftTilYaDie/Results/48OlyTry.htm,True,1948 OLYMPIC TRYOUTS,"JULY 9, 1948",1948-07-09,1948-07-09,"Riverside Plaza Auditorium - New York, NY",,9856,
+48SrNats.htm,Results,public/LiftTilYaDie/Results/48SrNats.htm,True,1948 SENIOR NATIONALS,1948,1948,,"LOS ANGELES, CA",,8717,has_record_notations
+49SrNats.htm,Results,public/LiftTilYaDie/Results/49SrNats.htm,True,1949 SENIOR NATIONALS,1949,1949,,,,8581,
+50SrNats.htm,Results,public/LiftTilYaDie/Results/50SrNats.htm,True,1950 SENIOR NATIONALS,"MAY 12 - 13, 1950",1950-17-12,1950-17-13,SENIOR NATIONALS,,11801,has_record_notations
+51SrNats.htm,Results,public/LiftTilYaDie/Results/51SrNats.htm,True,1951 SENIOR NATIONALS,"JUNE 15 - 16, 1951",1951-06-15,1951-06-16,SENIOR NATIONALS,,12127,has_record_notations
+52SrNats.htm,Results,public/LiftTilYaDie/Results/52SrNats.htm,True,1952 SENIOR NATIONALS,"JUNE 27 - 28, 1952",1952-06-27,1952-06-28,FINAL OLYMPIC TRYOUTS,,20372,
+53Collegiates.htm,Results,public/LiftTilYaDie/Results/53Collegiates.htm,True,1953 INTERCOLLEGIATE WEIGHTLIFTING CHAMPIONSHIPS,1953,1953,,CHAMPIONSHIPS,,24968,
+53SrNats.htm,Results,public/LiftTilYaDie/Results/53SrNats.htm,True,1953 SENIOR NATIONALS,"JUNE 6 - 7, 1953",1953-06-06,1953-06-07,"INDIANAPOLIS, IN",,8097,has_record_notations
+54SrNats.htm,Results,public/LiftTilYaDie/Results/54SrNats.htm,True,1954 SENIOR NATIONALS,"JUNE 25 - 26, 1954",1954-06-25,1954-06-26,"GREEK THEATRE - LOS ANGELES, CA",,10976,has_record_notations
+55SrNats.htm,Results,public/LiftTilYaDie/Results/55SrNats.htm,True,1955 SENIOR NATIONALS,"JUNE 4 - 5, 1955",1955-06-04,1955-06-05,"CLEVELAND, OH",,11930,has_record_notations
+56OlyTry.htm,Results,public/LiftTilYaDie/Results/56OlyTry.htm,True,1956 FINAL OLYMPIC TRYOUTS,"NOVEMBER 27, 1956",1956-11-27,1956-11-27,"SAN JOSE, CA",,7918,
+56SrNats.htm,Results,public/LiftTilYaDie/Results/56SrNats.htm,True,1956 SENIOR NATIONALS,"JUNE 1 - 2, 1956",1956-06-01,1956-06-02,SENIOR NATIONALS,,21224,has_record_notations
+57SrNats.htm,Results,public/LiftTilYaDie/Results/57SrNats.htm,True,1957 SENIOR NATIONALS,"JUNE 22 - 23, 1957",1957-06-22,1957-06-23,SENIOR NATIONALS,,18359,has_record_notations
+58SrNats.htm,Results,public/LiftTilYaDie/Results/58SrNats.htm,True,1958 SENIOR NATIONALS,"JUNE 20 - 21, 1958",1958-06-20,1958-06-21,SENIOR NATIONALS,,10548,has_record_notations
+59SrNats.htm,Results,public/LiftTilYaDie/Results/59SrNats.htm,True,1959 SENIOR NATIONALS,1959,1959,,SENIOR NATIONALS,,18300,has_record_notations
+60SrNats.htm,Results,public/LiftTilYaDie/Results/60SrNats.htm,True,1960 SENIOR NATIONALS,"JUNE 11 - 12, 1960",1960-06-11,1960-06-12,SENIOR NATIONALS,,22689,has_record_notations
+61SrNats.htm,Results,public/LiftTilYaDie/Results/61SrNats.htm,True,1961 SENIOR NATIONALS,"JUNE 23 - 24, 1961",1961-06-23,1961-06-24,SENIOR NATIONALS,,11316,has_record_notations
+62SrNats.htm,Results,public/LiftTilYaDie/Results/62SrNats.htm,True,1962 SENIOR NATIONALS,"JUNE 2 - 3, 1962",1962-06-02,1962-06-03,SENIOR NATIONALS,,13889,has_record_notations
+63SrNats.htm,Results,public/LiftTilYaDie/Results/63SrNats.htm,True,1963 SENIOR NATIONALS,"JUNE 28 - 29, 1963",1963-06-28,1963-06-29,"HARRISBURG, PA",,20263,has_record_notations
+64OlyTry.htm,Results,public/LiftTilYaDie/Results/64OlyTry.htm,True,1964 U. S. OLYMPIC TRYOUTS,1964,1964,,OLYMPIC TRYOUTS,,13041,
+64SrNats.htm,Results,public/LiftTilYaDie/Results/64SrNats.htm,True,1964 Sr Nationals,"JUNE 13 - 14, 1964",1964-06-13,1964-06-14,SENIOR NATIONALS,,14552,has_record_notations
+65SrNats.htm,Results,public/LiftTilYaDie/Results/65SrNats.htm,True,1965 Sr Nationals,"JUNE 11 - 12, 1965",1965-06-11,1965-06-12,SENIOR NATIONALS,,9124,has_record_notations
+66SrNats.htm,Results,public/LiftTilYaDie/Results/66SrNats.htm,True,1966 Sr Nationals,"JUNE 17 - 19, 1966",1966-06-17,1966-06-19,SENIOR NATIONALS,,19204,has_record_notations
+67SrNats.htm,Results,public/LiftTilYaDie/Results/67SrNats.htm,True,1967 Sr Nationals,1967,1967,,SENIOR NATIONALS,Hise Report,17769,has_record_notations
+68OlyTry.htm,Results,public/LiftTilYaDie/Results/68OlyTry.htm,True,1968 U. S. OLYMPIC TRYOUTS,1968,1968,,OLYMPIC TRYOUTS,Hise Report,25476,has_record_notations
+68SrNats.htm,Results,public/LiftTilYaDie/Results/68SrNats.htm,True,1968 Sr Nationals,"JUNE 8 - 9, 1968",1968-06-08,1968-06-09,SENIOR NATIONALS,Hise Report,26192,has_record_notations
+69SrNats.htm,Results,public/LiftTilYaDie/Results/69SrNats.htm,True,1969 AAU SENIOR NATIONALS,"June 14 - 15, 1969",1969-06-14,1969-06-15,SENIOR NATIONALS,,21499,has_record_notations
+70SrNats.htm,Results,public/LiftTilYaDie/Results/70SrNats.htm,True,1970 AAU SENIOR NATIONALS,1970,1970,,SENIOR NATIONALS,Hise Report,18392,has_record_notations
+71SrNats.htm,Results,public/LiftTilYaDie/Results/71SrNats.htm,True,1971 AAU SENIOR NATIONALS,1971,1971,,SENIOR NATIONALS,Hise Report,23425,has_record_notations
+72SrNats.htm,Results,public/LiftTilYaDie/Results/72SrNats.htm,True,1972 Sr Nationals,"JUNE 10-11, 1972",1972-06-10,1972-06-11,SENIOR NATIONALS,Hise Report,24690,has_record_notations
+73SrNats.htm,Results,public/LiftTilYaDie/Results/73SrNats.htm,True,1973 Sr Nationals,1973,1973,,SENIOR NATIONALS,,28991,has_record_notations
+73TANats.htm,Results,public/LiftTilYaDie/Results/73TANats.htm,True,1973 TEENAGE NATIONALS,1973,1973,,"Class Donald Warner York, PA",,17332,
+74SrNats.htm,Results,public/LiftTilYaDie/Results/74SrNats.htm,True,1974 Sr Nationals,1974,1974,,SENIOR NATIONALS,,19376,has_record_notations
+75SrNats.htm,Results,public/LiftTilYaDie/Results/75SrNats.htm,True,1975 Sr Nationals,JUNE 1975,1975-06,,SENIOR NATIONALS,Hise Report,18417,
+76SrNats.htm,Results,public/LiftTilYaDie/Results/76SrNats.htm,True,1976 AAU SENIOR NATIONALS,"June 18 - 20, 1976",1976-06-18,1976-06-20,"Final Olympic Trials Philadephia, PA",,54116,has_record_notations
+77SrNats.htm,Results,public/LiftTilYaDie/Results/77SrNats.htm,True,1977 AAU SENIOR NATIONALS,"June 11 - 12, 1977",1977-06-11,1977-06-12,"A A U SENIOR NATIONALS Culver City, CA",,40266,has_record_notations
+78SrNats.htm,Results,public/LiftTilYaDie/Results/78SrNats.htm,True,1978 AAU SENIOR NATIONALS,"June 10 - 11, 1978",1978-06-10,1978-06-11,"AAU SENIOR NATIONALS York, PA",,39848,has_record_notations
+78TANats.htm,Results,public/LiftTilYaDie/Results/78TANats.htm,True,1978 TEENAGE NATIONALS,"APRIL 22-23, 1978",1978-04-22,1978-04-23,"Rockville, MD",,15723,
+79PWAChp.htm,Results,public/LiftTilYaDie/Results/79PWAChp.htm,False,1979 PACIFIC ASSOCIATIOIN CHAMPIONSHIPS,1979,1979,,"PWA CHAMPIONSHIPS San Francisco, CA",,13479,
+79PWAJOChp.htm,Results,public/LiftTilYaDie/Results/79PWAJOChp.htm,False,1979 PACIFIC ASSOCIATIOIN JUNIOR OLYMPIC CHAMPIONSHIPS,"MAY 20, 1979",1979-17-20,1979-17-20,"PWA JO CHAMPIONSHIPS Castro Valley, CA",,11097,
+79SrNats.htm,Results,public/LiftTilYaDie/Results/79SrNats.htm,True,1979 AAU SENIOR NATIONALS,"May 12 - 13, 1979",1979-17-12,1979-17-13,"AAU WEIGHTLIFTING SENIOR NATIONALS Totowa, NJ",,43179,has_record_notations
+80NatJrs.htm,Results,public/LiftTilYaDie/Results/80NatJrs.htm,True,1980 NATIONAL JUNIOR CHAMPIONSHIPS,"MARCH 29, 1980",1980-03-29,1980-03-29,"NATIONAL JUNIORS HAMPTON, VA",,47097,has_record_notations
+80PacCoast.htm,Results,public/LiftTilYaDie/Results/80PacCoast.htm,False,1980 PACIFIC COAST OPEN CHAMPIONSHIPS,"April 13, 1980",1980-04-13,1980-04-13,"San Francisco, CA",,12276,
+80SrNats.htm,Results,public/LiftTilYaDie/Results/80SrNats.htm,True,1980 AAU SENIOR NATIONALS,"June 1, 1980",1980-06-01,1980-06-01,"AAU WEIGHTLIFTING SENIOR NATIONALS and FINAL OLYMPIC TRIALS Philadelphia, PA",,58758,has_record_notations
+81NatJrs.htm,Results,public/LiftTilYaDie/Results/81NatJrs.htm,True,1981 NATIONAL JUNIOR CHAMPIONSHIPS,"MARCH 28-29, 1981",1981-03-28,1981-03-29,"Northbrook, IL",,28402,has_record_notations
+81SrNats.htm,Results,public/LiftTilYaDie/Results/81SrNats.htm,True,1981 USWF SENIOR NATIONAL CHAMPIONSHIPS,"JUNE 6 - 7, 1981",1981-06-06,1981-06-07,"San Francisco, CA",Hise Report,15863,has_record_notations
+81WmnNats.htm,Results,public/LiftTilYaDie/Results/81WmnNats.htm,True,1981 WOMEN'S NATIONALS,"MAY 23, 1981",1981-17-23,1981-17-23,"Waterloo, Iowa",,7979,
+82GldWst.htm,Results,public/LiftTilYaDie/Results/82GldWst.htm,False,1982 GOLDEN WEST OPEN,"March 14, 1982",1982-03-14,1982-03-14,"San Francisco, CA",Jim Schmitz,15490,has_record_notations
+82NatJrs.htm,Results,public/LiftTilYaDie/Results/82NatJrs.htm,True,1982 NATIONAL JUNIORS,"March 20-21, 1982",1982-03-20,1982-03-21,"Dearborn, MI",,11720,
+82SrNats.htm,Results,public/LiftTilYaDie/Results/82SrNats.htm,True,1982 SENIOR NATIONALS,1982,1982,,"Northbrook, IL",,18297,has_record_notations
+82WmnNats.htm,Results,public/LiftTilYaDie/Results/82WmnNats.htm,True,1982 WOMEN'S WEIGHTLIFTING NATIONALS,1982,1982,,"St. Charles, IL",,14412,has_record_notations
+83BltBkl.htm,Results,public/LiftTilYaDie/Results/83BltBkl.htm,False,1983 BELT BUCKLE OPEN,"August 7, 1983",1983-08-07,1983-08-07,"San Francisco, CA",Jim Schmitz,12412,has_record_notations
+83Collegiates.htm,Results,public/LiftTilYaDie/Results/83Collegiates.htm,True,1983 NATIONAL COLLEGIATE CHAMPIONSHIPS,1983,1983,,"Knoxville, TN",,10662,has_record_notations
+83NatJrs.htm,Results,public/LiftTilYaDie/Results/83NatJrs.htm,True,1983 NATIONAL JUNIOR CHAMPIONSHIPS,"March 19, 1983",1983-03-19,1983-03-19,"Paul, MN",,12971,
+83SrNats.htm,Results,public/LiftTilYaDie/Results/83SrNats.htm,True,1983 USAW SENIOR NATIONALS,"May 1, 1983",1983-17-01,1983-17-01,"USA WEIGHTLIFTING SENIOR NATIONALS Seekonk, MA",,61433,has_record_notations
+83WmnNats.htm,Results,public/LiftTilYaDie/Results/83WmnNats.htm,True,1983 WOMEN'S WEIGHTLIFTING NATIONALS,"May 21, 1983",1983-17-21,1983-17-21,"Milwaukee, WI",,22352,has_record_notations
+84CalStates.htm,Results,public/LiftTilYaDie/Results/84CalStates.htm,False,1984 CALIFORNIA STATE CHAMPIONSHIPS,"January 29, 1984",1984-01-29,1984-01-29,"San Francisco, CA",Jim Schmitz,11507,has_record_notations
+84GldWst.htm,Results,public/LiftTilYaDie/Results/84GldWst.htm,False,1984 GOLDEN WEST OPEN,"February 26, 1984",1984-02-26,1984-02-26,"San Francisco, CA",Jim Schmitz,9744,has_record_notations
+84NatJrs.htm,Results,public/LiftTilYaDie/Results/84NatJrs.htm,True,1984 NATIONAL JUNIOR CHAMPIONSHIPS,"April 7-8, 1984",1984-04-07,1984-04-08,"NATIONAL JUNIORS Columbus, OH",Denis Reno's Newsletter,16606,
+84OlyTry.htm,Results,public/LiftTilYaDie/Results/84OlyTry.htm,True,1984 USWF OLYMPIC TRYOUTS,"MAY 11 - 12, 1984",1984-17-11,1984-17-12,"Las Vegas, NV",,25032,
+84SrNats.htm,Results,public/LiftTilYaDie/Results/84SrNats.htm,True,1984 USWF SENIOR NATIONALS,"March 10 - 11, 1984",1984-03-10,1984-03-11,"USWF WEIGHTLIFTING SENIOR NATIONALS York, PA",,47989,has_record_notations
+84WmnNats.htm,Results,public/LiftTilYaDie/Results/84WmnNats.htm,True,1984 WOMEN'S WEIGHTLIFTING NATIONALS,"MAY 5, 1984",1984-17-05,1984-17-05,"Atlanta, GA",Weightlifting USA,12498,has_record_notations
+85BltBkl.htm,Results,public/LiftTilYaDie/Results/85BltBkl.htm,False,1985 BELT BUCKLE OPEN,Mar 1961,1961-03,,"San Francisco, CA",Jim Schmitz,13817,has_record_notations
+85Collegiates.htm,Results,public/LiftTilYaDie/Results/85Collegiates.htm,True,1985 NATIONAL COLLEGIATE CHAMPIONSHIPS,"March 9, 1985",1985-03-09,1985-03-09,"Savannah, GA",,12097,
+85JrNats.htm,Results,public/LiftTilYaDie/Results/85JrNats.htm,False,1985 JUNIOR NATIONALS,"MARCH 30-31, 1985",1985-03-30,1985-03-31,"Northbrook, IL",Weightlifting USA,12024,
+85NatJrs.htm,Results,public/LiftTilYaDie/Results/85NatJrs.htm,True,1985 JUNIOR NATIONALS,"MARCH 30-31, 1985",1985-03-30,1985-03-31,"Northbrook, IL",Weightlifting USA,12024,
+85NorCal.htm,Results,public/LiftTilYaDie/Results/85NorCal.htm,False,1985 NORTHERN CALIFORNIA CHAMPIONSHIPS,"MAY 26, 1985",1985-17-26,1985-17-26,"San Francisco, CA",Jim Schmitz,12903,has_record_notations
+85SrNats.htm,Results,public/LiftTilYaDie/Results/85SrNats.htm,True,1985 SENIOR NATIONALS,"MAY 3-5, 1985",1985-17-03,1985-17-05,"Bethesda, MD",,15173,has_record_notations
+85WmnNats.htm,Results,public/LiftTilYaDie/Results/85WmnNats.htm,True,1985 WOMEN'S WEIGHTLIFTING NATIONALS,"APRIL 13-14, 1985",1985-04-13,1985-04-14,"New Rochelle, NY",,27490,has_record_notations
+86GldWst.htm,Results,public/LiftTilYaDie/Results/86GldWst.htm,False,1986 GOLDEN WEST OPEN,"DEC 7, 1986",1986-12-07,1986-12-07,"San Francisco, CA",Jim Schmitz,17632,has_record_notations
+86SrNats.htm,Results,public/LiftTilYaDie/Results/86SrNats.htm,True,1986 USWF SENIOR NATIONALS,"May 3 - 4, 1986",1986-17-03,1986-17-04,"U S W F SENIOR NATIONALS Jacksonville, FL",,40331,
+86WmnNats.htm,Results,public/LiftTilYaDie/Results/86WmnNats.htm,True,1986 WOMEN'S WEIGHTLIFTING NATIONALS,"MARCH 1, 1986",1986-03-01,1986-03-01,"Portland, OR",,21302,has_record_notations
+87Collegiates.htm,Results,public/LiftTilYaDie/Results/87Collegiates.htm,True,1987 NATIONAL COLLEGIATE CHAMPIONSHIPS,1987,1987,,"NATIONAL COLLEGIATES Johnson County Community College Overland Park, KS",,11005,
+87GldWst.htm,Results,public/LiftTilYaDie/Results/87GldWst.htm,False,1987 GOLDEN WEST OPEN,"December 6, 1987",1987-12-06,1987-12-06,"San Francisco, CA",,28672,has_record_notations
+87NatJrs.htm,Results,public/LiftTilYaDie/Results/87NatJrs.htm,True,1987 NATIONAL JUNIORS,"APRIL 4 - 5, 1987",1987-04-04,1987-04-05,NATIONAL JUNIORS,,45877,
+87SrNats.htm,Results,public/LiftTilYaDie/Results/87SrNats.htm,True,1987 USAW SENIOR NATIONALS,"May 2 - 3, 1987",1987-17-02,1987-17-03,"USWF SENIOR NATIONALS Livonia, MI",,42272,has_record_notations
+87WmnNats.htm,Results,public/LiftTilYaDie/Results/87WmnNats.htm,True,1987 WOMEN'S WEIGHTLIFTING NATIONALS,"APRIL 11, 1987",1987-04-11,1987-04-11,"CYPRESS, TX",,12163,has_record_notations
+88GldWst.htm,Results,public/LiftTilYaDie/Results/88GldWst.htm,False,1988 GOLDEN WEST OPEN,"December 4, 1988",1988-12-04,1988-12-04,"Fairfax, CA",Jim Schmitz,28396,has_record_notations
+88OlyTry.htm,Results,public/LiftTilYaDie/Results/88OlyTry.htm,True,1988 USAW OLYMPIC TRYOUTS,"July 15 - 16, 1988",1988-07-15,1988-07-16,OLYMPIC TRYOUTS,Weightlifting USA,13046,has_record_notations
+88PWAChp.htm,Results,public/LiftTilYaDie/Results/88PWAChp.htm,False,1988 PACIFIC WEIGHTLIFTING ASSOCIATION CHAMPIONSHIPS,"February 7, 1988",1988-02-07,1988-02-07,"San Francisco, CA",Jim Schmitz,14822,
+88SFOpen.htm,Results,public/LiftTilYaDie/Results/88SFOpen.htm,False,1988 SAN FRANCISCO OPEN,"October 9, 1988",1988-10-09,1988-10-09,"San Francisco, CA",,15028,
+88SrNats.htm,Results,public/LiftTilYaDie/Results/88SrNats.htm,True,1988 USWF SENIOR NATIONALS,"May 2, 1988",1988-17-02,1988-17-02,"Louis Park, MN",,83047,has_record_notations
+89BltBkl.htm,Results,public/LiftTilYaDie/Results/89BltBkl.htm,False,1989 BELT BUCKLE OPEN,"AUGUST 13, 1989",1989-08-13,1989-08-13,The Sports Palace,Jim Schmitz,17996,
+89NatJrs.htm,Results,public/LiftTilYaDie/Results/89NatJrs.htm,True,1989 NATIONAL JUNIORS,"APRIL 1, 1989",1989-04-01,1989-04-01,"BATON ROUGE, LA",,36168,has_record_notations
+89NorCal.htm,Results,public/LiftTilYaDie/Results/89NorCal.htm,False,1989 NORTHERN CALIFORNIA OPEN,"June 4, 1989",1989-06-04,1989-06-04,Fairfax Health Club,,20932,
+89PWAChp.htm,Results,public/LiftTilYaDie/Results/89PWAChp.htm,False,1989 PACIFIC WEIGHTLIFTING ASSOCIATION CHAMPIONSHIPS,"January 29, 1989",1989-01-29,1989-01-29,"San Francisco, CA",Jim Schmitz,14722,
+89SrNats.htm,Results,public/LiftTilYaDie/Results/89SrNats.htm,True,1989 USWF SENIOR NATIONALS,"April 28 - 30, 1989",1989-04-28,1989-04-30,"U S W F SENIOR NATIONALS Houston, TX",Denis Reno's Newsletter,62592,has_record_notations
+90NatJrs.htm,Results,public/LiftTilYaDie/Results/90NatJrs.htm,True,1990 NATIONAL JUNIORS,"APRIL 1, 1990",1990-04-01,1990-04-01,NATIONAL JUNIORS,,61440,
+90SrNats.htm,Results,public/LiftTilYaDie/Results/90SrNats.htm,True,1990 SENIOR NATIONALS,"MAY 4 - 6, 1990",1990-17-04,1990-17-06,"Farmington Hills, MI",Weightlifting USA,31527,has_record_notations
+91AmOpen.htm,Results,public/LiftTilYaDie/Results/91AmOpen.htm,True,1991 AMERICAN OPEN,"DECEMBER 6 - 8, 1991",1991-12-06,1991-12-08,"AMERICAN OPEN BLAINE, MN",,75714,has_record_notations
+91GldWst.htm,Results,public/LiftTilYaDie/Results/91GldWst.htm,False,1991 GOLDEN WEST OPEN,"November 3, 1991",1991-11-03,1991-11-03,Marin Training Center,,11007,
+91NatJrs.htm,Results,public/LiftTilYaDie/Results/91NatJrs.htm,True,1991 USAW NATIONAL JUNIORS,"April 6 - 7, 1991",1991-04-06,1991-04-07,"NATIONAL JUNIORS Peoria, IL",,47697,has_record_notations
+91SrNats.htm,Results,public/LiftTilYaDie/Results/91SrNats.htm,True,1991 USWF SENIOR NATIONALS,"April 26 - 28, 1991",1991-04-26,1991-04-28,"USWF SENIOR NATIONALS Blaine, MN",,76029,has_record_notations
+92AmOpen.htm,Results,public/LiftTilYaDie/Results/92AmOpen.htm,True,1992 USAW AMERICAN OPEN,"December 4 - 6, 1992",1992-12-04,1992-12-06,"Shreveport, LA",,121065,has_record_notations
+92BltBkl.htm,Results,public/LiftTilYaDie/Results/92BltBkl.htm,False,1992 Belt Buckle Open,"August 16, 1992",1992-08-16,1992-08-16,MWC Training Center,,14630,duplicate_exists_in_root
+92GldWst.htm,Results,public/LiftTilYaDie/Results/92GldWst.htm,False,1992 Golden West,"December 12, 1992",1992-12-12,1992-12-12,MWC Training Center,Jim Schmitz,15486,duplicate_exists_in_root
+92NatJrs.htm,Results,public/LiftTilYaDie/Results/92NatJrs.htm,True,1992 USAW NATIONAL JUNIORS,"February 15 - 16, 1992",1992-02-15,1992-02-16,"Rego Park, NY",,60675,has_record_notations
+92NorCal.htm,Results,public/LiftTilYaDie/Results/92NorCal.htm,False,1992 Northern California Open,"June 14, 1992",1992-06-14,1992-06-14,Marin Training Center,Jim Schmitz,10899,duplicate_exists_in_root
+92OlyTry.htm,Results,public/LiftTilYaDie/Results/92OlyTry.htm,True,1992 NACACI OLYMPIC TRIALS,"May 30 - 31, 1992",1992-17-30,1992-17-31,OLYMPIC TRYOUTS,,35932,has_record_notations
+92PWAChp.htm,Results,public/LiftTilYaDie/Results/92PWAChp.htm,False,1992 PACIFIC ASSOCIATION CHAMPIONSHIPS,"January 5, 1992",1992-01-05,1992-01-05,"Marin Training Center - San Anselmo, CA",,10445,
+92SrNats.htm,Results,public/LiftTilYaDie/Results/92SrNats.htm,True,1992 SENIOR NATIONALS,"March 20 - 22, 1992",1992-03-20,1992-03-22,"Baton Rouge, LA",,83437,has_record_notations
+9397AMRecords.htm,Results,public/LiftTilYaDie/Results/9397AMRecords.htm,True,1993 - 1997 AMERICAN RECORDS,1993,1993,,Senior Men,,30400,has_record_notations
+93AmOpen.htm,Results,public/LiftTilYaDie/Results/93AmOpen.htm,True,1993 USAW American Open,"December 3 - 5, 1993",1993-12-03,1993-12-05,"USA WEIGHTLIFTING AMERICAN OPEN San Anselmo, CA",,101705,has_record_notations
+93BeerMug.htm,Results,public/LiftTilYaDie/Results/93BeerMug.htm,False,1993 Northern California/Beer Mug Open,"June 5, 1993",1993-06-05,1993-06-05,Marin Training Center,,7238,
+93BerMug.htm,Results,public/LiftTilYaDie/Results/93BerMug.htm,False,1993 Northern California/Beer Mug Open,"June 5, 1993",1993-06-05,1993-06-05,Marin Training Center,,6709,duplicate_exists_in_root
+93BltBkl.htm,Results,public/LiftTilYaDie/Results/93BltBkl.htm,False,1993 Belt Buckle Open,"August 8, 1993",1993-08-08,1993-08-08,The Sports Palace,Jim Schmitz,5661,duplicate_exists_in_root
+93CalSt.htm,Results,public/LiftTilYaDie/Results/93CalSt.htm,False,1993 California State Championships,"March 13, 1993",1993-03-13,1993-03-13,MWC Training Center,Jim Schmitz,15924,duplicate_exists_in_root
+93Collegiates.htm,Results,public/LiftTilYaDie/Results/93Collegiates.htm,True,1993 NATIONAL COLLEGIATE CHAMPIONSHIPS,1993,1993,,,,20579,has_record_notations
+93LastChance.htm,Results,public/LiftTilYaDie/Results/93LastChance.htm,False,1993 LAST CHANCE OPEN,"April 10, 1993",1993-04-10,1993-04-10,Marin Training Center,,6767,
+93NatJrs.htm,Results,public/LiftTilYaDie/Results/93NatJrs.htm,True,1993 USAW NATIONAL JUNIORS,"APRIL 3 - 4, 1993",1993-04-03,1993-04-04,"Blaine, MN",,98930,has_record_notations
+93SrNats.htm,Results,public/LiftTilYaDie/Results/93SrNats.htm,True,1993 USWF SENIOR NATIONALS,"MAY 7 - 9, 1993",1993-17-07,1993-17-09,"USWF SENIOR NATIONALS Peoria, IL",,75498,has_record_notations
+94AmOpen.htm,Results,public/LiftTilYaDie/Results/94AmOpen.htm,True,1994 AMERICAN OPEN,"December 12-14, 1994",1994-12-12,1994-12-14,Northern Arizona University,,128209,duplicate_exists_in_root; has_record_notations
+94BltBkl.htm,Results,public/LiftTilYaDie/Results/94BltBkl.htm,False,1994 BELT BUCKLE OPEN,"August 14, 1994",1994-08-14,1994-08-14,"The Sports Palace - San Francisco, CA",Jim Schmitz,8394,
+94GldWst.htm,Results,public/LiftTilYaDie/Results/94GldWst.htm,False,1994 Golden West Open,December 1994,1994-12,,Marin Training Center,Jim Schmitz,10244,duplicate_exists_in_root
+94Marin.htm,Results,public/LiftTilYaDie/Results/94Marin.htm,False,1994 Marin Open,"March 16, 1994",1994-03-16,1994-03-16,Marin Training Center,,12134,duplicate_exists_in_root
+94NatJrs.htm,Results,public/LiftTilYaDie/Results/94NatJrs.htm,True,1994 USAW NATIONAL JUNIORS,"MARCH 11 - 13, 1994",1994-03-11,1994-03-13,"Joseph, MO",,113315,has_record_notations
+94NorCal.htm,Results,public/LiftTilYaDie/Results/94NorCal.htm,False,1994 Northern California Open,1994,1994,,Marin Training Center,,12617,duplicate_exists_in_root
+94PWAChp.htm,Results,public/LiftTilYaDie/Results/94PWAChp.htm,False,1994 PACIFIC ASSOCIATION CHAMPIONSHIPS,"February 6, 1994",1994-02-06,1994-02-06,The Sports Palace,Jim Schmitz,16240,
+94SrNats.htm,Results,public/LiftTilYaDie/Results/94SrNats.htm,True,1994 SENIOR NATIONALS,"MAY 1, 1994",1994-17-01,1994-17-01,"Kansas City, MO",,85397,has_record_notations
+95AmOpen.htm,Results,public/LiftTilYaDie/Results/95AmOpen.htm,True,1995 USAW AMERICAN OPEN,"DECEMBER 8-10, 1995",1995-12-08,1995-12-10,"Joseph, MO",,126336,
+95BltBkl.htm,Results,public/LiftTilYaDie/Results/95BltBkl.htm,False,1995 BELT BUCKLE OPEN,"August 27, 1995",1995-08-27,1995-08-27,"The Sports Palace - San Francisco, CA",,10310,
+95GldWst.htm,Results,public/LiftTilYaDie/Results/95GldWst.htm,False,1995 Golden West,"March 25, 1995",1995-03-25,1995-03-25,Marin Training Center,,13208,duplicate_exists_in_root
+95Marin.htm,Results,public/LiftTilYaDie/Results/95Marin.htm,False,1995 MARIN OPEN,"November 11, 1995",1995-11-11,1995-11-11,Marin Training Center,,14855,duplicate_exists_in_root
+95NatJrs.htm,Results,public/LiftTilYaDie/Results/95NatJrs.htm,True,1995 NATIONAL JUNIORS,"March 10 - 12, 1995",1995-03-10,1995-03-12,"Savannah, GA",,63536,has_record_notations
+95NorCal.htm,Results,public/LiftTilYaDie/Results/95NorCal.htm,False,1995 NORTHERN CALIFORNIA OPEN,"June 3, 1995",1995-06-03,1995-06-03,Marin Training Center,Jim Schmitz,19587,duplicate_exists_in_root
+95PWAChp.htm,Results,public/LiftTilYaDie/Results/95PWAChp.htm,False,1995 PACIFIC ASSOCIATION CHAMPIONSHIPS,"January 22, 1995",1995-01-22,1995-01-22,The Sports Palace,Jim Schmitz,17347,
+95SrNats.htm,Results,public/LiftTilYaDie/Results/95SrNats.htm,True,1995 SENIOR NATIONALS,"April 28 - 30, 1995",1995-04-28,1995-04-30,William Saroyan Theater,Denis Reno's Newsletter,94328,duplicate_exists_in_root; has_record_notations
+96AmOpen.htm,Results,public/LiftTilYaDie/Results/96AmOpen.htm,True,1996 USAW AMERICAN OPEN,"DECEMBER 6-8, 1996",1996-12-06,1996-12-08,"AMERICAN OPEN SAVANNAH, GA",,190044,has_record_notations; large_file_possibly_multi_meet
+96CalSt.htm,Results,public/LiftTilYaDie/Results/96CalSt.htm,False,1996 California State Championships,"January 27, 1996",1996-01-27,1996-01-27,Marin Training Center,Jim Schmitz,14288,duplicate_exists_in_root
+96GldWst.htm,Results,public/LiftTilYaDie/Results/96GldWst.htm,False,1996 GOLDEN WEST OPEN,"NOVEMBER 2, 1996",1996-11-02,1996-11-02,Sacramento State University,Jim Schmitz,13174,
+96Marin.htm,Results,public/LiftTilYaDie/Results/96Marin.htm,False,1996 MARIN Open Weightlifting Championships,"March 16, 1996",1996-03-16,1996-03-16,Marin Training Center,,12918,duplicate_exists_in_root
+96NatJrs.htm,Results,public/LiftTilYaDie/Results/96NatJrs.htm,True,1996 USAW NATIONAL JUNIORS,"February 2 - 4, 1996",1996-02-02,1996-02-04,"Albuquerque, NM",,99276,has_record_notations
+96OlyTry.htm,Results,public/LiftTilYaDie/Results/96OlyTry.htm,True,1996 USWF OLYMPIC TRYOUTS,1996,1996,,"Joseph, MO",Denis Reno's Newsletter,28509,has_record_notations
+96PWAChp.htm,Results,public/LiftTilYaDie/Results/96PWAChp.htm,False,1996 Pacific Weightlifting Association Championships,"January 7, 1996",1996-01-07,1996-01-07,The Sports Palace,,13501,
+96SrNats.htm,Results,public/LiftTilYaDie/Results/96SrNats.htm,True,1996 USWF SENIOR NATIONALS,1996,1996,,"U S W F SENIOR   NATIONALS Shreveport, LA",Denis Reno's Newsletter,83760,has_record_notations
+96WestHS.htm,Results,public/LiftTilYaDie/Results/96WestHS.htm,False,1996 Sacramento State University High School Weightlifting Championships,1996,1996,,High School Weightlifting Championships,,10338,duplicate_exists_in_root
+97AmOpen.htm,Results,public/LiftTilYaDie/Results/97AmOpen.htm,True,1997 USAW American Open,"November 7-9, 1997",1997-11-07,1997-11-09,"Joseph, MO",,125126,duplicate_exists_in_root
+97BltBkl.htm,Results,public/LiftTilYaDie/Results/97BltBkl.htm,False,1997 Belt Buckle Open,"August 10, 1997",1997-08-10,1997-08-10,The Sports Palace,Jim Schmitz,13319,duplicate_exists_in_root
+97GldWst.htm,Results,public/LiftTilYaDie/Results/97GldWst.htm,False,1997 Golden West Open Championships,"October 4, 1997",1997-10-04,1997-10-04,Sacramento State University,Jim Schmitz,13933,duplicate_exists_in_root
+97PWAChp.htm,Results,public/LiftTilYaDie/Results/97PWAChp.htm,False,1997 PACIFIC WEIGHTLIFTING ASSOCIATION CHAMPIONSHIPS,"February 2, 1997",1997-02-02,1997-02-02,The Sports Palace,,15788,
+97SacOpn.htm,Results,public/LiftTilYaDie/Results/97SacOpn.htm,False,1997 Sacramento Open,"December 13, 1997",1997-12-13,1997-12-13,Sacramento State University,,7866,duplicate_exists_in_root
+97SrNats.htm,Results,public/LiftTilYaDie/Results/97SrNats.htm,True,1997 USWF SENIOR NATIONALS,"April 25 - 27, 1997",1997-04-25,1997-04-27,"U S W F SENIOR   NATIONALS Blaine, MN",Denis Reno's Newsletter,85875,has_record_notations
+97TryOut.htm,Results,public/LiftTilYaDie/Results/97TryOut.htm,False,1997 USAW World Team Tryouts,"August 23, 1997",1997-08-23,1997-08-23,"World Team Tryouts Boise, ID",,16546,duplicate_exists_in_root
+97WestHS.htm,Results,public/LiftTilYaDie/Results/97WestHS.htm,False,1997 Western States High School Weightlifting Championships,1997,1997,,Weightlifting Championships,,19544,duplicate_exists_in_root
+98AmOpen.htm,Results,public/LiftTilYaDie/Results/98AmOpen.htm,True,1998 AMERICAN OPEN,"DECEMBER 4 - 6, 1998",1998-12-04,1998-12-06,"AMERICAN OPEN ORLANDO, FL",,48259,
+98BltBkl.htm,Results,public/LiftTilYaDie/Results/98BltBkl.htm,False,1998 BELT BUCKLE OPEN,"August 23, 1998",1998-08-23,1998-08-23,"BELT BUCKLE OPEN Sacramento State University Sacramento, CA",,14509,duplicate_exists_in_root
+98CALSt.htm,Results,public/LiftTilYaDie/Results/98CALSt.htm,False,1998 California State Weightlifting Championships,"March 29, 1998",1998-03-29,1998-03-29,"The Sports Palace, San Francisco, CA",,19291,duplicate_exists_in_root
+98GldWst.htm,Results,public/LiftTilYaDie/Results/98GldWst.htm,False,1998 Golden West Open,"November 1, 1998",1998-11-01,1998-11-01,"Flexit Gym, Mountain View, CA",,9040,duplicate_exists_in_root
+98NatJrs.htm,Results,public/LiftTilYaDie/Results/98NatJrs.htm,True,1998 NATIONAL JUNIORS,"MARCH 6 - 8, 1998",1998-03-06,1998-03-08,JUNIOR NATIONALS,,173460,has_record_notations; large_file_possibly_multi_meet
+98NorCal.htm,Results,public/LiftTilYaDie/Results/98NorCal.htm,False,1998 Northern California/Sacramento Open,"May 23, 1998",1998-17-23,1998-17-23,Sacramento Open,,31989,duplicate_exists_in_root
+98PWAChp.htm,Results,public/LiftTilYaDie/Results/98PWAChp.htm,False,1998 PACIFIC WEIGHTLIFTING ASSOCIATION CHAMPIONSHIPS,"February 1, 1998",1998-02-01,1998-02-01,"The Sports Palace, San Francisco, CA",,23518,
+98SrNats.htm,Results,public/LiftTilYaDie/Results/98SrNats.htm,True,1998 USAW SENIOR NATIONALS,"APRIL 24 - 26, 1998",1998-04-24,1998-04-26,"USA WEIGHTLIFTING SENIOR NATIONALS Flagstaff, AZ",,85216,duplicate_exists_in_root; has_record_notations
+98TryOut.htm,Results,public/LiftTilYaDie/Results/98TryOut.htm,True,1998 USA Weightlifting World Team Tryouts,"August 29, 1998",1998-08-29,1998-08-29,"World Team Tryouts Houston, TX",,19587,duplicate_exists_in_root
+98WestHS.htm,Results,public/LiftTilYaDie/Results/98WestHS.htm,False,1998 Western States High School Weightlifting Championships,1998,1998,,Weightlifting,,19803,duplicate_exists_in_root
+99AmOpen.htm,Results,public/LiftTilYaDie/Results/99AmOpen.htm,True,1999 American Open - Men,"DECEMBER 17-19, 1999",1999-12-17,1999-12-19,"TACOMA, WA",,130880,duplicate_exists_in_root; has_record_notations
+99GldWst.htm,Results,public/LiftTilYaDie/Results/99GldWst.htm,False,1999 Golden West Open,"October 10, 1999",1999-10-10,1999-10-10,"Flexit Gym, Mountain View, CA",Jim Schmitz,34066,duplicate_exists_in_root
+99HighDesert.htm,Results,public/LiftTilYaDie/Results/99HighDesert.htm,False,1999 High Desert Open Results,1999,1999,,"Sparks, NV",,17941,
+99LstChn.htm,Results,public/LiftTilYaDie/Results/99LstChn.htm,False,1999 Sacramento Last Chance,"March 27, 1999",1999-03-27,1999-03-27,Sacramento State University,,8741,duplicate_exists_in_root
+99LstChnII.htm,Results,public/LiftTilYaDie/Results/99LstChnII.htm,False,1999 Last Chance Open II,"November 20, 1999",1999-11-20,1999-11-20,Sacramento State University,,17836,
+99NatJrs.htm,Results,public/LiftTilYaDie/Results/99NatJrs.htm,True,1999 NATIONAL JUNIORS,"MARCH 5 - 7, 1999",1999-03-05,1999-03-07,NATIONAL JUNIORS,,150900,has_record_notations; large_file_possibly_multi_meet
+99NCalHS.htm,Results,public/LiftTilYaDie/Results/99NCalHS.htm,False,1999 NorCal High School Championships,"May 30, 1999",1999-17-30,1999-17-30,"Sacramento State University - Sacramento, CA",,14487,duplicate_exists_in_root
+99NorCal.htm,Results,public/LiftTilYaDie/Results/99NorCal.htm,False,1999 Northern California/Sacramento Open,"May 29, 1999",1999-17-29,1999-17-29,Sacramento Open,Jim Schmitz,17869,duplicate_exists_in_root
+99PWAChp.htm,Results,public/LiftTilYaDie/Results/99PWAChp.htm,False,1999 PWA Championships,"February 6, 1999",1999-02-06,1999-02-06,"Flexit Gym, Mountain View, CA",,17979,
+99SrNats.htm,Results,public/LiftTilYaDie/Results/99SrNats.htm,True,1999 USAW SENIOR NATIONALS,"April 23 - 25, 1999",1999-04-23,1999-04-25,"USA WEIGHTLIFTING SENIOR NATIONALS Saint Joseph, MO",,106540,duplicate_exists_in_root
+AAUChamps.htm,Results,public/LiftTilYaDie/Results/AAUChamps.htm,False,SENIOR NATIONAL WEIGHTLIFTING CHAMPIONS,,,,"Gardner, MA",,51711,
+AllTimeAMRecords.htm,Results,public/LiftTilYaDie/Results/AllTimeAMRecords.htm,True,ALL TIME US RECORDS,,,,Senior Men,,43154,has_record_notations
+OlympiansByName.htm,Results,public/LiftTilYaDie/Results/OlympiansByName.htm,True,USA Weightlifting All-Time U.S. Olympians,,,,"BRONZE MEDALIST Oscar Chaplin, II",,22635,
+OlympiansByYear.htm,Results,public/LiftTilYaDie/Results/OlympiansByYear.htm,True,USA Weightlifting All-Time U.S. Olympians,,,,"LOUIS, US",,18939,
+PanAmMen.htm,Results,public/LiftTilYaDie/Results/PanAmMen.htm,False,1999 PAN AM GAMES - MEN,,,,,,31434,duplicate_exists_in_root
+PanAmWmn.htm,Results,public/LiftTilYaDie/Results/PanAmWmn.htm,False,1999 PAN AM GAMES - WOMEN,,,,,,25187,duplicate_exists_in_root
+SrNatsChamps.htm,Results,public/LiftTilYaDie/Results/SrNatsChamps.htm,True,SENIOR NATIONAL WEIGHTLIFTING CHAMPIONS,,,,"Gardner, MA",,77232,
+SrNatsChampsByName.htm,Results,public/LiftTilYaDie/Results/SrNatsChampsByName.htm,True,US SENIOR NATIONAL WEIGHTLIFTING CHAMPIONS,,,,"Maitland, FL",,60929,
+SrNatsChampsByNumber.htm,Results,public/LiftTilYaDie/Results/SrNatsChampsByNumber.htm,True,US SENIOR NATIONAL WEIGHTLIFTING CHAMPIONS,,,,"Oscar Chaplin, II",,5251,
+USAWorld.htm,Results,public/LiftTilYaDie/Results/USAWorld.htm,True,USA WORLD RECORDS,,,,(SORTED BY NAME),,56818,has_record_notations
+WomenNatChamps.htm,Results,public/LiftTilYaDie/Results/WomenNatChamps.htm,True,WOMEN NATIONAL WEIGHTLIFTING CHAMPIONS,,,,"Sibby Flowers Carroliton, GA",,35058,
+WomenNatChampsByName.htm,Results,public/LiftTilYaDie/Results/WomenNatChampsByName.htm,True,US WOMEN'S NATIONAL WEIGHTLIFTING CHAMPIONS,,,,,,37730,
+WomenNatChampsByNumber.htm,Results,public/LiftTilYaDie/Results/WomenNatChampsByNumber.htm,True,US WOMEN'S NATIONAL WEIGHTLIFTING CHAMPIONS,,,,,,3542,
