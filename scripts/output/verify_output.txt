@@ -1,0 +1,351 @@
+﻿Total: 550
+Linked from w8lift: 214
+Orphans: 336
+Missing date_start: 16
+Missing meet_name: 3
+
+--- Root pool orphans ---
+  00AmOpen.htm                              notes=duplicate_exists_in_Results
+  00CalStates.htm                           notes=duplicate_exists_in_Results
+  00GldWst.htm                              notes=duplicate_exists_in_Results
+  00JrNats.htm                              notes=duplicate_exists_in_Results; has_record_notations
+  00NoGuts.htm                              notes=duplicate_exists_in_Results
+  00OlyTry.htm                              notes=duplicate_exists_in_Results; has_record_notations
+  00SrNats.htm                              notes=duplicate_exists_in_Results
+  01AmOpen.htm                              notes=duplicate_exists_in_Results; has_record_notations; large_file_possibly_multi_meet
+  01GldWst.htm                              notes=duplicate_exists_in_Results
+  01JrNats.htm                              notes=duplicate_exists_in_Results; has_record_notations; large_file_possibly_multi_meet
+  01NoGuts.htm                              notes=duplicate_exists_in_Results
+  01SrNats.htm                              notes=duplicate_exists_in_Results; has_record_notations
+  01TryOut.htm                              notes=duplicate_exists_in_Results; has_record_notations
+  92BltBkl.htm                              notes=duplicate_exists_in_Results
+  92GldWst.htm                              notes=duplicate_exists_in_Results
+  92NorCal.htm                              notes=duplicate_exists_in_Results
+  93BerMug.htm                              notes=duplicate_exists_in_Results
+  93BltBkl.htm                              notes=duplicate_exists_in_Results
+  93CalSt.htm                               notes=duplicate_exists_in_Results
+  94AmOpen.htm                              notes=duplicate_exists_in_Results
+  94GldWst.htm                              notes=duplicate_exists_in_Results
+  94Marin.htm                               notes=duplicate_exists_in_Results
+  94NorCal.htm                              notes=duplicate_exists_in_Results
+  95GldWst.htm                              notes=duplicate_exists_in_Results
+  95Marin.htm                               notes=duplicate_exists_in_Results
+  95NorCal.htm                              notes=duplicate_exists_in_Results
+  95SrNats.htm                              notes=duplicate_exists_in_Results
+  96CalSt.htm                               notes=duplicate_exists_in_Results
+  96Marin.htm                               notes=duplicate_exists_in_Results
+  96WestHS.htm                              notes=duplicate_exists_in_Results
+  97AmOpen.htm                              notes=duplicate_exists_in_Results
+  97BltBkl.htm                              notes=duplicate_exists_in_Results
+  97GldWst.htm                              notes=duplicate_exists_in_Results
+  97SacOpn.htm                              notes=duplicate_exists_in_Results
+  97TryOut.htm                              notes=duplicate_exists_in_Results
+  97WestHS.htm                              notes=duplicate_exists_in_Results
+  98BltBkl.htm                              notes=duplicate_exists_in_Results
+  98CALSt.htm                               notes=duplicate_exists_in_Results
+  98GldWst.htm                              notes=duplicate_exists_in_Results
+  98NorCal.htm                              notes=duplicate_exists_in_Results
+  98SrNats.htm                              notes=duplicate_exists_in_Results
+  98TryOut.htm                              notes=duplicate_exists_in_Results
+  98WestHS.htm                              notes=duplicate_exists_in_Results
+  99AmOpen.htm                              notes=duplicate_exists_in_Results
+  99BltBkl.htm                              notes=
+  99GldWst.htm                              notes=duplicate_exists_in_Results
+  99LstCha.htm                              notes=
+  99LstChn.htm                              notes=duplicate_exists_in_Results
+  99NCalHS.htm                              notes=duplicate_exists_in_Results
+  99NorCal.htm                              notes=duplicate_exists_in_Results
+  99SrNats.htm                              notes=duplicate_exists_in_Results
+  PanAmMen.htm                              notes=duplicate_exists_in_Results
+  PanAmWmn.htm                              notes=duplicate_exists_in_Results
+  Results.htm                               notes=
+  WStHSEnt.htm                              notes=
+
+--- Results pool orphans ---
+  00CalStates.htm                           2000 CALIFORNIA STATE CHAMPIONSHIPS
+  00GldWst.htm                              2000 Golden West Open
+  00HighDesert.htm                          2000 HIGH DESERT OPEN
+  00JrNats.htm                              2000 USAW JUNIOR NATIONALS
+  00NoGuts.htm                              2000 NO GUTS ~ NO GLORY OPEN
+  00PWAChp.htm                              2000 PWA Championships
+  00SacLastChanceI.htm                      2000 SACRAMENTO LAST CHANCE I
+  00SacLastChanceII.htm                     2000 SACRAMENTO LAST CHANCE II
+  01GldWst.htm                              2001 Golden West Open
+  01HighDesert.htm                          2001 HIGH DESERT OPEN
+  01JrNats.htm                              2001 NATIONAL JUNIORS
+  01NoGuts.htm                              2001 NO GUTS ~ NO GLORY OPEN
+  01NorCal.htm                              2001 NORTHERN CALIFORNIA/SACRAMENTO OPEN
+  01PWAChp.htm                              2001 PWA Championships
+  02BadMother.htm                           2002 BAD MOTHER OPEN
+  02GldWst.htm                              39th ANNUAL GOLDEN WEST OPEN
+  02HighDesert.htm                          2002 High Desert Open Results
+  02JrNats.htm                              2002 JUNIOR NATIONALS
+  02NoGutsNoGlory.htm                       2002 NO GUTS/NO CLORY OPEN
+  02PWAChp.htm                              2002 PWA CHAMPIONSHIPS
+  02PWAJrChp.htm                            2002 PWA JUNIOR CHAMPIONSHIPS
+  03GldWst.htm                              40th ANNUAL GOLDEN WEST OPEN
+  03HighDesert.htm                          2003 High Desert Open Results
+  03JrNats.htm                              2003 JUNIOR NATIONALS
+  03JrNatsTemp.htm                          2003 JUNIOR NATIONALS
+  03NoGutsNoGlory.htm                       2003 NO GUTS/NO GLORY OPEN
+  03NorCal.htm                              2003 NORTHERN CALIFORNIA/SACRAMENTO OPEN
+  03PWAChp.htm                              2003 PACIFIC WEIGHTLIFTING ASSOCIATION CHAMPIONSHIP
+  03TitanGames.htm                          2003 TITAN GAMES
+  03TitanWomen.htm                          2003 TITAN GAMES
+  04CalStates.htm                           2004 CALIFORNIA STATES WEIGHTLIFTING CHAMPIONSHIP
+  04GldWst.htm                              41st ANNUAL GOLDEN WEST OPEN
+  04HighDesert.htm                          2004 High Desert Open
+  04JrNats.htm                              2004 JUNIOR NATIONALS
+  04NoGutsNoGlory.htm                       2004 NO GUTS/NO GLORY OPEN
+  04PWAChp.htm                              2004 PACIFIC WEIGHTLIFTING ASSOCIATION CHAMPIONSHIP
+  05GldWst.htm                              2005 GOLDEN WEST OPEN
+  05HighDesert.htm                          2005 HIGH DESERT OPEN
+  05JCC.htm                                 2005 JUMP CAMP CLASSIC
+  05JrNats.htm                              2005 USAW NATIONAL JUNIORS
+  05NoGutsNoGlory.htm                       2005 NO GUTS/NO GLORY OPEN
+  05NorCal.htm                              2005 NORTHERN CALIFORNIA OPEN
+  05PWAChp.htm                              2005 PACIFIC WEIGHTLIFTING ASSOCIATION CHAMPIONSHIP
+  05PWAJrChp.htm                            2005 PACIFIC WEIGHTLIFTING ASSOCIATION SCHOOLAGE & JUNIOR CHAMPIONSHIP
+  06CalStateGames.htm                       2006 CALIFORNIA STATE GAMES & CHAMPIONSHIPS
+  06GldWst.htm                              2006 GOLDEN WEST OPEN
+  06JrNats.htm                              2006 NATIONAL JUNIORS
+  06NorCal.htm                              2006 NORTHERN CALIFRONIA OPEN
+  06PacificOpen.htm                         2006 PACIFIC OPEN
+  06PWAChp.htm                              2006 PACIFIC WEIGHTLIFTING ASSOCIATION CHAMPIONSHIPS
+  06PWAJrChp.htm                            2006 PACIFIC WEIGHTLIFTING ASSOCIATION SCHOOLAGE & JUNIOR CHAMPIONSHIP
+  06TKHighSchool.htm                        2006 TOMMY KONO HIGH SCHOOL CHALLENGE
+  06TKOpen.htm                              2006 TOMMY KONO/IRON DRAGON OPEN
+  07GldWst.htm                              2007 GOLDEN WEST OPEN
+  07HFLCQ.htm                               2007 HASSLE FREE LAST CHANCE QUALIFIER
+  07JrNats.htm                              2007 NATIONAL JUNIORS
+  07LincolnJrOpen.htm                       2007 LINCOLN HIGH SCHOOL JUNIOR OPEN
+  07NorCal.htm                              2007 NORTHERN CALIFORNIA OPEN
+  07PWAChp.htm                              2007 PACIFIC WEIGHTLIFTING ASSOCIATION CHAMPIONSHIP
+  07PWAJrChp.htm                            2007 PACIFIC WEIGHTLIFTING ASSOCIATION JUNIOR CHAMPIONSHIP
+  07Redwood.htm                             2007 REDWOOD EMPIRE CHAMPIONSHIPS
+  07SacHighChallenge.htm                    2007 SACRAMENTO HIGH SCHOOL CHALLENGE
+  07SacHighJrOpen.htm                       2007 SACRAMENTO HIGH SCHOOL JUNIOR OPEN
+  07SrQualifier.htm                         2007 SENIOR NATIONALS QUALIFIER & JUNIOR OPEN
+  07TKOpen.htm                              2007 TOMMY KONO OPEN
+  08AtlasOpen.htm                           2008 ATLAS OPEN
+  08GldWst.htm                              2008 GOLDEN WEST OPEN
+  08HSFTeam.htm                             2008 HASSLE FREE JUNIOR TEAM CHALLENGE
+  08HSPowerClean.htm                        2008 NATIONAL HIGH SCHOOL POWER CLEAN CHAMPIONSHIPS
+  08LincolnJrOpen.htm                       2008 LINCOLN JUNIOR OPEN
+  08NorCal.htm                              2008 NORTHERN CALIFORNIA OPEN
+  08PWAChp.htm                              2008 PACIFIC WEIGHTLIFTING ASSOCIATION CHAMPIONSHIP
+  08PWAJrChp.htm                            2008 PACIFIC WEIGHTLIFTING ASSOCIATION JUNIOR CHAMPIONSHIP
+  08Redwood.htm                             2008 REDWOOD EMPIRE CHAMPIONSHIPS
+  08SacHighJrOpen.htm                       2008 SACRAMENTO HIGH SCHOOL JUNIOR OPEN
+  08SpringJrOpen.htm                        2008 SPRING JUNIOR OPEN
+  08SrQualifier.htm                         2008 SENIOR NATIONALS QUALIFIER
+  08TKOpen.htm                              2008 TOMMY KONO OPEN
+  09AtlasOpen.htm                           ATLAS OPEN II
+  09BadGirl.htm                             2009 BAD GIRL OPEN
+  09BadGirlII.htm                           2009 BAD GIRL OPEN II
+  09CalStrengthOpen.htm                     2009 CALIFORNIA STRENGTH OPEN
+  09DaritoisMemorial.xls                    
+  09GldWst.htm                              2009 DON WILSON GOLDEN WEST OPEN
+  09HSFTeam.htm                             2009 HASSLE FREE JUNIOR TEAM CHALLENGE
+  09MDM.htm                                 2009 MOTHER'S DAY MADNESS INVITATIONAL
+  09NorCal.htm                              2009 NORTHERN CALIFORNIA OPEN
+  09PWAChp.htm                              2009 PACIFIC WEIGHTLIFTING ASSOCIATION CHAMPIONSHIP
+  09Redwood.htm                             2009 REDWOOD EMPIRE CHAMPIONSHIPS
+  09SacJrOpen.htm                           2009 SACRAMENTO JUNIOR OPEN
+  09SpringFest.htm                          2009 WERKSAN SPRINGFEST
+  09TKOpen.htm                              2009 TOMMY KONO OPEN
+  10AtlasOpen.htm                           ATLAS OPEN III
+  10CalStrengthClassic.htm                  2010 CALIFORNIA STRENGTH CLASSIC
+  10CalStrengthOpen.htm                     2010 CALIFORNIA STRENGTH OPEN
+  10GldWst.htm                              2010 DON WILSON GOLDEN WEST OPEN
+  10LastChanceSchoolage.htm                 2010 LAST CHANCE SCHOOLAGE QUALIFIER
+  10LincolnSchoolage.htm                    2010 LINCOLN SCHOOLAGE MEET
+  10NorCal.htm                              2010 NORTHERN CALIFORNIA OPEN
+  10PWAChp.htm                              2010 PACIFIC WEIGHTLIFTING ASSOCIATION CHAMPIONSHIP
+  10PWAMasterChp.htm                        2010 PACIFIC WEIGHTLIFTING ASSOCIATION MASTERS CHAMPIONSHIP
+  10Redwood.htm                             2010 REDWOOD EMPIRE CHAMPIONSHIPS
+  10TKOpen.htm                              2010 TOMMY KONO OPEN
+  11Cougar.htm                              2011 COUGAR CLASSIC
+  11FCO.htm                                 2011 FRIENDLY CITY OPEN
+  11GldWst.htm                              2011 DON WILSON GOLDEN WEST OPEN
+  11HFO.htm                                 2011 HASSLE FREE OPEN
+  11Lincoln.htm                             2011 LINCOLN OPEN
+  11Midtown.htm                             2ND ANNUAL MIDTOWN CLASSIC
+  11NorCal.htm                              2011 NORTHERN CALIFORNIA OPEN
+  11PWAChp.htm                              2011 PACIFIC WEIGHTLIFTING ASSOCIATION CHAMPIONSHIP
+  11PWAJrChp.htm                            2011 PWA JUNIOR CHAMPIONSHIPS
+  11PWARec.htm                              2011 PWA RECORD BREAKERS
+  11PWASAChp.htm                            2011 PWA SCHOOLAGE CHAMPIONSHIPS
+  11Redwood.htm                             2011 REDWOOD EMPIRE CHAMPIONSHIPS
+  11TBrooks.htm                             T BROOKS OPEN
+  11TKOpen.htm                              2011 TOMMY KONO OPEN - VI
+  12CAInvitational.htm                      2012 CATALYST ATHLETICS SUMMER INVITATIONAL
+  12CAQualifier.htm                         2012 CATALYST ATHLETICS LAST CHANCE QUALIFIER
+  12Columbus.htm                            2012 COLUMBUS DAY OPEN
+  12Cougar.htm                              2012 COUGAR CLASSIC
+  12GldWst.htm                              2012 DON WILSON GOLDEN WEST OPEN
+  12HassleFreeSchoolage.htm                 2012 SAC HIGH SCHOOLAGE QUALIFIER & OPEN
+  12LaborDay.htm                            2012 LABOR DAY OPEN
+  12MarMadness.htm                          2012 MARCH MADNESS OPEN
+  12Midtown.htm                             3RD ANNUAL MIDTOWN CLASSIC
+  12NorCal.htm                              2012 NORTHERN CALIFORNIA OPEN
+  12PresDay.htm                             2012 PRESIDENTS DAY BASH
+  12PWAChp.htm                              2012 PACIFIC WEIGHTLIFTING ASSOCIATION CHAMPIONSHIP
+  12PWARec.htm                              2012 PWA RECORD BREAKERS
+  12Redwood.htm                             2012 REDWOOD EMPIRE CHAMPIONSHIPS
+  12RiverTown.htm                           2012 RIVERTOWN CLASSIC
+  12SacHiOpenI.htm                          2012 SACRAMENTO HIGH OPEN I
+  12TKOpen.htm                              2012 TOMMY KONO OPEN - VII
+  12United.htm                              2012 UNITED BARBELL OPEN
+  12VetDay.htm                              2012 VETERANS DAY OPEN
+  13CAInvitational.htm                      2013 CATALYST ATHLETICS ENSIGN GRAY INVITATIONAL
+  13Fall.htm                                2013 FALL CLASSIC
+  13GldWst.htm                              2013 DON WILSON GOLDEN WEST OPEN
+  13Kilos.htm                               CAFFEINE & KILOS INVITATIONAL 2013
+  13Max.htm                                 2013 MAX'S GYM OPEN
+  13Midtown.htm                             4TH ANNUAL MIDTOWN CLASSIC
+  13NorCal.htm                              2013 NORTHERN CALIFORNIA OPEN
+  13PWAChp.htm                              2013 PWA CHAMPIONSHIPS
+  13PWAJrChp.htm                            2013 PWA JUNIOR CHAMPIONSHIPS
+  13PWASenior.htm                           2013 PWA SENIOR OPEN
+  13PWAYouth.htm                            2013 PWA YOUTH CHAMPIONSHIPS & OPEN
+  13Redwood.htm                             2012 REDWOOD EMPIRE CHAMPIONSHIPS
+  13RiverTown.htm                           2013 RIVERTOWN CLASSIC
+  13SpringOpen.htm                          2013 PWA MASTERS & SPRING OPEN
+  13Sundial.htm                             2013 SUNDIAL OPEN
+  13TKOpen.htm                              2013 TOMMY KONO OPEN - VIII
+  13VetDay.htm                              2013 KEVIN SAN VETERANS DAY OPEN
+  13WarriorZ.htm                            2013 WARRIORZ OPEN
+  14BLCity.htm                              2014 BIGGEST LITTLE CITY OPEN
+  14GldWst.htm                              2014 DON WILSON GOLDEN WEST OPEN
+  14HSFOpen.htm                             2014 HASSLE FREE OPEN & INVITATIONAL
+  14HSFRecord.htm                           2014 HASSLE FREE RECORD BREAKERS
+  14JrLastChance.htm                        2014 NATIONAL JUNIORS LAST CHANCE QUALIFIER
+  14Kilos.htm                               2014 CAFFEINE & KILOS INVITATIONAL
+  14Max.htm                                 2014 MAX'S GYM OPEN
+  14Memorial.htm                            2014 MEMORIAL WEEKEND OPEN
+  14MLK.htm                                 2014 MLK DAY OPEN
+  14NCL-I.htm                               2014 NORTH COAST LEAGUE I
+  14NCL-II.htm                              2014 NORTH COAST LEAGUE II
+  14NCL-III.htm                             2014 NORTH COAST LEAGUE III
+  14NCL-V.htm                               2014 NORTH COAST LEAGUE V
+  14NCLChamps.htm                           2014 NORTH COAST LEAGUE CHAMPIONSHIPS
+  14NorCal.htm                              2014 NORTHERN CALIFORNIA OPEN
+  14NYC.pdf                                 
+  14NYLast.htm                              2014 NATIONAL YOUTH LAST CHANCE QUALIFIER
+  14PresDay.htm                             2014 PRESIDENTS DAY OPEN
+  14PWAChp.htm                              2014 PWA CHAMPIONSHIPS
+  14PWAJrChp.htm                            2014 PWA JUNIOR CHAMPIONSHIPS & MASTER OPEN
+  14Redwood.htm                             2014 REDWOOD EMPIRE CHAMPIONSHIPS
+  14RenoTrials.htm                          2014 RENO INTERNATIONAL TRIALS SESSIONS
+  14SacHiI.htm                              2014 SACRAMENTO HIGH OPEN I
+  14SAFOpen.htm                             2014 STONE AGE FUEL OPEN
+  14Sundial.htm                             2014 SUNDIAL BRIDGE OPEN
+  14TKOpen.htm                              2014 TOMMY KONO OPEN - IX
+  14Visalia.htm                             2014 VISALIA LIFT OFF
+  14VisaliaFall.htm                         2014 VISALIA FALL LIFT OFF
+  14WarriorZ.htm                            2014 WARRIORZ OPEN
+  14Wine.htm                                2014 CTS WINE COUNTRY CLASSIC
+  15BCClassic.htm                           2015 BUTCH CURRY CLASSIC
+  15BLCity.htm                              2015 BIGGEST LITTLE CITY OPEN
+  15CalState.htm                            2015 CALIFORNIA STATE CHAMPIONSHIPS
+  15HSFSpringBreaker.htm                    2015 HASSLE FREE SPRING BREAKER
+  15Kilos.htm                               2015 CAFFEINE & KILOS INVITATIONAL
+  15LiftMore.htm                            2015 LIFT MORE OPEN
+  15MaxLastChance.htm                       2015 MAX'S GYM LAST CHANCE QUALIFIER
+  15NCLYouth.htm                            2015 NORTH COAST LEAGUE YOUTH CHAMPIONSHIPS
+  15NorCal.htm                              2015 NORTHERN CALIFORNIA OPEN
+  15NYC.pdf                                 
+  15Occam.htm                               2015 OCCAM OPEN
+  15PWAChp.htm                              2015 PWA CHAMPIONSHIPS
+  15PWAJrMLK.htm                            2015 PWA JUNIOR CHAMPIONSHIPS & MLK DAY OPEN
+  15Redwood.htm                             2015 REDWOOD EMPIRE CHAMPIONSHIPS
+  15RiverTown.htm                           2015 RIVERTOWN CLASSIC
+  15SacHiI.htm                              2015 SACRAMENTO HIGH OPEN I
+  15Wine.htm                                2015 CTS WINE COUNTRY CLASSIC
+  2006NatSchoolAge.htm                      2006 NATIONAL SCHOOLAGE CHAMPIONSHIPS
+  37NorCal.htm                              1937 NORTHERN CALIFORNIA WEIGHTLIFTING CHAMPIONSHIPS
+  37Watsonville.htm                         1937 WATSONVILLE MEET
+  38NorCal.htm                              1938 NORTHERN CALIFORNIA OPEN WEIGHTLIFTING CHAMPIONSHIPS
+  40NorCal.htm                              1940 NORTHERN CALIFORNIA WEIGHTLIFTING CHAMPIONSHIPS
+  41CalTeam.htm                             1941 CALIFORNIA TEAM CONTEST
+  41NorCal.htm                              1941 NORTHERN CALIFORNIA WEIGHTLIFTING CHAMPIONSHIPS
+  41PWAChp.htm                              1941 PACIFIC ASSOCIATION of the AAU WEIGHTLIFTING CHAMPIONSHIPS
+  41SacYMCA.htm                             1941 SACRAMENTO Y. M. C. A. WEIGHTLIFTING CHAMPIONSHIPS
+  41YMCAOpen.htm                            1941 Y. M. C. A. OPEN WEIGHTLIFTING CHAMPIONSHIPS
+  42SanFran.htm                             1942 SAN FRANCISCO OPEN WEIGHTLIFTING CHAMPIONSHIPS
+  42SanQ.htm                                1942 MEET AT SAN QUENTIN
+  43YMCAOpen.htm                            1943 Y. M. C. A. OPEN WEIGHTLIFTING CHAMPIONSHIPS
+  45NorCal.htm                              1945 NORTHERN CALIFORNIA WEIGHTLIFTING CHAMPIONSHIPS
+  47SanQ.htm                                1942 MEET AT SAN QUENTIN
+  79PWAChp.htm                              1979 PACIFIC ASSOCIATIOIN CHAMPIONSHIPS
+  79PWAJOChp.htm                            1979 PACIFIC ASSOCIATIOIN JUNIOR OLYMPIC CHAMPIONSHIPS
+  80PacCoast.htm                            1980 PACIFIC COAST OPEN CHAMPIONSHIPS
+  82GldWst.htm                              1982 GOLDEN WEST OPEN
+  83BltBkl.htm                              1983 BELT BUCKLE OPEN
+  84CalStates.htm                           1984 CALIFORNIA STATE CHAMPIONSHIPS
+  84GldWst.htm                              1984 GOLDEN WEST OPEN
+  85BltBkl.htm                              1985 BELT BUCKLE OPEN
+  85JrNats.htm                              1985 JUNIOR NATIONALS
+  85NorCal.htm                              1985 NORTHERN CALIFORNIA CHAMPIONSHIPS
+  86GldWst.htm                              1986 GOLDEN WEST OPEN
+  87GldWst.htm                              1987 GOLDEN WEST OPEN
+  88GldWst.htm                              1988 GOLDEN WEST OPEN
+  88PWAChp.htm                              1988 PACIFIC WEIGHTLIFTING ASSOCIATION CHAMPIONSHIPS
+  88SFOpen.htm                              1988 SAN FRANCISCO OPEN
+  89BltBkl.htm                              1989 BELT BUCKLE OPEN
+  89NorCal.htm                              1989 NORTHERN CALIFORNIA OPEN
+  89PWAChp.htm                              1989 PACIFIC WEIGHTLIFTING ASSOCIATION CHAMPIONSHIPS
+  91GldWst.htm                              1991 GOLDEN WEST OPEN
+  92BltBkl.htm                              1992 Belt Buckle Open
+  92GldWst.htm                              1992 Golden West
+  92NorCal.htm                              1992 Northern California Open
+  92PWAChp.htm                              1992 PACIFIC ASSOCIATION CHAMPIONSHIPS
+  93BeerMug.htm                             1993 Northern California/Beer Mug Open
+  93BerMug.htm                              1993 Northern California/Beer Mug Open
+  93BltBkl.htm                              1993 Belt Buckle Open
+  93CalSt.htm                               1993 California State Championships
+  93LastChance.htm                          1993 LAST CHANCE OPEN
+  94BltBkl.htm                              1994 BELT BUCKLE OPEN
+  94GldWst.htm                              1994 Golden West Open
+  94Marin.htm                               1994 Marin Open
+  94NorCal.htm                              1994 Northern California Open
+  94PWAChp.htm                              1994 PACIFIC ASSOCIATION CHAMPIONSHIPS
+  95BltBkl.htm                              1995 BELT BUCKLE OPEN
+  95GldWst.htm                              1995 Golden West
+  95Marin.htm                               1995 MARIN OPEN
+  95NorCal.htm                              1995 NORTHERN CALIFORNIA OPEN
+  95PWAChp.htm                              1995 PACIFIC ASSOCIATION CHAMPIONSHIPS
+  96CalSt.htm                               1996 California State Championships
+  96GldWst.htm                              1996 GOLDEN WEST OPEN
+  96Marin.htm                               1996 MARIN Open Weightlifting Championships
+  96PWAChp.htm                              1996 Pacific Weightlifting Association Championships
+  96WestHS.htm                              1996 Sacramento State University High School Weightlifting Championships
+  97BltBkl.htm                              1997 Belt Buckle Open
+  97GldWst.htm                              1997 Golden West Open Championships
+  97PWAChp.htm                              1997 PACIFIC WEIGHTLIFTING ASSOCIATION CHAMPIONSHIPS
+  97SacOpn.htm                              1997 Sacramento Open
+  97TryOut.htm                              1997 USAW World Team Tryouts
+  97WestHS.htm                              1997 Western States High School Weightlifting Championships
+  98BltBkl.htm                              1998 BELT BUCKLE OPEN
+  98CALSt.htm                               1998 California State Weightlifting Championships
+  98GldWst.htm                              1998 Golden West Open
+  98NorCal.htm                              1998 Northern California/Sacramento Open
+  98PWAChp.htm                              1998 PACIFIC WEIGHTLIFTING ASSOCIATION CHAMPIONSHIPS
+  98WestHS.htm                              1998 Western States High School Weightlifting Championships
+  99GldWst.htm                              1999 Golden West Open
+  99HighDesert.htm                          1999 High Desert Open Results
+  99LstChn.htm                              1999 Sacramento Last Chance
+  99LstChnII.htm                            1999 Last Chance Open II
+  99NCalHS.htm                              1999 NorCal High School Championships
+  99NorCal.htm                              1999 Northern California/Sacramento Open
+  99PWAChp.htm                              1999 PWA Championships
+  AAUChamps.htm                             SENIOR NATIONAL WEIGHTLIFTING CHAMPIONS
+  PanAmMen.htm                              1999 PAN AM GAMES - MEN
+  PanAmWmn.htm                              1999 PAN AM GAMES - WOMEN
+
+--- Spot checks ---
+  [root] 96Marin.htm: linked=False  name="1996 MARIN Open Weightlifting Championships"  date_start=1996-03-16  loc=Marin Training Center
+  [Results] 03JrNatsTemp.htm: linked=False  name="2003 JUNIOR NATIONALS"  date_start=2003-03-28  loc=USA WEIGHTLIFTING JUNIOR NATIONALS Altamonte Springs, FL
+  [Results] 33SrNats.htm: linked=True  name="1933 SENIOR NATIONALS"  date_start=1933  loc=World's Fair, Chicago, IL
+  [Results] 96Marin.htm: linked=False  name="1996 MARIN Open Weightlifting Championships"  date_start=1996-03-16  loc=Marin Training Center
