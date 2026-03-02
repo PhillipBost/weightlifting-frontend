@@ -532,7 +532,7 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
     const isHeader = variant === 'header';
 
     return (
-        <div className={`relative w-full ${isHeader ? 'max-w-md' : 'max-w-4xl'} mx-auto z-[9999] pointer-events-auto`} ref={containerRef}>
+        <div className={`w-full ${isHeader ? 'static lg:relative max-w-md' : 'relative max-w-4xl'} mx-auto z-[9999] pointer-events-auto`} ref={containerRef}>
             {/* Search Bar Container */}
             <div className={`
                 flex flex-wrap items-center gap-2 isolate
@@ -589,14 +589,14 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
             {isOpen && (query.length >= 2 || suggestions.length > 0) && (
                 <div className={`
                     absolute top-full mt-2 bg-search-popup border border-app-primary rounded-xl shadow-2xl overflow-hidden max-h-[70vh] overflow-y-auto
-                    ${isHeader ? 'left-0 w-64 sm:right-0 sm:left-auto sm:w-[85vw] sm:max-w-3xl dark:backdrop-blur-[var(--blur-search-header)] backdrop-blur-[var(--blur-search-header)]' : 'left-0 right-0 w-full dark:backdrop-blur-[var(--blur-search-main)] backdrop-blur-[var(--blur-search-main)]'}
+                    ${isHeader ? 'left-4 right-4 w-auto lg:left-auto lg:right-0 lg:w-[85vw] lg:max-w-3xl dark:backdrop-blur-[var(--blur-search-header)] backdrop-blur-[var(--blur-search-header)]' : 'left-0 right-0 w-full dark:backdrop-blur-[var(--blur-search-main)] backdrop-blur-[var(--blur-search-main)]'}
                 `}>
                     {isSearching ? (
                         <div className="p-4 text-center text-app-tertiary text-sm">Searching...</div>
                     ) : suggestions.length === 0 ? (
                         <div className="p-4 text-center text-app-tertiary text-sm">No results found.</div>
                     ) : (
-                        <div className="flex flex-col sm:flex-row relative">
+                        <div className="flex flex-col lg:flex-row relative">
                             {/* Left Column: Search Results */}
                             <div className="flex-1 min-w-0 py-2">
                                 {['Athletes', 'Meets', 'Clubs', 'WSO'].map(cat => {
@@ -698,7 +698,7 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
                             </div>
 
                             {/* Right Column: Filters (Sticky Sidebar) */}
-                            <div className="block w-full sm:w-[260px] shrink-0 border-t sm:border-t-0 sm:border-l border-[#374151]/30 bg-app-tertiary/5 py-2 sticky top-0 h-fit">
+                            <div className="block w-full lg:w-[260px] shrink-0 border-t lg:border-t-0 lg:border-l border-[#374151]/30 bg-app-tertiary/5 py-2 sticky top-0 h-fit">
                                 <div className="px-4 py-2 text-xs font-bold text-app-tertiary uppercase tracking-wider mb-2">
                                     Filter Options
                                 </div>
