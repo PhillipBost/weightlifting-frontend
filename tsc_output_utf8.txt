@@ -1,0 +1,2 @@
+﻿app/upcoming-meets/page.tsx(84,16): error TS2322: Type '{ children: Element; allowedRoles: ("admin" | "usaw_national_team_coach" | "vip")[]; }' is not assignable to type 'IntrinsicAttributes & AuthGuardProps'.
+  Property 'allowedRoles' does not exist on type 'IntrinsicAttributes & AuthGuardProps'.
