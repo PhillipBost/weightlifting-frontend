@@ -696,8 +696,8 @@ export function UpcomingMeetsContent({ initialMeets = [] }: { initialMeets?: Mee
                                 <tbody className="text-sm">
                                     {paginatedMeets.map((meet) => {
                                         const destinationUrl = meet.federation === 'USAW'
-                                            ? `/meet/${meet.datasetId}`
-                                            : `/meet/iwf/${meet.datasetId}`;
+                                            ? `/upcoming-meet/${meet.datasetId}`
+                                            : `/upcoming-meet/iwf/${meet.datasetId}`;
 
                                         return (
                                             <tr
@@ -719,9 +719,9 @@ export function UpcomingMeetsContent({ initialMeets = [] }: { initialMeets?: Mee
                                                 )}
                                                 {visibleColumns.name && (
                                                     <td className="px-2 py-1 font-medium whitespace-nowrap text-xs">
-                                                        <span className="text-gray-200">
+                                                        <Link href={destinationUrl} className="text-blue-500 hover:text-blue-400 hover:underline transition-colors">
                                                             {meet.name}
-                                                        </span>
+                                                        </Link>
                                                     </td>
                                                 )}
                                                 {visibleColumns.location && (
