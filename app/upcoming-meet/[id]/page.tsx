@@ -54,6 +54,14 @@ export default async function UpcomingMeetPredictionPage({ params }: { params: P
     const bestQPointsMap: Record<number, number> = {};
     const bestQMastersMap: Record<number, number> = {};
 
+    // GAMX maps
+    const bestGamxTotalMap: Record<number, number> = {};
+    const bestGamxSMap: Record<number, number> = {};
+    const bestGamxJMap: Record<number, number> = {};
+    const bestGamxUMap: Record<number, number> = {};
+    const bestGamxAMap: Record<number, number> = {};
+    const bestGamxMastersMap: Record<number, number> = {};
+
     // Fetch in batches to avoid extremely long URL/query params
     const batchSize = 200;
     for (let i = 0; i < lifterIds.length; i += batchSize) {
@@ -62,7 +70,7 @@ export default async function UpcomingMeetPredictionPage({ params }: { params: P
 
         const { data: qpointsData, error: qpointsError } = await supabase
             .from('usaw_meet_results')
-            .select('lifter_id, q_youth, qpoints, q_masters')
+            .select('lifter_id, q_youth, qpoints, q_masters, gamx_total, gamx_s, gamx_j, gamx_u, gamx_a, gamx_masters')
             .in('lifter_id', batch)
             .gte('date', twoYearsAgoStr);
 
@@ -87,6 +95,32 @@ export default async function UpcomingMeetPredictionPage({ params }: { params: P
                             bestQMastersMap[row.lifter_id] = row.q_masters;
                         }
                     }
+                    if (row.gamx_total) {
+                        const currentBestGamx = bestGamxTotalMap[row.lifter_id] || 0;
+                        if (row.gamx_total > currentBestGamx) {
+                            bestGamxTotalMap[row.lifter_id] = row.gamx_total;
+                        }
+                    }
+                    if (row.gamx_s) {
+                        const currentBest = bestGamxSMap[row.lifter_id] || 0;
+                        if (row.gamx_s > currentBest) bestGamxSMap[row.lifter_id] = row.gamx_s;
+                    }
+                    if (row.gamx_j) {
+                        const currentBest = bestGamxJMap[row.lifter_id] || 0;
+                        if (row.gamx_j > currentBest) bestGamxJMap[row.lifter_id] = row.gamx_j;
+                    }
+                    if (row.gamx_u) {
+                        const currentBest = bestGamxUMap[row.lifter_id] || 0;
+                        if (row.gamx_u > currentBest) bestGamxUMap[row.lifter_id] = row.gamx_u;
+                    }
+                    if (row.gamx_a) {
+                        const currentBest = bestGamxAMap[row.lifter_id] || 0;
+                        if (row.gamx_a > currentBest) bestGamxAMap[row.lifter_id] = row.gamx_a;
+                    }
+                    if (row.gamx_masters) {
+                        const currentBest = bestGamxMastersMap[row.lifter_id] || 0;
+                        if (row.gamx_masters > currentBest) bestGamxMastersMap[row.lifter_id] = row.gamx_masters;
+                    }
                 }
             }
         }
@@ -96,7 +130,13 @@ export default async function UpcomingMeetPredictionPage({ params }: { params: P
         ...entry,
         best_q_youth: entry.lifter_id ? (bestQYouthMap[entry.lifter_id] || null) : null,
         best_qpoints: entry.lifter_id ? (bestQPointsMap[entry.lifter_id] || null) : null,
-        best_q_masters: entry.lifter_id ? (bestQMastersMap[entry.lifter_id] || null) : null
+        best_q_masters: entry.lifter_id ? (bestQMastersMap[entry.lifter_id] || null) : null,
+        best_gamx_total: entry.lifter_id ? (bestGamxTotalMap[entry.lifter_id] || null) : null,
+        best_gamx_s: entry.lifter_id ? (bestGamxSMap[entry.lifter_id] || null) : null,
+        best_gamx_j: entry.lifter_id ? (bestGamxJMap[entry.lifter_id] || null) : null,
+        best_gamx_u: entry.lifter_id ? (bestGamxUMap[entry.lifter_id] || null) : null,
+        best_gamx_a: entry.lifter_id ? (bestGamxAMap[entry.lifter_id] || null) : null,
+        best_gamx_masters: entry.lifter_id ? (bestGamxMastersMap[entry.lifter_id] || null) : null
     }));
 
     // Extract basic meet info from the first entry if available

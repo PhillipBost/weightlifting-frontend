@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useMemo } from 'react';
 import { ChevronDown, ChevronRight, Trophy, Medal, ExternalLink } from 'lucide-react';
@@ -25,12 +25,6 @@ export interface MeetEntry {
     best_qpoints?: number | null;
     best_q_youth?: number | null;
     best_q_masters?: number | null;
-    best_gamx_total?: number | null;
-    best_gamx_s?: number | null;
-    best_gamx_j?: number | null;
-    best_gamx_u?: number | null;
-    best_gamx_a?: number | null;
-    best_gamx_masters?: number | null;
 }
 
 interface PredictionEngineContentProps {
@@ -56,8 +50,6 @@ export function PredictionEngineContent({ entries }: PredictionEngineContentProp
     ]));
     const [showMenQPoints, setShowMenQPoints] = useState(false);
     const [showWomenQPoints, setShowWomenQPoints] = useState(false);
-    const [showGamx, setShowGamx] = useState(false);
-    const [gamxSortConfig, setGamxSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' }>({ key: 'best_gamx_total', direction: 'desc' });
 
     // Sort configurations for Q-Points tables
     const [menSortConfig, setMenSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>(null);
@@ -230,16 +222,16 @@ export function PredictionEngineContent({ entries }: PredictionEngineContentProp
             <table className="border-separate" style={{ borderSpacing: 0, width: '100%' }}>
                 <thead className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200">
                     <tr className="border-b-2 border-gray-400 dark:border-gray-500">
-                        <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider select-none w-16">
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider select-none w-16">
                             Place
                         </th>
-                        <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider select-none">
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider select-none">
                             Athlete
                         </th>
-                        <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider select-none hidden sm:table-cell">
-                            Club / WSO
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider select-none hidden sm:table-cell">
+                            Club
                         </th>
-                        <th className="px-2 py-1 text-right text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider select-none">
+                        <th className="px-3 py-2 text-right text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider select-none">
                             Total
                         </th>
                     </tr>
@@ -249,7 +241,7 @@ export function PredictionEngineContent({ entries }: PredictionEngineContentProp
                         const displayPlace = index + 1;
                         return (
                             <tr key={result.id || index} className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors group" style={{ borderTopColor: 'var(--border-secondary)' }}>
-                                <td className="px-2 py-2 whitespace-nowrap text-sm font-medium text-app-primary">
+                                <td className="px-3 py-2 whitespace-nowrap text-sm font-medium text-app-primary">
                                     <div className="flex items-center gap-1">
                                         <span>{displayPlace}</span>
                                         {displayPlace === 1 && <Medal className="h-4 w-4" style={{ color: '#FFD700' }} />}
@@ -257,25 +249,25 @@ export function PredictionEngineContent({ entries }: PredictionEngineContentProp
                                         {displayPlace === 3 && <Medal className="h-4 w-4" style={{ color: '#CD7F32' }} />}
                                     </div>
                                 </td>
-                                <td className="px-2 py-2 whitespace-nowrap">
+                                <td className="px-3 py-2 whitespace-nowrap">
                                     <Link
                                         href={getAthleteUrl(result)}
-                                        className="flex items-center space-x-1 text-accent-primary hover:text-accent-primary-hover transition-colors hover:underline"
+                                        className="flex items-center space-x-1 text-accent-primary group-hover:text-accent-primary-hover transition-colors hover:underline"
                                     >
                                         <span className="font-medium text-sm">{result.first_name} {result.last_name}</span>
                                         <ExternalLink className="h-3 w-3" />
                                     </Link>
                                     <div className="text-xs text-app-muted">
                                         {result.weightlifting_age && `Age ${result.weightlifting_age}`}
-                                        {result.membership_number && result.weightlifting_age && " • "}
+                                        {result.membership_number && result.weightlifting_age && " ΓÇó "}
                                         {result.membership_number && `#${result.membership_number}`}
                                     </div>
                                 </td>
-                                <td className="px-2 py-2 whitespace-nowrap text-sm text-app-secondary hidden sm:table-cell">
+                                <td className="px-3 py-2 whitespace-nowrap text-sm text-app-secondary hidden sm:table-cell">
                                     <div className="text-sm">{result.club || '-'}</div>
                                     <div className="text-xs text-app-muted">{result.wso || result.state}</div>
                                 </td>
-                                <td className="px-2 py-2 whitespace-nowrap text-sm font-bold text-right" style={{ color: 'var(--chart-total)' }}>
+                                <td className="px-3 py-2 whitespace-nowrap text-sm font-bold text-right" style={{ color: 'var(--chart-total)' }}>
                                     {result.entry_total ? `${result.entry_total}kg` : '-'}
                                 </td>
                             </tr>
@@ -401,9 +393,9 @@ export function PredictionEngineContent({ entries }: PredictionEngineContentProp
 
         const SortIndicator = ({ col }: { col: string }) => {
             if (sortConfig.key !== col) {
-                return <span className="text-app-disabled ml-1">↕</span>;
+                return <span className="text-app-disabled ml-1">Γåò</span>;
             }
-            return <span className="text-accent-primary ml-1">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>;
+            return <span className="text-accent-primary ml-1">{sortConfig.direction === 'asc' ? 'Γåæ' : 'Γåô'}</span>;
         };
 
         const headerClass = "px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none";
@@ -465,7 +457,7 @@ export function PredictionEngineContent({ entries }: PredictionEngineContentProp
                                                     </Link>
                                                     <div className="text-xs text-app-muted">
                                                         {e.weightlifting_age && `Age ${e.weightlifting_age}`}
-                                                        {e.membership_number && e.weightlifting_age && " • "}
+                                                        {e.membership_number && e.weightlifting_age && " ΓÇó "}
                                                         {e.membership_number && `#${e.membership_number}`}
                                                     </div>
                                                 </td>
@@ -498,127 +490,8 @@ export function PredictionEngineContent({ entries }: PredictionEngineContentProp
         );
     };
 
-    const handleGamxSort = (key: string) => {
-        setGamxSortConfig(prev =>
-            prev.key === key
-                ? { key, direction: prev.direction === 'asc' ? 'desc' : 'asc' }
-                : { key, direction: 'desc' }
-        );
-    };
-
-    const renderGamxTable = (title: string, entriesList: MeetEntry[], isShowing: boolean, toggle: () => void) => {
-        const validEntries = entriesList.filter(e => e.best_gamx_total != null && e.best_gamx_total > 0);
-        if (validEntries.length === 0) return null;
-
-        const sortedEntries = [...validEntries].sort((a, b) => {
-            const aVal = (a as any)[gamxSortConfig.key] ?? 0;
-            const bVal = (b as any)[gamxSortConfig.key] ?? 0;
-            // Zeros to the bottom
-            if (aVal === 0 && bVal !== 0) return 1;
-            if (aVal !== 0 && bVal === 0) return -1;
-            return gamxSortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
-        });
-
-        const SortIndicator = ({ col }: { col: string }) => {
-            if (gamxSortConfig.key !== col) return <span className="text-app-disabled ml-1">↕</span>;
-            return <span className="text-accent-primary ml-1">{gamxSortConfig.direction === 'asc' ? '↑' : '↓'}</span>;
-        };
-
-        const hClass = "px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none";
-        const qHClass = (col: string) =>
-            `px-2 py-1 text-left text-xs font-medium uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none ${gamxSortConfig.key === col ? 'text-accent-primary font-bold' : 'text-gray-900 dark:text-gray-200'
-            }`;
-
-        return (
-            <div className="mb-4">
-                <div className="mb-3">
-                    <button
-                        onClick={toggle}
-                        className="flex items-center space-x-2 text-app-primary hover:text-accent-primary transition-colors mb-2 text-left"
-                    >
-                        {isShowing ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
-                        <h2 className="text-2xl font-bold">{title}</h2>
-                        <span className="text-sm text-app-muted ml-2">({sortedEntries.length} athletes ranked)</span>
-                    </button>
-                </div>
-
-                {isShowing && (
-                    <div className="card-primary mb-8">
-                        <div className="overflow-x-auto">
-                            <table className="border-separate" style={{ borderSpacing: 0, width: '100%' }}>
-                                <thead className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200">
-                                    <tr className="border-b-2 border-gray-400 dark:border-gray-500">
-                                        <th className={hClass} onClick={() => handleGamxSort('rank')}>Rank <SortIndicator col="rank" /></th>
-                                        <th className={hClass} onClick={() => handleGamxSort('lifter_name')}>Name <SortIndicator col="lifter_name" /></th>
-                                        <th className={`${hClass} hidden sm:table-cell`} onClick={() => handleGamxSort('club')}>Club / WSO <SortIndicator col="club" /></th>
-                                        <th className={hClass} onClick={() => handleGamxSort('weight_class')}>Class <SortIndicator col="weight_class" /></th>
-                                        <th className={qHClass('best_gamx_total')} onClick={() => handleGamxSort('best_gamx_total')}>GAMX-Total <SortIndicator col="best_gamx_total" /></th>
-                                        <th className={qHClass('best_gamx_s')} onClick={() => handleGamxSort('best_gamx_s')}>GAMX-S <SortIndicator col="best_gamx_s" /></th>
-                                        <th className={qHClass('best_gamx_j')} onClick={() => handleGamxSort('best_gamx_j')}>GAMX-J <SortIndicator col="best_gamx_j" /></th>
-                                        <th className={qHClass('best_gamx_u')} onClick={() => handleGamxSort('best_gamx_u')}>GAMX-U <SortIndicator col="best_gamx_u" /></th>
-                                        <th className={qHClass('best_gamx_a')} onClick={() => handleGamxSort('best_gamx_a')}>GAMX-A <SortIndicator col="best_gamx_a" /></th>
-                                        <th className={qHClass('best_gamx_masters')} onClick={() => handleGamxSort('best_gamx_masters')}>GAMX-M <SortIndicator col="best_gamx_masters" /></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {sortedEntries.map((e, idx) => (
-                                        <tr key={`gamx-${idx}`} className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors group" style={{ borderTopColor: 'var(--border-secondary)' }}>
-                                            <td className="px-2 py-2 whitespace-nowrap text-sm font-medium text-app-primary">
-                                                <div className="flex items-center gap-1">
-                                                    <span>{idx + 1}</span>
-                                                    {idx === 0 && <Medal className="h-4 w-4" style={{ color: '#FFD700' }} />}
-                                                    {idx === 1 && <Medal className="h-4 w-4" style={{ color: '#C0C0C0' }} />}
-                                                    {idx === 2 && <Medal className="h-4 w-4" style={{ color: '#CD7F32' }} />}
-                                                </div>
-                                            </td>
-                                            <td className="px-2 py-2 max-w-[200px] truncate" title={`${e.first_name} ${e.last_name}`}>
-                                                <Link href={getAthleteUrl(e)} className="text-accent-primary hover:text-accent-primary-hover hover:underline flex items-center space-x-1">
-                                                    <span className="font-medium text-sm truncate">{e.first_name} {e.last_name}</span>
-                                                    <ExternalLink className="h-3 w-3" />
-                                                </Link>
-                                                <div className="text-xs text-app-muted">
-                                                    {e.weightlifting_age && `Age ${e.weightlifting_age}`}
-                                                    {e.membership_number && e.weightlifting_age && " • "}
-                                                    {e.membership_number && `#${e.membership_number}`}
-                                                </div>
-                                            </td>
-                                            <td className="px-2 py-2 whitespace-nowrap text-sm text-app-secondary hidden sm:table-cell">
-                                                <div className="text-sm">{e.club || '-'}</div>
-                                                <div className="text-xs text-app-muted">{e.wso || e.state}</div>
-                                            </td>
-                                            <td className="px-2 py-2 text-sm">{e.weight_class}</td>
-                                            <td className="px-2 py-2 text-sm font-medium" style={{ color: e.best_gamx_total && e.best_gamx_total > 0 ? 'var(--chart-total)' : 'inherit' }}>
-                                                {e.best_gamx_total ? e.best_gamx_total.toFixed(4) : '-'}
-                                            </td>
-                                            <td className="px-2 py-2 text-sm font-medium" style={{ color: e.best_gamx_s && e.best_gamx_s > 0 ? 'var(--chart-qpoints)' : 'inherit' }}>
-                                                {e.best_gamx_s ? e.best_gamx_s.toFixed(4) : '-'}
-                                            </td>
-                                            <td className="px-2 py-2 text-sm font-medium" style={{ color: e.best_gamx_j && e.best_gamx_j > 0 ? 'var(--chart-qyouth)' : 'inherit' }}>
-                                                {e.best_gamx_j ? e.best_gamx_j.toFixed(4) : '-'}
-                                            </td>
-                                            <td className="px-2 py-2 text-sm font-medium" style={{ color: e.best_gamx_u && e.best_gamx_u > 0 ? 'var(--chart-qpoints)' : 'inherit' }}>
-                                                {e.best_gamx_u ? e.best_gamx_u.toFixed(4) : '-'}
-                                            </td>
-                                            <td className="px-2 py-2 text-sm font-medium" style={{ color: e.best_gamx_a && e.best_gamx_a > 0 ? 'var(--chart-qmasters)' : 'inherit' }}>
-                                                {e.best_gamx_a ? e.best_gamx_a.toFixed(4) : '-'}
-                                            </td>
-                                            <td className="px-2 py-2 text-sm font-medium" style={{ color: e.best_gamx_masters && e.best_gamx_masters > 0 ? 'var(--chart-qmasters)' : 'inherit' }}>
-                                                {e.best_gamx_masters ? e.best_gamx_masters.toFixed(4) : '-'}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                )}
-            </div>
-        );
-    };
-
     return (
         <div className="space-y-4">
-            {renderGamxTable("Overall Rankings Predictions by GAMX", entries, showGamx, () => setShowGamx(!showGamx))}
             {renderQPointsTable("Men's Overall Rankings Predictions by Q-Points", menEntries, 'men', showMenQPoints, () => setShowMenQPoints(!showMenQPoints))}
             {renderQPointsTable("Women's Overall Rankings Predictions by Q-Points", womenEntries, 'women', showWomenQPoints, () => setShowWomenQPoints(!showWomenQPoints))}
 
@@ -628,7 +501,7 @@ export function PredictionEngineContent({ entries }: PredictionEngineContentProp
                     if (weightClassGroups.length === 0) return null;
 
                     return (
-                        <div key={genderSection} className={isGenderCollapsed ? 'mb-2' : 'mb-6'}>
+                        <div key={genderSection} className="mb-6">
                             {/* Gender Section Header */}
                             <div className="mb-3">
                                 <button
@@ -667,14 +540,14 @@ export function PredictionEngineContent({ entries }: PredictionEngineContentProp
                                                 <div className="mt-4 mb-2 space-y-2">
 
                                                     {/* Parent Table (Everyone in this Weight Class) wrapped in All Ages */}
-                                                    <div className="ml-8 border-l-4 border-accent-secondary rounded-r-lg mr-2">
+                                                    <div className="ml-8 border-l-4 border-accent-secondary bg-app-tertiary rounded-r-lg mr-2">
                                                         <div
                                                             onClick={() => toggleSection(`${genderSection}-${wc.weightClass}-All Ages`)}
                                                             className="cursor-pointer hover:bg-app-hover transition-colors rounded-tr-lg"
                                                         >
                                                             <h4 className="text-base font-bold p-2 flex items-center text-app-primary">
                                                                 {collapsedSections.has(`${genderSection}-${wc.weightClass}-All Ages`) ? <ChevronRight className="h-4 w-4 mr-2 text-gray-400" /> : <ChevronDown className="h-4 w-4 mr-2 text-gray-400" />}
-                                                                <span className="mr-2 text-app-muted">↳</span>
+                                                                <span className="mr-2 text-app-muted">Γå│</span>
                                                                 <span>All Ages</span>
                                                                 <span className="ml-2 text-sm font-normal text-app-muted">(Overall Rankings)</span>
                                                                 <span className="ml-auto text-sm text-app-muted">{wc.allEntries.length} athletes</span>
@@ -694,14 +567,14 @@ export function PredictionEngineContent({ entries }: PredictionEngineContentProp
                                                         const isSubCollapsed = collapsedSections.has(subKey);
 
                                                         return (
-                                                            <div key={sub.name} className="ml-8 border-l-4 border-accent-primary rounded-r-lg mr-2">
+                                                            <div key={sub.name} className="ml-8 border-l-4 border-accent-primary bg-app-tertiary rounded-r-lg mr-2">
                                                                 <div
                                                                     onClick={() => toggleSection(subKey)}
                                                                     className="cursor-pointer hover:bg-app-hover transition-colors rounded-tr-lg"
                                                                 >
                                                                     <h4 className="text-base font-bold p-2 flex items-center text-app-primary">
                                                                         {isSubCollapsed ? <ChevronRight className="h-4 w-4 mr-2 text-gray-400" /> : <ChevronDown className="h-4 w-4 mr-2 text-gray-400" />}
-                                                                        <span className="mr-2 text-app-muted">↳</span>
+                                                                        <span className="mr-2 text-app-muted">Γå│</span>
                                                                         <span>{sub.name}</span>
                                                                         <span className="ml-auto text-sm text-app-muted">{sub.entries.length} athletes</span>
                                                                     </h4>
