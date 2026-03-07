@@ -595,22 +595,22 @@ export function PredictionEngineContent({ entries }: PredictionEngineContentProp
                                             <td className="px-2 py-2 text-sm hidden sm:table-cell font-bold" style={{ color: 'var(--chart-total)' }}>
                                                 {e.entry_total ? `${e.entry_total}kg` : '-'}
                                             </td>
-                                            <td className="px-2 py-2 text-sm font-medium" style={{ color: e.best_gamx_total && e.best_gamx_total > 0 ? 'var(--chart-total)' : 'inherit' }}>
+                                            <td className="px-2 py-2 text-sm font-medium" style={{ color: e.best_gamx_total && e.best_gamx_total > 0 ? 'var(--chart-gamx-total)' : 'inherit' }}>
                                                 {e.best_gamx_total ? e.best_gamx_total.toFixed(0) : '-'}
                                             </td>
-                                            <td className="px-2 py-2 text-sm font-medium" style={{ color: e.best_gamx_s && e.best_gamx_s > 0 ? 'var(--chart-qpoints)' : 'inherit' }}>
+                                            <td className="px-2 py-2 text-sm font-medium" style={{ color: e.best_gamx_s && e.best_gamx_s > 0 ? 'var(--chart-gamx-s)' : 'inherit' }}>
                                                 {e.best_gamx_s ? e.best_gamx_s.toFixed(0) : '-'}
                                             </td>
-                                            <td className="px-2 py-2 text-sm font-medium" style={{ color: e.best_gamx_j && e.best_gamx_j > 0 ? 'var(--chart-qyouth)' : 'inherit' }}>
+                                            <td className="px-2 py-2 text-sm font-medium" style={{ color: e.best_gamx_j && e.best_gamx_j > 0 ? 'var(--chart-gamx-j)' : 'inherit' }}>
                                                 {e.best_gamx_j ? e.best_gamx_j.toFixed(0) : '-'}
                                             </td>
-                                            <td className="px-2 py-2 text-sm font-medium" style={{ color: e.best_gamx_u && e.best_gamx_u > 0 ? 'var(--chart-qpoints)' : 'inherit' }}>
+                                            <td className="px-2 py-2 text-sm font-medium" style={{ color: e.best_gamx_u && e.best_gamx_u > 0 ? 'var(--chart-gamx-u)' : 'inherit' }}>
                                                 {e.best_gamx_u ? e.best_gamx_u.toFixed(0) : '-'}
                                             </td>
-                                            <td className="px-2 py-2 text-sm font-medium" style={{ color: e.best_gamx_a && e.best_gamx_a > 0 ? 'var(--chart-qmasters)' : 'inherit' }}>
+                                            <td className="px-2 py-2 text-sm font-medium" style={{ color: e.best_gamx_a && e.best_gamx_a > 0 ? 'var(--chart-gamx-a)' : 'inherit' }}>
                                                 {e.best_gamx_a ? e.best_gamx_a.toFixed(0) : '-'}
                                             </td>
-                                            <td className="px-2 py-2 text-sm font-medium" style={{ color: e.best_gamx_masters && e.best_gamx_masters > 0 ? 'var(--chart-qmasters)' : 'inherit' }}>
+                                            <td className="px-2 py-2 text-sm font-medium" style={{ color: e.best_gamx_masters && e.best_gamx_masters > 0 ? 'var(--chart-gamx-masters)' : 'inherit' }}>
                                                 {e.best_gamx_masters ? e.best_gamx_masters.toFixed(0) : '-'}
                                             </td>
                                         </tr>

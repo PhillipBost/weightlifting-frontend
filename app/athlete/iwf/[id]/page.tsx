@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { supabaseIWF, type IWFLifter, type IWFMeetResult } from '../../../../lib/supabaseIWF';
 import { adaptIWFAthlete, adaptIWFResult } from '../../../../lib/adapters/iwfAdapter';
 import { Trophy, Calendar, Weight, TrendingUp, Medal, User, Building, MapPin, ExternalLink, ArrowLeft, BarChart3, Dumbbell, ChevronLeft, ChevronRight, Database, Activity } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, AreaChart, Area, ScatterChart, Scatter, Brush, ReferenceLine } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, AreaChart, Area, ScatterChart, Scatter, Brush, ReferenceLine, Legend } from 'recharts';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import Papa from 'papaparse';
@@ -2017,13 +2017,8 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                           if (!value && value !== 0) return ['-', name];
                           if (typeof value === 'number') {
                             const formatted = value.toFixed(0);
-                            if (name === 'gamxTotal') return [formatted, 'GAMX-Total'];
-                            if (name === 'gamxS') return [formatted, 'GAMX-S'];
-                            if (name === 'gamxJ') return [formatted, 'GAMX-J'];
-                            if (name === 'gamxU') return [formatted, 'GAMX-U'];
-                            if (name === 'gamxA') return [formatted, 'GAMX-A'];
-                            if (name === 'gamxMasters') return [formatted, 'GAMX-Masters'];
-                            return [formatted, name]; // Fallback
+                            // The 'name' string now correctly holds 'GAMX-Total', 'GAMX-S', etc.
+                            return [formatted, name];
                           }
                           return [String(value), name];
                         }}
@@ -2064,7 +2059,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                             fill: 'var(--chart-gamx-total)',
                             style: { cursor: 'pointer' }
                           }}
-                          name="gamxTotal"
+                          name="GAMX-Total"
                           connectNulls={false}
                         />
                       </>
@@ -2093,7 +2088,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                             fill: 'var(--chart-gamx-s)',
                             style: { cursor: 'pointer' }
                           }}
-                          name="gamxS"
+                          name="GAMX-S"
                           connectNulls={false}
                         />
                       </>
@@ -2122,7 +2117,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                             fill: 'var(--chart-gamx-j)',
                             style: { cursor: 'pointer' }
                           }}
-                          name="gamxJ"
+                          name="GAMX-J"
                           connectNulls={false}
                         />
                       </>
@@ -2151,7 +2146,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                             fill: 'var(--chart-gamx-u)',
                             style: { cursor: 'pointer' }
                           }}
-                          name="gamxU"
+                          name="GAMX-U"
                           connectNulls={false}
                         />
                       </>
@@ -2180,7 +2175,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                             fill: 'var(--chart-gamx-a)',
                             style: { cursor: 'pointer' }
                           }}
-                          name="gamxA"
+                          name="GAMX-A"
                           connectNulls={false}
                         />
                       </>
@@ -2209,11 +2204,13 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                             fill: 'var(--chart-gamx-masters)',
                             style: { cursor: 'pointer' }
                           }}
-                          name="gamxMasters"
+                          name="GAMX-Masters"
                           connectNulls={false}
                         />
                       </>
                     )}
+
+
 
                     {showGamxBrush && (
                       <Brush
@@ -2233,6 +2230,46 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                     )}
                   </LineChart>
                 </ResponsiveContainer>
+
+                <div className="flex flex-wrap justify-center gap-6 mt-4 pt-4 border-t border-app-secondary">
+                  {legendFlags.hasGamxTotal && (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-0.5 bg-[var(--chart-gamx-total)]"></div>
+                      <span className="text-sm text-app-secondary">GAMX-Total</span>
+                    </div>
+                  )}
+                  {legendFlags.hasGamxS && (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-0.5 bg-[var(--chart-gamx-s)]"></div>
+                      <span className="text-sm text-app-secondary">GAMX-S</span>
+                    </div>
+                  )}
+                  {legendFlags.hasGamxJ && (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-0.5 bg-[var(--chart-gamx-j)]"></div>
+                      <span className="text-sm text-app-secondary">GAMX-J</span>
+                    </div>
+                  )}
+                  {legendFlags.hasGamxU && (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-0.5 bg-[var(--chart-gamx-u)]"></div>
+                      <span className="text-sm text-app-secondary">GAMX-U</span>
+                    </div>
+                  )}
+                  {legendFlags.hasGamxA && (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-0.5 bg-[var(--chart-gamx-a)]"></div>
+                      <span className="text-sm text-app-secondary">GAMX-A</span>
+                    </div>
+                  )}
+                  {legendFlags.hasGamxMasters && (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-0.5 bg-[var(--chart-gamx-masters)]"></div>
+                      <span className="text-sm text-app-secondary">GAMX-Masters</span>
+                    </div>
+                  )}
+                </div>
+
               </div>
             </div>
           </div>
