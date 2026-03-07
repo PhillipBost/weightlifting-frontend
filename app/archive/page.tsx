@@ -99,7 +99,7 @@ async function getArchiveData(): Promise<Meet[]> {
                 location: loc || 'Unknown Location',
                 federation: 'IWF',
                 url: m.url,
-                athleteCount: m.results ? JSON.parse(m.results).length : 0,
+                athleteCount: m.results || 0,
                 country: locData?.country || 'International',
                 level: 'International',
                 state: undefined,

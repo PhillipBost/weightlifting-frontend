@@ -115,6 +115,7 @@ interface MeetResult {
 }
 
 interface Meet {
+  db_meet_id?: number;
   meet_name: string;
   date: string;
   location: string;
@@ -249,7 +250,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
   } | null>(null);
 
   // Hook to fetch country/spoke data for the map
-  const { spokes, loading: mapLoading, error: mapError } = useMeetCountryLocations(resolvedParams?.id || '');
+  const { spokes, loading: mapLoading, error: mapError } = useMeetCountryLocations(meet?.db_meet_id ?? null);
 
   useEffect(() => {
     const resolveParams = async () => {
@@ -271,8 +272,8 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         // First, fetch meet information (convert string ID to integer)
         const { data: meetData, error: meetError } = await supabaseIWF
           .from('iwf_meets')
-          .select('iwf_meet_id, meet, date, level, url')
-          .eq('db_meet_id', parseInt(resolvedParams.id))
+          .select('iwf_meet_id, db_meet_id, meet, date, level, url')
+          .eq('iwf_meet_id', resolvedParams.id)
           .single();
 
         if (meetError) {
@@ -314,6 +315,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         }
 
         setMeet({
+          db_meet_id: meetData.db_meet_id,
           meet_name: meetData.meet || 'Unknown Meet',
           date: meetData.date || 'Unknown Date',
           location: locationStr,
@@ -376,7 +378,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
             updated_at,
             iwf_lifters!inner(iwf_lifter_id)
           `)
-          .eq('db_meet_id', parseInt(resolvedParams.id));
+          .eq('db_meet_id', meetData.db_meet_id);
 
         if (resultsError) {
           setError(`Error loading meet results: ${resultsError.message}`);
@@ -389,7 +391,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
           ...result,
           db_result_id: result.db_result_id || 0,
           db_lifter_id: result.db_lifter_id || 0,
-          db_meet_id: parseInt(resolvedParams.id),
+          db_meet_id: meetData.db_meet_id,
           lifter_name: result.lifter_name || '',
           meet_name: meetData?.meet || '',
           date: meetData?.date || '',

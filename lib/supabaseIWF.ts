@@ -169,6 +169,11 @@ export interface IWFMeetResult {
   iwf_lifters?: {
     iwf_lifter_id?: number | null;
   } | null;
+
+  // Optional joined meet data
+  iwf_meets?: {
+    iwf_meet_id?: string | null;
+  } | null;
 }
 
 // ============================================================================
@@ -184,6 +189,7 @@ export interface IWFResultWithMeetData extends IWFMeetResult {
     level?: string
     date?: string
     url?: string
+    iwf_meet_id?: string | null
   } | null
 }
 

@@ -632,7 +632,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 
         const { data: resultsData, error: resultsError } = await supabaseIWF
           .from('iwf_meet_results')
-          .select('*')
+          .select('*, iwf_meets(iwf_meet_id)')
           .eq('db_lifter_id', athleteData.lifter_id)
           .order('date', { ascending: false });
 
