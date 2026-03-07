@@ -35,6 +35,12 @@ interface MeetResult {
   qpoints?: number;
   q_youth?: number;
   q_masters?: number;
+  gamx_total?: number | null;
+  gamx_s?: number | null;
+  gamx_j?: number | null;
+  gamx_u?: number | null;
+  gamx_a?: number | null;
+  gamx_masters?: number | null;
   rank?: number; // Static rank property
   lifters: {
     membership_number: string;
@@ -95,9 +101,14 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
   } | null>(null);
   /* Updated to match new section titles */
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set(["Men's Results by Division", "Women's Results by Division"]));
+  // Weight class cards, All Ages rows, and subcategory rows are collapsed by default.
+  // Keys are added here when user explicitly OPENS them (inverted logic = no seeding needed).
+  const [expandedSubrows, setExpandedSubrows] = useState<Set<string>>(new Set());
 
   const [showMenSummary, setShowMenSummary] = useState(false);
   const [showWomenSummary, setShowWomenSummary] = useState(false);
+  const [showGamxSummary, setShowGamxSummary] = useState(false);
+  const [gamxSortConfig, setGamxSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({ key: 'gamx_total', direction: 'desc' });
 
   // Track sort config for each gender independently
   const [menSortConfig, setMenSortConfig] = useState<{
@@ -190,6 +201,12 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
             qpoints,
             q_youth,
             q_masters,
+            gamx_total,
+            gamx_s,
+            gamx_j,
+            gamx_u,
+            gamx_a,
+            gamx_masters,
             lifters:usaw_lifters!inner(membership_number)
           `)
           .eq('meet_id', parseInt(resolvedParams.id));
@@ -200,6 +217,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         }
 
         setResults(resultsData || []);
+
       } catch (err) {
         setError('An unexpected error occurred');
       } finally {
@@ -867,7 +885,9 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
   const groupedResults = groupResultsByDivision(results);
   const genderGroupedResults = groupResultsByGenderAndDivision(groupedResults);
 
+
   return (
+
     <div className="min-h-screen bg-app-gradient">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Meet Header */}
@@ -1114,30 +1134,144 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                           </tr>
                         </thead>
                         <tbody>
-                          {dataWithDisplayRank.map(r => (
-                            <tr key={r.result_id} className="border-t border-gray-700/50 hover:bg-app-hover transition-colors">
-                              <td className="px-2 py-2 text-sm font-semibold">{r.displayRank}</td>
-                              <td className="px-2 py-2 text-sm max-w-[200px] truncate" title={r.lifter_name}>
-                                <Link href={getAthleteUrl(r)} className="text-blue-400 hover:text-blue-300 hover:underline">
-                                  {r.lifter_name}
-                                </Link>
-                              </td>
-                              <td className="px-2 py-2 text-sm">{r.weight_class}</td>
-                              <td className="px-2 py-2 text-sm">{r.competition_age}</td>
-                              <td className="px-2 py-2 text-sm max-w-[150px] truncate" title={r.age_category}>{r.age_category}</td>
-                              <td className="px-2 py-2 text-sm font-bold" style={{ color: 'var(--chart-total)' }}>{r.total}</td>
+                          {dataWithDisplayRank.map(r => {
+                            const membershipNumber = Array.isArray(r.lifters)
+                              ? r.lifters[0]?.membership_number
+                              : r.lifters?.membership_number;
+                            return (
+                              <tr key={r.result_id} className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors group" style={{ borderTopColor: 'var(--border-secondary)' }}>
+                                <td className="px-2 py-2 text-sm font-semibold">{r.displayRank}</td>
+                                <td className="px-2 py-2 text-sm max-w-[200px] truncate" title={r.lifter_name}>
+                                  <Link href={getAthleteUrl(r)} className="text-accent-primary hover:text-accent-primary-hover hover:underline flex items-center space-x-1">
+                                    <span>{r.lifter_name}</span>
+                                    <ExternalLink className="h-3 w-3" />
+                                  </Link>
+                                  <div className="text-xs text-app-muted">
+                                    {r.competition_age && `Age ${r.competition_age}`}
+                                    {membershipNumber && r.competition_age && ' • '}
+                                    {membershipNumber && `#${membershipNumber}`}
+                                  </div>
+                                </td>
+                                <td className="px-2 py-2 text-sm">{r.weight_class}</td>
+                                <td className="px-2 py-2 text-sm">{r.competition_age}</td>
+                                <td className="px-2 py-2 text-sm max-w-[150px] truncate" title={r.age_category}>{r.age_category}</td>
+                                <td className="px-2 py-2 text-sm font-bold" style={{ color: 'var(--chart-total)' }}>{r.total}</td>
+                                <td className="px-2 py-2 text-sm font-medium" style={{ color: (r.q_youth || 0) > 0 ? 'var(--chart-qyouth)' : 'inherit' }}>
+                                  {(r.q_youth && r.q_youth > 0) ? r.q_youth.toFixed(3) : '-'}
+                                </td>
+                                <td className="px-2 py-2 text-sm font-medium" style={{ color: (r.qpoints || 0) > 0 ? 'var(--chart-qpoints)' : 'inherit' }}>
+                                  {(r.qpoints && r.qpoints > 0) ? r.qpoints.toFixed(3) : '-'}
+                                </td>
+                                <td className="px-2 py-2 text-sm font-medium" style={{ color: (r.q_masters || 0) > 0 ? 'var(--chart-qmasters)' : 'inherit' }}>
+                                  {(r.q_masters && r.q_masters > 0) ? r.q_masters.toFixed(3) : '-'}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          };
 
-                              <td className="px-2 py-2 text-sm font-medium" style={{ color: (r.q_youth || 0) > 0 ? 'var(--chart-qyouth)' : 'inherit' }}>
-                                {(r.q_youth && r.q_youth > 0) ? r.q_youth.toFixed(3) : '-'}
-                              </td>
-                              <td className="px-2 py-2 text-sm font-medium" style={{ color: (r.qpoints || 0) > 0 ? 'var(--chart-qpoints)' : 'inherit' }}>
-                                {(r.qpoints && r.qpoints > 0) ? r.qpoints.toFixed(3) : '-'}
-                              </td>
-                              <td className="px-2 py-2 text-sm font-medium" style={{ color: (r.q_masters || 0) > 0 ? 'var(--chart-qmasters)' : 'inherit' }}>
-                                {(r.q_masters && r.q_masters > 0) ? r.q_masters.toFixed(3) : '-'}
-                              </td>
-                            </tr>
-                          ))}
+          const handleGamxSort = (key: string) => {
+            setGamxSortConfig(prev =>
+              prev.key === key
+                ? { key, direction: prev.direction === 'asc' ? 'desc' : 'asc' }
+                : { key, direction: 'desc' }
+            );
+          };
+
+          const renderGamxTable = (title: string, data: MeetResult[], show: boolean, toggle: () => void) => {
+            const validData = data.filter(r => r.gamx_total != null && r.gamx_total > 0);
+            if (validData.length === 0) return null;
+
+            const sortedData = [...validData].sort((a, b) => {
+              const aVal = (a as any)[gamxSortConfig.key] ?? 0;
+              const bVal = (b as any)[gamxSortConfig.key] ?? 0;
+              if (aVal === 0 && bVal !== 0) return 1;
+              if (aVal !== 0 && bVal === 0) return -1;
+              return gamxSortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
+            });
+
+            const GamxSortIndicator = ({ col }: { col: string }) => {
+              if (gamxSortConfig.key !== col) return <span className="text-app-disabled ml-1">↕</span>;
+              return <span className="text-accent-primary ml-1">{gamxSortConfig.direction === 'asc' ? '↑' : '↓'}</span>;
+            };
+
+            const hClass = "px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none";
+            const qHClass = (col: string) =>
+              `px-2 py-1 text-left text-xs font-medium uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none ${gamxSortConfig.key === col ? 'text-accent-primary font-bold' : 'text-gray-900 dark:text-gray-200'
+              }`;
+
+            return (
+              <div className="mb-4">
+                <div className="mb-3">
+                  <button onClick={toggle} className="flex items-center space-x-2 text-app-primary hover:text-accent-primary transition-colors mb-2 text-left">
+                    {show ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+                    <h2 className="text-2xl font-bold">{title}</h2>
+                    <span className="text-sm text-app-muted ml-2">({sortedData.length} athletes ranked)</span>
+                  </button>
+                </div>
+                {show && (
+                  <div className="card-primary mb-8">
+                    <div className="overflow-x-auto">
+                      <table className="border-separate" style={{ borderSpacing: 0, width: '100%' }}>
+                        <thead className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200">
+                          <tr className="border-b-2 border-gray-400 dark:border-gray-500">
+                            <th className={hClass} onClick={() => handleGamxSort('rank')}>Rank <GamxSortIndicator col="rank" /></th>
+                            <th className={hClass} onClick={() => handleGamxSort('lifter_name')}>Name <GamxSortIndicator col="lifter_name" /></th>
+                            <th className={`${hClass} hidden sm:table-cell`} onClick={() => handleGamxSort('club_name')}>Club / WSO <GamxSortIndicator col="club_name" /></th>
+                            <th className={hClass} onClick={() => handleGamxSort('weight_class')}>Class <GamxSortIndicator col="weight_class" /></th>
+                            <th className={qHClass('gamx_total')} onClick={() => handleGamxSort('gamx_total')}>GAMX-Total <GamxSortIndicator col="gamx_total" /></th>
+                            <th className={qHClass('gamx_s')} onClick={() => handleGamxSort('gamx_s')}>GAMX-S <GamxSortIndicator col="gamx_s" /></th>
+                            <th className={qHClass('gamx_j')} onClick={() => handleGamxSort('gamx_j')}>GAMX-J <GamxSortIndicator col="gamx_j" /></th>
+                            <th className={qHClass('gamx_u')} onClick={() => handleGamxSort('gamx_u')}>GAMX-U <GamxSortIndicator col="gamx_u" /></th>
+                            <th className={qHClass('gamx_a')} onClick={() => handleGamxSort('gamx_a')}>GAMX-A <GamxSortIndicator col="gamx_a" /></th>
+                            <th className={qHClass('gamx_masters')} onClick={() => handleGamxSort('gamx_masters')}>GAMX-M <GamxSortIndicator col="gamx_masters" /></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {sortedData.map((r, idx) => {
+                            const membershipNumber = Array.isArray(r.lifters) ? r.lifters[0]?.membership_number : r.lifters?.membership_number;
+                            return (
+                              <tr key={`gamx-${idx}`} className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors group" style={{ borderTopColor: 'var(--border-secondary)' }}>
+                                <td className="px-2 py-2 whitespace-nowrap text-sm font-medium text-app-primary">
+                                  <div className="flex items-center gap-1">
+                                    <span>{idx + 1}</span>
+                                    {idx === 0 && <Medal className="h-4 w-4" style={{ color: '#FFD700' }} />}
+                                    {idx === 1 && <Medal className="h-4 w-4" style={{ color: '#C0C0C0' }} />}
+                                    {idx === 2 && <Medal className="h-4 w-4" style={{ color: '#CD7F32' }} />}
+                                  </div>
+                                </td>
+                                <td className="px-2 py-2 max-w-[200px] truncate" title={r.lifter_name}>
+                                  <Link href={getAthleteUrl(r)} className="text-accent-primary hover:text-accent-primary-hover hover:underline flex items-center space-x-1">
+                                    <span className="font-medium text-sm truncate">{r.lifter_name}</span>
+                                    <ExternalLink className="h-3 w-3" />
+                                  </Link>
+                                  <div className="text-xs text-app-muted">
+                                    {r.competition_age && `Age ${r.competition_age}`}
+                                    {membershipNumber && r.competition_age && ' • '}
+                                    {membershipNumber && `#${membershipNumber}`}
+                                  </div>
+                                </td>
+                                <td className="px-2 py-2 whitespace-nowrap text-sm text-app-secondary hidden sm:table-cell">
+                                  <div className="text-sm">{r.club_name || '-'}</div>
+                                  <div className="text-xs text-app-muted">{r.wso}</div>
+                                </td>
+                                <td className="px-2 py-2 text-sm">{r.weight_class}</td>
+                                <td className="px-2 py-2 text-sm font-medium" style={{ color: r.gamx_total && r.gamx_total > 0 ? 'var(--chart-total)' : 'inherit' }}>{r.gamx_total ? r.gamx_total.toFixed(4) : '-'}</td>
+                                <td className="px-2 py-2 text-sm font-medium" style={{ color: r.gamx_s && r.gamx_s > 0 ? 'var(--chart-qpoints)' : 'inherit' }}>{r.gamx_s ? r.gamx_s.toFixed(4) : '-'}</td>
+                                <td className="px-2 py-2 text-sm font-medium" style={{ color: r.gamx_j && r.gamx_j > 0 ? 'var(--chart-qyouth)' : 'inherit' }}>{r.gamx_j ? r.gamx_j.toFixed(4) : '-'}</td>
+                                <td className="px-2 py-2 text-sm font-medium" style={{ color: r.gamx_u && r.gamx_u > 0 ? 'var(--chart-qpoints)' : 'inherit' }}>{r.gamx_u ? r.gamx_u.toFixed(4) : '-'}</td>
+                                <td className="px-2 py-2 text-sm font-medium" style={{ color: r.gamx_a && r.gamx_a > 0 ? 'var(--chart-qmasters)' : 'inherit' }}>{r.gamx_a ? r.gamx_a.toFixed(4) : '-'}</td>
+                                <td className="px-2 py-2 text-sm font-medium" style={{ color: r.gamx_masters && r.gamx_masters > 0 ? 'var(--chart-qmasters)' : 'inherit' }}>{r.gamx_masters ? r.gamx_masters.toFixed(4) : '-'}</td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>
@@ -1149,6 +1283,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
 
           return (
             <>
+              {renderGamxTable("Overall Rankings by GAMX", results, showGamxSummary, () => setShowGamxSummary(!showGamxSummary))}
               {renderSummaryTable("Men's Overall Rankings by Q-Points", men, 'men', showMenSummary, () => setShowMenSummary(!showMenSummary))}
               {renderSummaryTable("Women's Overall Rankings by Q-Points", women, 'women', showWomenSummary, () => setShowWomenSummary(!showWomenSummary))}
             </>
@@ -1157,11 +1292,169 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         {Object.entries(genderGroupedResults).map(([genderSection, divisionsInSection]) => {
           const isCollapsed = collapsedSections.has(genderSection);
           const hasDivisions = Object.keys(divisionsInSection).length > 0;
-
           if (!hasDivisions) return null;
 
+          // --- Group divisions by weight class ---
+          const extractWeightClass = (divKey: string) => {
+            const m = divKey.match(/(\+?\d+(?:\.\d+)?\+?)\s*[Kk]g/i);
+            return m ? m[0] : '__unknown__';
+          };
+
+          // Helper: is this division age-specific (not Open/Senior)?
+          const isAgeSpecific = (divName: string) =>
+            /junior|masters?|youth|under|age[\s_]?group|\(\d/i.test(divName);
+
+          // Helper: clean sub-row label — strip weight class and gender prefix
+          const cleanSubLabel = (divName: string, wc: string) => {
+            const escaped = wc.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            let label = divName
+              .replace(new RegExp(escaped, 'i'), '')
+              .replace(/\b(women'?s?|men'?s?)\b/gi, '')
+              .replace(/\s+/g, ' ')
+              .trim();
+            return label || divName;
+          };
+
+          // Group all divisions in this gender section by extracted weight class
+          const divsByWc: Record<string, { div: string; results: MeetResult[] }[]> = {};
+          Object.entries(divisionsInSection).forEach(([div, divResults]) => {
+            const wc = extractWeightClass(div);
+            if (!divsByWc[wc]) divsByWc[wc] = [];
+            divsByWc[wc].push({ div, results: divResults });
+          });
+
+          // Sort weight classes heaviest first
+          const sortWcNum = (wc: string) => {
+            const hasPlus = wc.includes('+');
+            const num = parseFloat(wc.replace(/[^0-9.]/g, ''));
+            return isNaN(num) ? -1 : num + (hasPlus ? 0.1 : 0);
+          };
+
+          const wcGroups: { wcKey: string; wcLabel: string; allAgesResults: MeetResult[]; children: { label: string; divKey: string; results: MeetResult[] }[] }[] = [];
+
+          Object.entries(divsByWc)
+            .sort(([a], [b]) => sortWcNum(b) - sortWcNum(a))
+            .forEach(([wc, divisions]) => {
+              // All Ages = deduplicated union across ALL divisions for this weight class
+              const seenIds = new Set<number>();
+              const allAgesResults: MeetResult[] = [];
+              divisions.forEach(({ results }) => {
+                results.forEach(r => {
+                  if (!seenIds.has(r.result_id)) {
+                    seenIds.add(r.result_id);
+                    allAgesResults.push(r);
+                  }
+                });
+              });
+
+              // Children = only age-specific divisions (Junior, Masters, Youth, etc.)
+              const sortSubcategory = (label: string) => {
+                if (/junior/i.test(label)) return 0;
+                if (/youth/i.test(label) || /under/i.test(label)) return 1;
+                const m = label.match(/\((\d+)/);
+                return m ? parseInt(m[1]) : 99;
+              };
+              const children = divisions
+                .filter(({ div }) => isAgeSpecific(div))
+                .map(({ div, results }) => ({ label: cleanSubLabel(div, wc), divKey: div, results }))
+                .sort((a, b) => sortSubcategory(a.label) - sortSubcategory(b.label));
+
+              wcGroups.push({ wcKey: `${genderSection}-${wc}`, wcLabel: wc, allAgesResults, children });
+            });
+
+
+          // Helper: render the full sortable results table inside a sub-row
+          const renderDivisionTable = (divResults: MeetResult[], divKey: string) => (
+            <div className="border-t border-app-primary overflow-x-auto">
+              <table className="border-separate" style={{ borderSpacing: 0, width: 'auto' }}>
+                <thead className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200">
+                  <tr className="border-b-2 border-gray-400 dark:border-gray-500">
+                    <th onClick={() => handleSort(divKey, 'place')} className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" style={{ width: '60px' }}>
+                      <div className="flex items-center justify-start space-x-1"><span>Place</span><SortIcon column="place" sortConfig={sortConfig} division={divKey} /></div>
+                    </th>
+                    <th onClick={() => handleSort(divKey, 'lifter_name')} className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" style={{ minWidth: '200px' }}>
+                      <div className="flex items-center justify-start space-x-1"><span>Athlete</span><SortIcon column="lifter_name" sortConfig={sortConfig} division={divKey} /></div>
+                    </th>
+                    <th onClick={() => handleSort(divKey, 'club_name')} className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" style={{ minWidth: '120px' }}>
+                      <div className="flex items-center justify-start space-x-1"><span>Club / WSO</span><SortIcon column="club_name" sortConfig={sortConfig} division={divKey} /></div>
+                    </th>
+                    <th className="w-full"></th>
+                    <th onClick={() => handleSort(divKey, 'best_snatch')} className="px-2 py-1 text-right text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" style={{ width: '80px' }}>
+                      <div className="flex items-center justify-end space-x-1"><span>Snatch</span><SortIcon column="best_snatch" sortConfig={sortConfig} division={divKey} /></div>
+                    </th>
+                    <th onClick={() => handleSort(divKey, 'best_cj')} className="px-2 py-1 text-right text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" style={{ width: '80px' }}>
+                      <div className="flex items-center justify-end space-x-1"><span>C&J</span><SortIcon column="best_cj" sortConfig={sortConfig} division={divKey} /></div>
+                    </th>
+                    <th onClick={() => handleSort(divKey, 'total')} className="px-2 py-1 text-right text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" style={{ width: '80px' }}>
+                      <div className="flex items-center justify-end space-x-1"><span>Total</span><SortIcon column="total" sortConfig={sortConfig} division={divKey} /></div>
+                    </th>
+                    <th onClick={() => handleSort(divKey, 'body_weight_kg')} className="px-2 py-1 text-right text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" style={{ width: '100px' }}>
+                      <div className="flex items-center justify-end space-x-1"><span>Bodyweight</span><SortIcon column="body_weight_kg" sortConfig={sortConfig} division={divKey} /></div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {getSortedResults(divResults, divKey).map((result, index) => {
+                    const displayPlace = divResults.indexOf(result) + 1;
+                    const membershipNumber = Array.isArray(result.lifters) ? result.lifters[0]?.membership_number : result.lifters?.membership_number;
+                    return (
+                      <tr key={result.result_id} className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors group" style={{ borderTopColor: 'var(--border-secondary)' }}>
+                        <td className="px-2 py-1 whitespace-nowrap text-sm font-medium text-app-primary">
+                          <div className="flex items-center gap-1">
+                            <span>{displayPlace}</span>
+                            {displayPlace === 1 && <Medal className="h-4 w-4" style={{ color: '#FFD700' }} />}
+                            {displayPlace === 2 && <Medal className="h-4 w-4" style={{ color: '#C0C0C0' }} />}
+                            {displayPlace === 3 && <Medal className="h-4 w-4" style={{ color: '#CD7F32' }} />}
+                          </div>
+                        </td>
+                        <td className="px-2 py-1 whitespace-nowrap">
+                          <Link href={getAthleteUrl(result)} className="flex items-center space-x-1 text-accent-primary group-hover:text-accent-primary-hover transition-colors hover:underline">
+                            <span className="font-medium text-sm">{result.lifter_name}</span>
+                            <ExternalLink className="h-3 w-3" />
+                          </Link>
+                          <div className="text-xs text-app-muted">
+                            {result.competition_age && `Age ${result.competition_age}`}
+                            {membershipNumber && result.competition_age && ' \u2022 '}
+                            {membershipNumber && `#${membershipNumber}`}
+                          </div>
+                        </td>
+                        <td className="px-2 py-1 whitespace-nowrap text-sm text-app-secondary">
+                          <div className="text-sm">{result.club_name || '-'}</div>
+                          <div className="text-xs text-app-muted">{result.wso}</div>
+                        </td>
+                        <td></td>
+                        <td className="px-2 py-1 whitespace-nowrap text-sm text-left" style={{ color: 'var(--chart-snatch)' }}>
+                          <div className="font-medium">{result.best_snatch ? `${result.best_snatch}kg` : '-'}</div>
+                          <div className="text-xs text-app-muted">
+                            {[result.snatch_lift_1, result.snatch_lift_2, result.snatch_lift_3].filter(a => a && a !== '0').map((attempt, i) => {
+                              const w = parseInt(attempt!);
+                              return <span key={i} className={w > 0 ? '' : 'text-red-500'} style={w > 0 ? { color: 'var(--chart-snatch)' } : {}}>{Math.abs(w)}{i < 2 ? '/' : ''}</span>;
+                            })}
+                          </div>
+                        </td>
+                        <td className="px-2 py-1 whitespace-nowrap text-sm text-left" style={{ color: 'var(--chart-cleanjerk)' }}>
+                          <div className="font-medium">{result.best_cj ? `${result.best_cj}kg` : '-'}</div>
+                          <div className="text-xs text-app-muted">
+                            {[result.cj_lift_1, result.cj_lift_2, result.cj_lift_3].filter(a => a && a !== '0').map((attempt, i) => {
+                              const w = parseInt(attempt!);
+                              return <span key={i} className={w > 0 ? '' : 'text-red-500'} style={w > 0 ? { color: 'var(--chart-cleanjerk)' } : {}}>{Math.abs(w)}{i < 2 ? '/' : ''}</span>;
+                            })}
+                          </div>
+                        </td>
+                        <td className="px-2 py-1 whitespace-nowrap text-sm font-bold text-left" style={{ color: 'var(--chart-total)' }}>{result.total ? `${result.total}kg` : '-'}</td>
+                        <td className="px-2 py-1 whitespace-nowrap text-sm text-app-secondary text-left">{result.body_weight_kg ? `${result.body_weight_kg}kg` : '-'}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          );
+
+          const totalAthletes = Object.values(divisionsInSection).reduce((sum, arr) => sum + arr.filter(r => !r.isDuplicateForAge).length, 0);
+
           return (
-            <div key={genderSection} className="mb-4">
+            <div key={genderSection} className={isCollapsed ? 'mb-2' : 'mb-6'}>
               {/* Gender Section Header */}
               <div className="mb-3">
                 <button
@@ -1169,205 +1462,71 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                   className="flex items-center space-x-2 text-app-primary hover:text-accent-primary transition-colors mb-2 text-left"
                 >
                   {isCollapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-                  <h2 className="text-2xl font-bold">
-                    {genderSection}
-                  </h2>
+                  <h2 className="text-2xl font-bold">{genderSection}</h2>
+                  <span className="ml-2 text-sm font-normal text-app-muted">({totalAthletes} athletes)</span>
                 </button>
               </div>
 
-              {/* Divisions within Gender Section */}
-              {!isCollapsed && Object.entries(divisionsInSection).map(([division, divisionResults]) => {
-                const isAgeAppropriate = divisionResults.some(result => result.isDuplicateForAge);
-                const isDivisionCollapsed = collapsedSections.has(division);
+              {/* Weight Class accordion cards */}
+              {!isCollapsed && wcGroups.map(({ wcKey, wcLabel, allAgesResults, children }) => {
+                const isWcCollapsed = !expandedSubrows.has(wcKey);
+                const allAgesKey = `${wcKey}-All Ages`;
+                const isAllAgesCollapsed = !expandedSubrows.has(allAgesKey);
 
                 return (
-                  <div key={division} className={`card-primary mb-2 ${isAgeAppropriate ? 'ml-6 border-l-4 border-accent-primary bg-app-tertiary' : ''}`}>
-                    <div
-                      onClick={() => toggleSection(division)}
-                      className="cursor-pointer hover:bg-app-hover transition-colors"
-                    >
-                      <h3 className={`text-lg font-bold p-2 flex items-center ${isAgeAppropriate ? 'text-app-primary' : 'text-app-primary'}`}>
-                        {isDivisionCollapsed ? <ChevronRight className="h-5 w-5 mr-2" /> : <ChevronDown className="h-5 w-5 mr-2" />}
-                        {isAgeAppropriate && (
-                          <span className="mr-2 text-app-muted">↳</span>
-                        )}
-                        {division}
-                        {isAgeAppropriate && (
-                          <span className="ml-2 text-sm font-normal text-app-muted">(Age Group Rankings)</span>
-                        )}
-                        <span className="ml-auto text-sm text-app-muted">{divisionResults.length} athletes</span>
+                  <div key={wcKey} className="card-primary mb-3">
+                    {/* Weight Class header */}
+                    <div onClick={() => { setExpandedSubrows(prev => { const n = new Set(prev); n.has(wcKey) ? n.delete(wcKey) : n.add(wcKey); return n; }); }} className="cursor-pointer hover:bg-app-hover transition-colors rounded-t-lg">
+                      <h3 className="text-xl font-bold p-3 flex items-center text-app-primary">
+                        {isWcCollapsed ? <ChevronRight className="h-5 w-5 mr-2" /> : <ChevronDown className="h-5 w-5 mr-2" />}
+                        <span>{wcLabel}</span>
+                        <span className="ml-auto text-sm text-app-muted">{allAgesResults.length} total athletes</span>
                       </h3>
                     </div>
 
-                    {!isDivisionCollapsed && (
-                      <div className="overflow-x-auto">
-                        <table className="border-separate" style={{ borderSpacing: 0, width: 'auto' }}>
-                          <thead className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200">
-                            <tr className="border-b-2 border-gray-400 dark:border-gray-500">
-                              <th
-                                onClick={() => handleSort(division, 'place')}
-                                className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
-                                style={{ width: '60px' }}
-                              >
-                                <div className="flex items-center justify-start space-x-1">
-                                  <span>Place</span>
-                                  <SortIcon column="place" sortConfig={sortConfig} division={division} />
-                                </div>
-                              </th>
-                              <th
-                                onClick={() => handleSort(division, 'lifter_name')}
-                                className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
-                                style={{ minWidth: '200px' }}
-                              >
-                                <div className="flex items-center justify-start space-x-1">
-                                  <span>Athlete</span>
-                                  <SortIcon column="lifter_name" sortConfig={sortConfig} division={division} />
-                                </div>
-                              </th>
-                              <th
-                                onClick={() => handleSort(division, 'club_name')}
-                                className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
-                                style={{ minWidth: '120px' }}
-                              >
-                                <div className="flex items-center justify-start space-x-1">
-                                  <span>Club</span>
-                                  <SortIcon column="club_name" sortConfig={sortConfig} division={division} />
-                                </div>
-                              </th>
-                              <th className="w-full"></th>
-                              <th
-                                onClick={() => handleSort(division, 'best_snatch')}
-                                className="px-2 py-1 text-right text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
-                                style={{ width: '80px' }}
-                              >
-                                <div className="flex items-center justify-end space-x-1">
-                                  <span>Snatch</span>
-                                  <SortIcon column="best_snatch" sortConfig={sortConfig} division={division} />
-                                </div>
-                              </th>
-                              <th
-                                onClick={() => handleSort(division, 'best_cj')}
-                                className="px-2 py-1 text-right text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
-                                style={{ width: '80px' }}
-                              >
-                                <div className="flex items-center justify-end space-x-1">
-                                  <span>C&J</span>
-                                  <SortIcon column="best_cj" sortConfig={sortConfig} division={division} />
-                                </div>
-                              </th>
-                              <th
-                                onClick={() => handleSort(division, 'total')}
-                                className="px-2 py-1 text-right text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
-                                style={{ width: '80px' }}
-                              >
-                                <div className="flex items-center justify-end space-x-1">
-                                  <span>Total</span>
-                                  <SortIcon column="total" sortConfig={sortConfig} division={division} />
-                                </div>
-                              </th>
-                              <th
-                                onClick={() => handleSort(division, 'body_weight_kg')}
-                                className="px-2 py-1 text-right text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
-                                style={{ width: '100px' }}
-                              >
-                                <div className="flex items-center justify-end space-x-1">
-                                  <span>Bodyweight</span>
-                                  <SortIcon column="body_weight_kg" sortConfig={sortConfig} division={division} />
-                                </div>
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {getSortedResults(divisionResults, division).map((result, index) => {
-                              const originalIndex = divisionResults.indexOf(result);
-                              const displayPlace = originalIndex + 1;
+                    {!isWcCollapsed && (
+                      <div className="border-t border-app-primary">
+                        <div className="mt-4 mb-2 space-y-2">
 
-                              return (
-                                <tr key={result.result_id} className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors group" style={{ borderTopColor: 'var(--border-secondary)' }}>
-                                  <td className="px-2 py-1 whitespace-nowrap text-sm font-medium text-app-primary">
-                                    <div className="flex items-center gap-1">
-                                      <span>{displayPlace}</span>
-                                      {displayPlace === 1 && <Medal className="h-4 w-4" style={{ color: '#FFD700' }} />}
-                                      {displayPlace === 2 && <Medal className="h-4 w-4" style={{ color: '#C0C0C0' }} />}
-                                      {displayPlace === 3 && <Medal className="h-4 w-4" style={{ color: '#CD7F32' }} />}
-                                    </div>
-                                  </td>
-                                  <td className="px-2 py-1 whitespace-nowrap">
-                                    <Link
-                                      href={getAthleteUrl(result)}
-                                      className="flex items-center space-x-1 text-accent-primary group-hover:text-accent-primary-hover transition-colors hover:underline"
-                                    >
-                                      <span className="font-medium text-sm">{result.lifter_name}</span>
-                                      <ExternalLink className="h-3 w-3" />
-                                    </Link>
-                                    <div className="text-xs text-app-muted">
-                                      {result.competition_age && `Age ${result.competition_age}`}
-                                      {(() => {
-                                        const membershipNumber = Array.isArray(result.lifters)
-                                          ? result.lifters[0]?.membership_number
-                                          : result.lifters?.membership_number;
-                                        return (
-                                          <>
-                                            {membershipNumber && result.competition_age && " • "}
-                                            {membershipNumber && `#${membershipNumber}`}
-                                          </>
-                                        );
-                                      })()}
-                                    </div>
-                                  </td>
-                                  <td className="px-2 py-1 whitespace-nowrap text-sm text-app-secondary">
-                                    <div className="text-sm">{result.club_name || '-'}</div>
-                                    <div className="text-xs text-app-muted">{result.wso}</div>
-                                  </td>
-                                  <td></td>
-                                  <td className="px-2 py-1 whitespace-nowrap text-sm text-left" style={{ color: 'var(--chart-snatch)' }}>
-                                    <div className="font-medium">{result.best_snatch ? `${result.best_snatch}kg` : '-'}</div>
-                                    <div className="text-xs text-app-muted">
-                                      {[result.snatch_lift_1, result.snatch_lift_2, result.snatch_lift_3]
-                                        .filter(attempt => attempt && attempt !== '0')
-                                        .map((attempt, i) => {
-                                          const weight = parseInt(attempt!);
-                                          return (
-                                            <span key={i} className={weight > 0 ? '' : 'text-red-500'} style={weight > 0 ? { color: 'var(--chart-snatch)' } : {}}>
-                                              {Math.abs(weight)}
-                                              {i < 2 ? '/' : ''}
-                                            </span>
-                                          );
-                                        })}
-                                    </div>
-                                  </td>
-                                  <td className="px-2 py-1 whitespace-nowrap text-sm text-left" style={{ color: 'var(--chart-cleanjerk)' }}>
-                                    <div className="font-medium">{result.best_cj ? `${result.best_cj}kg` : '-'}</div>
-                                    <div className="text-xs text-app-muted">
-                                      {[result.cj_lift_1, result.cj_lift_2, result.cj_lift_3]
-                                        .filter(attempt => attempt && attempt !== '0')
-                                        .map((attempt, i) => {
-                                          const weight = parseInt(attempt!);
-                                          return (
-                                            <span key={i} className={weight > 0 ? '' : 'text-red-500'} style={weight > 0 ? { color: 'var(--chart-cleanjerk)' } : {}}>
-                                              {Math.abs(weight)}
-                                              {i < 2 ? '/' : ''}
-                                            </span>
-                                          );
-                                        })}
-                                    </div>
-                                  </td>
-                                  <td className="px-2 py-1 whitespace-nowrap text-sm font-bold text-left" style={{ color: 'var(--chart-total)' }}>
-                                    {result.total ? `${result.total}kg` : '-'}
-                                  </td>
-                                  <td className="px-2 py-1 whitespace-nowrap text-sm text-app-secondary text-left">
-                                    {result.body_weight_kg ? `${result.body_weight_kg}kg` : '-'}
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
+                          {/* All Ages (Overall Rankings) */}
+                          <div className="ml-8 border-l-4 border-accent-secondary rounded-r-lg mr-2">
+                            <div onClick={() => { setExpandedSubrows(prev => { const n = new Set(prev); n.has(allAgesKey) ? n.delete(allAgesKey) : n.add(allAgesKey); return n; }); }} className="cursor-pointer hover:bg-app-hover transition-colors rounded-tr-lg">
+                              <h4 className="text-base font-bold p-2 flex items-center text-app-primary">
+                                {isAllAgesCollapsed ? <ChevronRight className="h-4 w-4 mr-2 text-gray-400" /> : <ChevronDown className="h-4 w-4 mr-2 text-gray-400" />}
+                                <span className="mr-2 text-app-muted">↳</span>
+                                <span>All Ages</span>
+                                <span className="ml-2 text-sm font-normal text-app-muted">(Overall Rankings)</span>
+                                <span className="ml-auto text-sm text-app-muted">{allAgesResults.length} athletes</span>
+                              </h4>
+                            </div>
+                            {!isAllAgesCollapsed && renderDivisionTable(allAgesResults, `${wcKey}-all-ages`)}
+                          </div>
+
+                          {/* Age subcategories */}
+                          {children.map(({ label, divKey, results: childResults }) => {
+                            const childKey = `${wcKey}-${label}`;
+                            const isChildCollapsed = !expandedSubrows.has(childKey);
+                            return (
+                              <div key={label} className="ml-8 border-l-4 border-accent-primary rounded-r-lg mr-2">
+                                <div onClick={() => { setExpandedSubrows(prev => { const n = new Set(prev); n.has(childKey) ? n.delete(childKey) : n.add(childKey); return n; }); }} className="cursor-pointer hover:bg-app-hover transition-colors rounded-tr-lg">
+                                  <h4 className="text-base font-bold p-2 flex items-center text-app-primary">
+                                    {isChildCollapsed ? <ChevronRight className="h-4 w-4 mr-2 text-gray-400" /> : <ChevronDown className="h-4 w-4 mr-2 text-gray-400" />}
+                                    <span className="mr-2 text-app-muted">↳</span>
+                                    <span>{label}</span>
+                                    <span className="ml-auto text-sm text-app-muted">{childResults.length} athletes</span>
+                                  </h4>
+                                </div>
+                                {!isChildCollapsed && renderDivisionTable(childResults, divKey)}
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     )}
                   </div>
                 );
               })}
+
             </div>
           );
         })}
