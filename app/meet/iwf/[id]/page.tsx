@@ -1228,9 +1228,11 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                     <th className={headerClass} onClick={() => handleSummarySort(gender, 'rank')}>Rank <SortIndicator col="rank" /></th>
                     <th className={headerClass} onClick={() => handleSummarySort(gender, 'lifter_name')}>Name <SortIndicator col="lifter_name" /></th>
                     <th className={headerClass} onClick={() => handleSummarySort(gender, 'country_name')}>Country <SortIndicator col="country_name" /></th>
-                    <th className={headerClass} onClick={() => handleSummarySort(gender, 'weight_class')}>Weight Class <SortIndicator col="weight_class" /></th>
-                    <th className={headerClass} onClick={() => handleSummarySort(gender, 'competition_age')}>Comp Age <SortIndicator col="competition_age" /></th>
-                    <th className={headerClass} onClick={() => handleSummarySort(gender, 'age_category')}>Cat <SortIndicator col="age_category" /></th>
+                    <th className={headerClass} onClick={() => handleSummarySort(gender, 'body_weight_kg')}>Bwt <SortIndicator col="body_weight_kg" /></th>
+                    <th className={headerClass} onClick={() => handleSummarySort(gender, 'weight_class')}>Wt. Class <SortIndicator col="weight_class" /></th>
+                    <th className={headerClass} onClick={() => handleSummarySort(gender, 'age_category')}>Division <SortIndicator col="age_category" /></th>
+                    <th className={headerClass} onClick={() => handleSummarySort(gender, 'best_snatch')}>BEST<br />SNATCH <SortIndicator col="best_snatch" /></th>
+                    <th className={headerClass} onClick={() => handleSummarySort(gender, 'best_cj')}>BEST<br />C&J <SortIndicator col="best_cj" /></th>
                     <th className={headerClass} onClick={() => handleSummarySort(gender, 'total')}>Total <SortIndicator col="total" /></th>
 
                     {/* Three Q Columns */}
@@ -1263,18 +1265,20 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                           <span className="text-sm">{r.country_name || r.club_name || r.country_code || '-'}</span>
                         </div>
                       </td>
+                      <td className="px-2 py-2 text-sm">{r.body_weight_kg ? `${r.body_weight_kg}kg` : '-'}</td>
                       <td className="px-2 py-2 text-sm">{r.weight_class}</td>
-                      <td className="px-2 py-2 text-sm">{r.competition_age}</td>
-                      <td className="px-2 py-2 text-sm max-w-[150px] truncate" title={r.age_category}>{r.age_category}</td>
-                      <td className="px-2 py-2 text-sm font-bold" style={{ color: 'var(--chart-total)' }}>{r.total}</td>
+                      <td className="px-2 py-2 text-sm max-w-[120px] leading-tight" style={{ fontSize: '0.75rem', whiteSpace: 'normal', wordBreak: 'break-word' }} title={r.age_category}>{r.age_category}</td>
+                      <td className="px-2 py-2 text-sm" style={{ color: 'var(--chart-snatch)' }}>{r.best_snatch ? `${r.best_snatch}kg` : '-'}</td>
+                      <td className="px-2 py-2 text-sm" style={{ color: 'var(--chart-cleanjerk)' }}>{r.best_cj ? `${r.best_cj}kg` : '-'}</td>
+                      <td className="px-2 py-2 text-sm font-bold" style={{ color: 'var(--chart-total)' }}>{r.total ? `${r.total}kg` : '-'}</td>
                       <td className="px-2 py-2 text-sm font-medium" style={{ color: (r.q_youth || 0) > 0 ? 'var(--chart-qyouth)' : 'inherit' }}>
-                        {(r.q_youth && r.q_youth > 0) ? r.q_youth.toFixed(3) : '-'}
+                        {(r.q_youth && r.q_youth > 0) ? r.q_youth.toFixed(2) : '-'}
                       </td>
                       <td className="px-2 py-2 text-sm font-medium" style={{ color: (r.qpoints || 0) > 0 ? 'var(--chart-qpoints)' : 'inherit' }}>
-                        {(r.qpoints && r.qpoints > 0) ? r.qpoints.toFixed(3) : '-'}
+                        {(r.qpoints && r.qpoints > 0) ? r.qpoints.toFixed(2) : '-'}
                       </td>
                       <td className="px-2 py-2 text-sm font-medium" style={{ color: (r.q_masters || 0) > 0 ? 'var(--chart-qmasters)' : 'inherit' }}>
-                        {(r.q_masters && r.q_masters > 0) ? r.q_masters.toFixed(3) : '-'}
+                        {(r.q_masters && r.q_masters > 0) ? r.q_masters.toFixed(2) : '-'}
                       </td>
                     </tr>
                   ))}
@@ -1410,7 +1414,12 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                           <th className={hClass} onClick={() => handleGamxSort('rank')}>Rank <GamxSortIndicator col="rank" /></th>
                           <th className={hClass} onClick={() => handleGamxSort('lifter_name')}>Name <GamxSortIndicator col="lifter_name" /></th>
                           <th className={`${hClass} hidden sm:table-cell`}>Country</th>
-                          <th className={hClass} onClick={() => handleGamxSort('weight_class')}>Class <GamxSortIndicator col="weight_class" /></th>
+                          <th className={hClass} onClick={() => handleGamxSort('body_weight_kg')}>Bwt <GamxSortIndicator col="body_weight_kg" /></th>
+                          <th className={hClass} onClick={() => handleGamxSort('weight_class')}>Wt. Class <GamxSortIndicator col="weight_class" /></th>
+                          <th className={hClass} onClick={() => handleGamxSort('age_category')}>Division <GamxSortIndicator col="age_category" /></th>
+                          <th className={hClass} onClick={() => handleGamxSort('best_snatch')}>BEST<br />SNATCH <GamxSortIndicator col="best_snatch" /></th>
+                          <th className={hClass} onClick={() => handleGamxSort('best_cj')}>BEST<br />C&J <GamxSortIndicator col="best_cj" /></th>
+                          <th className={hClass} onClick={() => handleGamxSort('total')}>Total <GamxSortIndicator col="total" /></th>
                           <th className={qHClass('gamx_total')} onClick={() => handleGamxSort('gamx_total')}>GAMX-Total <GamxSortIndicator col="gamx_total" /></th>
                           <th className={qHClass('gamx_s')} onClick={() => handleGamxSort('gamx_s')}>GAMX-S <GamxSortIndicator col="gamx_s" /></th>
                           <th className={qHClass('gamx_j')} onClick={() => handleGamxSort('gamx_j')}>GAMX-J <GamxSortIndicator col="gamx_j" /></th>
@@ -1444,13 +1453,18 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                                   <span>{(r as any).country_name || (r as any).country_code || '-'}</span>
                                 </div>
                               </td>
+                              <td className="px-2 py-2 text-sm">{(r as any).body_weight_kg ? `${(r as any).body_weight_kg}kg` : '-'}</td>
                               <td className="px-2 py-2 text-sm">{r.weight_class}</td>
-                              <td className="px-2 py-2 text-sm font-medium" style={{ color: (r as any).gamx_total > 0 ? 'var(--chart-total)' : 'inherit' }}>{(r as any).gamx_total?.toFixed(4) ?? '-'}</td>
-                              <td className="px-2 py-2 text-sm font-medium" style={{ color: (r as any).gamx_s > 0 ? 'var(--chart-qpoints)' : 'inherit' }}>{(r as any).gamx_s?.toFixed(4) ?? '-'}</td>
-                              <td className="px-2 py-2 text-sm font-medium" style={{ color: (r as any).gamx_j > 0 ? 'var(--chart-qyouth)' : 'inherit' }}>{(r as any).gamx_j?.toFixed(4) ?? '-'}</td>
-                              <td className="px-2 py-2 text-sm font-medium" style={{ color: (r as any).gamx_u > 0 ? 'var(--chart-qpoints)' : 'inherit' }}>{(r as any).gamx_u?.toFixed(4) ?? '-'}</td>
-                              <td className="px-2 py-2 text-sm font-medium" style={{ color: (r as any).gamx_a > 0 ? 'var(--chart-qmasters)' : 'inherit' }}>{(r as any).gamx_a?.toFixed(4) ?? '-'}</td>
-                              <td className="px-2 py-2 text-sm font-medium" style={{ color: (r as any).gamx_masters > 0 ? 'var(--chart-qmasters)' : 'inherit' }}>{(r as any).gamx_masters?.toFixed(4) ?? '-'}</td>
+                              <td className="px-2 py-2 text-sm max-w-[120px] leading-tight" style={{ fontSize: '0.75rem', whiteSpace: 'normal', wordBreak: 'break-word' }} title={r.age_category}>{r.age_category}</td>
+                              <td className="px-2 py-2 text-sm" style={{ color: 'var(--chart-snatch)' }}>{(r as any).best_snatch ? `${(r as any).best_snatch}kg` : '-'}</td>
+                              <td className="px-2 py-2 text-sm" style={{ color: 'var(--chart-cleanjerk)' }}>{(r as any).best_cj ? `${(r as any).best_cj}kg` : '-'}</td>
+                              <td className="px-2 py-2 text-sm font-bold" style={{ color: 'var(--chart-total)' }}>{(r as any).total ? `${(r as any).total}kg` : '-'}</td>
+                              <td className="px-2 py-2 text-sm font-medium" style={{ color: (r as any).gamx_total > 0 ? 'var(--chart-gamx-total)' : 'inherit' }}>{(r as any).gamx_total ? (r as any).gamx_total.toFixed(0) : '-'}</td>
+                              <td className="px-2 py-2 text-sm font-medium" style={{ color: (r as any).gamx_s > 0 ? 'var(--chart-qpoints)' : 'inherit' }}>{(r as any).gamx_s ? (r as any).gamx_s.toFixed(0) : '-'}</td>
+                              <td className="px-2 py-2 text-sm font-medium" style={{ color: (r as any).gamx_j > 0 ? 'var(--chart-qyouth)' : 'inherit' }}>{(r as any).gamx_j ? (r as any).gamx_j.toFixed(0) : '-'}</td>
+                              <td className="px-2 py-2 text-sm font-medium" style={{ color: (r as any).gamx_u > 0 ? 'var(--chart-qpoints)' : 'inherit' }}>{(r as any).gamx_u ? (r as any).gamx_u.toFixed(0) : '-'}</td>
+                              <td className="px-2 py-2 text-sm font-medium" style={{ color: (r as any).gamx_a > 0 ? 'var(--chart-qmasters)' : 'inherit' }}>{(r as any).gamx_a ? (r as any).gamx_a.toFixed(0) : '-'}</td>
+                              <td className="px-2 py-2 text-sm font-medium" style={{ color: (r as any).gamx_masters > 0 ? 'var(--chart-qmasters)' : 'inherit' }}>{(r as any).gamx_masters ? (r as any).gamx_masters.toFixed(0) : '-'}</td>
                             </tr>
                           );
                         })}
@@ -1552,6 +1566,9 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                     <th onClick={() => handleSort(divKey, 'club_name')} className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" style={{ minWidth: '120px' }}>
                       <div className="flex items-center justify-start space-x-1"><span>Country</span><SortIcon column="club_name" sortConfig={sortConfig} division={divKey} /></div>
                     </th>
+                    <th onClick={() => handleSort(divKey, 'body_weight_kg')} className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none">
+                      <div className="flex items-center justify-start space-x-1"><span>Bwt</span><SortIcon column="body_weight_kg" sortConfig={sortConfig} division={divKey} /></div>
+                    </th>
                     <th className="w-full"></th>
                     <th onClick={() => handleSort(divKey, 'best_snatch')} className="px-2 py-1 text-right text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" style={{ width: '80px' }}>
                       <div className="flex items-center justify-end space-x-1"><span>Snatch</span><SortIcon column="best_snatch" sortConfig={sortConfig} division={divKey} /></div>
@@ -1561,9 +1578,6 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                     </th>
                     <th onClick={() => handleSort(divKey, 'total')} className="px-2 py-1 text-right text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" style={{ width: '80px' }}>
                       <div className="flex items-center justify-end space-x-1"><span>Total</span><SortIcon column="total" sortConfig={sortConfig} division={divKey} /></div>
-                    </th>
-                    <th onClick={() => handleSort(divKey, 'body_weight_kg')} className="px-2 py-1 text-right text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" style={{ width: '100px' }}>
-                      <div className="flex items-center justify-end space-x-1"><span>Bodyweight</span><SortIcon column="body_weight_kg" sortConfig={sortConfig} division={divKey} /></div>
                     </th>
                   </tr>
                 </thead>
@@ -1610,6 +1624,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                             <span className="text-sm">{result.club_name || '-'}</span>
                           </div>
                         </td>
+                        <td className="px-2 py-1 whitespace-nowrap text-sm text-app-secondary text-left">{result.body_weight_kg ? `${result.body_weight_kg}kg` : '-'}</td>
                         <td></td>
                         <td className="px-2 py-1 whitespace-nowrap text-sm text-left" style={{ color: 'var(--chart-snatch)' }}>
                           <div className="font-medium">{result.best_snatch ? `${result.best_snatch}kg` : '-'}</div>
@@ -1630,7 +1645,6 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                           </div>
                         </td>
                         <td className="px-2 py-1 whitespace-nowrap text-sm font-bold text-left" style={{ color: 'var(--chart-total)' }}>{result.total ? `${result.total}kg` : '-'}</td>
-                        <td className="px-2 py-1 whitespace-nowrap text-sm text-app-secondary text-left">{result.body_weight_kg ? `${result.body_weight_kg}kg` : '-'}</td>
                       </tr>
                     );
                   })}

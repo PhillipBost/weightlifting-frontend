@@ -34,6 +34,8 @@ export interface Meet {
     datasetId: string | number; // original ID
     name: string;
     date: string;
+    endDate?: string;
+    dateRange?: string;
     location: string;
     federation: 'USAW' | 'IWF';
     url?: string;
@@ -184,8 +186,10 @@ export function UpcomingMeetsContent({ initialMeets = [] }: { initialMeets?: Mee
             if (filters.startDate) {
                 // adding T12:00:00 to avoid UTC timezone off-by-one locally
                 const meetDate = new Date(`${meet.date}T12:00:00`).getTime();
+                const endCheckDate = meet.endDate ? new Date(`${meet.endDate}T12:00:00`).getTime() : meetDate;
                 const startDate = new Date(`${filters.startDate}T12:00:00`).getTime();
-                if (meetDate < startDate) return false;
+                // A meet is visible if it ends ON or AFTER the start date
+                if (endCheckDate < startDate) return false;
             }
             if (filters.endDate) {
                 const meetDate = new Date(`${meet.date}T12:00:00`).getTime();
@@ -707,14 +711,14 @@ export function UpcomingMeetsContent({ initialMeets = [] }: { initialMeets?: Mee
                                             >
                                                 {visibleColumns.date && (
                                                     <td className="px-2 py-1 whitespace-nowrap text-xs">
-                                                        {meet.date ? (() => {
+                                                        {meet.dateRange ? meet.dateRange : (meet.date ? (() => {
                                                             const d = new Date(`${meet.date}T12:00:00`);
                                                             return isNaN(d.getTime()) ? meet.date : d.toLocaleDateString(undefined, {
                                                                 year: 'numeric',
                                                                 month: 'numeric',
                                                                 day: 'numeric'
                                                             });
-                                                        })() : '-'}
+                                                        })() : '-')}
                                                     </td>
                                                 )}
                                                 {visibleColumns.name && (

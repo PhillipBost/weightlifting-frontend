@@ -3,6 +3,7 @@ import { AuthGuard } from "../../components/AuthGuard";
 import { ROLES } from "../../../lib/roles";
 import { createClient } from '@supabase/supabase-js';
 import { PredictionEngineContent, MeetEntry } from "../components/PredictionEngineContent";
+import { UpcomingMeetMapWrapper } from "../components/UpcomingMeetMapWrapper";
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 
@@ -143,6 +144,18 @@ export default async function UpcomingMeetPredictionPage({ params }: { params: P
     const meetName = entries.length > 0 && entries[0].meet_name ? entries[0].meet_name : `Meet ${datasetId}`;
     const meetDate = entries.length > 0 && entries[0].event_date ? entries[0].event_date : "Unknown Date";
 
+    // Fetch meet data from usaw_meets for coordinates (if it exists)
+    const { data: meetData } = await supabase
+        .from('usaw_meets')
+        .select('name, date, state, wso, latitude, longitude')
+        .eq('listing_id', datasetId)
+        .single();
+
+    const finalMeetName = meetData?.name || meetName;
+    const finalMeetDate = meetData?.date || meetDate;
+    const meetLat = meetData?.latitude || null;
+    const meetLng = meetData?.longitude || null;
+
     return (
         <AuthGuard requireAnyRole={[ROLES.ADMIN, ROLES.USAW_NATIONAL_TEAM_COACH, ROLES.VIP]}>
             <div className="min-h-screen bg-app-primary">
@@ -155,12 +168,18 @@ export default async function UpcomingMeetPredictionPage({ params }: { params: P
                             <ChevronLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
                         </Link>
                         <div>
-                            <h1 className="text-3xl font-bold text-app-primary">{meetName}</h1>
+                            <h1 className="text-3xl font-bold text-app-primary">{finalMeetName}</h1>
                             <p className="text-sm text-app-secondary mt-1">
-                                Event Date: {meetDate} • {entries.length} Entrants
+                                Event Date: {finalMeetDate} • {entries.length} Entrants
                             </p>
                         </div>
                     </div>
+
+                    <UpcomingMeetMapWrapper
+                        datasetId={datasetId}
+                        latitude={meetLat}
+                        longitude={meetLng}
+                    />
 
                     {entries.length === 0 ? (
                         <div className="bg-app-surface border border-app-primary rounded-2xl shadow-sm p-12 text-center text-app-secondary">

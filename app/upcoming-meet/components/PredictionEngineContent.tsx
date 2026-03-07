@@ -435,7 +435,8 @@ export function PredictionEngineContent({ entries }: PredictionEngineContentProp
                                         <th className={headerClass} onClick={() => handleSummarySort(gender, 'rank')}>Rank <SortIndicator col="rank" /></th>
                                         <th className={headerClass} onClick={() => handleSummarySort(gender, 'lifter_name')}>Name <SortIndicator col="lifter_name" /></th>
                                         <th className={`${headerClass} hidden sm:table-cell`} onClick={() => handleSummarySort(gender, 'club')}>Club / WSO <SortIndicator col="club" /></th>
-                                        <th className={headerClass} onClick={() => handleSummarySort(gender, 'weight_class')}>Weight Class <SortIndicator col="weight_class" /></th>
+                                        <th className={headerClass} onClick={() => handleSummarySort(gender, 'weight_class')}>Wt. Class <SortIndicator col="weight_class" /></th>
+                                        <th className={`${headerClass} hidden sm:table-cell`} onClick={() => handleSummarySort(gender, 'division')}>Division <SortIndicator col="division" /></th>
                                         <th className={qHeaderClass('best_q_youth')} onClick={() => handleSummarySort(gender, 'best_q_youth')}>Best Q-Youth <SortIndicator col="best_q_youth" /></th>
                                         <th className={qHeaderClass('best_qpoints')} onClick={() => handleSummarySort(gender, 'best_qpoints')}>Best Q-Points <SortIndicator col="best_qpoints" /></th>
                                         <th className={qHeaderClass('best_q_masters')} onClick={() => handleSummarySort(gender, 'best_q_masters')}>Best Q-Masters <SortIndicator col="best_q_masters" /></th>
@@ -469,19 +470,20 @@ export function PredictionEngineContent({ entries }: PredictionEngineContentProp
                                                         {e.membership_number && `#${e.membership_number}`}
                                                     </div>
                                                 </td>
-                                                <td className="px-2 py-2 whitespace-nowrap text-sm text-app-secondary hidden sm:table-cell">
-                                                    <div className="text-sm">{e.club || '-'}</div>
-                                                    <div className="text-xs text-app-muted">{e.wso || e.state}</div>
+                                                <td className="px-2 py-2 whitespace-nowrap text-sm text-app-secondary hidden sm:table-cell max-w-[120px] truncate" title={`${e.club || '-'} / ${e.wso || e.state}`}>
+                                                    <div className="text-sm truncate">{e.club || '-'}</div>
+                                                    <div className="text-xs text-app-muted truncate">{e.wso || e.state}</div>
                                                 </td>
                                                 <td className="px-2 py-2 text-sm">{e.weight_class}</td>
+                                                <td className="px-2 py-2 text-sm hidden sm:table-cell max-w-[120px] leading-tight" style={{ fontSize: '0.75rem', whiteSpace: 'normal', wordBreak: 'break-word' }} title={e.division || ''}>{e.division}</td>
                                                 <td className="px-2 py-2 text-sm font-medium" style={{ color: e.best_q_youth && e.best_q_youth > 0 ? 'var(--chart-qyouth)' : 'inherit' }}>
-                                                    {e.best_q_youth ? e.best_q_youth.toFixed(3) : '-'}
+                                                    {e.best_q_youth ? e.best_q_youth.toFixed(2) : '-'}
                                                 </td>
                                                 <td className="px-2 py-2 text-sm font-medium" style={{ color: e.best_qpoints && e.best_qpoints > 0 ? 'var(--chart-qpoints)' : 'inherit' }}>
-                                                    {e.best_qpoints ? e.best_qpoints.toFixed(3) : '-'}
+                                                    {e.best_qpoints ? e.best_qpoints.toFixed(2) : '-'}
                                                 </td>
                                                 <td className="px-2 py-2 text-sm font-medium" style={{ color: e.best_q_masters && e.best_q_masters > 0 ? 'var(--chart-qmasters)' : 'inherit' }}>
-                                                    {e.best_q_masters ? e.best_q_masters.toFixed(3) : '-'}
+                                                    {e.best_q_masters ? e.best_q_masters.toFixed(2) : '-'}
                                                 </td>
                                                 <td className="px-2 py-2 text-sm hidden sm:table-cell font-bold" style={{ color: 'var(--chart-total)' }}>
                                                     {e.entry_total ? `${e.entry_total}kg` : '-'}
@@ -551,7 +553,9 @@ export function PredictionEngineContent({ entries }: PredictionEngineContentProp
                                         <th className={hClass} onClick={() => handleGamxSort('rank')}>Rank <SortIndicator col="rank" /></th>
                                         <th className={hClass} onClick={() => handleGamxSort('lifter_name')}>Name <SortIndicator col="lifter_name" /></th>
                                         <th className={`${hClass} hidden sm:table-cell`} onClick={() => handleGamxSort('club')}>Club / WSO <SortIndicator col="club" /></th>
-                                        <th className={hClass} onClick={() => handleGamxSort('weight_class')}>Class <SortIndicator col="weight_class" /></th>
+                                        <th className={hClass} onClick={() => handleGamxSort('weight_class')}>Wt. Class <SortIndicator col="weight_class" /></th>
+                                        <th className={`${hClass} hidden sm:table-cell`} onClick={() => handleGamxSort('division')}>Division <SortIndicator col="division" /></th>
+                                        <th className={`${qHClass('entry_total')} hidden sm:table-cell`} onClick={() => handleGamxSort('entry_total')}>Entry Total <SortIndicator col="entry_total" /></th>
                                         <th className={qHClass('best_gamx_total')} onClick={() => handleGamxSort('best_gamx_total')}>GAMX-Total <SortIndicator col="best_gamx_total" /></th>
                                         <th className={qHClass('best_gamx_s')} onClick={() => handleGamxSort('best_gamx_s')}>GAMX-S <SortIndicator col="best_gamx_s" /></th>
                                         <th className={qHClass('best_gamx_j')} onClick={() => handleGamxSort('best_gamx_j')}>GAMX-J <SortIndicator col="best_gamx_j" /></th>
@@ -582,28 +586,32 @@ export function PredictionEngineContent({ entries }: PredictionEngineContentProp
                                                     {e.membership_number && `#${e.membership_number}`}
                                                 </div>
                                             </td>
-                                            <td className="px-2 py-2 whitespace-nowrap text-sm text-app-secondary hidden sm:table-cell">
-                                                <div className="text-sm">{e.club || '-'}</div>
-                                                <div className="text-xs text-app-muted">{e.wso || e.state}</div>
+                                            <td className="px-2 py-2 whitespace-nowrap text-sm text-app-secondary hidden sm:table-cell max-w-[120px] truncate" title={`${e.club || '-'} / ${e.wso || e.state}`}>
+                                                <div className="text-sm truncate">{e.club || '-'}</div>
+                                                <div className="text-xs text-app-muted truncate">{e.wso || e.state}</div>
                                             </td>
                                             <td className="px-2 py-2 text-sm">{e.weight_class}</td>
+                                            <td className="px-2 py-2 text-sm hidden sm:table-cell max-w-[120px] leading-tight" style={{ fontSize: '0.75rem', whiteSpace: 'normal', wordBreak: 'break-word' }} title={e.division || ''}>{e.division}</td>
+                                            <td className="px-2 py-2 text-sm hidden sm:table-cell font-bold" style={{ color: 'var(--chart-total)' }}>
+                                                {e.entry_total ? `${e.entry_total}kg` : '-'}
+                                            </td>
                                             <td className="px-2 py-2 text-sm font-medium" style={{ color: e.best_gamx_total && e.best_gamx_total > 0 ? 'var(--chart-total)' : 'inherit' }}>
-                                                {e.best_gamx_total ? e.best_gamx_total.toFixed(4) : '-'}
+                                                {e.best_gamx_total ? e.best_gamx_total.toFixed(0) : '-'}
                                             </td>
                                             <td className="px-2 py-2 text-sm font-medium" style={{ color: e.best_gamx_s && e.best_gamx_s > 0 ? 'var(--chart-qpoints)' : 'inherit' }}>
-                                                {e.best_gamx_s ? e.best_gamx_s.toFixed(4) : '-'}
+                                                {e.best_gamx_s ? e.best_gamx_s.toFixed(0) : '-'}
                                             </td>
                                             <td className="px-2 py-2 text-sm font-medium" style={{ color: e.best_gamx_j && e.best_gamx_j > 0 ? 'var(--chart-qyouth)' : 'inherit' }}>
-                                                {e.best_gamx_j ? e.best_gamx_j.toFixed(4) : '-'}
+                                                {e.best_gamx_j ? e.best_gamx_j.toFixed(0) : '-'}
                                             </td>
                                             <td className="px-2 py-2 text-sm font-medium" style={{ color: e.best_gamx_u && e.best_gamx_u > 0 ? 'var(--chart-qpoints)' : 'inherit' }}>
-                                                {e.best_gamx_u ? e.best_gamx_u.toFixed(4) : '-'}
+                                                {e.best_gamx_u ? e.best_gamx_u.toFixed(0) : '-'}
                                             </td>
                                             <td className="px-2 py-2 text-sm font-medium" style={{ color: e.best_gamx_a && e.best_gamx_a > 0 ? 'var(--chart-qmasters)' : 'inherit' }}>
-                                                {e.best_gamx_a ? e.best_gamx_a.toFixed(4) : '-'}
+                                                {e.best_gamx_a ? e.best_gamx_a.toFixed(0) : '-'}
                                             </td>
                                             <td className="px-2 py-2 text-sm font-medium" style={{ color: e.best_gamx_masters && e.best_gamx_masters > 0 ? 'var(--chart-qmasters)' : 'inherit' }}>
-                                                {e.best_gamx_masters ? e.best_gamx_masters.toFixed(4) : '-'}
+                                                {e.best_gamx_masters ? e.best_gamx_masters.toFixed(0) : '-'}
                                             </td>
                                         </tr>
                                     ))}
