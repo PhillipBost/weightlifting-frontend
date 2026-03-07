@@ -355,6 +355,12 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
             qpoints,
             q_youth,
             q_masters,
+            gamx_total,
+            gamx_s,
+            gamx_j,
+            gamx_u,
+            gamx_a,
+            gamx_masters,
             best_snatch_ytd,
             best_cj_ytd,
             best_total_ytd,
@@ -623,10 +629,10 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
       return 'Unknown';
     };
 
-    // Find all weight classes that have Open divisions
+    // Find all weight classes that have Open/Senior divisions
     const openDivisions = new Set<string>();
     Object.keys(allGroups).forEach(divisionKey => {
-      if (divisionKey.includes('Open')) {
+      if (divisionKey.includes('Open') || divisionKey.includes('Senior')) {
         const weightClass = getWeightClassFromDivision(divisionKey);
         openDivisions.add(weightClass);
       }
@@ -641,8 +647,8 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
     // Process in two phases: 1) Open parents and their eligible children, 2) Standalone divisions
     const assignedAsChildren = new Set<string>();
 
-    // Phase 1: Process ONLY Open divisions first (force priority)
-    const openDivisionKeys = Object.keys(allGroups).filter(key => key.includes('Open'));
+    // Phase 1: Process ONLY Open/Senior divisions first (force priority)
+    const openDivisionKeys = Object.keys(allGroups).filter(key => key.includes('Open') || key.includes('Senior'));
 
     openDivisionKeys.forEach(divisionKey => {
       const results = allGroups[divisionKey];
@@ -656,7 +662,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
       // Find all OTHER divisions with same weight class and check for lifter overlap
       Object.entries(allGroups).forEach(([otherDivisionKey, otherResults]) => {
         if (otherDivisionKey !== divisionKey &&
-          !otherDivisionKey.includes('Open') && // Don't process other Open divisions as children
+          !(otherDivisionKey.includes('Open') || otherDivisionKey.includes('Senior')) && // Don't process other Open/Senior divisions as children
           getWeightClassFromDivision(otherDivisionKey) === weightClass &&
           !assignedAsChildren.has(otherDivisionKey)) { // Don't reassign already assigned children
 
@@ -684,7 +690,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
 
     // Phase 2: Process remaining divisions as standalone parents (no children allowed)
     Object.entries(allGroups).forEach(([divisionKey, results]) => {
-      if (!divisionKey.includes('Open') && !assignedAsChildren.has(divisionKey)) {
+      if (!divisionKey.includes('Open') && !divisionKey.includes('Senior') && !assignedAsChildren.has(divisionKey)) {
         // Non-Open divisions become standalone parents but can never have children
         // Make sure they are NOT marked as age-appropriate (which would make them children)
         combinedGroups[divisionKey] = results;
@@ -738,11 +744,11 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
 
         if (hasChildrenMarked) {
           // This is a child division
-          // Find its parent (should be an Open division with same weight class AND gender)
+          // Find its parent (should be an Open/Senior division with same weight class AND gender)
           const weightClass = getWeightClassFromDivision(divisionKey);
           const isFemaleChild = divisionKey.toLowerCase().includes("women's");
           const parentKey = Object.keys(orderedGroups).find(key => {
-            const isOpen = key.includes('Open');
+            const isOpen = key.includes('Open') || key.includes('Senior');
             const sameWeightClass = getWeightClassFromDivision(key) === weightClass;
             const isFemaleParent = key.toLowerCase().includes("women's");
             const sameGender = isFemaleChild === isFemaleParent;
