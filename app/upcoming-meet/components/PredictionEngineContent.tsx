@@ -650,12 +650,12 @@ export function PredictionEngineContent({ entries }: PredictionEngineContentProp
                                 const hasSubcats = Object.keys(wc.subcategories).length > 0;
 
                                 return (
-                                    <div key={wc.weightClass} className="card-primary mb-3">
+                                    <div key={wc.weightClass} className="card-primary p-0 mb-1 max-w-[1150px] ml-7">
                                         <div
                                             onClick={() => toggleSection(wcKey)}
                                             className="cursor-pointer hover:bg-app-hover transition-colors rounded-t-lg"
                                         >
-                                            <h3 className="text-xl font-bold p-3 flex items-center text-app-primary">
+                                            <h3 className="text-xl font-bold px-3 py-1 flex items-center text-app-primary">
                                                 {isWcCollapsed ? <ChevronRight className="h-5 w-5 mr-2" /> : <ChevronDown className="h-5 w-5 mr-2" />}
                                                 <span>{wc.weightClass}</span>
                                                 <span className="ml-auto text-sm text-app-muted">{wc.allEntries.length} total athletes</span>
@@ -663,7 +663,7 @@ export function PredictionEngineContent({ entries }: PredictionEngineContentProp
                                         </div>
 
                                         {!isWcCollapsed && (
-                                            <div className="border-t border-app-primary">
+                                            <div className="border-t border-app-primary px-3 pb-3">
                                                 <div className="mt-4 mb-2 space-y-2">
 
                                                     {/* Parent Table (Everyone in this Weight Class) wrapped in All Ages */}

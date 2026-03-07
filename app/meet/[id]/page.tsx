@@ -1474,10 +1474,10 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                 const isAllAgesCollapsed = !expandedSubrows.has(allAgesKey);
 
                 return (
-                  <div key={wcKey} className="card-primary mb-3">
+                  <div key={wcKey} className="card-primary p-0 mb-1 max-w-[1150px] ml-7">
                     {/* Weight Class header */}
                     <div onClick={() => { setExpandedSubrows(prev => { const n = new Set(prev); n.has(wcKey) ? n.delete(wcKey) : n.add(wcKey); return n; }); }} className="cursor-pointer hover:bg-app-hover transition-colors rounded-t-lg">
-                      <h3 className="text-xl font-bold p-3 flex items-center text-app-primary">
+                      <h3 className="text-xl font-bold px-3 py-1 flex items-center text-app-primary">
                         {isWcCollapsed ? <ChevronRight className="h-5 w-5 mr-2" /> : <ChevronDown className="h-5 w-5 mr-2" />}
                         <span>{wcLabel}</span>
                         <span className="ml-auto text-sm text-app-muted">{allAgesResults.length} total athletes</span>
@@ -1485,7 +1485,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                     </div>
 
                     {!isWcCollapsed && (
-                      <div className="border-t border-app-primary">
+                      <div className="border-t border-app-primary px-3 pb-3">
                         <div className="mt-4 mb-2 space-y-2">
 
                           {/* All Ages (Overall Rankings) */}
