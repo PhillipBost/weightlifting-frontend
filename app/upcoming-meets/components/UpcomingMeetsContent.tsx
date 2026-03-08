@@ -735,8 +735,8 @@ export function UpcomingMeetsContent({ initialMeets = [] }: { initialMeets?: Mee
                                                     </td>
                                                 )}
                                                 {visibleColumns.name && (
-                                                    <td className="px-2 py-1 font-medium whitespace-nowrap text-xs">
-                                                        <Link href={destinationUrl} className="text-blue-500 hover:text-blue-400 hover:underline transition-colors">
+                                                    <td className="px-2 py-1 font-medium whitespace-nowrap text-xs max-w-[150px] sm:max-w-[200px] md:max-w-xs lg:max-w-sm xl:max-w-md truncate">
+                                                        <Link href={destinationUrl} className="text-blue-500 hover:text-blue-400 hover:underline transition-colors truncate block" title={meet.name}>
                                                             {meet.name}
                                                         </Link>
                                                     </td>
