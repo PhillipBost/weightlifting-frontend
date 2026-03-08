@@ -562,23 +562,36 @@ export function UpcomingMeetsContent({ initialMeets = [] }: { initialMeets?: Mee
                             </div>
 
                             {/* Date Range */}
-                            {/* Date Range - Spans 2 cols to fit inputs */}
-                            {/* Date Range */}
                             <div className="min-w-0">
-                                <label className="block text-sm font-medium text-gray-300 mb-1">Date Range</label>
+                                <div className="flex items-center justify-between mb-1">
+                                    <label className="block text-sm font-medium text-gray-300">Date Range</label>
+                                    {(filters.startDate || filters.endDate) && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setFilters(prev => ({ ...prev, startDate: '', endDate: '' }));
+                                                setCurrentPage(1);
+                                            }}
+                                            className="text-xs text-app-tertiary hover:text-accent-primary flex items-center gap-1 transition-colors whitespace-nowrap"
+                                        >
+                                            <X className="w-3 h-3" />
+                                            Clear Date Range
+                                        </button>
+                                    )}
+                                </div>
                                 <div className="flex items-center space-x-1">
                                     <input
                                         type="date"
                                         value={filters.startDate || ''}
                                         onChange={(e) => handleFilterChange("startDate", e.target.value)}
-                                        className="w-32 h-10 px-1.5 text-xs bg-app-tertiary border border-app-primary rounded-xl text-app-primary focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="flex-1 min-w-0 h-10 px-1.5 text-[11px] sm:text-xs bg-app-tertiary border border-app-primary rounded-xl text-app-primary focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
-                                    <span className="text-gray-400 text-xs">–</span>
+                                    <span className="text-gray-400 text-xs flex-shrink-0">–</span>
                                     <input
                                         type="date"
                                         value={filters.endDate || ''}
                                         onChange={(e) => handleFilterChange("endDate", e.target.value)}
-                                        className="w-32 h-10 px-1.5 text-xs bg-app-tertiary border border-app-primary rounded-xl text-app-primary focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="flex-1 min-w-0 h-10 px-1.5 text-[11px] sm:text-xs bg-app-tertiary border border-app-primary rounded-xl text-app-primary focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
                                 </div>
                             </div>
