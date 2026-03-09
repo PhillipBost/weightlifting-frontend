@@ -29,13 +29,13 @@ export function useUpcomingMeetClubLocations(listingId: string) {
                 setLoading(true);
                 console.log(`[useUpcomingMeetClubLocations] Starting fetch for listingId: ${listingId}`);
 
-                // Step 1: Fetch all entries for the upcoming meet
-                const { data: entriesData, error: entriesError } = await (supabase as any)
-                    .from('usaw_meet_entries')
-                    .select('club, wso')
-                    .eq('listing_id', parseInt(listingId));
-
-                if (entriesError) throw entriesError;
+                // Step 1: Fetch all entries for the upcoming meet via server-side API (bypasses RLS)
+                const entriesResponse = await fetch(`/api/upcoming-meet/entries?listing_id=${listingId}`)
+                if (!entriesResponse.ok) {
+                    throw new Error(`Entries API error: ${entriesResponse.statusText}`)
+                }
+                const entriesData: { club: string; wso: string }[] = await entriesResponse.json()
+                const entriesError = null; // API throws on error
 
                 console.log(`[useUpcomingMeetClubLocations] Fetched ${entriesData?.length || 0} entries`);
 
@@ -47,7 +47,7 @@ export function useUpcomingMeetClubLocations(listingId: string) {
                 }
 
                 // Step 2: Group by club (priority) or wso fallback, count athletes
-                const clubCounts: Record<string, { originalName: string, count: number }> = {};
+                const clubCounts: Record<string, { originalName: string, wso?: string, count: number }> = {};
                 entriesData.forEach((row: any) => {
                     let name = row.club;
                     if (!name || name.trim() === '') {
@@ -56,7 +56,7 @@ export function useUpcomingMeetClubLocations(listingId: string) {
                     if (name && name !== 'Unknown') {
                         const norm = normalizeName(name);
                         if (!clubCounts[norm]) {
-                            clubCounts[norm] = { originalName: name, count: 0 };
+                            clubCounts[norm] = { originalName: name, wso: row.wso, count: 0 };
                         }
                         clubCounts[norm].count += 1;
                     }
@@ -66,6 +66,7 @@ export function useUpcomingMeetClubLocations(listingId: string) {
                     name: data.originalName,
                     count: data.count,
                     normalized: norm,
+                    wso: data.wso
                 }));
 
                 // Step 3: Fetch coords from clubs table via API
@@ -104,8 +105,8 @@ export function useUpcomingMeetClubLocations(listingId: string) {
 
                     console.log(`[useUpcomingMeetClubLocations] Matched ${Object.keys(clubCoords).length} clubs from API`);
                 } catch (err: any) {
-                    console.error(`[useUpcomingMeetClubLocations] Error calling API:`, err);
-                    throw err;
+                    console.error(`[useUpcomingMeetClubLocations] Error calling API (will fall back to WSO):`, err);
+                    // Don't re-throw — let the WSO fallback below still run
                 }
 
                 // Step 4: For unmatched clubs, try WSO fallback
@@ -139,8 +140,8 @@ export function useUpcomingMeetClubLocations(listingId: string) {
 
                     // Match unmatched entries to normalized WSO map
                     unmatchedEntries.forEach((entry: any) => {
-                        const norm = entry.normalized;
-                        if (normalizedWsoMap[norm]) {
+                        const norm = entry.wso ? normalizeName(entry.wso) : entry.normalized;
+                        if (norm && normalizedWsoMap[norm]) {
                             wsoCoords[entry.name] = {
                                 lat: normalizedWsoMap[norm].lat,
                                 lng: normalizedWsoMap[norm].lng

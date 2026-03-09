@@ -44,10 +44,29 @@ export default async function UpcomingMeetPredictionPage({ params }: { params: P
 
     const entries: MeetEntry[] = entriesData || [];
 
-    // --- Best Q-Points Logic (Last 2 Years) ---
+    // --- Best Q-Points Logic (Last 2 Years relative to Meet Start Date) ---
     const lifterIds = [...new Set(entries.map(e => e.lifter_id).filter((id): id is number => id !== null))];
 
-    const twoYearsAgo = new Date();
+    // Fetch start_date from usaw_meet_listings to use as our prediction ceiling
+    const { data: listingData, error: listingError } = await supabase
+        .from('usaw_meet_listings')
+        .select('start_date, meet_name, latitude, longitude')
+        .eq('listing_id', datasetId)
+        .single();
+
+    if (listingError) {
+        console.error("Error fetching listing data:", listingError);
+    }
+
+    let cutoffDate = new Date();
+    if (listingData?.start_date) {
+        // We use the start_date to define the "present moment" for this meet
+        // ensuring we don't use results from AFTER this meet occurred to predict its outcome.
+        cutoffDate = new Date(listingData.start_date);
+    }
+
+    const cutoffDateStr = cutoffDate.toISOString().split('T')[0];
+    const twoYearsAgo = new Date(cutoffDate);
     twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
     const twoYearsAgoStr = twoYearsAgo.toISOString().split('T')[0];
 
@@ -73,7 +92,8 @@ export default async function UpcomingMeetPredictionPage({ params }: { params: P
             .from('usaw_meet_results')
             .select('lifter_id, q_youth, qpoints, q_masters, gamx_total, gamx_s, gamx_j, gamx_u, gamx_a, gamx_masters')
             .in('lifter_id', batch)
-            .gte('date', twoYearsAgoStr);
+            .gte('date', twoYearsAgoStr)
+            .lt('date', cutoffDateStr);
 
         if (!qpointsError && qpointsData) {
             for (const row of qpointsData) {
@@ -141,20 +161,15 @@ export default async function UpcomingMeetPredictionPage({ params }: { params: P
     }));
 
     // Extract basic meet info from the first entry if available
-    const meetName = entries.length > 0 && entries[0].meet_name ? entries[0].meet_name : `Meet ${datasetId}`;
-    const meetDate = entries.length > 0 && entries[0].event_date ? entries[0].event_date : "Unknown Date";
+    const fallbackMeetName = entries.length > 0 && entries[0].meet_name ? entries[0].meet_name : `Meet ${datasetId}`;
+    const fallbackMeetDate = entries.length > 0 && entries[0].event_date ? entries[0].event_date : "Unknown Date";
 
-    // Fetch meet data from usaw_meets for coordinates (if it exists)
-    const { data: meetData } = await supabase
-        .from('usaw_meets')
-        .select('name, date, state, wso, latitude, longitude')
-        .eq('listing_id', datasetId)
-        .single();
+    const finalMeetName = listingData?.meet_name || fallbackMeetName;
+    const finalMeetDate = listingData?.start_date ? new Date(listingData.start_date).toLocaleDateString(undefined, { year: 'numeric', month: 'numeric', day: 'numeric', timeZone: 'UTC' }) : fallbackMeetDate;
 
-    const finalMeetName = meetData?.name || meetName;
-    const finalMeetDate = meetData?.date || meetDate;
-    const meetLat = meetData?.latitude || null;
-    const meetLng = meetData?.longitude || null;
+    console.log(`[UpcomingMeetPage] Rendering datasetId ${datasetId} | DB listingData returning lat/lng:`, listingData?.latitude, listingData?.longitude);
+    const meetLat = listingData?.latitude || null;
+    const meetLng = listingData?.longitude || null;
 
     return (
         <AuthGuard requireAnyRole={[ROLES.ADMIN, ROLES.USAW_NATIONAL_TEAM_COACH, ROLES.VIP]}>
