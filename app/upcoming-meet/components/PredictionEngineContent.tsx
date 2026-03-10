@@ -509,7 +509,14 @@ export function PredictionEngineContent({ entries }: PredictionEngineContentProp
     };
 
     const renderGamxTable = (title: string, entriesList: MeetEntry[], isShowing: boolean, toggle: () => void) => {
-        const validEntries = entriesList.filter(e => e.best_gamx_total != null && e.best_gamx_total > 0);
+        const validEntries = entriesList.filter(e =>
+            (e.best_gamx_total != null && e.best_gamx_total > 0) ||
+            (e.best_gamx_s != null && e.best_gamx_s > 0) ||
+            (e.best_gamx_j != null && e.best_gamx_j > 0) ||
+            (e.best_gamx_u != null && e.best_gamx_u > 0) ||
+            (e.best_gamx_a != null && e.best_gamx_a > 0) ||
+            (e.best_gamx_masters != null && e.best_gamx_masters > 0)
+        );
         if (validEntries.length === 0) return null;
 
         const sortedEntries = [...validEntries].sort((a, b) => {
