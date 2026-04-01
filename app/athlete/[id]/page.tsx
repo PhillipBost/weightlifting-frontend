@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { createClient } from '../../../lib/supabase/client';
+import { supabaseIWF } from '../../../lib/supabaseIWF';
 import { Trophy, Calendar, Weight, TrendingUp, Medal, User, Building, MapPin, ExternalLink, ArrowLeft, BarChart3, Dumbbell, ChevronLeft, ChevronRight, Database, Activity } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, AreaChart, Area, ScatterChart, Scatter, Brush, ReferenceLine, Legend } from 'recharts';
 import jsPDF from 'jspdf';
@@ -393,6 +394,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
   const [showQMasters, setShowQMasters] = useState(false);
   const [performanceMouseX, setPerformanceMouseX] = useState<number | null>(null);
   const [qScoresMouseX, setQScoresMouseX] = useState<number | null>(null);
+  const [iwfProfiles, setIwfProfiles] = useState<{ id: string; url: string | null }[]>([]);
 
   // GAMX State
   const [autoScaleGamx, setAutoScaleGamx] = useState(true);
@@ -668,6 +670,30 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
             throw new Error('Athlete not found');
           }
 
+          // Fetch all IWF aliases (may be multiple)
+          const { data: aliasRows } = await supabase
+            .from('athlete_aliases')
+            .select('iwf_db_lifter_id')
+            .eq('usaw_lifter_id', athleteData.lifter_id);
+
+          const fetchedIwfProfiles: { id: string; url: string | null }[] = [];
+
+          if (aliasRows && aliasRows.length > 0) {
+            await Promise.all(aliasRows.map(async (alias: { iwf_db_lifter_id: number }) => {
+              const { data: iwfData } = await supabaseIWF
+                .from('iwf_lifters')
+                .select('iwf_lifter_id, iwf_athlete_url')
+                .eq('db_lifter_id', alias.iwf_db_lifter_id)
+                .maybeSingle();
+              if (iwfData?.iwf_lifter_id != null) {
+                fetchedIwfProfiles.push({
+                  id: String(iwfData.iwf_lifter_id),
+                  url: iwfData.iwf_athlete_url ?? null,
+                });
+              }
+            }));
+          }
+
           const { data: resultsData, error: resultsError } = await supabase
             .from('usaw_meet_results')
             .select(`
@@ -682,6 +708,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
           if (isMounted) {
             setAthlete(athleteData);
             setResults(resultsData || []);
+            setIwfProfiles(fetchedIwfProfiles);
           }
         };
 
@@ -976,68 +1003,98 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Athlete Header */}
         <div className="card-primary mb-8">
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between">
-            <div className="flex items-start space-x-6">
-              <div className="bg-app-tertiary rounded-full p-4">
+          <div className="flex flex-col md:flex-row md:items-start w-full">
+            {/* Athlete Info */}
+            <div className="flex items-start space-x-6 flex-1">
+              <div className="bg-app-tertiary rounded-full p-4 flex-shrink-0">
                 <User className="h-12 w-12 text-app-secondary" />
               </div>
-              <div>
-                <div className="flex flex-col">
-                  <h1 className="text-3xl font-bold text-app-primary mb-2">{athlete.athlete_name}</h1>
-                  <div className="flex flex-wrap gap-4 text-sm text-app-secondary">
-                    {athlete.membership_number && (
-                      <div className="flex items-center space-x-1">
-                        <span>USAW Membership #{athlete.membership_number}</span>
-                      </div>
-                    )}
-                    {athlete.gender && (
-                      <div className="flex items-center space-x-1">
-                        <span>{athlete.gender === 'M' ? 'Male' : 'Female'}</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap gap-4 text-sm text-app-secondary mt-2">
-                    {recentInfo.wso && (
-                      <div className="flex items-center space-x-1">
-                        <MapPin className="h-4 w-4" />
-                        <span>WSO: {recentInfo.wso}</span>
-                      </div>
-                    )}
-                    {recentInfo.club && (
-                      <div className="flex items-center space-x-1">
-                        <Dumbbell className="h-4 w-4" />
-                        <span>Barbell Club: {recentInfo.club}</span>
-                      </div>
-                    )}
-                  </div>
+              <div className="flex flex-col">
+                <h1 className="text-3xl font-bold text-app-primary mb-2">{athlete.athlete_name}</h1>
+                <div className="flex flex-wrap gap-4 text-sm text-app-secondary">
+                  {athlete.membership_number && (
+                    <div className="flex items-center space-x-1">
+                      <span>USAW Membership #{athlete.membership_number}</span>
+                    </div>
+                  )}
+                  {athlete.gender && (
+                    <div className="flex items-center space-x-1">
+                      <span>{athlete.gender === 'M' ? 'Male' : 'Female'}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-4 text-sm text-app-secondary mt-2">
+                  {recentInfo.wso && (
+                    <div className="flex items-center space-x-1">
+                      <MapPin className="h-4 w-4" />
+                      <span>WSO: {recentInfo.wso}</span>
+                    </div>
+                  )}
+                  {recentInfo.club && (
+                    <div className="flex items-center space-x-1">
+                      <Dumbbell className="h-4 w-4" />
+                      <span>Barbell Club: {recentInfo.club}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
+            {/* Internal Navigation Links */}
+            {iwfProfiles.length > 0 && (
+              <div className="flex flex-col gap-1 my-4 md:my-0 md:pt-2 items-start justify-center px-4">
+                {iwfProfiles.map((p) => (
+                  <Link
+                    key={p.id}
+                    href={`/athlete/iwf/${p.id}`}
+                    className="inline-flex items-center space-x-2 px-3 py-1.5 bg-transparent hover:bg-app-tertiary border border-app-secondary rounded-md text-app-secondary hover:text-white transition-colors text-sm"
+                  >
+                    <User className="h-3.5 w-3.5" />
+                    <span>View Linked IWF Results{iwfProfiles.length > 1 ? ` (${p.id})` : ''}</span>
+                  </Link>
+                ))}
+              </div>
+            )}
+
             {/* External Profile Links */}
-            <div className="flex flex-col gap-2 mt-4 md:mt-0">
-              {athlete.internal_id && (
-                <a
-                  href={`https://usaweightlifting.sport80.com/public/rankings/member/${athlete.internal_id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  <span>Sport80 Profile{athlete.internal_id_2 ? ' 1' : ''}</span>
-                </a>
-              )}
-              {athlete.internal_id_2 && (
-                <a
-                  href={`https://usaweightlifting.sport80.com/public/rankings/member/${athlete.internal_id_2}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  <span>Sport80 Profile 2</span>
-                </a>
-              )}
+            <div className="flex flex-col mt-4 md:mt-0 md:items-end flex-1">
+              <div className="flex flex-col gap-2 items-end">
+                <p className="text-xs font-semibold text-app-secondary border-b border-app-secondary pb-0.5 mb-1 self-stretch text-right">External Links</p>
+                {athlete.internal_id && (
+                  <a
+                    href={`https://usaweightlifting.sport80.com/public/rankings/member/${athlete.internal_id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors text-sm"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    <span>USAW Official Profile{athlete.internal_id_2 ? ' 1' : ''}</span>
+                  </a>
+                )}
+                {athlete.internal_id_2 && (
+                  <a
+                    href={`https://usaweightlifting.sport80.com/public/rankings/member/${athlete.internal_id_2}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors text-sm"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    <span>USAW Official Profile 2</span>
+                  </a>
+                )}
+                {iwfProfiles.map((p) => p.url && (
+                  <a
+                    key={p.id}
+                    href={p.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors text-sm"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    <span>IWF Official Profile{iwfProfiles.filter(x => x.url).length > 1 ? ` (${p.id})` : ''}</span>
+                  </a>
+                ))}
+              </div>
             </div>
           </div>
         </div>
