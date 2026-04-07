@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { createClient } from '../../../lib/supabase/client';
-import { supabaseIWF } from '../../../lib/supabaseIWF';
+import { supabaseIWF, type IWFMeetResult } from '../../../lib/supabaseIWF';
+import { adaptIWFResult } from '../../../lib/adapters/iwfAdapter';
 import { Trophy, Calendar, Weight, TrendingUp, Medal, User, Building, MapPin, ExternalLink, ArrowLeft, BarChart3, Dumbbell, ChevronLeft, ChevronRight, Database, Activity } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, AreaChart, Area, ScatterChart, Scatter, Brush, ReferenceLine, Legend } from 'recharts';
 import jsPDF from 'jspdf';
@@ -374,7 +375,16 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
   const supabase = createClient();
   const [selectedTab, setSelectedTab] = useState('overview');
   const [athlete, setAthlete] = useState<any>(null);
-  const [results, setResults] = useState<any[]>([]);
+  const [usawResults, setUsawResults] = useState<any[]>([]);
+  const [iwfResults, setIwfResults] = useState<any[]>([]);
+  const [showIwfResults, setShowIwfResults] = useState(false);
+  
+  const results = useMemo(() => {
+    if (!showIwfResults) return usawResults;
+    const combined = [...usawResults, ...iwfResults];
+    return combined.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [usawResults, iwfResults, showIwfResults]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [duplicateAthletes, setDuplicateAthletes] = useState<any[]>([]);
@@ -705,9 +715,30 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
 
           if (resultsError) throw resultsError;
 
+          let iwfResultsData: any[] = [];
+          if (aliasRows && aliasRows.length > 0) {
+            const iwfDbIds = aliasRows.map((a: any) => a.iwf_db_lifter_id);
+            if (iwfDbIds.length > 0) {
+              const { data: iwfData, error: iwfError } = await supabaseIWF
+                .from('iwf_meet_results')
+                .select('*, iwf_meets(iwf_meet_id)')
+                .in('db_lifter_id', iwfDbIds);
+                
+              if (!iwfError && iwfData) {
+                iwfResultsData = (iwfData as IWFMeetResult[]).map(result => ({
+                  ...adaptIWFResult(result),
+                  _source: 'IWF'
+                }));
+              }
+            }
+          }
+          
+          const taggedUsawResults = (resultsData || []).map((r: any) => ({ ...r, _source: 'USAW' }));
+
           if (isMounted) {
             setAthlete(athleteData);
-            setResults(resultsData || []);
+            setUsawResults(taggedUsawResults);
+            setIwfResults(iwfResultsData);
             setIwfProfiles(fetchedIwfProfiles);
           }
         };
@@ -791,7 +822,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
     .map(r => {
       const baseData: any = {
         date: r.date,
-        meet: r.meet_name || 'Unknown',
+        meet: r._source === 'IWF' ? `[IWF] ${r.meet_name || 'Unknown'}` : (r.meet_name || 'Unknown'),
         snatch: parseInt(r.best_snatch || '0') || null,
         cleanJerk: parseInt(r.best_cj || '0') || null,
         total: parseInt(r.total || '0') || null,
@@ -1040,9 +1071,9 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
               </div>
             </div>
 
-            {/* Internal Navigation Links */}
+            {/* Internal Navigation Links & Toggle */}
             {iwfProfiles.length > 0 && (
-              <div className="flex flex-col gap-1 my-4 md:my-0 md:pt-2 items-start justify-center px-4">
+              <div className="flex flex-col gap-3 my-4 md:my-0 md:pt-2 items-start justify-center px-4">
                 {iwfProfiles.map((p) => (
                   <Link
                     key={p.id}
@@ -1053,6 +1084,25 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                     <span>View Linked IWF Results{iwfProfiles.length > 1 ? ` (${p.id})` : ''}</span>
                   </Link>
                 ))}
+                
+                {/* IWF Results Toggle */}
+                {iwfResults.length > 0 && (
+                  <label className="flex items-center space-x-3 cursor-pointer mt-1">
+                    <div className="relative">
+                      <input 
+                        type="checkbox" 
+                        className="sr-only" 
+                        checked={showIwfResults}
+                        onChange={(e) => setShowIwfResults(e.target.checked)}
+                      />
+                      <div className={`block w-10 h-6 rounded-full transition-colors ${showIwfResults ? 'bg-accent-primary' : 'bg-app-surface border border-app-secondary'}`}></div>
+                      <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${showIwfResults ? 'transform translate-x-4' : ''}`}></div>
+                    </div>
+                    <span className="text-sm font-medium text-app-secondary select-none text-nowrap">
+                      Include IWF Results
+                    </span>
+                  </label>
+                )}
               </div>
             )}
 
@@ -2787,11 +2837,16 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                                 <td className="px-2 py-1 whitespace-nowrap text-xs">{new Date(result.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
                                 <td className="px-2 py-1 max-w-20 text-xs">
                                   <Link
-                                    href={`/meet/${result.meet_id}`}
+                                    href={result._source === 'IWF' ? `/meet/iwf/${result.meet_id}` : `/meet/${result.meet_id}`}
                                     className="text-accent-primary hover:text-accent-primary-hover transition-colors truncate max-w-full block text-left hover:underline"
                                     title={result.meet_name}
                                   >
                                     {result.meet_name}
+                                    {result._source === 'IWF' && (
+                                      <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-900/30 text-red-400 border border-red-800/50">
+                                        IWF
+                                      </span>
+                                    )}
                                   </Link>
                                 </td>
                                 <td className="px-2 py-1 whitespace-nowrap text-xs">{result.meets?.Level || '-'}</td>
@@ -2825,11 +2880,16 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                                 <td className="px-2 py-1 whitespace-nowrap text-xs">{new Date(result.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
                                 <td className="px-2 py-1 max-w-xs text-xs">
                                   <Link
-                                    href={`/meet/${result.meet_id}`}
+                                    href={result._source === 'IWF' ? `/meet/iwf/${result.meet_id}` : `/meet/${result.meet_id}`}
                                     className="text-accent-primary hover:text-accent-primary-hover transition-colors truncate max-w-full block text-left hover:underline"
                                     title={result.meet_name}
                                   >
                                     {result.meet_name}
+                                    {result._source === 'IWF' && (
+                                      <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-900/30 text-red-400 border border-red-800/50">
+                                        IWF
+                                      </span>
+                                    )}
                                   </Link>
                                 </td>
                                 <td className="px-2 py-1 whitespace-nowrap text-xs">{result.weight_class || '-'}</td>
