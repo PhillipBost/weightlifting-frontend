@@ -377,13 +377,14 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
   const [athlete, setAthlete] = useState<any>(null);
   const [iwfResults, setIwfResults] = useState<any[]>([]);
   const [usawResults, setUsawResults] = useState<any[]>([]);
+  const [siblingIwfResults, setSiblingIwfResults] = useState<any[]>([]);
   const [showUsawResults, setShowUsawResults] = useState(false);
   
   const results = useMemo(() => {
     if (!showUsawResults) return iwfResults;
-    const combined = [...iwfResults, ...usawResults];
+    const combined = [...iwfResults, ...usawResults, ...siblingIwfResults];
     return combined.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [iwfResults, usawResults, showUsawResults]);
+  }, [iwfResults, usawResults, siblingIwfResults, showUsawResults]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -644,16 +645,17 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
         console.log('Athlete data validated, continuing...');
 
         // Fetch aliases: find this IWF athlete's USAW counterpart and sibling IWF profiles
-        // Step 1: find alias row matching current IWF athlete's db_lifter_id
+        // Step 1: find alias row matching current IWF athlete's db_lifter_id (USAW-linked rows)
         const { data: myAliasRow } = await supabase
           .from('athlete_aliases')
           .select('usaw_lifter_id, usaw_lifters(membership_number, internal_id, lifter_id)')
           .eq('iwf_db_lifter_id', athleteData.lifter_id)
+          .not('usaw_lifter_id', 'is', null)
           .limit(1)
           .maybeSingle() as any;
 
         let fetchedUsawProfile: { id: string | number; internalId: number | null } | null = null;
-        const fetchedSiblings: { id: string; url: string | null }[] = [];
+        const fetchedSiblings: { id: string; url: string | null; dbId: number }[] = [];
 
         if (myAliasRow?.usaw_lifters) {
           const usaw = Array.isArray(myAliasRow.usaw_lifters) ? myAliasRow.usaw_lifters[0] : myAliasRow.usaw_lifters;
@@ -663,7 +665,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
               internalId: usaw.internal_id ?? null,
             };
 
-            // Step 2: find all IWF aliases for the same USAW athlete (siblings)
+            // Step 2: find all IWF aliases for the same USAW athlete (USAW-bridged siblings)
             const { data: allAliasRows } = await supabase
               .from('athlete_aliases')
               .select('iwf_db_lifter_id')
@@ -682,11 +684,61 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                   fetchedSiblings.push({
                     id: String(sibData.iwf_lifter_id),
                     url: sibData.iwf_athlete_url ?? null,
+                    dbId: row.iwf_db_lifter_id,
                   });
                 }
               }));
             }
           }
+        }
+
+        // Step 3: find direct IWF-to-IWF alias links (iwf_db_lifter_id_2 rows).
+        // These are rows where usaw_lifter_id IS NULL and the pairing is purely IWF↔IWF.
+        // Query both columns since the current athlete could appear in either position.
+        const seenSiblingIds = new Set(fetchedSiblings.map(s => s.id));
+
+        const [{ data: iwfAliasAsMain }, { data: iwfAliasAsSecond }] = await Promise.all([
+          // Current athlete is in iwf_db_lifter_id (primary slot), partner is in iwf_db_lifter_id_2
+          supabase
+            .from('athlete_aliases')
+            .select('iwf_db_lifter_id_2')
+            .eq('iwf_db_lifter_id', athleteData.lifter_id)
+            .is('usaw_lifter_id', null)
+            .not('iwf_db_lifter_id_2', 'is', null) as any,
+          // Current athlete is in iwf_db_lifter_id_2 (secondary slot), partner is in iwf_db_lifter_id
+          supabase
+            .from('athlete_aliases')
+            .select('iwf_db_lifter_id')
+            .eq('iwf_db_lifter_id_2', athleteData.lifter_id)
+            .is('usaw_lifter_id', null) as any,
+        ]);
+
+        // Collect all partner db_lifter_ids from IWF-to-IWF rows
+        const iwfPartnerDbIds: number[] = [
+          ...((iwfAliasAsMain || []).map((r: any) => r.iwf_db_lifter_id_2).filter(Boolean)),
+          ...((iwfAliasAsSecond || []).map((r: any) => r.iwf_db_lifter_id).filter(Boolean)),
+        ];
+
+        if (iwfPartnerDbIds.length > 0) {
+          await Promise.all(iwfPartnerDbIds.map(async (partnerDbId: number) => {
+            const { data: partnerData } = await supabaseIWF
+              .from('iwf_lifters')
+              .select('iwf_lifter_id, iwf_athlete_url')
+              .eq('db_lifter_id', partnerDbId)
+              .maybeSingle();
+            if (partnerData?.iwf_lifter_id != null) {
+              const partnerId = String(partnerData.iwf_lifter_id);
+              // Deduplicate against USAW-bridged siblings already found
+              if (!seenSiblingIds.has(partnerId)) {
+                fetchedSiblings.push({
+                  id: partnerId,
+                  url: partnerData.iwf_athlete_url ?? null,
+                  dbId: partnerDbId,
+                });
+                seenSiblingIds.add(partnerId);
+              }
+            }
+          }));
         }
         const { data: resultsData, error: resultsError } = await supabaseIWF
           .from('iwf_meet_results')
@@ -716,9 +768,30 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
           }
         }
 
+        // Fetch results for sibling IWF profiles (same person, different IWF profile)
+        let fetchedSiblingIwfResults: any[] = [];
+        if (fetchedSiblings.length > 0) {
+          const siblingResults = await Promise.all(
+            fetchedSiblings.map(async (sib) => {
+              const { data: sibResultsData } = await supabaseIWF
+                .from('iwf_meet_results')
+                .select('*, iwf_meets(iwf_meet_id)')
+                .eq('db_lifter_id', sib.dbId)
+                .order('date', { ascending: false });
+              return (sibResultsData || []).map((result: IWFMeetResult) => ({
+                ...adaptIWFResult(result),
+                _source: 'IWF',
+                _siblingId: sib.id,
+              }));
+            })
+          );
+          fetchedSiblingIwfResults = siblingResults.flat();
+        }
+
         setAthlete(athleteData);
         setIwfResults(adaptedResults);
         setUsawResults(fetchedUsawResults);
+        setSiblingIwfResults(fetchedSiblingIwfResults);
         setUsawProfile(fetchedUsawProfile);
         setSiblingIwfProfiles(fetchedSiblings);
       } catch (err: any) {
@@ -1002,8 +1075,8 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                   ))}
                 </div>
                 
-                {/* USAW Results Toggle */}
-                {usawResults.length > 0 && (
+                {/* Linked Results Toggle — covers USAW and/or sibling IWF results */}
+                {(usawResults.length > 0 || siblingIwfResults.length > 0) && (
                   <label className="flex items-center space-x-3 cursor-pointer mt-1">
                     <div className="relative">
                       <input 
@@ -1016,7 +1089,11 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                       <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${showUsawResults ? 'transform translate-x-4' : ''}`}></div>
                     </div>
                     <span className="text-sm font-medium text-app-secondary select-none text-nowrap">
-                      Include USAW Results
+                      {usawResults.length > 0 && siblingIwfResults.length > 0
+                        ? 'Include USAW and Linked IWF Results'
+                        : usawResults.length > 0
+                        ? 'Include USAW Results'
+                        : 'Include Linked IWF Results'}
                     </span>
                   </label>
                 )}
