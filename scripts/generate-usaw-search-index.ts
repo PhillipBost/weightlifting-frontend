@@ -187,31 +187,25 @@ async function generateUSAWAthleteIndex() {
             if (lifters && lifters.length > 0) {
                 const lifterIds = lifters.map(l => l.lifter_id);
                 const resultsMap = new Map();
+                const chunkSize = 200;
                 
-                let resultPage = 0;
-                let moreResults = true;
-                const resultPageSize = 1000;
-
-                while (moreResults) {
+                for (let i = 0; i < lifterIds.length; i += chunkSize) {
+                    const subChunk = lifterIds.slice(i, i + chunkSize);
+                    
                     const { data: results, error: resError } = await supabase
                         .from('usaw_meet_results')
                         .select('lifter_id, date, gender, club_name, wso')
-                        .in('lifter_id', lifterIds)
-                        .order('date', { ascending: false })
-                        .range(resultPage * resultPageSize, (resultPage + 1) * resultPageSize - 1);
+                        .in('lifter_id', subChunk)
+                        .order('date', { ascending: false });
 
-                    if (resError) console.warn('Error fetching results', resError);
-
-                    if (results && results.length > 0) {
+                    if (resError) {
+                        console.warn('Error fetching results chunk:', resError);
+                    } else if (results) {
                         results.forEach(r => {
                             if (!resultsMap.has(r.lifter_id)) {
                                 resultsMap.set(r.lifter_id, r); // First one is latest due to order
                             }
                         });
-                        resultPage++;
-                        if (results.length < resultPageSize) moreResults = false;
-                    } else {
-                        moreResults = false;
                     }
                 }
 
