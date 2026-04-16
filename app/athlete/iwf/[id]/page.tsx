@@ -13,9 +13,6 @@ import { supabaseIWF, type IWFLifter, type IWFMeetResult } from '../../../../lib
 import { createClient } from '../../../../lib/supabase/client';
 import { adaptIWFAthlete, adaptIWFResult } from '../../../../lib/adapters/iwfAdapter';
 import { Trophy, Calendar, Weight, TrendingUp, Medal, User, Building, MapPin, ExternalLink, ArrowLeft, BarChart3, Dumbbell, ChevronLeft, ChevronRight, Database, Activity } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, AreaChart, Area, ScatterChart, Scatter, Brush, ReferenceLine, Legend } from 'recharts';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import Papa from 'papaparse';
 import { ThemeSwitcher } from '../../../components/ThemeSwitcher';
 import { AthleteCard } from '../../../components/AthleteCard';
@@ -55,113 +52,6 @@ const getBestGamx = (result: any) => {
     value: maxScore.value.toFixed(0),
     style: { color: maxScore.color, fontWeight: 'bold' }
   };
-};
-
-// Improved export functions
-const exportChartToPDF = async (chartRef: React.RefObject<HTMLDivElement>, filename: string) => {
-  if (!chartRef.current) return;
-
-  try {
-    const element = chartRef.current;
-    const rect = element.getBoundingClientRect();
-
-    const canvas = await html2canvas(element, {
-      backgroundColor: '#1f2937', // Use a fixed color for exports
-      scale: 1,
-      useCORS: true,
-      allowTaint: true,
-      width: rect.width,
-      height: rect.height,
-      scrollX: 0,
-      scrollY: 0,
-      windowWidth: window.innerWidth,
-      windowHeight: window.innerHeight,
-      x: 0,
-      y: 0,
-    });
-
-    const imgData = canvas.toDataURL('image/png', 1.0);
-    const imgWidth = canvas.width;
-    const imgHeight = canvas.height;
-
-    const pdf = new jsPDF({
-      orientation: 'landscape',
-      unit: 'mm',
-      format: 'a3'
-    });
-
-    pdf.addImage(imgData, 'PNG', 20, 20, imgWidth, imgHeight);
-    pdf.save(filename);
-  } catch (error: any) {
-    console.error('Full error details:', error);
-    alert(`Failed to export PDF: ${error.message}`);
-  }
-};
-
-const exportTableToPDF = async (tableRef: React.RefObject<HTMLDivElement>, filename: string, athleteName: string) => {
-  if (!tableRef.current) return;
-
-  try {
-    const element = tableRef.current;
-    const table = element.querySelector('table');
-    if (!table) {
-      alert('No table found to export');
-      return;
-    }
-
-    const originalStyles = {
-      width: table.style.width,
-      fontSize: table.style.fontSize,
-      transform: table.style.transform,
-      transformOrigin: table.style.transformOrigin
-    };
-
-    const tableWidth = table.scrollWidth;
-    const viewportWidth = window.innerWidth - 100;
-    const scale = Math.min(1, viewportWidth / tableWidth);
-
-    table.style.transform = `scale(${scale})`;
-    table.style.transformOrigin = 'top left';
-    table.style.width = `${tableWidth}px`;
-    table.style.fontSize = '10px';
-
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    const canvas = await html2canvas(element, {
-      backgroundColor: '#1f2937', // Use fixed color for exports
-      scale: 1,
-      useCORS: true,
-      allowTaint: true,
-      scrollX: 0,
-      scrollY: 0,
-      windowWidth: tableWidth * scale + 100,
-      windowHeight: window.innerHeight,
-      width: tableWidth * scale + 40,
-      height: element.scrollHeight,
-    });
-
-    // Restore original styles
-    Object.assign(table.style, originalStyles);
-
-    const imgData = canvas.toDataURL('image/png', 1.0);
-    const imgWidth = canvas.width;
-    const imgHeight = canvas.height;
-
-    const pdf = new jsPDF({
-      orientation: 'landscape',
-      unit: 'px',
-      format: [imgWidth + 40, imgHeight + 80]
-    });
-
-    pdf.setFontSize(16);
-    pdf.setTextColor(0, 0, 0);
-    pdf.text(`${athleteName} - Competition Results`, 20, 40);
-    pdf.addImage(imgData, 'PNG', 20, 60, imgWidth, imgHeight);
-    pdf.save(filename);
-  } catch (error) {
-    console.error('Error exporting table:', error);
-    alert('Failed to export table. Please try again.');
-  }
 };
 
 const exportTableToCSV = (results: any[], athleteName: string, showAllColumns: boolean) => {
@@ -412,6 +302,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
   const [qScoresMouseX, setQScoresMouseX] = useState<number | null>(null);
   const [usawProfile, setUsawProfile] = useState<{ id: string | number; internalId: number | null } | null>(null);
   const [siblingIwfProfiles, setSiblingIwfProfiles] = useState<{ id: string; url: string | null }[]>([]);
+  const [linksLoading, setLinksLoading] = useState(true);
 
   // GAMX State
   const [autoScaleGamx, setAutoScaleGamx] = useState(true);
@@ -799,6 +690,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
         setSiblingIwfResults(fetchedSiblingIwfResults);
         setUsawProfile(fetchedUsawProfile);
         setSiblingIwfProfiles(fetchedSiblings);
+        setLinksLoading(false);
       } catch (err: any) {
         setError(err.message);
         console.error('Error fetching athlete data:', err);
@@ -1031,55 +923,65 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
               </div>
             </div>
 
-            {/* Internal Navigation Links & Toggle */}
-            {(usawProfile || siblingIwfProfiles.length > 0) && (
-              <div className="flex flex-col gap-3 my-4 md:my-0 md:pt-2 items-start justify-center px-4">
-                <div className="flex flex-col gap-1">
-                  {usawProfile && (
-                    <Link
-                      href={`/athlete/${usawProfile.id}`}
-                      className="inline-flex items-center space-x-2 px-3 py-1.5 bg-transparent hover:bg-app-tertiary border border-app-secondary rounded-md text-app-secondary hover:text-white transition-colors text-sm mb-1"
-                    >
-                      <User className="h-3.5 w-3.5" />
-                      <span>View Linked USAW Results</span>
-                    </Link>
-                  )}
-                  {siblingIwfProfiles.map((p) => (
-                    <Link
-                      key={p.id}
-                      href={`/athlete/iwf/${p.id}`}
-                      className="inline-flex items-center space-x-2 px-3 py-1.5 bg-transparent hover:bg-app-tertiary border border-app-secondary rounded-md text-app-secondary hover:text-white transition-colors text-sm"
-                    >
-                      <User className="h-3.5 w-3.5" />
-                      <span>View Linked IWF Results ({p.id})</span>
-                    </Link>
-                  ))}
+            {/* Internal Navigation Links & Toggle — always rendered to prevent layout shift */}
+            <div className="flex flex-col gap-3 my-4 md:my-0 md:pt-2 items-start justify-center px-4 min-w-[180px]">
+              {linksLoading ? (
+                // Skeleton placeholder — same height as typical link block
+                <div className="flex flex-col gap-1 animate-pulse">
+                  <div className="h-8 w-48 bg-app-tertiary rounded-md"></div>
                 </div>
-                
-                {/* Linked Results Toggle — covers USAW and/or sibling IWF results */}
-                {(usawResults.length > 0 || siblingIwfResults.length > 0) && (
-                  <label className="flex items-center space-x-3 cursor-pointer mt-1">
-                    <div className="relative">
-                      <input 
-                        type="checkbox" 
-                        className="sr-only" 
-                        checked={showUsawResults}
-                        onChange={(e) => setShowUsawResults(e.target.checked)}
-                      />
-                      <div className={`block w-10 h-6 rounded-full transition-colors ${showUsawResults ? 'bg-accent-primary' : 'bg-app-surface border border-app-secondary'}`}></div>
-                      <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${showUsawResults ? 'transform translate-x-4' : ''}`}></div>
-                    </div>
-                    <span className="text-sm font-medium text-app-secondary select-none text-nowrap">
-                      {usawResults.length > 0 && siblingIwfResults.length > 0
-                        ? 'Include USAW and Linked IWF Results'
-                        : usawResults.length > 0
-                        ? 'Include USAW Results'
-                        : 'Include Linked IWF Results'}
-                    </span>
-                  </label>
-                )}
-              </div>
-            )}
+              ) : (usawProfile || siblingIwfProfiles.length > 0) ? (
+                <>
+                  <div className="flex flex-col gap-1">
+                    {usawProfile && (
+                      <Link
+                        href={`/athlete/${usawProfile.id}`}
+                        className="inline-flex items-center space-x-2 px-3 py-1.5 bg-transparent hover:bg-app-tertiary border border-app-secondary rounded-md text-app-secondary hover:text-white transition-colors text-sm mb-1"
+                      >
+                        <User className="h-3.5 w-3.5" />
+                        <span>View Linked USAW Results</span>
+                      </Link>
+                    )}
+                    {siblingIwfProfiles.map((p) => (
+                      <Link
+                        key={p.id}
+                        href={`/athlete/iwf/${p.id}`}
+                        className="inline-flex items-center space-x-2 px-3 py-1.5 bg-transparent hover:bg-app-tertiary border border-app-secondary rounded-md text-app-secondary hover:text-white transition-colors text-sm"
+                      >
+                        <User className="h-3.5 w-3.5" />
+                        <span>View Linked IWF Results ({p.id})</span>
+                      </Link>
+                    ))}
+                  </div>
+
+                  {/* Linked Results Toggle */}
+                  {(usawResults.length > 0 || siblingIwfResults.length > 0) && (
+                    <label className="flex items-center space-x-3 cursor-pointer mt-1">
+                      <div className="relative">
+                        <input
+                          type="checkbox"
+                          className="sr-only"
+                          checked={showUsawResults}
+                          onChange={(e) => setShowUsawResults(e.target.checked)}
+                        />
+                        <div className={`block w-10 h-6 rounded-full transition-colors ${showUsawResults ? 'bg-accent-primary' : 'bg-app-surface border border-app-secondary'}`}></div>
+                        <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${showUsawResults ? 'transform translate-x-4' : ''}`}></div>
+                      </div>
+                      <span className="text-sm font-medium text-app-secondary select-none text-nowrap">
+                        {usawResults.length > 0 && siblingIwfResults.length > 0
+                          ? 'Include USAW and Linked IWF Results'
+                          : usawResults.length > 0
+                          ? 'Include USAW Results'
+                          : 'Include Linked IWF Results'}
+                      </span>
+                    </label>
+                  )}
+                </>
+              ) : (
+                // No linked profiles — empty but space still reserved
+                <div className="h-8"></div>
+              )}
+            </div>
 
             {/* External Profile Links */}
             <div className="flex flex-col mt-4 md:mt-0 md:items-end flex-1">

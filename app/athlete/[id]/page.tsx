@@ -14,9 +14,6 @@ import { createClient } from '../../../lib/supabase/client';
 import { supabaseIWF, type IWFMeetResult } from '../../../lib/supabaseIWF';
 import { adaptIWFResult } from '../../../lib/adapters/iwfAdapter';
 import { Trophy, Calendar, Weight, TrendingUp, Medal, User, Building, MapPin, ExternalLink, ArrowLeft, BarChart3, Dumbbell, ChevronLeft, ChevronRight, Database, Activity } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, AreaChart, Area, ScatterChart, Scatter, Brush, ReferenceLine, Legend } from 'recharts';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import Papa from 'papaparse';
 import { ThemeSwitcher } from '../../components/ThemeSwitcher';
 import { AthleteCard } from '../../components/AthleteCard';
@@ -56,113 +53,6 @@ const getBestGamx = (result: any) => {
     value: maxScore.value.toFixed(0),
     style: { color: maxScore.color, fontWeight: 'bold' }
   };
-};
-
-// Improved export functions
-const exportChartToPDF = async (chartRef: React.RefObject<HTMLDivElement>, filename: string) => {
-  if (!chartRef.current) return;
-
-  try {
-    const element = chartRef.current;
-    const rect = element.getBoundingClientRect();
-
-    const canvas = await html2canvas(element, {
-      backgroundColor: '#1f2937', // Use a fixed color for exports
-      scale: 1,
-      useCORS: true,
-      allowTaint: true,
-      width: rect.width,
-      height: rect.height,
-      scrollX: 0,
-      scrollY: 0,
-      windowWidth: window.innerWidth,
-      windowHeight: window.innerHeight,
-      x: 0,
-      y: 0,
-    });
-
-    const imgData = canvas.toDataURL('image/png', 1.0);
-    const imgWidth = canvas.width;
-    const imgHeight = canvas.height;
-
-    const pdf = new jsPDF({
-      orientation: 'landscape',
-      unit: 'mm',
-      format: 'a3'
-    });
-
-    pdf.addImage(imgData, 'PNG', 20, 20, imgWidth, imgHeight);
-    pdf.save(filename);
-  } catch (error: any) {
-    console.error('Full error details:', error);
-    alert(`Failed to export PDF: ${error.message}`);
-  }
-};
-
-const exportTableToPDF = async (tableRef: React.RefObject<HTMLDivElement>, filename: string, athleteName: string) => {
-  if (!tableRef.current) return;
-
-  try {
-    const element = tableRef.current;
-    const table = element.querySelector('table');
-    if (!table) {
-      alert('No table found to export');
-      return;
-    }
-
-    const originalStyles = {
-      width: table.style.width,
-      fontSize: table.style.fontSize,
-      transform: table.style.transform,
-      transformOrigin: table.style.transformOrigin
-    };
-
-    const tableWidth = table.scrollWidth;
-    const viewportWidth = window.innerWidth - 100;
-    const scale = Math.min(1, viewportWidth / tableWidth);
-
-    table.style.transform = `scale(${scale})`;
-    table.style.transformOrigin = 'top left';
-    table.style.width = `${tableWidth}px`;
-    table.style.fontSize = '10px';
-
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    const canvas = await html2canvas(element, {
-      backgroundColor: '#1f2937', // Use fixed color for exports
-      scale: 1,
-      useCORS: true,
-      allowTaint: true,
-      scrollX: 0,
-      scrollY: 0,
-      windowWidth: tableWidth * scale + 100,
-      windowHeight: window.innerHeight,
-      width: tableWidth * scale + 40,
-      height: element.scrollHeight,
-    });
-
-    // Restore original styles
-    Object.assign(table.style, originalStyles);
-
-    const imgData = canvas.toDataURL('image/png', 1.0);
-    const imgWidth = canvas.width;
-    const imgHeight = canvas.height;
-
-    const pdf = new jsPDF({
-      orientation: 'landscape',
-      unit: 'px',
-      format: [imgWidth + 40, imgHeight + 80]
-    });
-
-    pdf.setFontSize(16);
-    pdf.setTextColor(0, 0, 0);
-    pdf.text(`${athleteName} - Competition Results`, 20, 40);
-    pdf.addImage(imgData, 'PNG', 20, 60, imgWidth, imgHeight);
-    pdf.save(filename);
-  } catch (error) {
-    console.error('Error exporting table:', error);
-    alert('Failed to export table. Please try again.');
-  }
 };
 
 const exportTableToCSV = (results: any[], athleteName: string, showAllColumns: boolean) => {
