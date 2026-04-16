@@ -186,57 +186,33 @@ async function generateUSAWAthleteIndex() {
 
             if (lifters && lifters.length > 0) {
                 const lifterIds = lifters.map(l => l.lifter_id);
-
-                // Fetch latest result for these lifters
-                // We can't easily do "latest per group" in one query without RPC.
-                // Let's just fetch all results for these lifters (select lifter_id, date, ...) and process in memory?
-                // If a lifter has 100 results, 1000 lifters = 100k rows. Might be too much for one HTTP request.
-
-                // Let's use a custom RPC if available? The user mentioned `get_latest_lifter_metadata`.
-                // Let's try to call it?
-                // const { data: metadata } = await supabase.rpc('get_latest_lifter_metadata', { lifter_ids: lifterIds });
-
-                // If we can't use RPC, we might have to skip metadata for now or accept the N+1 (batching) cost?
-                // Or just fetch `lifters` and be done with it. The user wants "similar process".
-                // The IWF one has metadata.
-
-                // Let's try to fetch `meet_results` for the batch, but only select necessary columns.
-                // And maybe we don't need ALL results.
-                // What if we just fetch `lifters` and `meet_results` (limit 1) via the relationship?
-                // `select('*, meet_results(date, gender, club_name, wso)')`
-                // If we don't specify limit, it fetches all.
-
-                // Let's assume for this script, we will just index the `lifters` basic info.
-                // The user can refine it later if they need the metadata in the search preview.
-                // Wait, the search preview SHOWS the club and wso.
-                // So it is important.
-
-                // Let's try to fetch `meet_results` with a limit.
-                // `meet_results(date, gender, club_name, wso)` and process.
-                // We'll just do it. If it's slow, it's a build script.
-
-                // Actually, better approach:
-                // Fetch `lifters`
-                // For each batch of 1000:
-                //   Fetch `meet_results` where lifter_id in (batch_ids).
-                //   In memory, group by lifter_id and pick latest.
-                //   Merge.
-
-                const { data: results, error: resError } = await supabase
-                    .from('usaw_meet_results')
-                    .select('lifter_id, date, gender, club_name, wso')
-                    .in('lifter_id', lifterIds)
-                    .order('date', { ascending: false });
-
-                if (resError) console.warn('Error fetching results', resError);
-
                 const resultsMap = new Map();
-                if (results) {
-                    results.forEach(r => {
-                        if (!resultsMap.has(r.lifter_id)) {
-                            resultsMap.set(r.lifter_id, r); // First one is latest due to order
-                        }
-                    });
+                
+                let resultPage = 0;
+                let moreResults = true;
+                const resultPageSize = 1000;
+
+                while (moreResults) {
+                    const { data: results, error: resError } = await supabase
+                        .from('usaw_meet_results')
+                        .select('lifter_id, date, gender, club_name, wso')
+                        .in('lifter_id', lifterIds)
+                        .order('date', { ascending: false })
+                        .range(resultPage * resultPageSize, (resultPage + 1) * resultPageSize - 1);
+
+                    if (resError) console.warn('Error fetching results', resError);
+
+                    if (results && results.length > 0) {
+                        results.forEach(r => {
+                            if (!resultsMap.has(r.lifter_id)) {
+                                resultsMap.set(r.lifter_id, r); // First one is latest due to order
+                            }
+                        });
+                        resultPage++;
+                        if (results.length < resultPageSize) moreResults = false;
+                    } else {
+                        moreResults = false;
+                    }
                 }
 
                 const batchWithMeta = lifters.map(l => {
