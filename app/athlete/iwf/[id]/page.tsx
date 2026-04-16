@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { supabaseIWF, type IWFLifter, type IWFMeetResult } from '../../../../lib/supabaseIWF';
+import { createClient } from '../../../../lib/supabase/client';
 import { adaptIWFAthlete, adaptIWFResult } from '../../../../lib/adapters/iwfAdapter';
 import { Trophy, Calendar, Weight, TrendingUp, Medal, User, Building, MapPin, ExternalLink, ArrowLeft, BarChart3, Dumbbell, ChevronLeft, ChevronRight, Database, Activity } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, AreaChart, Area, ScatterChart, Scatter, Brush, ReferenceLine } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, AreaChart, Area, ScatterChart, Scatter, Brush, ReferenceLine, Legend } from 'recharts';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import Papa from 'papaparse';
@@ -371,9 +372,20 @@ const SortIcon = ({ column, sortConfig }: {
 
 export default function AthletePage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
+  const supabase = createClient();
   const [selectedTab, setSelectedTab] = useState('overview');
   const [athlete, setAthlete] = useState<any>(null);
-  const [results, setResults] = useState<any[]>([]);
+  const [iwfResults, setIwfResults] = useState<any[]>([]);
+  const [usawResults, setUsawResults] = useState<any[]>([]);
+  const [siblingIwfResults, setSiblingIwfResults] = useState<any[]>([]);
+  const [showUsawResults, setShowUsawResults] = useState(false);
+  
+  const results = useMemo(() => {
+    if (!showUsawResults) return iwfResults;
+    const combined = [...iwfResults, ...usawResults, ...siblingIwfResults];
+    return combined.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [iwfResults, usawResults, siblingIwfResults, showUsawResults]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [duplicateAthletes, setDuplicateAthletes] = useState<any[]>([]);
@@ -393,6 +405,8 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
   const [showQMasters, setShowQMasters] = useState(false);
   const [performanceMouseX, setPerformanceMouseX] = useState<number | null>(null);
   const [qScoresMouseX, setQScoresMouseX] = useState<number | null>(null);
+  const [usawProfile, setUsawProfile] = useState<{ id: string | number; internalId: number | null } | null>(null);
+  const [siblingIwfProfiles, setSiblingIwfProfiles] = useState<{ id: string; url: string | null }[]>([]);
 
   // GAMX State
   const [autoScaleGamx, setAutoScaleGamx] = useState(true);
@@ -630,19 +644,156 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
         }
         console.log('Athlete data validated, continuing...');
 
+        // Fetch aliases: find this IWF athlete's USAW counterpart and sibling IWF profiles
+        // Step 1: find alias row matching current IWF athlete's db_lifter_id (USAW-linked rows)
+        const { data: myAliasRow } = await supabase
+          .from('athlete_aliases')
+          .select('usaw_lifter_id, usaw_lifters(membership_number, internal_id, lifter_id)')
+          .eq('iwf_db_lifter_id', athleteData.lifter_id)
+          .not('usaw_lifter_id', 'is', null)
+          .limit(1)
+          .maybeSingle() as any;
+
+        let fetchedUsawProfile: { id: string | number; internalId: number | null } | null = null;
+        const fetchedSiblings: { id: string; url: string | null; dbId: number }[] = [];
+
+        if (myAliasRow?.usaw_lifters) {
+          const usaw = Array.isArray(myAliasRow.usaw_lifters) ? myAliasRow.usaw_lifters[0] : myAliasRow.usaw_lifters;
+          if (usaw) {
+            fetchedUsawProfile = {
+              id: usaw.membership_number ?? `u-${usaw.lifter_id}`,
+              internalId: usaw.internal_id ?? null,
+            };
+
+            // Step 2: find all IWF aliases for the same USAW athlete (USAW-bridged siblings)
+            const { data: allAliasRows } = await supabase
+              .from('athlete_aliases')
+              .select('iwf_db_lifter_id')
+              .eq('usaw_lifter_id', myAliasRow.usaw_lifter_id);
+
+            if (allAliasRows && allAliasRows.length > 0) {
+              await Promise.all(allAliasRows.map(async (row: { iwf_db_lifter_id: number }) => {
+                // Skip the current athlete's own db_lifter_id
+                if (row.iwf_db_lifter_id === athleteData.lifter_id) return;
+                const { data: sibData } = await supabaseIWF
+                  .from('iwf_lifters')
+                  .select('iwf_lifter_id, iwf_athlete_url')
+                  .eq('db_lifter_id', row.iwf_db_lifter_id)
+                  .maybeSingle();
+                if (sibData?.iwf_lifter_id != null) {
+                  fetchedSiblings.push({
+                    id: String(sibData.iwf_lifter_id),
+                    url: sibData.iwf_athlete_url ?? null,
+                    dbId: row.iwf_db_lifter_id,
+                  });
+                }
+              }));
+            }
+          }
+        }
+
+        // Step 3: find direct IWF-to-IWF alias links (iwf_db_lifter_id_2 rows).
+        // These are rows where usaw_lifter_id IS NULL and the pairing is purely IWF↔IWF.
+        // Query both columns since the current athlete could appear in either position.
+        const seenSiblingIds = new Set(fetchedSiblings.map(s => s.id));
+
+        const [{ data: iwfAliasAsMain }, { data: iwfAliasAsSecond }] = await Promise.all([
+          // Current athlete is in iwf_db_lifter_id (primary slot), partner is in iwf_db_lifter_id_2
+          supabase
+            .from('athlete_aliases')
+            .select('iwf_db_lifter_id_2')
+            .eq('iwf_db_lifter_id', athleteData.lifter_id)
+            .is('usaw_lifter_id', null)
+            .not('iwf_db_lifter_id_2', 'is', null) as any,
+          // Current athlete is in iwf_db_lifter_id_2 (secondary slot), partner is in iwf_db_lifter_id
+          supabase
+            .from('athlete_aliases')
+            .select('iwf_db_lifter_id')
+            .eq('iwf_db_lifter_id_2', athleteData.lifter_id)
+            .is('usaw_lifter_id', null) as any,
+        ]);
+
+        // Collect all partner db_lifter_ids from IWF-to-IWF rows
+        const iwfPartnerDbIds: number[] = [
+          ...((iwfAliasAsMain || []).map((r: any) => r.iwf_db_lifter_id_2).filter(Boolean)),
+          ...((iwfAliasAsSecond || []).map((r: any) => r.iwf_db_lifter_id).filter(Boolean)),
+        ];
+
+        if (iwfPartnerDbIds.length > 0) {
+          await Promise.all(iwfPartnerDbIds.map(async (partnerDbId: number) => {
+            const { data: partnerData } = await supabaseIWF
+              .from('iwf_lifters')
+              .select('iwf_lifter_id, iwf_athlete_url')
+              .eq('db_lifter_id', partnerDbId)
+              .maybeSingle();
+            if (partnerData?.iwf_lifter_id != null) {
+              const partnerId = String(partnerData.iwf_lifter_id);
+              // Deduplicate against USAW-bridged siblings already found
+              if (!seenSiblingIds.has(partnerId)) {
+                fetchedSiblings.push({
+                  id: partnerId,
+                  url: partnerData.iwf_athlete_url ?? null,
+                  dbId: partnerDbId,
+                });
+                seenSiblingIds.add(partnerId);
+              }
+            }
+          }));
+        }
         const { data: resultsData, error: resultsError } = await supabaseIWF
           .from('iwf_meet_results')
-          .select('*')
+          .select('*, iwf_meets(iwf_meet_id)')
           .eq('db_lifter_id', athleteData.lifter_id)
           .order('date', { ascending: false });
 
         if (resultsError) throw resultsError;
 
-        // Adapt results using the adapter
-        const adaptedResults = (resultsData || []).map((result: IWFMeetResult) => adaptIWFResult(result));
+        const adaptedResults = (resultsData || []).map((result: IWFMeetResult) => ({
+          ...adaptIWFResult(result),
+          _source: 'IWF'
+        }));
+        
+        let fetchedUsawResults: any[] = [];
+        if (myAliasRow?.usaw_lifter_id) {
+          const { data: usawData, error: usawError } = await supabase
+            .from('usaw_meet_results')
+            .select(`
+              *,
+              meets:usaw_meets!inner("Level")
+            `)
+            .eq('lifter_id', myAliasRow.usaw_lifter_id);
+            
+          if (!usawError && usawData) {
+            fetchedUsawResults = usawData.map((r: any) => ({ ...r, _source: 'USAW' }));
+          }
+        }
+
+        // Fetch results for sibling IWF profiles (same person, different IWF profile)
+        let fetchedSiblingIwfResults: any[] = [];
+        if (fetchedSiblings.length > 0) {
+          const siblingResults = await Promise.all(
+            fetchedSiblings.map(async (sib) => {
+              const { data: sibResultsData } = await supabaseIWF
+                .from('iwf_meet_results')
+                .select('*, iwf_meets(iwf_meet_id)')
+                .eq('db_lifter_id', sib.dbId)
+                .order('date', { ascending: false });
+              return (sibResultsData || []).map((result: IWFMeetResult) => ({
+                ...adaptIWFResult(result),
+                _source: 'IWF',
+                _siblingId: sib.id,
+              }));
+            })
+          );
+          fetchedSiblingIwfResults = siblingResults.flat();
+        }
 
         setAthlete(athleteData);
-        setResults(adaptedResults);
+        setIwfResults(adaptedResults);
+        setUsawResults(fetchedUsawResults);
+        setSiblingIwfResults(fetchedSiblingIwfResults);
+        setUsawProfile(fetchedUsawProfile);
+        setSiblingIwfProfiles(fetchedSiblings);
       } catch (err: any) {
         setError(err.message);
         console.error('Error fetching athlete data:', err);
@@ -682,7 +833,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
     .map(r => {
       const baseData: any = {
         date: r.date,
-        meet: r.meet_name || 'Unknown',
+        meet: r._source === 'USAW' ? `[USAW] ${r.meet_name || 'Unknown'}` : (r.meet_name || 'Unknown'),
         snatch: parseInt(r.best_snatch || '0') || null,
         cleanJerk: parseInt(r.best_cj || '0') || null,
         total: parseInt(r.total || '0') || null,
@@ -864,56 +1015,131 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Athlete Header */}
         <div className="card-primary mb-8">
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between">
-            <div className="flex items-start space-x-6">
-              <div className="bg-app-tertiary rounded-full p-4">
+          <div className="flex flex-col md:flex-row md:items-start w-full">
+            {/* Athlete Info */}
+            <div className="flex items-start space-x-6 flex-1">
+              <div className="bg-app-tertiary rounded-full p-4 flex-shrink-0">
                 <User className="h-12 w-12 text-app-secondary" />
               </div>
-              <div>
-                <div className="flex flex-col">
-                  <h1 className="text-3xl font-bold text-app-primary mb-2">{athlete.athlete_name}</h1>
-                  <div className="flex flex-wrap gap-4 text-sm text-app-secondary">
+              <div className="flex flex-col">
+                <h1 className="text-3xl font-bold text-app-primary mb-2">{athlete.athlete_name}</h1>
+                <div className="flex flex-wrap gap-4 text-sm text-app-secondary">
+                  <div className="flex items-center space-x-1">
+                    <span>IWF Athlete ID: {athlete.iwf_lifter_id || athlete.lifter_id}</span>
+                  </div>
+                  {athlete.gender && (
                     <div className="flex items-center space-x-1">
-                      <span>IWF Athlete ID: {athlete.iwf_lifter_id || athlete.lifter_id}</span>
+                      <span>{athlete.gender === 'M' ? 'Male' : 'Female'}</span>
                     </div>
-                    {athlete.gender && (
-                      <div className="flex items-center space-x-1">
-                        <span>{athlete.gender === 'M' ? 'Male' : 'Female'}</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap gap-4 text-sm text-app-secondary mt-2">
-                    {recentInfo.wso && (
-                      <div className="flex items-center space-x-1">
-                        <MapPin className="h-4 w-4" />
-                        <span>Country Code: {recentInfo.wso}</span>
-                      </div>
-                    )}
-                    {recentInfo.club && (
-                      <div className="flex items-center space-x-1">
-                        <Dumbbell className="h-4 w-4" />
-                        <span>Country: {recentInfo.club}</span>
-                      </div>
-                    )}
-                  </div>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-4 text-sm text-app-secondary mt-2">
+                  {recentInfo.wso && (
+                    <div className="flex items-center space-x-1">
+                      <MapPin className="h-4 w-4" />
+                      <span>Country Code: {recentInfo.wso}</span>
+                    </div>
+                  )}
+                  {recentInfo.club && (
+                    <div className="flex items-center space-x-1">
+                      <Dumbbell className="h-4 w-4" />
+                      <span>Country: {recentInfo.club}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
-            {/* External Profile Link */}
-            {athlete.iwf_athlete_url && (
-              <div className="flex flex-col gap-2 mt-4 md:mt-0">
-                <a
-                  href={athlete.iwf_athlete_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  <span>IWF Profile</span>
-                </a>
+            {/* Internal Navigation Links & Toggle */}
+            {(usawProfile || siblingIwfProfiles.length > 0) && (
+              <div className="flex flex-col gap-3 my-4 md:my-0 md:pt-2 items-start justify-center px-4">
+                <div className="flex flex-col gap-1">
+                  {usawProfile && (
+                    <Link
+                      href={`/athlete/${usawProfile.id}`}
+                      className="inline-flex items-center space-x-2 px-3 py-1.5 bg-transparent hover:bg-app-tertiary border border-app-secondary rounded-md text-app-secondary hover:text-white transition-colors text-sm mb-1"
+                    >
+                      <User className="h-3.5 w-3.5" />
+                      <span>View Linked USAW Results</span>
+                    </Link>
+                  )}
+                  {siblingIwfProfiles.map((p) => (
+                    <Link
+                      key={p.id}
+                      href={`/athlete/iwf/${p.id}`}
+                      className="inline-flex items-center space-x-2 px-3 py-1.5 bg-transparent hover:bg-app-tertiary border border-app-secondary rounded-md text-app-secondary hover:text-white transition-colors text-sm"
+                    >
+                      <User className="h-3.5 w-3.5" />
+                      <span>View Linked IWF Results ({p.id})</span>
+                    </Link>
+                  ))}
+                </div>
+                
+                {/* Linked Results Toggle — covers USAW and/or sibling IWF results */}
+                {(usawResults.length > 0 || siblingIwfResults.length > 0) && (
+                  <label className="flex items-center space-x-3 cursor-pointer mt-1">
+                    <div className="relative">
+                      <input 
+                        type="checkbox" 
+                        className="sr-only" 
+                        checked={showUsawResults}
+                        onChange={(e) => setShowUsawResults(e.target.checked)}
+                      />
+                      <div className={`block w-10 h-6 rounded-full transition-colors ${showUsawResults ? 'bg-accent-primary' : 'bg-app-surface border border-app-secondary'}`}></div>
+                      <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${showUsawResults ? 'transform translate-x-4' : ''}`}></div>
+                    </div>
+                    <span className="text-sm font-medium text-app-secondary select-none text-nowrap">
+                      {usawResults.length > 0 && siblingIwfResults.length > 0
+                        ? 'Include USAW and Linked IWF Results'
+                        : usawResults.length > 0
+                        ? 'Include USAW Results'
+                        : 'Include Linked IWF Results'}
+                    </span>
+                  </label>
+                )}
               </div>
             )}
+
+            {/* External Profile Links */}
+            <div className="flex flex-col mt-4 md:mt-0 md:items-end flex-1">
+              <div className="flex flex-col gap-2 items-end">
+                <p className="text-xs font-semibold text-app-secondary border-b border-app-secondary pb-0.5 mb-1 self-stretch text-right">External Links</p>
+                {usawProfile?.internalId && (
+                  <a
+                    href={`https://usaweightlifting.sport80.com/public/rankings/member/${usawProfile.internalId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors text-sm"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    <span>USAW Official Profile</span>
+                  </a>
+                )}
+                {athlete.iwf_athlete_url && (
+                  <a
+                    href={athlete.iwf_athlete_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors text-sm"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    <span>IWF Official Profile{siblingIwfProfiles.length > 0 ? ` (${athlete.iwf_lifter_id || athlete.lifter_id})` : ''}</span>
+                  </a>
+                )}
+                {siblingIwfProfiles.map((p) => p.url && (
+                  <a
+                    key={p.id}
+                    href={p.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors text-sm"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    <span>IWF Official Profile ({p.id})</span>
+                  </a>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -2017,13 +2243,8 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                           if (!value && value !== 0) return ['-', name];
                           if (typeof value === 'number') {
                             const formatted = value.toFixed(0);
-                            if (name === 'gamxTotal') return [formatted, 'GAMX-Total'];
-                            if (name === 'gamxS') return [formatted, 'GAMX-S'];
-                            if (name === 'gamxJ') return [formatted, 'GAMX-J'];
-                            if (name === 'gamxU') return [formatted, 'GAMX-U'];
-                            if (name === 'gamxA') return [formatted, 'GAMX-A'];
-                            if (name === 'gamxMasters') return [formatted, 'GAMX-Masters'];
-                            return [formatted, name]; // Fallback
+                            // The 'name' string now correctly holds 'GAMX-Total', 'GAMX-S', etc.
+                            return [formatted, name];
                           }
                           return [String(value), name];
                         }}
@@ -2064,7 +2285,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                             fill: 'var(--chart-gamx-total)',
                             style: { cursor: 'pointer' }
                           }}
-                          name="gamxTotal"
+                          name="GAMX-Total"
                           connectNulls={false}
                         />
                       </>
@@ -2093,7 +2314,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                             fill: 'var(--chart-gamx-s)',
                             style: { cursor: 'pointer' }
                           }}
-                          name="gamxS"
+                          name="GAMX-S"
                           connectNulls={false}
                         />
                       </>
@@ -2122,7 +2343,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                             fill: 'var(--chart-gamx-j)',
                             style: { cursor: 'pointer' }
                           }}
-                          name="gamxJ"
+                          name="GAMX-J"
                           connectNulls={false}
                         />
                       </>
@@ -2151,7 +2372,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                             fill: 'var(--chart-gamx-u)',
                             style: { cursor: 'pointer' }
                           }}
-                          name="gamxU"
+                          name="GAMX-U"
                           connectNulls={false}
                         />
                       </>
@@ -2180,7 +2401,7 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                             fill: 'var(--chart-gamx-a)',
                             style: { cursor: 'pointer' }
                           }}
-                          name="gamxA"
+                          name="GAMX-A"
                           connectNulls={false}
                         />
                       </>
@@ -2209,11 +2430,13 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                             fill: 'var(--chart-gamx-masters)',
                             style: { cursor: 'pointer' }
                           }}
-                          name="gamxMasters"
+                          name="GAMX-Masters"
                           connectNulls={false}
                         />
                       </>
                     )}
+
+
 
                     {showGamxBrush && (
                       <Brush
@@ -2233,6 +2456,46 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                     )}
                   </LineChart>
                 </ResponsiveContainer>
+
+                <div className="flex flex-wrap justify-center gap-6 mt-4 pt-4 border-t border-app-secondary">
+                  {legendFlags.hasGamxTotal && (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-0.5 bg-[var(--chart-gamx-total)]"></div>
+                      <span className="text-sm text-app-secondary">GAMX-Total</span>
+                    </div>
+                  )}
+                  {legendFlags.hasGamxS && (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-0.5 bg-[var(--chart-gamx-s)]"></div>
+                      <span className="text-sm text-app-secondary">GAMX-S</span>
+                    </div>
+                  )}
+                  {legendFlags.hasGamxJ && (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-0.5 bg-[var(--chart-gamx-j)]"></div>
+                      <span className="text-sm text-app-secondary">GAMX-J</span>
+                    </div>
+                  )}
+                  {legendFlags.hasGamxU && (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-0.5 bg-[var(--chart-gamx-u)]"></div>
+                      <span className="text-sm text-app-secondary">GAMX-U</span>
+                    </div>
+                  )}
+                  {legendFlags.hasGamxA && (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-0.5 bg-[var(--chart-gamx-a)]"></div>
+                      <span className="text-sm text-app-secondary">GAMX-A</span>
+                    </div>
+                  )}
+                  {legendFlags.hasGamxMasters && (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-0.5 bg-[var(--chart-gamx-masters)]"></div>
+                      <span className="text-sm text-app-secondary">GAMX-Masters</span>
+                    </div>
+                  )}
+                </div>
+
               </div>
             </div>
           </div>
@@ -2564,11 +2827,16 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                                 <td className="px-2 py-1 whitespace-nowrap text-xs">{new Date(result.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
                                 <td className="px-2 py-1 max-w-20 text-xs">
                                   <Link
-                                    href={`/meet/iwf/${result.meet_id}`}
+                                    href={result._source === 'USAW' ? `/meet/${result.meet_id}` : `/meet/iwf/${result.meet_id}`}
                                     className="text-accent-primary hover:text-accent-primary-hover transition-colors truncate max-w-full block text-left hover:underline"
                                     title={result.meet_name}
                                   >
                                     {result.meet_name}
+                                    {result._source === 'USAW' && (
+                                      <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-900/40 text-blue-300 border border-blue-800/50">
+                                        USAW
+                                      </span>
+                                    )}
                                   </Link>
                                 </td>
                                 <td className="px-2 py-1 whitespace-nowrap text-xs">{result.meets?.Level || '-'}</td>
@@ -2602,11 +2870,16 @@ export default function AthletePage({ params }: { params: Promise<{ id: string }
                                 <td className="px-2 py-1 whitespace-nowrap text-xs">{new Date(result.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
                                 <td className="px-2 py-1 max-w-xs text-xs">
                                   <Link
-                                    href={`/meet/iwf/${result.meet_id}`}
+                                    href={result._source === 'USAW' ? `/meet/${result.meet_id}` : `/meet/iwf/${result.meet_id}`}
                                     className="text-accent-primary hover:text-accent-primary-hover transition-colors truncate max-w-full block text-left hover:underline"
                                     title={result.meet_name}
                                   >
                                     {result.meet_name}
+                                    {result._source === 'USAW' && (
+                                      <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-900/40 text-blue-300 border border-blue-800/50">
+                                        USAW
+                                      </span>
+                                    )}
                                   </Link>
                                 </td>
                                 <td className="px-2 py-1 whitespace-nowrap text-xs">{result.weight_class || '-'}</td>

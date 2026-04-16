@@ -52,3 +52,4 @@ CLAUDE.md
 # backup files
 *.backup
 *.bak*
+.serena/project.yml

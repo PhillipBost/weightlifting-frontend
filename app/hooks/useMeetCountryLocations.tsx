@@ -9,13 +9,13 @@ interface Spoke {
   code?: string;
 }
 
-export function useMeetCountryLocations(meetId: string) {
+export function useMeetCountryLocations(dbMeetId: number | null) {
   const [spokes, setSpokes] = useState<Spoke[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!meetId) {
+    if (!dbMeetId) {
       setSpokes([]);
       setLoading(false);
       return;
@@ -29,7 +29,7 @@ export function useMeetCountryLocations(meetId: string) {
         const { data: resultsData, error: resultsError } = await supabaseIWF
           .from('iwf_meet_results')
           .select('country_code, country_name')
-          .eq('db_meet_id', parseInt(meetId));
+          .eq('db_meet_id', dbMeetId);
 
         if (resultsError) throw resultsError;
 
@@ -86,7 +86,7 @@ export function useMeetCountryLocations(meetId: string) {
           })
           .filter(Boolean) as Spoke[];
 
-        console.log(`IWF Meet ${meetId}: Matched ${computedSpokes.length} countries out of ${uniqueCodes.length}`);
+        console.log(`IWF Meet ${dbMeetId}: Matched ${computedSpokes.length} countries out of ${uniqueCodes.length}`);
         setSpokes(computedSpokes);
       } catch (err: any) {
         console.error('Error fetching meet country locations:', err);
@@ -98,7 +98,7 @@ export function useMeetCountryLocations(meetId: string) {
     };
 
     fetchCountryLocations();
-  }, [meetId]);
+  }, [dbMeetId]);
 
   return { spokes, loading, error };
 }

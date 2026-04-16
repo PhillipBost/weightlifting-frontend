@@ -40,7 +40,7 @@ export interface AdaptedResult {
   lifter_name: string; // Added: athlete's name from database
   date: string;
   meet_name?: string;
-  meet_id?: number; // Maps to db_meet_id for IWF
+  meet_id?: string | number; // Maps to db_meet_id for IWF
   meets?: { Level?: string };
 
   // Lift attempts
@@ -159,7 +159,7 @@ export function adaptIWFResult(iwfResult: IWFMeetResult): AdaptedResult {
     // Meet info
     date: iwfResult.date ?? '',
     meet_name: iwfResult.meet_name ?? '',
-    meet_id: iwfResult.db_meet_id ?? undefined,
+    meet_id: iwfResult.iwf_meets?.iwf_meet_id ?? iwfResult.db_meet_id ?? undefined,
     meets: undefined, // level not available on IWFMeetResult, only on IWFMeet
 
     // Lift attempts (all fields match directly)

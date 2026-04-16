@@ -34,6 +34,8 @@ export interface Meet {
     datasetId: string | number; // original ID
     name: string;
     date: string;
+    endDate?: string;
+    dateRange?: string;
     location: string;
     federation: 'USAW' | 'IWF';
     url?: string;
@@ -184,8 +186,10 @@ export function UpcomingMeetsContent({ initialMeets = [] }: { initialMeets?: Mee
             if (filters.startDate) {
                 // adding T12:00:00 to avoid UTC timezone off-by-one locally
                 const meetDate = new Date(`${meet.date}T12:00:00`).getTime();
+                const endCheckDate = meet.endDate ? new Date(`${meet.endDate}T12:00:00`).getTime() : meetDate;
                 const startDate = new Date(`${filters.startDate}T12:00:00`).getTime();
-                if (meetDate < startDate) return false;
+                // A meet is visible if it ends ON or AFTER the start date
+                if (endCheckDate < startDate) return false;
             }
             if (filters.endDate) {
                 const meetDate = new Date(`${meet.date}T12:00:00`).getTime();
@@ -558,23 +562,36 @@ export function UpcomingMeetsContent({ initialMeets = [] }: { initialMeets?: Mee
                             </div>
 
                             {/* Date Range */}
-                            {/* Date Range - Spans 2 cols to fit inputs */}
-                            {/* Date Range */}
                             <div className="min-w-0">
-                                <label className="block text-sm font-medium text-gray-300 mb-1">Date Range</label>
+                                <div className="flex items-center justify-between mb-1">
+                                    <label className="block text-sm font-medium text-gray-300">Date Range</label>
+                                    {(filters.startDate || filters.endDate) && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setFilters(prev => ({ ...prev, startDate: '', endDate: '' }));
+                                                setCurrentPage(1);
+                                            }}
+                                            className="text-xs text-app-tertiary hover:text-accent-primary flex items-center gap-1 transition-colors whitespace-nowrap"
+                                        >
+                                            <X className="w-3 h-3" />
+                                            Clear Date Range
+                                        </button>
+                                    )}
+                                </div>
                                 <div className="flex items-center space-x-1">
                                     <input
                                         type="date"
                                         value={filters.startDate || ''}
                                         onChange={(e) => handleFilterChange("startDate", e.target.value)}
-                                        className="w-32 h-10 px-1.5 text-xs bg-app-tertiary border border-app-primary rounded-xl text-app-primary focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="flex-1 min-w-0 h-10 px-1.5 text-[11px] sm:text-xs bg-app-tertiary border border-app-primary rounded-xl text-app-primary focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
-                                    <span className="text-gray-400 text-xs">–</span>
+                                    <span className="text-gray-400 text-xs flex-shrink-0">–</span>
                                     <input
                                         type="date"
                                         value={filters.endDate || ''}
                                         onChange={(e) => handleFilterChange("endDate", e.target.value)}
-                                        className="w-32 h-10 px-1.5 text-xs bg-app-tertiary border border-app-primary rounded-xl text-app-primary focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="flex-1 min-w-0 h-10 px-1.5 text-[11px] sm:text-xs bg-app-tertiary border border-app-primary rounded-xl text-app-primary focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
                                 </div>
                             </div>
@@ -696,8 +713,8 @@ export function UpcomingMeetsContent({ initialMeets = [] }: { initialMeets?: Mee
                                 <tbody className="text-sm">
                                     {paginatedMeets.map((meet) => {
                                         const destinationUrl = meet.federation === 'USAW'
-                                            ? `/meet/${meet.datasetId}`
-                                            : `/meet/iwf/${meet.datasetId}`;
+                                            ? `/upcoming-meet/${meet.datasetId}`
+                                            : `/upcoming-meet/iwf/${meet.datasetId}`;
 
                                         return (
                                             <tr
@@ -707,21 +724,21 @@ export function UpcomingMeetsContent({ initialMeets = [] }: { initialMeets?: Mee
                                             >
                                                 {visibleColumns.date && (
                                                     <td className="px-2 py-1 whitespace-nowrap text-xs">
-                                                        {meet.date ? (() => {
+                                                        {meet.dateRange ? meet.dateRange : (meet.date ? (() => {
                                                             const d = new Date(`${meet.date}T12:00:00`);
                                                             return isNaN(d.getTime()) ? meet.date : d.toLocaleDateString(undefined, {
                                                                 year: 'numeric',
                                                                 month: 'numeric',
                                                                 day: 'numeric'
                                                             });
-                                                        })() : '-'}
+                                                        })() : '-')}
                                                     </td>
                                                 )}
                                                 {visibleColumns.name && (
-                                                    <td className="px-2 py-1 font-medium whitespace-nowrap text-xs">
-                                                        <span className="text-gray-200">
+                                                    <td className="px-2 py-1 font-medium whitespace-nowrap text-xs max-w-[150px] sm:max-w-[200px] md:max-w-xs lg:max-w-sm xl:max-w-md truncate">
+                                                        <Link href={destinationUrl} className="text-blue-500 hover:text-blue-400 hover:underline transition-colors truncate block" title={meet.name}>
                                                             {meet.name}
-                                                        </span>
+                                                        </Link>
                                                     </td>
                                                 )}
                                                 {visibleColumns.location && (

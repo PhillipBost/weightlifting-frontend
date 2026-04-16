@@ -507,7 +507,8 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
 
             } else if (data.type === 'meet') {
                 const source = data.source || 'USAW';
-                router.push(buildMeetUrl(data.id.toString(), source));
+                const linkId = data.source === 'IWF' && data.iwfId ? data.iwfId.toString() : data.id.toString();
+                router.push(buildMeetUrl(linkId, source));
 
             } else if (data.type === 'club') {
                 router.push(`/club/${data.slug}`);
@@ -628,7 +629,8 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
                                                     }
                                                     href = buildAthleteUrl(athleteId, source);
                                                 } else if (data.type === 'meet') {
-                                                    href = buildMeetUrl(data.id.toString(), data.source || 'USAW');
+                                                    const linkId = data.source === 'IWF' && data.iwfId ? data.iwfId.toString() : data.id.toString();
+                                                    href = buildMeetUrl(linkId, data.source || 'USAW');
                                                 } else if (data.type === 'club') {
                                                     href = `/club/${data.slug}`;
                                                 } else if (data.type === 'wso') {

@@ -115,6 +115,7 @@ interface MeetResult {
 }
 
 interface Meet {
+  db_meet_id?: number;
   meet_name: string;
   date: string;
   location: string;
@@ -232,8 +233,13 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
   } | null>(null);
   /* Updated to match new section titles */
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set(["Men's Results by Division", "Women's Results by Division"]));
+  // Weight class cards, All Ages rows, and subcategory rows start collapsed.
+  // Keys added when user explicitly opens them (inverted logic = no seeding needed).
+  const [expandedSubrows, setExpandedSubrows] = useState<Set<string>>(new Set());
   const [showMenSummary, setShowMenSummary] = useState(false);
   const [showWomenSummary, setShowWomenSummary] = useState(false);
+  const [showGamxSummary, setShowGamxSummary] = useState(false);
+  const [gamxSortConfig, setGamxSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({ key: 'gamx_total', direction: 'desc' });
   const [menSortConfig, setMenSortConfig] = useState<{
     key: keyof MeetResult | 'rank';
     direction: 'asc' | 'desc';
@@ -244,7 +250,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
   } | null>(null);
 
   // Hook to fetch country/spoke data for the map
-  const { spokes, loading: mapLoading, error: mapError } = useMeetCountryLocations(resolvedParams?.id || '');
+  const { spokes, loading: mapLoading, error: mapError } = useMeetCountryLocations(meet?.db_meet_id ?? null);
 
   useEffect(() => {
     const resolveParams = async () => {
@@ -266,8 +272,8 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         // First, fetch meet information (convert string ID to integer)
         const { data: meetData, error: meetError } = await supabaseIWF
           .from('iwf_meets')
-          .select('iwf_meet_id, meet, date, level, url')
-          .eq('db_meet_id', parseInt(resolvedParams.id))
+          .select('iwf_meet_id, db_meet_id, meet, date, level, url')
+          .eq('iwf_meet_id', resolvedParams.id)
           .single();
 
         if (meetError) {
@@ -309,6 +315,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         }
 
         setMeet({
+          db_meet_id: meetData.db_meet_id,
           meet_name: meetData.meet || 'Unknown Meet',
           date: meetData.date || 'Unknown Date',
           location: locationStr,
@@ -350,6 +357,12 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
             qpoints,
             q_youth,
             q_masters,
+            gamx_total,
+            gamx_s,
+            gamx_j,
+            gamx_u,
+            gamx_a,
+            gamx_masters,
             best_snatch_ytd,
             best_cj_ytd,
             best_total_ytd,
@@ -365,7 +378,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
             updated_at,
             iwf_lifters!inner(iwf_lifter_id)
           `)
-          .eq('db_meet_id', parseInt(resolvedParams.id));
+          .eq('db_meet_id', meetData.db_meet_id);
 
         if (resultsError) {
           setError(`Error loading meet results: ${resultsError.message}`);
@@ -378,7 +391,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
           ...result,
           db_result_id: result.db_result_id || 0,
           db_lifter_id: result.db_lifter_id || 0,
-          db_meet_id: parseInt(resolvedParams.id),
+          db_meet_id: meetData.db_meet_id,
           lifter_name: result.lifter_name || '',
           meet_name: meetData?.meet || '',
           date: meetData?.date || '',
@@ -391,6 +404,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         // Apply adapter to transform IWF results to USAW-compatible structure
         const adaptedResults = adaptIWFResults(mergedResults);
         setResults(adaptedResults as MeetResult[]);
+
       } catch (err) {
         setError('An unexpected error occurred');
       } finally {
@@ -617,10 +631,10 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
       return 'Unknown';
     };
 
-    // Find all weight classes that have Open divisions
+    // Find all weight classes that have Open/Senior divisions
     const openDivisions = new Set<string>();
     Object.keys(allGroups).forEach(divisionKey => {
-      if (divisionKey.includes('Open')) {
+      if (divisionKey.includes('Open') || divisionKey.includes('Senior')) {
         const weightClass = getWeightClassFromDivision(divisionKey);
         openDivisions.add(weightClass);
       }
@@ -635,8 +649,8 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
     // Process in two phases: 1) Open parents and their eligible children, 2) Standalone divisions
     const assignedAsChildren = new Set<string>();
 
-    // Phase 1: Process ONLY Open divisions first (force priority)
-    const openDivisionKeys = Object.keys(allGroups).filter(key => key.includes('Open'));
+    // Phase 1: Process ONLY Open/Senior divisions first (force priority)
+    const openDivisionKeys = Object.keys(allGroups).filter(key => key.includes('Open') || key.includes('Senior'));
 
     openDivisionKeys.forEach(divisionKey => {
       const results = allGroups[divisionKey];
@@ -650,7 +664,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
       // Find all OTHER divisions with same weight class and check for lifter overlap
       Object.entries(allGroups).forEach(([otherDivisionKey, otherResults]) => {
         if (otherDivisionKey !== divisionKey &&
-          !otherDivisionKey.includes('Open') && // Don't process other Open divisions as children
+          !(otherDivisionKey.includes('Open') || otherDivisionKey.includes('Senior')) && // Don't process other Open/Senior divisions as children
           getWeightClassFromDivision(otherDivisionKey) === weightClass &&
           !assignedAsChildren.has(otherDivisionKey)) { // Don't reassign already assigned children
 
@@ -678,7 +692,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
 
     // Phase 2: Process remaining divisions as standalone parents (no children allowed)
     Object.entries(allGroups).forEach(([divisionKey, results]) => {
-      if (!divisionKey.includes('Open') && !assignedAsChildren.has(divisionKey)) {
+      if (!divisionKey.includes('Open') && !divisionKey.includes('Senior') && !assignedAsChildren.has(divisionKey)) {
         // Non-Open divisions become standalone parents but can never have children
         // Make sure they are NOT marked as age-appropriate (which would make them children)
         combinedGroups[divisionKey] = results;
@@ -732,11 +746,11 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
 
         if (hasChildrenMarked) {
           // This is a child division
-          // Find its parent (should be an Open division with same weight class AND gender)
+          // Find its parent (should be an Open/Senior division with same weight class AND gender)
           const weightClass = getWeightClassFromDivision(divisionKey);
           const isFemaleChild = divisionKey.toLowerCase().includes("women's");
           const parentKey = Object.keys(orderedGroups).find(key => {
-            const isOpen = key.includes('Open');
+            const isOpen = key.includes('Open') || key.includes('Senior');
             const sameWeightClass = getWeightClassFromDivision(key) === weightClass;
             const isFemaleParent = key.toLowerCase().includes("women's");
             const sameGender = isFemaleChild === isFemaleParent;
@@ -1214,9 +1228,11 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                     <th className={headerClass} onClick={() => handleSummarySort(gender, 'rank')}>Rank <SortIndicator col="rank" /></th>
                     <th className={headerClass} onClick={() => handleSummarySort(gender, 'lifter_name')}>Name <SortIndicator col="lifter_name" /></th>
                     <th className={headerClass} onClick={() => handleSummarySort(gender, 'country_name')}>Country <SortIndicator col="country_name" /></th>
-                    <th className={headerClass} onClick={() => handleSummarySort(gender, 'weight_class')}>Weight Class <SortIndicator col="weight_class" /></th>
-                    <th className={headerClass} onClick={() => handleSummarySort(gender, 'competition_age')}>Comp Age <SortIndicator col="competition_age" /></th>
-                    <th className={headerClass} onClick={() => handleSummarySort(gender, 'age_category')}>Cat <SortIndicator col="age_category" /></th>
+                    <th className={headerClass} onClick={() => handleSummarySort(gender, 'body_weight_kg')}>Bwt <SortIndicator col="body_weight_kg" /></th>
+                    <th className={headerClass} onClick={() => handleSummarySort(gender, 'weight_class')}>Wt. Class <SortIndicator col="weight_class" /></th>
+                    <th className={headerClass} onClick={() => handleSummarySort(gender, 'age_category')}>Division <SortIndicator col="age_category" /></th>
+                    <th className={headerClass} onClick={() => handleSummarySort(gender, 'best_snatch')}>BEST<br />SNATCH <SortIndicator col="best_snatch" /></th>
+                    <th className={headerClass} onClick={() => handleSummarySort(gender, 'best_cj')}>BEST<br />C&J <SortIndicator col="best_cj" /></th>
                     <th className={headerClass} onClick={() => handleSummarySort(gender, 'total')}>Total <SortIndicator col="total" /></th>
 
                     {/* Three Q Columns */}
@@ -1227,11 +1243,12 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                 </thead>
                 <tbody>
                   {dataWithDisplayRank.map(r => (
-                    <tr key={r.result_id} className="border-t border-gray-700/50 hover:bg-app-hover transition-colors">
+                    <tr key={r.result_id} className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors group" style={{ borderTopColor: 'var(--border-secondary)' }}>
                       <td className="px-2 py-2 text-sm font-semibold">{r.displayRank}</td>
                       <td className="px-2 py-2 text-sm max-w-[200px] truncate" title={r.lifter_name}>
-                        <Link href={getAthleteUrl(r)} className="text-blue-400 hover:text-blue-300 hover:underline">
-                          {r.lifter_name}
+                        <Link href={getAthleteUrl(r)} className="text-accent-primary hover:text-accent-primary-hover hover:underline flex items-center space-x-1">
+                          <span>{r.lifter_name}</span>
+                          <ExternalLink className="h-3 w-3" />
                         </Link>
                       </td>
                       <td className="px-2 py-2 text-sm">
@@ -1239,7 +1256,6 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                           {(() => {
                             const FlagComponent = getCountryFlagComponent(r.country_code || r.wso);
                             if (!FlagComponent) return null;
-                            // Pass year to AnaFlag
                             if (FlagComponent === AnaFlag && meet) {
                               const meetYear = new Date(meet.date).getFullYear();
                               return <FlagComponent style={{ width: '18px', height: '18px' }} year={meetYear} />;
@@ -1249,19 +1265,20 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                           <span className="text-sm">{r.country_name || r.club_name || r.country_code || '-'}</span>
                         </div>
                       </td>
+                      <td className="px-2 py-2 text-sm">{r.body_weight_kg ? `${r.body_weight_kg}kg` : '-'}</td>
                       <td className="px-2 py-2 text-sm">{r.weight_class}</td>
-                      <td className="px-2 py-2 text-sm">{r.competition_age}</td>
-                      <td className="px-2 py-2 text-sm max-w-[150px] truncate" title={r.age_category}>{r.age_category}</td>
-                      <td className="px-2 py-2 text-sm font-bold" style={{ color: 'var(--chart-total)' }}>{r.total}</td>
-
+                      <td className="px-2 py-2 text-sm max-w-[120px] leading-tight" style={{ fontSize: '0.75rem', whiteSpace: 'normal', wordBreak: 'break-word' }} title={r.age_category}>{r.age_category}</td>
+                      <td className="px-2 py-2 text-sm" style={{ color: 'var(--chart-snatch)' }}>{r.best_snatch ? `${r.best_snatch}kg` : '-'}</td>
+                      <td className="px-2 py-2 text-sm" style={{ color: 'var(--chart-cleanjerk)' }}>{r.best_cj ? `${r.best_cj}kg` : '-'}</td>
+                      <td className="px-2 py-2 text-sm font-bold" style={{ color: 'var(--chart-total)' }}>{r.total ? `${r.total}kg` : '-'}</td>
                       <td className="px-2 py-2 text-sm font-medium" style={{ color: (r.q_youth || 0) > 0 ? 'var(--chart-qyouth)' : 'inherit' }}>
-                        {(r.q_youth && r.q_youth > 0) ? r.q_youth.toFixed(3) : '-'}
+                        {(r.q_youth && r.q_youth > 0) ? r.q_youth.toFixed(2) : '-'}
                       </td>
                       <td className="px-2 py-2 text-sm font-medium" style={{ color: (r.qpoints || 0) > 0 ? 'var(--chart-qpoints)' : 'inherit' }}>
-                        {(r.qpoints && r.qpoints > 0) ? r.qpoints.toFixed(3) : '-'}
+                        {(r.qpoints && r.qpoints > 0) ? r.qpoints.toFixed(2) : '-'}
                       </td>
                       <td className="px-2 py-2 text-sm font-medium" style={{ color: (r.q_masters || 0) > 0 ? 'var(--chart-qmasters)' : 'inherit' }}>
-                        {(r.q_masters && r.q_masters > 0) ? r.q_masters.toFixed(3) : '-'}
+                        {(r.q_masters && r.q_masters > 0) ? r.q_masters.toFixed(2) : '-'}
                       </td>
                     </tr>
                   ))}
@@ -1278,6 +1295,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
   const genderGroupedResults = groupResultsByGenderAndDivision(groupedResults);
 
   return (
+
     <div className="min-h-screen bg-app-gradient">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Meet Header */}
@@ -1347,248 +1365,353 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
           </div>
         )}
 
+        {/* Overall Rankings by GAMX */}
+        {(() => {
+          const validGamxData = results.filter(r => (r as any).gamx_total != null && (r as any).gamx_total > 0);
+          if (validGamxData.length === 0) return null;
+
+          const handleGamxSort = (key: string) => {
+            setGamxSortConfig(prev =>
+              prev.key === key
+                ? { key, direction: prev.direction === 'asc' ? 'desc' : 'asc' }
+                : { key, direction: 'desc' }
+            );
+          };
+
+          const sortedGamx = [...validGamxData].sort((a, b) => {
+            const aVal = (a as any)[gamxSortConfig.key] ?? 0;
+            const bVal = (b as any)[gamxSortConfig.key] ?? 0;
+            if (aVal === 0 && bVal !== 0) return 1;
+            if (aVal !== 0 && bVal === 0) return -1;
+            return gamxSortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
+          });
+
+          const GamxSortIndicator = ({ col }: { col: string }) => {
+            if (gamxSortConfig.key !== col) return <span className="text-app-disabled ml-1">↕</span>;
+            return <span className="text-accent-primary ml-1">{gamxSortConfig.direction === 'asc' ? '↑' : '↓'}</span>;
+          };
+
+          const hClass = "px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none";
+          const qHClass = (col: string) =>
+            `px-2 py-1 text-left text-xs font-medium uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none ${gamxSortConfig.key === col ? 'text-accent-primary font-bold' : 'text-gray-900 dark:text-gray-200'
+            }`;
+
+          return (
+            <div className="mb-4">
+              <div className="mb-3">
+                <button onClick={() => setShowGamxSummary(!showGamxSummary)} className="flex items-center space-x-2 text-app-primary hover:text-accent-primary transition-colors mb-2 text-left">
+                  {showGamxSummary ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+                  <h2 className="text-2xl font-bold">Overall Rankings by GAMX</h2>
+                  <span className="text-sm text-app-muted ml-2">({sortedGamx.length} athletes ranked)</span>
+                </button>
+              </div>
+              {showGamxSummary && (
+                <div className="card-primary mb-8">
+                  <div className="overflow-x-auto">
+                    <table className="border-separate" style={{ borderSpacing: 0, width: '100%' }}>
+                      <thead className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200">
+                        <tr className="border-b-2 border-gray-400 dark:border-gray-500">
+                          <th className={hClass} onClick={() => handleGamxSort('rank')}>Rank <GamxSortIndicator col="rank" /></th>
+                          <th className={hClass} onClick={() => handleGamxSort('lifter_name')}>Name <GamxSortIndicator col="lifter_name" /></th>
+                          <th className={`${hClass} hidden sm:table-cell`}>Country</th>
+                          <th className={hClass} onClick={() => handleGamxSort('body_weight_kg')}>Bwt <GamxSortIndicator col="body_weight_kg" /></th>
+                          <th className={hClass} onClick={() => handleGamxSort('weight_class')}>Wt. Class <GamxSortIndicator col="weight_class" /></th>
+                          <th className={hClass} onClick={() => handleGamxSort('age_category')}>Division <GamxSortIndicator col="age_category" /></th>
+                          <th className={hClass} onClick={() => handleGamxSort('best_snatch')}>BEST<br />SNATCH <GamxSortIndicator col="best_snatch" /></th>
+                          <th className={hClass} onClick={() => handleGamxSort('best_cj')}>BEST<br />C&J <GamxSortIndicator col="best_cj" /></th>
+                          <th className={hClass} onClick={() => handleGamxSort('total')}>Total <GamxSortIndicator col="total" /></th>
+                          <th className={qHClass('gamx_total')} onClick={() => handleGamxSort('gamx_total')}>GAMX-Total <GamxSortIndicator col="gamx_total" /></th>
+                          <th className={qHClass('gamx_s')} onClick={() => handleGamxSort('gamx_s')}>GAMX-S <GamxSortIndicator col="gamx_s" /></th>
+                          <th className={qHClass('gamx_j')} onClick={() => handleGamxSort('gamx_j')}>GAMX-J <GamxSortIndicator col="gamx_j" /></th>
+                          <th className={qHClass('gamx_u')} onClick={() => handleGamxSort('gamx_u')}>GAMX-U <GamxSortIndicator col="gamx_u" /></th>
+                          <th className={qHClass('gamx_a')} onClick={() => handleGamxSort('gamx_a')}>GAMX-A <GamxSortIndicator col="gamx_a" /></th>
+                          <th className={qHClass('gamx_masters')} onClick={() => handleGamxSort('gamx_masters')}>GAMX-M <GamxSortIndicator col="gamx_masters" /></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {sortedGamx.map((r, idx) => {
+                          const FlagComponent = getCountryFlagComponent((r as any).country_code || r.wso);
+                          return (
+                            <tr key={`gamx-${idx}`} className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors group" style={{ borderTopColor: 'var(--border-secondary)' }}>
+                              <td className="px-2 py-2 whitespace-nowrap text-sm font-medium text-app-primary">
+                                <div className="flex items-center gap-1">
+                                  <span>{idx + 1}</span>
+                                  {idx === 0 && <Medal className="h-4 w-4" style={{ color: '#FFD700' }} />}
+                                  {idx === 1 && <Medal className="h-4 w-4" style={{ color: '#C0C0C0' }} />}
+                                  {idx === 2 && <Medal className="h-4 w-4" style={{ color: '#CD7F32' }} />}
+                                </div>
+                              </td>
+                              <td className="px-2 py-2 max-w-[200px] truncate" title={r.lifter_name}>
+                                <Link href={getAthleteUrl(r)} className="text-accent-primary hover:text-accent-primary-hover hover:underline flex items-center space-x-1">
+                                  <span className="font-medium text-sm">{r.lifter_name}</span>
+                                  <ExternalLink className="h-3 w-3" />
+                                </Link>
+                              </td>
+                              <td className="px-2 py-2 text-sm hidden sm:table-cell">
+                                <div className="flex items-center gap-2">
+                                  {FlagComponent && <FlagComponent style={{ width: '18px', height: '18px' }} />}
+                                  <span>{(r as any).country_name || (r as any).country_code || '-'}</span>
+                                </div>
+                              </td>
+                              <td className="px-2 py-2 text-sm">{(r as any).body_weight_kg ? `${(r as any).body_weight_kg}kg` : '-'}</td>
+                              <td className="px-2 py-2 text-sm">{r.weight_class}</td>
+                              <td className="px-2 py-2 text-sm max-w-[120px] leading-tight" style={{ fontSize: '0.75rem', whiteSpace: 'normal', wordBreak: 'break-word' }} title={r.age_category}>{r.age_category}</td>
+                              <td className="px-2 py-2 text-sm" style={{ color: 'var(--chart-snatch)' }}>{(r as any).best_snatch ? `${(r as any).best_snatch}kg` : '-'}</td>
+                              <td className="px-2 py-2 text-sm" style={{ color: 'var(--chart-cleanjerk)' }}>{(r as any).best_cj ? `${(r as any).best_cj}kg` : '-'}</td>
+                              <td className="px-2 py-2 text-sm font-bold" style={{ color: 'var(--chart-total)' }}>{(r as any).total ? `${(r as any).total}kg` : '-'}</td>
+                              <td className="px-2 py-2 text-sm font-medium" style={{ color: (r as any).gamx_total > 0 ? 'var(--chart-gamx-total)' : 'inherit' }}>{(r as any).gamx_total ? (r as any).gamx_total.toFixed(0) : '-'}</td>
+                              <td className="px-2 py-2 text-sm font-medium" style={{ color: (r as any).gamx_s > 0 ? 'var(--chart-qpoints)' : 'inherit' }}>{(r as any).gamx_s ? (r as any).gamx_s.toFixed(0) : '-'}</td>
+                              <td className="px-2 py-2 text-sm font-medium" style={{ color: (r as any).gamx_j > 0 ? 'var(--chart-qyouth)' : 'inherit' }}>{(r as any).gamx_j ? (r as any).gamx_j.toFixed(0) : '-'}</td>
+                              <td className="px-2 py-2 text-sm font-medium" style={{ color: (r as any).gamx_u > 0 ? 'var(--chart-qpoints)' : 'inherit' }}>{(r as any).gamx_u ? (r as any).gamx_u.toFixed(0) : '-'}</td>
+                              <td className="px-2 py-2 text-sm font-medium" style={{ color: (r as any).gamx_a > 0 ? 'var(--chart-qmasters)' : 'inherit' }}>{(r as any).gamx_a ? (r as any).gamx_a.toFixed(0) : '-'}</td>
+                              <td className="px-2 py-2 text-sm font-medium" style={{ color: (r as any).gamx_masters > 0 ? 'var(--chart-qmasters)' : 'inherit' }}>{(r as any).gamx_masters ? (r as any).gamx_masters.toFixed(0) : '-'}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
         {/* Results by Gender Section */}
         {renderSummaryTable("Men's Overall Rankings by Q-Points", men, 'men', showMenSummary, () => setShowMenSummary(!showMenSummary))}
         {renderSummaryTable("Women's Overall Rankings by Q-Points", women, 'women', showWomenSummary, () => setShowWomenSummary(!showWomenSummary))}
         {Object.entries(genderGroupedResults).map(([genderSection, divisionsInSection]) => {
           const isCollapsed = collapsedSections.has(genderSection);
           const hasDivisions = Object.keys(divisionsInSection).length > 0;
-
           if (!hasDivisions) return null;
 
+          // Group divisions by weight class
+          const extractWeightClass = (divKey: string) => {
+            const m = divKey.match(/(\+?\d+(?:\.\d+)?\+?)\s*[Kk]g/i);
+            return m ? m[0] : '__unknown__';
+          };
+
+          const isAgeSpecific = (divName: string) =>
+            /junior|masters?|youth|under|age[\s_]?group|\(\d/i.test(divName);
+
+          const cleanSubLabel = (divName: string, wc: string) => {
+            const escaped = wc.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            let label = divName
+              .replace(new RegExp(escaped, 'i'), '')
+              .replace(/\b(women'?s?|men'?s?)\b/gi, '')
+              .replace(/\s+/g, ' ')
+              .trim();
+            return label || divName;
+          };
+
+          const divsByWc: Record<string, { div: string; results: MeetResult[] }[]> = {};
+          Object.entries(divisionsInSection).forEach(([div, divResults]) => {
+            const wc = extractWeightClass(div);
+            if (!divsByWc[wc]) divsByWc[wc] = [];
+            divsByWc[wc].push({ div, results: divResults });
+          });
+
+          const sortWcNum = (wc: string) => {
+            const hasPlus = wc.includes('+');
+            const num = parseFloat(wc.replace(/[^0-9.]/g, ''));
+            return isNaN(num) ? -1 : num + (hasPlus ? 0.1 : 0);
+          };
+
+          const wcGroups: { wcKey: string; wcLabel: string; allAgesResults: MeetResult[]; children: { label: string; divKey: string; results: MeetResult[] }[] }[] = [];
+
+          Object.entries(divsByWc)
+            .sort(([a], [b]) => sortWcNum(b) - sortWcNum(a))
+            .forEach(([wc, divisions]) => {
+              const seenIds = new Set<number>();
+              const allAgesResults: MeetResult[] = [];
+              divisions.forEach(({ results }) => {
+                results.forEach(r => {
+                  if (!seenIds.has(r.result_id)) {
+                    seenIds.add(r.result_id);
+                    allAgesResults.push(r);
+                  }
+                });
+              });
+
+              const sortSubcategory = (label: string) => {
+                if (/junior/i.test(label)) return 0;
+                if (/youth/i.test(label) || /under/i.test(label)) return 1;
+                const m = label.match(/\((\d+)/);
+                return m ? parseInt(m[1]) : 99;
+              };
+              const children = divisions
+                .filter(({ div }) => isAgeSpecific(div))
+                .map(({ div, results }) => ({ label: cleanSubLabel(div, wc), divKey: div, results }))
+                .sort((a, b) => sortSubcategory(a.label) - sortSubcategory(b.label));
+
+              wcGroups.push({ wcKey: `${genderSection}-${wc}`, wcLabel: wc, allAgesResults, children });
+            });
+
+
+          // Render sortable IWF results table (with Country + Group columns)
+          const renderDivisionTable = (divResults: MeetResult[], divKey: string) => (
+            <div className="border-t border-app-primary overflow-x-auto">
+              <table className="border-separate" style={{ borderSpacing: 0, width: 'auto' }}>
+                <thead className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200">
+                  <tr className="border-b-2 border-gray-400 dark:border-gray-500">
+                    <th onClick={() => handleSort(divKey, 'place')} className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" style={{ width: '60px' }}>
+                      <div className="flex items-center justify-start space-x-1"><span>Place</span><SortIcon column="place" sortConfig={sortConfig} division={divKey} /></div>
+                    </th>
+                    <th onClick={() => handleSort(divKey, 'lifter_name')} className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" style={{ minWidth: '200px' }}>
+                      <div className="flex items-center justify-start space-x-1"><span>Athlete</span><SortIcon column="lifter_name" sortConfig={sortConfig} division={divKey} /></div>
+                    </th>
+                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider select-none" style={{ minWidth: '80px' }}>
+                      <div className="flex items-center justify-start space-x-1"><span>Group</span></div>
+                    </th>
+                    <th onClick={() => handleSort(divKey, 'club_name')} className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" style={{ minWidth: '120px' }}>
+                      <div className="flex items-center justify-start space-x-1"><span>Country</span><SortIcon column="club_name" sortConfig={sortConfig} division={divKey} /></div>
+                    </th>
+                    <th onClick={() => handleSort(divKey, 'body_weight_kg')} className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none">
+                      <div className="flex items-center justify-start space-x-1"><span>Bwt</span><SortIcon column="body_weight_kg" sortConfig={sortConfig} division={divKey} /></div>
+                    </th>
+                    <th className="w-full"></th>
+                    <th onClick={() => handleSort(divKey, 'best_snatch')} className="px-2 py-1 text-right text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" style={{ width: '80px' }}>
+                      <div className="flex items-center justify-end space-x-1"><span>Snatch</span><SortIcon column="best_snatch" sortConfig={sortConfig} division={divKey} /></div>
+                    </th>
+                    <th onClick={() => handleSort(divKey, 'best_cj')} className="px-2 py-1 text-right text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" style={{ width: '80px' }}>
+                      <div className="flex items-center justify-end space-x-1"><span>C&J</span><SortIcon column="best_cj" sortConfig={sortConfig} division={divKey} /></div>
+                    </th>
+                    <th onClick={() => handleSort(divKey, 'total')} className="px-2 py-1 text-right text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" style={{ width: '80px' }}>
+                      <div className="flex items-center justify-end space-x-1"><span>Total</span><SortIcon column="total" sortConfig={sortConfig} division={divKey} /></div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {getSortedResults(divResults, divKey).map((result, index) => {
+                    const displayPlace = divResults.indexOf(result) + 1;
+                    return (
+                      <tr key={result.result_id} className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors group" style={{ borderTopColor: 'var(--border-secondary)' }}>
+                        <td className="px-2 py-1 whitespace-nowrap text-sm font-medium text-app-primary">
+                          <div className="flex items-center gap-1">
+                            <span>{displayPlace}</span>
+                            {displayPlace === 1 && <Medal className="h-4 w-4" style={{ color: '#FFD700' }} />}
+                            {displayPlace === 2 && <Medal className="h-4 w-4" style={{ color: '#C0C0C0' }} />}
+                            {displayPlace === 3 && <Medal className="h-4 w-4" style={{ color: '#CD7F32' }} />}
+                          </div>
+                        </td>
+                        <td className="px-2 py-1 whitespace-nowrap">
+                          <Link href={getAthleteUrl(result)} className="flex items-center space-x-1 text-accent-primary group-hover:text-accent-primary-hover transition-colors hover:underline">
+                            <span className="font-medium text-sm">{result.lifter_name}</span>
+                            <ExternalLink className="h-3 w-3" />
+                          </Link>
+                          <div className="text-xs text-app-muted">
+                            {result.competition_age && `Age ${result.competition_age}`}
+                            {result.iwf_lifter_id && result.competition_age && ' \u2022 '}
+                            {result.iwf_lifter_id && `#${result.iwf_lifter_id}`}
+                          </div>
+                        </td>
+                        <td className="px-2 py-1 whitespace-nowrap text-sm text-app-secondary">
+                          {result.competition_group ? (
+                            <span className="inline-block px-2 py-0.5 bg-accent-primary/20 text-accent-primary rounded font-semibold text-xs">{result.competition_group}</span>
+                          ) : <span className="text-app-muted">-</span>}
+                        </td>
+                        <td className="px-2 py-1 whitespace-nowrap text-sm text-app-secondary">
+                          <div className="flex items-center gap-2">
+                            {(() => {
+                              const FlagComponent = getCountryFlagComponent(result.wso);
+                              if (!FlagComponent) return null;
+                              if (FlagComponent === AnaFlag && meet) {
+                                const meetYear = new Date(meet.date).getFullYear();
+                                return <FlagComponent style={{ width: '18px', height: '18px' }} year={meetYear} />;
+                              }
+                              return <FlagComponent style={{ width: '18px', height: '18px' }} />;
+                            })()}
+                            <span className="text-sm">{result.club_name || '-'}</span>
+                          </div>
+                        </td>
+                        <td className="px-2 py-1 whitespace-nowrap text-sm text-app-secondary text-left">{result.body_weight_kg ? `${result.body_weight_kg}kg` : '-'}</td>
+                        <td></td>
+                        <td className="px-2 py-1 whitespace-nowrap text-sm text-left" style={{ color: 'var(--chart-snatch)' }}>
+                          <div className="font-medium">{result.best_snatch ? `${result.best_snatch}kg` : '-'}</div>
+                          <div className="text-xs text-app-muted">
+                            {[result.snatch_lift_1, result.snatch_lift_2, result.snatch_lift_3].filter(a => a && a !== '0').map((attempt, i) => {
+                              const w = parseInt(attempt!);
+                              return <span key={i} className={w > 0 ? '' : 'text-red-500'} style={w > 0 ? { color: 'var(--chart-snatch)' } : {}}>{Math.abs(w)}{i < 2 ? '/' : ''}</span>;
+                            })}
+                          </div>
+                        </td>
+                        <td className="px-2 py-1 whitespace-nowrap text-sm text-left" style={{ color: 'var(--chart-cleanjerk)' }}>
+                          <div className="font-medium">{result.best_cj ? `${result.best_cj}kg` : '-'}</div>
+                          <div className="text-xs text-app-muted">
+                            {[result.cj_lift_1, result.cj_lift_2, result.cj_lift_3].filter(a => a && a !== '0').map((attempt, i) => {
+                              const w = parseInt(attempt!);
+                              return <span key={i} className={w > 0 ? '' : 'text-red-500'} style={w > 0 ? { color: 'var(--chart-cleanjerk)' } : {}}>{Math.abs(w)}{i < 2 ? '/' : ''}</span>;
+                            })}
+                          </div>
+                        </td>
+                        <td className="px-2 py-1 whitespace-nowrap text-sm font-bold text-left" style={{ color: 'var(--chart-total)' }}>{result.total ? `${result.total}kg` : '-'}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          );
+
+          const totalAthletes = Object.values(divisionsInSection).reduce((sum, arr) => sum + arr.filter(r => !r.isDuplicateForAge).length, 0);
+
           return (
-            <div key={genderSection} className="mb-4">
-              {/* Gender Section Header */}
+            <div key={genderSection} className={isCollapsed ? 'mb-2' : 'mb-6'}>
               <div className="mb-3">
-                <button
-                  onClick={() => toggleSection(genderSection)}
-                  className="flex items-center space-x-2 text-app-primary hover:text-accent-primary transition-colors mb-2 text-left"
-                >
+                <button onClick={() => toggleSection(genderSection)} className="flex items-center space-x-2 text-app-primary hover:text-accent-primary transition-colors mb-2 text-left">
                   {isCollapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-                  <h2 className="text-2xl font-bold">
-                    {genderSection}
-                  </h2>
+                  <h2 className="text-2xl font-bold">{genderSection}</h2>
+                  <span className="ml-2 text-sm font-normal text-app-muted">({totalAthletes} athletes)</span>
                 </button>
               </div>
 
-              {/* Divisions within Gender Section */}
-              {!isCollapsed && Object.entries(divisionsInSection).map(([division, divisionResults]) => {
-                const isAgeAppropriate = divisionResults.some(result => result.isDuplicateForAge);
-                const isDivisionCollapsed = collapsedSections.has(division);
+              {!isCollapsed && wcGroups.map(({ wcKey, wcLabel, allAgesResults, children }) => {
+                const isWcCollapsed = !expandedSubrows.has(wcKey);
+                const allAgesKey = `${wcKey}-All Ages`;
+                const isAllAgesCollapsed = !expandedSubrows.has(allAgesKey);
 
                 return (
-                  <div key={division} className={`card-primary mb-2 ${isAgeAppropriate ? 'ml-6 border-l-4 border-accent-primary bg-app-tertiary' : ''}`}>
-                    <div
-                      onClick={() => toggleSection(division)}
-                      className="cursor-pointer hover:bg-app-hover transition-colors"
-                    >
-                      <h3 className={`text-lg font-bold p-2 flex items-center ${isAgeAppropriate ? 'text-app-primary' : 'text-app-primary'}`}>
-                        {isDivisionCollapsed ? <ChevronRight className="h-5 w-5 mr-2" /> : <ChevronDown className="h-5 w-5 mr-2" />}
-                        {isAgeAppropriate && (
-                          <span className="mr-2 text-app-muted">↳</span>
-                        )}
-                        {division}
-                        {isAgeAppropriate && (
-                          <span className="ml-2 text-sm font-normal text-app-muted">(Age Group Rankings)</span>
-                        )}
-                        <span className="ml-auto text-sm text-app-muted">{divisionResults.length} athletes</span>
+                  <div key={wcKey} className="card-primary p-0 mb-1 max-w-[1150px] ml-7">
+                    <div onClick={() => { setExpandedSubrows(prev => { const n = new Set(prev); n.has(wcKey) ? n.delete(wcKey) : n.add(wcKey); return n; }); }} className="cursor-pointer hover:bg-app-hover transition-colors rounded-t-lg">
+                      <h3 className="text-xl font-bold px-3 py-1 flex items-center text-app-primary">
+                        {isWcCollapsed ? <ChevronRight className="h-5 w-5 mr-2" /> : <ChevronDown className="h-5 w-5 mr-2" />}
+                        <span>{wcLabel}</span>
+                        <span className="ml-auto text-sm text-app-muted">{allAgesResults.length} total athletes</span>
                       </h3>
                     </div>
-
-                    {!isDivisionCollapsed && (
-                      <div className="overflow-x-auto">
-                        <table className="border-separate" style={{ borderSpacing: 0, width: 'auto' }}>
-                          <thead className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200">
-                            <tr className="border-b-2 border-gray-400 dark:border-gray-500">
-                              <th
-                                onClick={() => handleSort(division, 'place')}
-                                className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
-                                style={{ width: '60px' }}
-                              >
-                                <div className="flex items-center justify-start space-x-1">
-                                  <span>Place</span>
-                                  <SortIcon column="place" sortConfig={sortConfig} division={division} />
+                    {!isWcCollapsed && (
+                      <div className="border-t border-app-primary px-3 pb-3">
+                        <div className="mt-4 mb-2 space-y-2">
+                          <div className="ml-8 border-l-4 border-accent-secondary rounded-r-lg mr-2">
+                            <div onClick={() => { setExpandedSubrows(prev => { const n = new Set(prev); n.has(allAgesKey) ? n.delete(allAgesKey) : n.add(allAgesKey); return n; }); }} className="cursor-pointer hover:bg-app-hover transition-colors rounded-tr-lg">
+                              <h4 className="text-base font-bold p-2 flex items-center text-app-primary">
+                                {isAllAgesCollapsed ? <ChevronRight className="h-4 w-4 mr-2 text-gray-400" /> : <ChevronDown className="h-4 w-4 mr-2 text-gray-400" />}
+                                <span className="mr-2 text-app-muted">↳</span>
+                                <span>All Ages</span>
+                                <span className="ml-2 text-sm font-normal text-app-muted">(Overall Rankings)</span>
+                                <span className="ml-auto text-sm text-app-muted">{allAgesResults.length} athletes</span>
+                              </h4>
+                            </div>
+                            {!isAllAgesCollapsed && renderDivisionTable(allAgesResults, `${wcKey}-all-ages`)}
+                          </div>
+                          {children.map(({ label, divKey, results: childResults }) => {
+                            const childKey = `${wcKey}-${label}`;
+                            const isChildCollapsed = !expandedSubrows.has(childKey);
+                            return (
+                              <div key={label} className="ml-8 border-l-4 border-accent-primary rounded-r-lg mr-2">
+                                <div onClick={() => { setExpandedSubrows(prev => { const n = new Set(prev); n.has(childKey) ? n.delete(childKey) : n.add(childKey); return n; }); }} className="cursor-pointer hover:bg-app-hover transition-colors rounded-tr-lg">
+                                  <h4 className="text-base font-bold p-2 flex items-center text-app-primary">
+                                    {isChildCollapsed ? <ChevronRight className="h-4 w-4 mr-2 text-gray-400" /> : <ChevronDown className="h-4 w-4 mr-2 text-gray-400" />}
+                                    <span className="mr-2 text-app-muted">↳</span>
+                                    <span>{label}</span>
+                                    <span className="ml-auto text-sm text-app-muted">{childResults.length} athletes</span>
+                                  </h4>
                                 </div>
-                              </th>
-                              <th
-                                onClick={() => handleSort(division, 'lifter_name')}
-                                className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
-                                style={{ minWidth: '200px' }}
-                              >
-                                <div className="flex items-center justify-start space-x-1">
-                                  <span>Athlete</span>
-                                  <SortIcon column="lifter_name" sortConfig={sortConfig} division={division} />
-                                </div>
-                              </th>
-                              <th
-                                className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider select-none"
-                                style={{ minWidth: '80px' }}
-                              >
-                                <div className="flex items-center justify-start space-x-1">
-                                  <span>Group</span>
-                                </div>
-                              </th>
-                              <th
-                                onClick={() => handleSort(division, 'club_name')}
-                                className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
-                                style={{ minWidth: '120px' }}
-                              >
-                                <div className="flex items-center justify-start space-x-1">
-                                  <span>Country</span>
-                                  <SortIcon column="club_name" sortConfig={sortConfig} division={division} />
-                                </div>
-                              </th>
-                              <th className="w-full"></th>
-                              <th
-                                onClick={() => handleSort(division, 'best_snatch')}
-                                className="px-2 py-1 text-right text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
-                                style={{ width: '80px' }}
-                              >
-                                <div className="flex items-center justify-end space-x-1">
-                                  <span>Snatch</span>
-                                  <SortIcon column="best_snatch" sortConfig={sortConfig} division={division} />
-                                </div>
-                              </th>
-                              <th
-                                onClick={() => handleSort(division, 'best_cj')}
-                                className="px-2 py-1 text-right text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
-                                style={{ width: '80px' }}
-                              >
-                                <div className="flex items-center justify-end space-x-1">
-                                  <span>C&J</span>
-                                  <SortIcon column="best_cj" sortConfig={sortConfig} division={division} />
-                                </div>
-                              </th>
-                              <th
-                                onClick={() => handleSort(division, 'total')}
-                                className="px-2 py-1 text-right text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
-                                style={{ width: '80px' }}
-                              >
-                                <div className="flex items-center justify-end space-x-1">
-                                  <span>Total</span>
-                                  <SortIcon column="total" sortConfig={sortConfig} division={division} />
-                                </div>
-                              </th>
-                              <th
-                                onClick={() => handleSort(division, 'body_weight_kg')}
-                                className="px-2 py-1 text-right text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
-                                style={{ width: '100px' }}
-                              >
-                                <div className="flex items-center justify-end space-x-1">
-                                  <span>Bodyweight</span>
-                                  <SortIcon column="body_weight_kg" sortConfig={sortConfig} division={division} />
-                                </div>
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {getSortedResults(divisionResults, division).map((result, index) => {
-                              const originalIndex = divisionResults.indexOf(result);
-                              const displayPlace = originalIndex + 1;
-
-                              return (
-                                <tr key={result.result_id} className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors group" style={{ borderTopColor: 'var(--border-secondary)' }}>
-                                  <td className="px-2 py-1 whitespace-nowrap text-sm font-medium text-app-primary">
-                                    <div className="flex items-center gap-1">
-                                      <span>{displayPlace}</span>
-                                      {displayPlace === 1 && <Medal className="h-4 w-4" style={{ color: '#FFD700' }} />}
-                                      {displayPlace === 2 && <Medal className="h-4 w-4" style={{ color: '#C0C0C0' }} />}
-                                      {displayPlace === 3 && <Medal className="h-4 w-4" style={{ color: '#CD7F32' }} />}
-                                    </div>
-                                  </td>
-                                  <td className="px-2 py-1 whitespace-nowrap">
-                                    <Link
-                                      href={getAthleteUrl(result)}
-                                      className="flex items-center space-x-1 text-accent-primary group-hover:text-accent-primary-hover transition-colors hover:underline"
-                                    >
-                                      <span className="font-medium text-sm">{result.lifter_name}</span>
-                                      <ExternalLink className="h-3 w-3" />
-                                    </Link>
-                                    <div className="text-xs text-app-muted">
-                                      {result.competition_age && `Age ${result.competition_age}`}
-                                      {(() => {
-                                        return (
-                                          <>
-                                            {result.iwf_lifter_id && result.competition_age && " • "}
-                                            {result.iwf_lifter_id && `#${result.iwf_lifter_id}`}
-                                          </>
-                                        );
-                                      })()}
-                                    </div>
-                                  </td>
-                                  <td className="px-2 py-1 whitespace-nowrap text-sm text-app-secondary">
-                                    {result.competition_group ? (
-                                      <span className="inline-block px-2 py-0.5 bg-accent-primary/20 text-accent-primary rounded font-semibold text-xs">
-                                        {result.competition_group}
-                                      </span>
-                                    ) : (
-                                      <span className="text-app-muted">-</span>
-                                    )}
-                                  </td>
-                                  <td className="px-2 py-1 whitespace-nowrap text-sm text-app-secondary">
-                                    <div className="flex items-center gap-2">
-                                      {(() => {
-                                        const FlagComponent = getCountryFlagComponent(result.wso);
-                                        if (result.club_name && (result.club_name.includes('Neutral') || result.club_name.includes('Refugee'))) {
-
-                                        }
-                                        if (!FlagComponent) return null;
-
-                                        // Pass year to AnaFlag for year-aware flag selection
-                                        if (FlagComponent === AnaFlag && meet) {
-                                          const meetYear = new Date(meet.date).getFullYear();
-                                          return <FlagComponent style={{ width: '18px', height: '18px' }} year={meetYear} />;
-                                        }
-
-                                        return <FlagComponent style={{ width: '18px', height: '18px' }} />;
-                                      })()}
-                                      <span className="text-sm">{result.club_name || '-'}</span>
-                                    </div>
-                                  </td>
-                                  <td></td>
-                                  <td className="px-2 py-1 whitespace-nowrap text-sm text-left" style={{ color: 'var(--chart-snatch)' }}>
-                                    <div className="font-medium">{result.best_snatch ? `${result.best_snatch}kg` : '-'}</div>
-                                    <div className="text-xs text-app-muted">
-                                      {[result.snatch_lift_1, result.snatch_lift_2, result.snatch_lift_3]
-                                        .filter(attempt => attempt && attempt !== '0')
-                                        .map((attempt, i) => {
-                                          const weight = parseInt(attempt!);
-                                          return (
-                                            <span key={i} className={weight > 0 ? '' : 'text-red-500'} style={weight > 0 ? { color: 'var(--chart-snatch)' } : {}}>
-                                              {Math.abs(weight)}
-                                              {i < 2 ? '/' : ''}
-                                            </span>
-                                          );
-                                        })}
-                                    </div>
-                                  </td>
-                                  <td className="px-2 py-1 whitespace-nowrap text-sm text-left" style={{ color: 'var(--chart-cleanjerk)' }}>
-                                    <div className="font-medium">{result.best_cj ? `${result.best_cj}kg` : '-'}</div>
-                                    <div className="text-xs text-app-muted">
-                                      {[result.cj_lift_1, result.cj_lift_2, result.cj_lift_3]
-                                        .filter(attempt => attempt && attempt !== '0')
-                                        .map((attempt, i) => {
-                                          const weight = parseInt(attempt!);
-                                          return (
-                                            <span key={i} className={weight > 0 ? '' : 'text-red-500'} style={weight > 0 ? { color: 'var(--chart-cleanjerk)' } : {}}>
-                                              {Math.abs(weight)}
-                                              {i < 2 ? '/' : ''}
-                                            </span>
-                                          );
-                                        })}
-                                    </div>
-                                  </td>
-                                  <td className="px-2 py-1 whitespace-nowrap text-sm font-bold text-left" style={{ color: 'var(--chart-total)' }}>
-                                    {result.total ? `${result.total}kg` : '-'}
-                                  </td>
-                                  <td className="px-2 py-1 whitespace-nowrap text-sm text-app-secondary text-left">
-                                    {result.body_weight_kg ? `${result.body_weight_kg}kg` : '-'}
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
+                                {!isChildCollapsed && renderDivisionTable(childResults, divKey)}
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -1601,3 +1724,4 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
     </div>
   );
 }
+
