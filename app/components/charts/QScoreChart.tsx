@@ -189,6 +189,7 @@ export default function QScoreChart({ chartData, athlete, legendFlags }: QScoreC
                 }
                 return `Competition: ${new Date(label).toLocaleDateString()}`;
               }}
+              isAnimationActive={false}
               cursor={false}
               animationDuration={150}
               allowEscapeViewBox={{ x: false, y: true }}
@@ -207,6 +208,7 @@ export default function QScoreChart({ chartData, athlete, legendFlags }: QScoreC
                 activeDot={{ r: 8, stroke: 'var(--chart-stroke)', strokeWidth: 2, fill: 'var(--chart-qpoints)', style: { cursor: 'pointer' } }}
                 name="qpoints"
                 connectNulls={false}
+                isAnimationActive={false}
               />
             </>
           )}
@@ -222,6 +224,7 @@ export default function QScoreChart({ chartData, athlete, legendFlags }: QScoreC
                 activeDot={{ r: 8, stroke: 'var(--chart-stroke)', strokeWidth: 2, fill: 'var(--chart-qyouth)', style: { cursor: 'pointer' } }}
                 name="qYouth"
                 connectNulls={false}
+                isAnimationActive={false}
               />
             </>
           )}
@@ -237,6 +240,7 @@ export default function QScoreChart({ chartData, athlete, legendFlags }: QScoreC
                 activeDot={{ r: 8, stroke: 'var(--chart-stroke)', strokeWidth: 2, fill: 'var(--chart-qmasters)', style: { cursor: 'pointer' } }}
                 name="qMasters"
                 connectNulls={false}
+                isAnimationActive={false}
               />
             </>
           )}

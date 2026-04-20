@@ -220,7 +220,7 @@ export default function PerformanceChart({ chartData, athlete }: PerformanceChar
 
           {showSnatch && (
             <>
-              <Line dataKey="snatch" stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} legendType="none" />
+              <Line dataKey="snatch" stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} legendType="none" isAnimationActive={false} />
               <Line
                 dataKey="snatch"
                 stroke="var(--chart-snatch)"
@@ -229,14 +229,15 @@ export default function PerformanceChart({ chartData, athlete }: PerformanceChar
                 activeDot={{ r: 8, stroke: 'var(--chart-stroke)', strokeWidth: 2, fill: 'var(--chart-snatch)', style: { cursor: 'pointer' } }}
                 name="snatch"
                 connectNulls={false}
+                isAnimationActive={false}
               />
               {showAttempts && (
                 <>
                   {[1, 2, 3].map(attemptNum => (
-                    <Line key={`snatch-good-${attemptNum}`} type="monotone" dataKey={`snatchGood${attemptNum}`} stroke="none" dot={{ fill: 'none', stroke: 'var(--chart-snatch)', strokeWidth: 1, r: 2.5 }} activeDot={false} connectNulls={false} legendType="none" />
+                    <Line key={`snatch-good-${attemptNum}`} type="monotone" dataKey={`snatchGood${attemptNum}`} stroke="none" dot={{ fill: 'none', stroke: 'var(--chart-snatch)', strokeWidth: 1, r: 2.5 }} activeDot={false} connectNulls={false} legendType="none" isAnimationActive={false} />
                   ))}
                   {[1, 2, 3].map(attemptNum => (
-                    <Line key={`snatch-miss-${attemptNum}`} type="monotone" dataKey={`snatchMiss${attemptNum}`} stroke="none" dot={{ fill: 'none', stroke: 'var(--chart-failed)', strokeWidth: 1, r: 2.5 }} activeDot={false} connectNulls={false} legendType="none" />
+                    <Line key={`snatch-miss-${attemptNum}`} type="monotone" dataKey={`snatchMiss${attemptNum}`} stroke="none" dot={{ fill: 'none', stroke: 'var(--chart-failed)', strokeWidth: 1, r: 2.5 }} activeDot={false} connectNulls={false} legendType="none" isAnimationActive={false} />
                   ))}
                 </>
               )}
@@ -251,7 +252,7 @@ export default function PerformanceChart({ chartData, athlete }: PerformanceChar
 
           {showCleanJerk && (
             <>
-              <Line dataKey="cleanJerk" stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} />
+              <Line dataKey="cleanJerk" stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} isAnimationActive={false} />
               <Line
                 dataKey="cleanJerk"
                 stroke="var(--chart-cleanjerk)"
@@ -260,14 +261,15 @@ export default function PerformanceChart({ chartData, athlete }: PerformanceChar
                 activeDot={{ r: 8, stroke: 'var(--chart-stroke)', strokeWidth: 2, fill: 'var(--chart-cleanjerk)', style: { cursor: 'pointer' } }}
                 name="cleanJerk"
                 connectNulls={false}
+                isAnimationActive={false}
               />
               {showAttempts && (
                 <>
                   {[1, 2, 3].map(attemptNum => (
-                    <Line key={`cj-good-${attemptNum}`} type="monotone" dataKey={`cjGood${attemptNum}`} stroke="none" dot={{ fill: 'none', stroke: 'var(--chart-cleanjerk)', strokeWidth: 1, r: 2.5 }} activeDot={false} connectNulls={false} legendType="none" />
+                    <Line key={`cj-good-${attemptNum}`} type="monotone" dataKey={`cjGood${attemptNum}`} stroke="none" dot={{ fill: 'none', stroke: 'var(--chart-cleanjerk)', strokeWidth: 1, r: 2.5 }} activeDot={false} connectNulls={false} legendType="none" isAnimationActive={false} />
                   ))}
                   {[1, 2, 3].map(attemptNum => (
-                    <Line key={`cj-miss-${attemptNum}`} type="monotone" dataKey={`cjMiss${attemptNum}`} stroke="none" dot={{ fill: 'none', stroke: 'var(--chart-failed)', strokeWidth: 1, r: 2.5 }} activeDot={false} connectNulls={false} legendType="none" />
+                    <Line key={`cj-miss-${attemptNum}`} type="monotone" dataKey={`cjMiss${attemptNum}`} stroke="none" dot={{ fill: 'none', stroke: 'var(--chart-failed)', strokeWidth: 1, r: 2.5 }} activeDot={false} connectNulls={false} legendType="none" isAnimationActive={false} />
                   ))}
                 </>
               )}
@@ -276,7 +278,7 @@ export default function PerformanceChart({ chartData, athlete }: PerformanceChar
 
           {showTotal && (
             <>
-              <Line dataKey="total" stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} />
+              <Line dataKey="total" stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} isAnimationActive={false} />
               <Line
                 dataKey="total"
                 stroke="var(--chart-total)"
@@ -285,13 +287,14 @@ export default function PerformanceChart({ chartData, athlete }: PerformanceChar
                 activeDot={{ r: 8, stroke: 'var(--chart-stroke)', strokeWidth: 2, fill: 'var(--chart-total)', style: { cursor: 'pointer' } }}
                 name="total"
                 connectNulls={false}
+                isAnimationActive={false}
               />
             </>
           )}
 
           {showBodyweight && (
             <>
-              <Line dataKey="bodyweight" stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} />
+              <Line dataKey="bodyweight" stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} isAnimationActive={false} />
               <Line
                 dataKey="bodyweight"
                 stroke="var(--chart-bodyweight)"
@@ -300,6 +303,7 @@ export default function PerformanceChart({ chartData, athlete }: PerformanceChar
                 activeDot={{ r: 8, stroke: 'var(--chart-stroke)', strokeWidth: 2, fill: 'var(--chart-bodyweight)', style: { cursor: 'pointer' } }}
                 name="bodyweight"
                 connectNulls={false}
+                isAnimationActive={false}
               />
             </>
           )}

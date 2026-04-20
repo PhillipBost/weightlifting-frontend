@@ -207,6 +207,7 @@ export default function GamxChart({ chartData, athlete, legendFlags }: GamxChart
                 }
                 return `Competition: ${new Date(label).toLocaleDateString()}`;
               }}
+              isAnimationActive={false}
               cursor={false}
               animationDuration={150}
               allowEscapeViewBox={{ x: false, y: true }}
@@ -221,6 +222,7 @@ export default function GamxChart({ chartData, athlete, legendFlags }: GamxChart
                 dot={{ fill: 'var(--chart-gamx-total)', stroke: 'var(--chart-stroke)', strokeWidth: 0.5, r: 5, style: { cursor: 'pointer' } }}
                 activeDot={{ r: 8, stroke: 'var(--chart-stroke)', strokeWidth: 2, fill: 'var(--chart-gamx-total)', style: { cursor: 'pointer' } }}
                 name="GAMX-Total" connectNulls={false}
+                isAnimationActive={false}
               />
             </>
           )}
@@ -231,6 +233,7 @@ export default function GamxChart({ chartData, athlete, legendFlags }: GamxChart
                 dot={{ fill: 'var(--chart-gamx-s)', stroke: 'var(--chart-stroke)', strokeWidth: 0.5, r: 5, style: { cursor: 'pointer' } }}
                 activeDot={{ r: 8, stroke: 'var(--chart-stroke)', strokeWidth: 2, fill: 'var(--chart-gamx-s)', style: { cursor: 'pointer' } }}
                 name="GAMX-S" connectNulls={false}
+                isAnimationActive={false}
               />
             </>
           )}
@@ -241,6 +244,7 @@ export default function GamxChart({ chartData, athlete, legendFlags }: GamxChart
                 dot={{ fill: 'var(--chart-gamx-j)', stroke: 'var(--chart-stroke)', strokeWidth: 0.5, r: 5, style: { cursor: 'pointer' } }}
                 activeDot={{ r: 8, stroke: 'var(--chart-stroke)', strokeWidth: 2, fill: 'var(--chart-gamx-j)', style: { cursor: 'pointer' } }}
                 name="GAMX-J" connectNulls={false}
+                isAnimationActive={false}
               />
             </>
           )}
@@ -251,6 +255,7 @@ export default function GamxChart({ chartData, athlete, legendFlags }: GamxChart
                 dot={{ fill: 'var(--chart-gamx-u)', stroke: 'var(--chart-stroke)', strokeWidth: 0.5, r: 5, style: { cursor: 'pointer' } }}
                 activeDot={{ r: 8, stroke: 'var(--chart-stroke)', strokeWidth: 2, fill: 'var(--chart-gamx-u)', style: { cursor: 'pointer' } }}
                 name="GAMX-U" connectNulls={false}
+                isAnimationActive={false}
               />
             </>
           )}
@@ -261,6 +266,7 @@ export default function GamxChart({ chartData, athlete, legendFlags }: GamxChart
                 dot={{ fill: 'var(--chart-gamx-a)', stroke: 'var(--chart-stroke)', strokeWidth: 0.5, r: 5, style: { cursor: 'pointer' } }}
                 activeDot={{ r: 8, stroke: 'var(--chart-stroke)', strokeWidth: 2, fill: 'var(--chart-gamx-a)', style: { cursor: 'pointer' } }}
                 name="GAMX-A" connectNulls={false}
+                isAnimationActive={false}
               />
             </>
           )}
@@ -271,6 +277,7 @@ export default function GamxChart({ chartData, athlete, legendFlags }: GamxChart
                 dot={{ fill: 'var(--chart-gamx-masters)', stroke: 'var(--chart-stroke)', strokeWidth: 0.5, r: 5, style: { cursor: 'pointer' } }}
                 activeDot={{ r: 8, stroke: 'var(--chart-stroke)', strokeWidth: 2, fill: 'var(--chart-gamx-masters)', style: { cursor: 'pointer' } }}
                 name="GAMX-Masters" connectNulls={false}
+                isAnimationActive={false}
               />
             </>
           )}

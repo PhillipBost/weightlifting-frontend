@@ -520,6 +520,13 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
         }
     };
 
+    // --- Predictive Loading ---
+    const prefetchAthlete = (athleteId: string, source: string) => {
+        // We pre-warm the internal API cache
+        const url = `/api/athlete/${athleteId}`;
+        fetch(url, { priority: 'low' }).catch(() => {});
+    };
+
     // --- Render Helpers ---
 
     const groupedSuggestions = suggestions.reduce((acc, item) => {
@@ -642,6 +649,19 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
                                                         key={item.id}
                                                         href={href}
                                                         onClick={() => setIsOpen(false)}
+                                                        onMouseEnter={() => {
+                                                            if (data.type === 'athlete') {
+                                                                const source = data.source || 'USAW';
+                                                                let athleteId = '';
+                                                                if (source === 'USAW') {
+                                                                    if (data.membership_number && data.membership_number !== 'null') athleteId = data.membership_number.toString();
+                                                                    else if (data.id) athleteId = data.id.toString();
+                                                                } else {
+                                                                    athleteId = (data.iwfId || data.id).toString();
+                                                                }
+                                                                if (athleteId) prefetchAthlete(athleteId, source);
+                                                            }
+                                                        }}
                                                         className="block w-full text-left px-4 py-2 hover:bg-app-hover flex items-center gap-3 transition-colors group"
                                                     >
                                                         <div className="p-2 rounded-lg bg-app-tertiary/10 group-hover:bg-blue-500/10 group-hover:text-blue-500 text-app-secondary transition-colors">

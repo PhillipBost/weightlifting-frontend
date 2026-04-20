@@ -1,0 +1,329 @@
+"use client";
+
+import React, { useState, useMemo } from 'react';
+import useSWR from 'swr';
+import { AthleteHeader } from './AthleteHeader';
+import { AthleteBests } from './AthleteBests';
+import { AthleteCharts } from './AthleteCharts';
+import { AthleteResults } from './AthleteResults';
+import { HeaderSkeleton, BestsSkeleton, ChartsSkeleton, ResultsSkeleton } from './AthleteSkeleton';
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
+interface AthleteProfileWrapperProps {
+  id: string;
+  initialData?: any;
+  forceIwfMode?: boolean;
+}
+
+/**
+ * DETERMINISTIC HYDRATION WRAPPER (Chunk 3 & 4)
+ * -------------------------------------------
+ * This component handles the high-performance hydration path.
+ * It fetches the consolidated JSON and maps it to the UI components
+ * using the production-verified data adapter logic.
+ */
+export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }: AthleteProfileWrapperProps) {
+  const { data: athleteData, error, isLoading } = useSWR(`/api/athlete/${id}`, fetcher, {
+    fallbackData: initialData,
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+    revalidateOnMount: !initialData,
+    refreshInterval: 0,
+    dedupingInterval: 60000,
+    keepPreviousData: true,
+  });
+
+  const [showIwfResults, setShowIwfResults] = useState(forceIwfMode);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [showAllColumns, setShowAllColumns] = useState(false);
+  const [sortConfig, setSortConfig] = useState<{
+    key: string | null;
+    direction: 'asc' | 'desc';
+  }>({ key: null, direction: 'asc' });
+
+  // 1. Results Normalization (Preserving Source Fidelity)
+  const results = useMemo(() => {
+    if (!athleteData) return [];
+    
+    const usaw = (athleteData.usaw_results || []).map((r: any) => ({
+      ...r,
+      _source: 'USAW',
+      // v3.5 Support: Prioritize nested meets.Level, fallback to r.level
+      meets: r.meets || { Level: r.level || 'Unknown' },
+      // v3.5 Support: Stabilize the key using the DB primary key
+      key: r.id || `usaw-${r.date}-${r.total}`
+    }));
+
+    const iwf = (athleteData.iwf_results || []).map((r: any) => ({
+      ...r,
+      _source: 'IWF',
+      key: r.id || `iwf-${r.date}-${r.total}`
+    }));
+
+    // Bidirectional Logic: 
+    // If showIwfResults is true (in non-forced) -> show ALL
+    // If showIwfResults is false (in forced) -> show ALL
+    // This allows the toggle to 'Include' the other source in both directions.
+    const shouldShowCombined = forceIwfMode ? !showIwfResults : showIwfResults;
+
+    if (!shouldShowCombined) {
+      return forceIwfMode ? iwf : usaw;
+    }
+    
+    return [...usaw, ...iwf].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+  }, [athleteData, showIwfResults, forceIwfMode]);
+
+  // --- TOP-DOWN STABLE HYDRATION ORCHESTRATOR ---
+  const [renderStep, setRenderStep] = React.useState(0);
+
+  React.useEffect(() => {
+    if (athleteData) {
+      // Step 1: Header + Bests (Fast)
+      const timer1 = setTimeout(() => {
+        setRenderStep(prev => Math.max(prev, 1));
+      }, 50);
+
+      // Step 2: Charts Area (Mounts highcharts dynamic containers)
+      const timer2 = setTimeout(() => {
+        setRenderStep(prev => Math.max(prev, 2));
+      }, 400);
+
+      // Step 3: Results Table (Mounts long list at bottom)
+      const timer3 = setTimeout(() => {
+        setRenderStep(prev => Math.max(prev, 3));
+      }, 800);
+
+      return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+        clearTimeout(timer3);
+      };
+    }
+  }, [athleteData]);
+
+  // 2. Chart Transformation (Preserving Hover Logic)
+
+  // 2. Chart Transformation (Preserving Hover Logic)
+  const chartData = useMemo(() => {
+    if (!results.length) return [];
+
+    return results
+      .filter((r: any) => r.date && (r.best_snatch || r.best_cj || r.total || r.qpoints))
+      .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .map((r: any) => {
+        const baseData: any = {
+          date: r.date,
+          meet: r._source === 'IWF' ? `[IWF] ${r.meet_name || 'Unknown'}` : (r.meet_name || 'Unknown'),
+          snatch: parseInt(r.best_snatch || '0') || null,
+          cleanJerk: parseInt(r.best_cj || '0') || null,
+          total: parseInt(r.total || '0') || null,
+          bodyweight: parseFloat(r.body_weight_kg || '0') || null,
+          qpoints: r.qpoints || null,
+          qYouth: r.q_youth || null,
+          qMasters: r.q_masters || null,
+          gamxTotal: r.gamx_total || null,
+          gamxS: r.gamx_s || null,
+          gamxJ: r.gamx_j || null,
+          gamxU: r.gamx_u || null,
+          gamxA: r.gamx_a || null,
+          gamxMasters: r.gamx_masters || null,
+          shortDate: new Date(r.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+          // Fidelity: Restore the competition age string for tooltips
+          dateWithAge: r.competition_age
+            ? `${new Date(r.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })} (${r.competition_age})`
+            : new Date(r.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+          timestamp: new Date(r.date).getTime()
+        };
+
+        // Fidelity: Map Snatch Attempts (Good/Miss)
+        [r.snatch_lift_1, r.snatch_lift_2, r.snatch_lift_3].forEach((att, i) => {
+          if (att && att !== '0') {
+            const w = parseInt(att);
+            w > 0 ? (baseData[`snatchGood${i + 1}`] = w) : (baseData[`snatchMiss${i + 1}`] = Math.abs(w));
+          }
+        });
+
+        // Fidelity: Map CJ Attempts (Good/Miss)
+        [r.cj_lift_1, r.cj_lift_2, r.cj_lift_3].forEach((att, i) => {
+          if (att && att !== '0') {
+            const w = parseInt(att);
+            w > 0 ? (baseData[`cjGood${i + 1}`] = w) : (baseData[`cjMiss${i + 1}`] = Math.abs(w));
+          }
+        });
+
+        return baseData;
+      });
+  }, [results]);
+
+  // 3. Metadata Extraction (High-Speed Initial Paint)
+  const athlete = useMemo(() => {
+    if (!athleteData) return null;
+    return {
+      athlete_name: athleteData.athlete_name,
+      membership_number: athleteData.membership_number,
+      gender: athleteData.gender,
+      internal_id: athleteData.internal_id,
+      internal_id_2: athleteData.internal_id_2,
+      iwf_profiles: (athleteData.iwf_profiles || []).map((p: any) => ({
+        ...p,
+        url: p.url || `https://iwf.sport/weightlifting_/athletes-bios/?athlete_id=${p.id}`
+      }))
+    };
+  }, [athleteData]);
+
+  const personalBests = useMemo(() => {
+    if (!results.length) return { best_snatch: 0, best_cj: 0, best_total: 0, best_qpoints: 0 };
+    return {
+      best_snatch: Math.max(...results.map((r: any) => parseInt(r.best_snatch || '0')).filter((v: any) => v > 0), 0),
+      best_cj: Math.max(...results.map((r: any) => parseInt(r.best_cj || '0')).filter((v: any) => v > 0), 0),
+      best_total: Math.max(...results.map((r: any) => parseInt(r.total || '0')).filter((v: any) => v > 0), 0),
+      best_qpoints: Math.max(...results.map((r: any) => r.qpoints || 0).filter((v: any) => v > 0), 0)
+    };
+  }, [results]);
+
+  const recentInfo = useMemo(() => {
+    if (!athleteData) return { wso: null, club: null };
+    // Production Fallback: JSON root metadata -> recent result array
+    return {
+      wso: athleteData.wso || results.find((r: any) => r.wso && r.wso.trim() !== '')?.wso || null,
+      club: athleteData.club_name || results.find((r: any) => r.club_name && r.club_name.trim() !== '')?.club_name || null
+    };
+  }, [athleteData, results]);
+
+  const legendFlags = useMemo(() => ({
+    hasQYouth: chartData?.some((d: any) => d.qYouth && d.qYouth > 0) || false,
+    hasQMasters: chartData?.some((d: any) => d.qMasters && d.qMasters > 0) || false,
+    hasGamxTotal: chartData?.some((d: any) => d.gamxTotal !== null) || false,
+    hasGamxS: chartData?.some((d: any) => d.gamxS !== null) || false,
+    hasGamxJ: chartData?.some((d: any) => d.gamxJ !== null) || false,
+    hasGamxU: chartData?.some((d: any) => d.gamxU !== null) || false,
+    hasGamxA: chartData?.some((d: any) => d.gamxA !== null) || false,
+    hasGamxMasters: chartData?.some((d: any) => d.gamxMasters !== null) || false,
+  }), [chartData]);
+
+  // 3. Sorting & Pagination Logic
+  const getSortableValue = (result: any, key: string): any => {
+    switch (key) {
+      case 'date': return new Date(result.date).getTime();
+      case 'meet_name': return result.meet_name?.toLowerCase() || '';
+      case 'level': return result.meets?.Level?.toLowerCase() || '';
+      case 'weight_class': {
+        const weightMatch = result.weight_class?.toString().match(/(\d+)/);
+        return weightMatch ? parseInt(weightMatch[1]) : 0;
+      }
+      case 'body_weight_kg': return parseFloat(result.body_weight_kg) || 0;
+      case 'best_snatch': return parseInt(result.best_snatch) || 0;
+      case 'best_cj': return parseInt(result.best_cj) || 0;
+      case 'total': return parseInt(result.total) || 0;
+      default: return '';
+    }
+  };
+
+  const { displayResults, totalPages } = useMemo(() => {
+    let sorted = [...results];
+    if (sortConfig.key) {
+      sorted.sort((a, b) => {
+        const aVal = getSortableValue(a, sortConfig.key!);
+        const bVal = getSortableValue(b, sortConfig.key!);
+        if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    const startIndex = (currentPage - 1) * 20;
+    return {
+      displayResults: sorted.slice(startIndex, startIndex + 20),
+      totalPages: Math.ceil(sorted.length / 20)
+    };
+  }, [currentPage, results, sortConfig]);
+
+  // Final Fallback: Error or Invalid Data
+  if (error || (athleteData === null && !isLoading)) return (
+    <div className="card-results p-12 text-center">
+      <h2 className="text-2xl font-bold text-red-500 mb-4">Profile Unavailable</h2>
+      <p className="text-app-muted mb-6">We could not load this athlete profile. This may be due to a missing Data Factory entry.</p>
+      <button onClick={() => window.location.reload()} className="btn-primary">Try Again</button>
+    </div>
+  );
+
+  // Data Readiness Guard: If data is arriving but the mapping isn't complete, show base skeleton
+  if (isLoading || !athlete || !athleteData) return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="space-y-8">
+        <HeaderSkeleton />
+        <ChartsSkeleton />
+        <BestsSkeleton />
+        <ResultsSkeleton />
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-app-gradient">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="space-y-8 animate-in fade-in duration-500">
+          {/* STEP 1: HEADER & BESTS */}
+          {renderStep >= 1 ? (
+            <>
+              <AthleteHeader 
+                athlete={athlete} 
+                recentInfo={recentInfo} 
+                iwfProfiles={athlete.iwf_profiles || []}
+                iwfResults={athleteData.iwf_results || []} 
+                showIwfResults={showIwfResults} 
+                setShowIwfResults={setShowIwfResults} 
+                forceIwfMode={forceIwfMode}
+                currentIwfId={id}
+              />
+              <AthleteBests personalBests={personalBests} />
+            </>
+          ) : (
+            <>
+              <HeaderSkeleton />
+              <BestsSkeleton />
+            </>
+          )}
+          
+          {/* STEP 2: CHARTS (HEAVY RE-RENDER) */}
+          {renderStep >= 2 ? (
+            <AthleteCharts 
+              chartData={chartData} 
+              athlete={athlete} 
+              legendFlags={legendFlags} 
+            />
+          ) : (
+            <ChartsSkeleton />
+          )}
+
+          {/* STEP 3: RESULTS TABLE (THE HYDRATION TAX) */}
+          {renderStep >= 3 ? (
+            <AthleteResults 
+              athlete={athlete} 
+              results={results}
+              displayResults={displayResults}
+              totalPages={totalPages}
+              currentPage={currentPage}
+              onPageChange={(page) => {
+                setCurrentPage(page);
+                document.querySelector('.results-table')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              sortConfig={sortConfig}
+              handleSort={(key) => {
+                const dir = (sortConfig.key === key && sortConfig.direction === 'asc') ? 'desc' : 'asc';
+                setSortConfig({ key, direction: dir });
+                setCurrentPage(1);
+              }}
+              showAllColumns={showAllColumns}
+              setShowAllColumns={setShowAllColumns}
+            />
+          ) : (
+            <ResultsSkeleton />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
