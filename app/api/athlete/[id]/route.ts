@@ -6,10 +6,9 @@ import zlib from 'zlib';
 const gunzip = promisify(zlib.gunzip);
 
 /**
- * Athlete Data Proxy (v3.7 - WINNER-TAKES-ALL)
- * ----------------------------------------
- * Targets sub-500ms by racing shards and using non-blocking async decompression.
- * Injects telemetry headers for performance auditing.
+ * Athlete Data Proxy (v4.0 - BACK TO BASICS)
+ * -------------------------------------------
+ * Restoring stability using the project's native Supabase client.
  */
 export async function GET(
   request: NextRequest,
@@ -17,141 +16,152 @@ export async function GET(
 ) {
   const startTime = Date.now();
   const { id } = await params;
-  const decodedId = decodeURIComponent(id);
+  
+  // Robust decoding: Handle potential double-encoding from the frontend
+  let decodedId = id;
+  while (decodedId !== decodeURIComponent(decodedId)) {
+    decodedId = decodeURIComponent(decodedId);
+  }
   
   let athleteId = decodedId;
   let isNumeric = /^\d+$/.test(decodedId);
 
-  // 1. Slug Resolution (Point Lookup)
+  // 1. Slug Resolution (Point Lookup & Disambiguation)
   if (!isNumeric && !decodedId.startsWith('u-')) {
-    const supabase = await createClient();
-    const normalizedName = decodedId.replace(/-/g, ' ');
-    const { data } = await supabase
-      .from('usaw_lifters')
-      .select('membership_number')
-      .ilike('athlete_name', normalizedName)
-      .limit(1);
+    try {
+      const supabase = await createClient();
+      const normalizedName = decodedId.replace(/-/g, ' ').trim();
+      const normalize = (s: string) => s.trim().replace(/\s+/g, ' ').toLowerCase();
+      const target = normalize(normalizedName);
 
-    if (data && data.length > 0 && data[0].membership_number) {
-      athleteId = data[0].membership_number.toString();
-      isNumeric = true;
+      // 1a. Search USAW
+      const { data: usawRaw } = await supabase
+        .from('usaw_lifters')
+        .select('lifter_id, membership_number, athlete_name')
+        .ilike('athlete_name', `%${normalizedName}%`)
+        .limit(10);
+      
+      const usawCandidates = (usawRaw || []).filter(c => normalize(c.athlete_name) === target);
+
+      // 1b. Search IWF
+      const { data: iwfRaw } = await supabase
+        .from('iwf_lifters')
+        .select('db_lifter_id, iwf_lifter_id, athlete_name, country_code')
+        .ilike('athlete_name', `%${normalizedName}%`)
+        .limit(10);
+      
+      const iwfCandidates = (iwfRaw || []).filter(c => normalize(c.athlete_name) === target);
+
+      const totalCandidatesCount = usawCandidates.length + iwfCandidates.length;
+
+      if (totalCandidatesCount > 1) {
+        // Disambiguation Logic
+        const usawEnriched = await Promise.all(
+          usawCandidates.map(async (c) => {
+            const { data: results } = await supabase
+              .from('usaw_meet_results')
+              .select('date, wso, club_name, gender')
+              .eq('lifter_id', c.lifter_id)
+              .order('date', { ascending: false })
+              .limit(10);
+
+            return {
+              source: 'USAW',
+              lifter_id: c.lifter_id,
+              membership_number: c.membership_number,
+              gender: results?.find(r => r.gender)?.gender || null,
+              athlete_name: c.athlete_name,
+              recent_wso: results?.find(r => r.wso)?.wso || null,
+              recent_club: results?.find(r => r.club_name)?.club_name || null,
+              first_active: results?.length ? results[results.length - 1].date : null,
+              last_active: results?.length ? results[0].date : null,
+              result_count: (results || []).length
+            };
+          })
+        );
+
+        const iwfEnriched = await Promise.all(
+          iwfCandidates.map(async (c) => {
+            const { data: results } = await supabase
+              .from('iwf_meet_results')
+              .select('date, country_name, gender')
+              .eq('db_lifter_id', c.db_lifter_id)
+              .order('date', { ascending: false })
+              .limit(10);
+
+            return {
+              source: 'IWF',
+              lifter_id: c.db_lifter_id,
+              membership_number: c.iwf_lifter_id?.toString() || null,
+              gender: results?.find(r => r.gender)?.gender || null,
+              athlete_name: c.athlete_name,
+              recent_wso: c.country_name || results?.find(r => r.country_name)?.country_name || c.country_code || null,
+              recent_club: 'International',
+              first_active: results?.length ? results[results.length - 1].date : null,
+              last_active: results?.length ? results[0].date : null,
+              result_count: (results || []).length
+            };
+          })
+        );
+
+        return NextResponse.json({
+          isAmbiguous: true,
+          candidates: [...usawEnriched, ...iwfEnriched]
+        });
+      }
+
+      // Single match logic
+      if (totalCandidatesCount === 1) {
+        if (usawCandidates.length === 1) {
+          const c = usawCandidates[0];
+          athleteId = c.membership_number ? c.membership_number.toString() : `u-${c.lifter_id}`;
+          isNumeric = !!c.membership_number;
+        } else {
+          const c = iwfCandidates[0];
+          // IWF athletes are handled via a different data path but for now we need a resolved ID
+          // Usually IWF pages go through a different shard or direct lookup
+          return NextResponse.redirect(`${request.nextUrl.origin}/athlete/iwf/${c.db_lifter_id}`);
+        }
+      } else {
+        return NextResponse.json({ error: `Athlete "${normalizedName}" not found.` }, { status: 404 });
+      }
+    } catch (err) {
+      console.error('[API IDENTITY ERROR]:', err);
     }
   }
 
-  const shardId = isNumeric ? athleteId.padStart(2, '0').slice(-2) : '00';
+  // Handle explicit internal ID lookup or resolved numeric ID
+  const isInternal = athleteId.startsWith('u-');
+  const cleanId = isInternal ? athleteId.replace('u-', '') : athleteId;
+  const shardId = (isNumeric || isInternal) ? cleanId.padStart(2, '0').slice(-2) : '00';
+  
   const baseUrl = 'http://46.62.223.85:8888';
-
-  const urlConfigs = [
-    { type: 'USAW', url: `${baseUrl}/usaw/${shardId}/${athleteId}.json.gz` },
-    { type: 'IWF', url: `${baseUrl}/iwf/${shardId}/${athleteId}.json.gz` }
-  ];
+  const shardUrl = isNumeric 
+    ? `${baseUrl}/usaw/${shardId}/${cleanId}.json.gz`
+    : `${baseUrl}/usaw/00/${cleanId}.json.gz`;
 
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-    const fetchStart = Date.now();
-
-    // 2. Parallel Binary Streaming (Truly Parallel)
-    const requests = urlConfigs.map(async (item) => {
-      try {
-        const res = await fetch(item.url, { 
-          next: { revalidate: 3600 },
-          signal: controller.signal 
-        });
-        
-        if (!res.ok) return { type: item.type, ok: false, status: res.status };
-        
-        const buffer = await res.arrayBuffer();
-        return { 
-          type: item.type, 
-          ok: true, 
-          buffer, 
-          latency: Date.now() - fetchStart 
-        };
-      } catch (err) {
-        return { type: item.type, ok: false, error: 'Request Failed' };
-      }
+    const res = await fetch(shardUrl, {
+      next: { revalidate: 3600 },
+      headers: { 'Accept-Encoding': 'gzip' }
     });
 
-    const outcomes = await Promise.allSettled(requests);
-    clearTimeout(timeoutId);
+    if (!res.ok) {
+      return NextResponse.json({ error: 'Athlete data not found.' }, { status: 404 });
+    }
 
-    let mergedData: any = null;
-    const telemetry: any = {};
-
-    // 3. Smart Processing & Merge
-    for (const outcome of outcomes) {
-      if (outcome.status === 'fulfilled' && outcome.value.ok && outcome.value.buffer) {
-        const decompStart = Date.now();
-        try {
-          // Asynchronous Decompression (Non-blocking)
-          const decompressed = await gunzip(Buffer.from(outcome.value.buffer));
-          const shardData = JSON.parse(decompressed.toString());
-          
-          telemetry[`X-Proxy-${outcome.value.type}-Time`] = `${outcome.value.latency}ms`;
-          telemetry[`X-Proxy-${outcome.value.type}-Decompress`] = `${Date.now() - decompStart}ms`;
-
-          if (!mergedData) {
-            mergedData = shardData;
-            // Standardize federation-specific names from shard Metadata
-            mergedData.usaw_name = shardData.usaw_athlete_name || (outcome.value.type === 'USAW' ? shardData.athlete_name : undefined);
-            mergedData.iwf_name = shardData.iwf_athlete_name || (outcome.value.type === 'IWF' ? shardData.athlete_name : undefined);
-          } else {
-            // Update names if missing
-            if (!mergedData.usaw_name) mergedData.usaw_name = shardData.usaw_athlete_name;
-            if (!mergedData.iwf_name) mergedData.iwf_name = shardData.iwf_athlete_name;
-
-            // Merge result lists (Assembler now handles this, but we deduplicate as a safety layer)
-            const existingIds = new Set(mergedData.usaw_results?.map((r: any) => r.id) || []);
-            const existingIwfIds = new Set(mergedData.iwf_results?.map((r: any) => r.id) || []);
-
-            (shardData.usaw_results || []).forEach((r: any) => {
-              if (r.id && !existingIds.has(r.id)) {
-                if (!mergedData.usaw_results) mergedData.usaw_results = [];
-                mergedData.usaw_results.push(r);
-              }
-            });
-
-            (shardData.iwf_results || []).forEach((r: any) => {
-              if (r.id && !existingIwfIds.has(r.id)) {
-                if (!mergedData.iwf_results) mergedData.iwf_results = [];
-                mergedData.iwf_results.push(r);
-              }
-            });
-
-            const existingProfiles = new Set(mergedData.iwf_profiles?.map((p: any) => p.id) || []);
-            (shardData.iwf_profiles || []).forEach((p: any) => {
-              if (p.id && !existingProfiles.has(p.id)) {
-                if (!mergedData.iwf_profiles) mergedData.iwf_profiles = [];
-                mergedData.iwf_profiles.push(p);
-              }
-            });
-          }
-        } catch (e) {
-          console.error(`[DECOMPRESSION ERROR ${outcome.value.type}]:`, e);
-        }
+    const arrayBuffer = await res.arrayBuffer();
+    const decompressed = await gunzip(Buffer.from(arrayBuffer));
+    return new NextResponse(decompressed, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Response-Time': `${Date.now() - startTime}ms`,
+        'X-Shard-ID': shardId
       }
-    }
-
-    if (mergedData) {
-      const response = NextResponse.json(mergedData);
-      // Inject Telemetry for browser auditing
-      Object.entries(telemetry).forEach(([k, v]) => response.headers.set(k, v as string));
-      response.headers.set('X-Proxy-Total-Time', `${Date.now() - startTime}ms`);
-      return response;
-    }
-
-    return NextResponse.json(
-      { error: 'Athlete data not found in Data Factory shards' },
-      { status: 404 }
-    );
-
-  } catch (error: any) {
-    console.error('[API PROXY ERROR]:', error);
-    return NextResponse.json(
-      { error: error.message || 'Internal Server Error' },
-      { status: 500 }
-    );
+    });
+  } catch (err) {
+    console.error('[API SHARD ERROR]:', err);
+    return NextResponse.json({ error: 'Failed to retrieve athlete results' }, { status: 500 });
   }
 }

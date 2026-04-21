@@ -16,7 +16,7 @@ export default async function AthletePage({ params }: { params: Promise<{ id: st
   
   let initialData = null;
   try {
-    const res = await fetch(`${baseUrl}/api/athlete/${id}`, {
+    const res = await fetch(`${baseUrl}/api/athlete/${encodeURIComponent(id)}`, {
       next: { revalidate: 3600 },
       headers: {
         'Cache-Control': 's-maxage=3600, stale-while-revalidate=59'

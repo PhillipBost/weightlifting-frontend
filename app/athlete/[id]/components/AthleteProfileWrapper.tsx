@@ -8,8 +8,16 @@ import { AthleteCharts } from './AthleteCharts';
 import { AthleteResults } from './AthleteResults';
 import { adaptIWFResult } from '@/lib/adapters/iwfAdapter';
 import { HeaderSkeleton, BestsSkeleton, ChartsSkeleton, ResultsSkeleton } from './AthleteSkeleton';
+import { DisambiguationUI } from './DisambiguationUI';
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || 'Failed to fetch athlete data');
+  }
+  return res.json();
+};
 
 interface AthleteProfileWrapperProps {
   id: string;
@@ -25,7 +33,7 @@ interface AthleteProfileWrapperProps {
  * using the production-verified data adapter logic.
  */
 export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }: AthleteProfileWrapperProps) {
-  const { data: athleteData, error, isLoading } = useSWR(`/api/athlete/${id}`, fetcher, {
+  const { data: athleteData, error, isLoading } = useSWR(`/api/athlete/${encodeURIComponent(id)}`, fetcher, {
     fallbackData: initialData,
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
@@ -287,12 +295,19 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }:
     };
   }, [currentPage, results, sortConfig]);
 
-  // Final Fallback: Error or Invalid Data
+  // 1. DISAMBIGUATION PATH: Catch multiple matches immediately
+  if (athleteData?.isAmbiguous) {
+    return <DisambiguationUI name={id.replace(/-/g, ' ')} candidates={athleteData.candidates} />;
+  }
+
+  // 2. Final Fallback: Error or Invalid Data
   if (error || (athleteData === null && !isLoading)) return (
-    <div className="card-results p-12 text-center">
-      <h2 className="text-2xl font-bold text-red-500 mb-4">Profile Unavailable</h2>
-      <p className="text-app-muted mb-6">We could not load this athlete profile. This may be due to a missing Data Factory entry.</p>
-      <button onClick={() => window.location.reload()} className="btn-primary">Try Again</button>
+    <div className="max-w-7xl mx-auto px-4 py-12">
+      <div className="card-results p-12 text-center">
+        <h2 className="text-2xl font-bold text-red-500 mb-4">Profile Unavailable</h2>
+        <p className="text-app-muted mb-6">We could not load this athlete profile. This may be due to a record naming mismatch or a temporary database connection issue.</p>
+        <button onClick={() => window.location.reload()} className="btn-primary">Try Again</button>
+      </div>
     </div>
   );
 
