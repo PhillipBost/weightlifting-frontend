@@ -27,7 +27,7 @@ export async function GET(
   let isNumeric = /^\d+$/.test(decodedId);
 
   // 1. Slug Resolution (Point Lookup & Disambiguation)
-  if (!isNumeric && !decodedId.startsWith('u-')) {
+  if (!isNumeric && !decodedId.startsWith('u-') && !decodedId.startsWith('iwf-')) {
     try {
       const supabase = await createClient();
       const normalizedName = decodedId.replace(/-/g, ' ').trim();
@@ -132,13 +132,16 @@ export async function GET(
 
   // Handle explicit internal ID lookup or resolved numeric ID
   const isInternal = athleteId.startsWith('u-');
-  const cleanId = isInternal ? athleteId.replace('u-', '') : athleteId;
-  const shardId = (isNumeric || isInternal) ? cleanId.padStart(2, '0').slice(-2) : '00';
-  
-  const baseUrl = 'http://46.62.223.85:8888';
-  const shardUrl = isNumeric 
-    ? `${baseUrl}/usaw/${shardId}/${cleanId}.json.gz`
-    : `${baseUrl}/usaw/00/${cleanId}.json.gz`;
+  const isIwf = athleteId.startsWith('iwf-');
+  const federation = isIwf ? 'iwf' : 'usaw';
+  const cleanId = isInternal ? athleteId.replace('u-', '') : isIwf ? athleteId.replace('iwf-', '') : athleteId;
+
+  // 1. Unified Shard Lookup (Check Federation-specific storage first)
+  const shardId = (isNumeric || isInternal || isIwf) ? cleanId.padStart(2, '0').slice(-2) : '00';
+  const baseUrlData = 'http://46.62.223.85:8888';
+  const shardUrl = isNumeric || isIwf
+    ? `${baseUrlData}/${federation}/${shardId}/${cleanId}.json.gz`
+    : `${baseUrlData}/${federation}/00/${cleanId}.json.gz`;
 
   try {
     const res = await fetch(shardUrl, {
@@ -146,22 +149,81 @@ export async function GET(
       headers: { 'Accept-Encoding': 'gzip' }
     });
 
-    if (!res.ok) {
-      return NextResponse.json({ error: 'Athlete data not found.' }, { status: 404 });
+    if (res.ok) {
+      const arrayBuffer = await res.arrayBuffer();
+      const decompressed = await gunzip(Buffer.from(arrayBuffer));
+      return new NextResponse(new Uint8Array(decompressed), {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Response-Time': `${Date.now() - startTime}ms`,
+          'X-Shard-ID': shardId,
+          'X-Federation': federation
+        }
+      });
     }
-
-    const arrayBuffer = await res.arrayBuffer();
-    const decompressed = await gunzip(Buffer.from(arrayBuffer));
-    return new NextResponse(new Uint8Array(decompressed), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Response-Time': `${Date.now() - startTime}ms`,
-        'X-Shard-ID': shardId
-      }
-    });
   } catch (err) {
-    console.error('[API SHARD ERROR]:', err);
-    return NextResponse.json({ error: 'Failed to retrieve athlete results' }, { status: 500 });
+    console.warn(`[SHARD FETCH FAILED for ${federation}/${cleanId}]:`, err);
   }
+
+  // 2. Resilient Database Fallback (Direct fetch if shard is missing)
+  try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+    
+    // We use a dedicated admin client to ensure 100% visibility for the backup path
+    const { createClient: createAdminClient } = await import('@supabase/supabase-js');
+    const supabaseAdmin = createAdminClient(supabaseUrl, supabaseServiceKey);
+
+    if (federation === 'iwf') {
+      const { data: lifter } = await supabaseAdmin
+        .from('iwf_lifters')
+        .select('*')
+        .eq('db_lifter_id', cleanId)
+        .single();
+      
+      if (lifter) {
+        const { data: results } = await supabaseAdmin
+          .from('iwf_meet_results')
+          .select('*, iwf_meets(meet, level, iwf_meet_id)')
+          .eq('db_lifter_id', cleanId)
+          .order('date', { ascending: false });
+
+        return NextResponse.json({
+          lifter_id: lifter.db_lifter_id,
+          athlete_name: lifter.athlete_name,
+          iwf_results: results || [],
+          usaw_results: [],
+          source: 'IWF'
+        }, { headers: { 'X-Response-Source': 'Direct-DB-Backup' } });
+      }
+    } else {
+      // USAW Database extraction if shard is missing
+      const { data: lifter } = await supabaseAdmin
+        .from('usaw_lifters')
+        .select('*')
+        .eq(isNumeric ? 'membership_number' : 'lifter_id', cleanId)
+        .single();
+
+      if (lifter) {
+        const { data: results } = await supabaseAdmin
+          .from('usaw_meet_results')
+          .select('*')
+          .eq('lifter_id', lifter.lifter_id)
+          .order('date', { ascending: false });
+
+        return NextResponse.json({
+          lifter_id: lifter.lifter_id,
+          athlete_name: lifter.athlete_name,
+          membership_number: lifter.membership_number,
+          usaw_results: results || [],
+          iwf_results: []
+        }, { headers: { 'X-Response-Source': 'Direct-DB-Backup' } });
+      }
+    }
+  } catch (fallbackErr) {
+    console.error('[API FALLBACK ERROR]:', fallbackErr);
+  }
+
+  return NextResponse.json({ error: 'Athlete data not found.' }, { status: 404 });
 }

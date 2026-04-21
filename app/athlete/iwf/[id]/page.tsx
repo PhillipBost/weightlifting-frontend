@@ -17,7 +17,8 @@ export default async function IWFAthletePage({ params }: { params: Promise<{ id:
   let initialData = null;
   try {
     // Note: The API handler handles both IWF numeric IDs and USAW membership numbers
-    const res = await fetch(`${baseUrl}/api/athlete/${id}`, {
+    // We use the iwf- prefix to explicitly route to the IWF Database resolution path
+    const res = await fetch(`${baseUrl}/api/athlete/iwf-${id}`, {
       next: { revalidate: 3600 },
       headers: {
         'Cache-Control': 's-maxage=3600, stale-while-revalidate=59'
@@ -35,7 +36,7 @@ export default async function IWFAthletePage({ params }: { params: Promise<{ id:
     <div className="min-h-screen bg-app-gradient">
       <Suspense fallback={<AthleteSkeleton />}>
         {/* Unified Orchestrator handles IWF logic natively */}
-        <AthleteProfileWrapper id={id} initialData={initialData} forceIwfMode={true} />
+        <AthleteProfileWrapper id={`iwf-${id}`} initialData={initialData} forceIwfMode={true} />
       </Suspense>
     </div>
   );
