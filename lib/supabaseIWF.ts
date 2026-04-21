@@ -187,8 +187,6 @@ export interface IWFMeetResult {
   usaw_results?: any[]
   iwf_results?: any[]
   iwf_profiles?: any[]
-  country_code?: string | null
-  country_name?: string | null
   wso?: string | null
   club_name?: string | null
 }
