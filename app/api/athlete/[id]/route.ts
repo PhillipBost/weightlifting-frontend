@@ -152,7 +152,7 @@ export async function GET(
 
     const arrayBuffer = await res.arrayBuffer();
     const decompressed = await gunzip(Buffer.from(arrayBuffer));
-    return new NextResponse(decompressed, {
+    return new NextResponse(new Uint8Array(decompressed), {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
