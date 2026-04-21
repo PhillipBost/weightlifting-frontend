@@ -60,6 +60,7 @@ export interface IWFLifter {
   country_name: string | null
   created_at: string | null
   updated_at: string | null
+  id?: string | number
 }
 
 /**
@@ -82,6 +83,7 @@ export interface IWFMeet {
   scraped_date: string
   created_at: string
   updated_at: string
+  id?: string | number
 }
 
 /**
@@ -173,7 +175,22 @@ export interface IWFMeetResult {
   // Optional joined meet data
   iwf_meets?: {
     iwf_meet_id?: string | null;
+    level?: string | null;
   } | null;
+  
+  // Data Factory / Unified Shard Fields
+  id?: string | number
+  meets?: { Level?: string }
+  usaw_athlete_name?: string
+  iwf_athlete_name?: string
+  athlete_name?: string
+  usaw_results?: any[]
+  iwf_results?: any[]
+  iwf_profiles?: any[]
+  country_code?: string | null
+  country_name?: string | null
+  wso?: string | null
+  club_name?: string | null
 }
 
 // ============================================================================
