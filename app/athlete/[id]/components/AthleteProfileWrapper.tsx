@@ -209,7 +209,7 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }:
       { value: parseFloat(r.q_youth) || 0, label: 'Q-Youth', color: 'var(--chart-qyouth)', date: r.date },
       { value: parseFloat(r.q_masters) || 0, label: 'Q-Masters', color: 'var(--chart-qmasters)', date: r.date }
     ]);
-    const bestQ = qScores.reduce((prev, curr) => (curr.value > prev.value) ? curr : prev, { value: 0, label: 'N/A', color: 'var(--chart-qpoints)', date: null });
+    const bestQ = qScores.reduce((prev: any, curr: any) => (curr.value > prev.value) ? curr : prev, { value: 0, label: 'N/A', color: 'var(--chart-qpoints)', date: null });
 
     // GAMX Logic (Total, S, J, U, A, Masters)
     const gamxScores = results.flatMap((r: any) => [
@@ -220,7 +220,7 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }:
       { value: parseFloat(r.gamx_a) || 0, label: 'GAMX-A', color: 'var(--chart-gamx-a)', date: r.date },
       { value: parseFloat(r.gamx_masters) || 0, label: 'GAMX-Masters', color: 'var(--chart-gamx-masters)', date: r.date }
     ]);
-    const bestGamx = gamxScores.reduce((prev, curr) => (curr.value > prev.value) ? curr : prev, { value: 0, label: 'N/A', color: 'var(--chart-gamx-total)', date: null });
+    const bestGamx = gamxScores.reduce((prev: any, curr: any) => (curr.value > prev.value) ? curr : prev, { value: 0, label: 'N/A', color: 'var(--chart-gamx-total)', date: null });
 
     return {
       best_snatch: { value: parseFloat(bestSnatchObj?.best_snatch) || 0, date: bestSnatchObj?.date || null },
