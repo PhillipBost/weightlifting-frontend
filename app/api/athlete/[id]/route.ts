@@ -46,7 +46,7 @@ export async function GET(
       // 1b. Search IWF
       const { data: iwfRaw } = await supabase
         .from('iwf_lifters')
-        .select('db_lifter_id, iwf_lifter_id, athlete_name, country_code')
+        .select('db_lifter_id, iwf_lifter_id, athlete_name, country_code, country_name')
         .ilike('athlete_name', `%${normalizedName}%`)
         .limit(10);
       
