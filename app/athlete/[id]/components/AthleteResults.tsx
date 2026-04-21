@@ -95,7 +95,7 @@ const exportTableToCSV = (results: any[], athleteName: string, showAllColumns: b
       document.body.removeChild(link);
     }
   } catch (error) {
-    console.error('Error exporting CSV:', error);
+    console.error('Error export CSV:', error);
     alert('Failed to export CSV. Please try again.');
   }
 };
@@ -212,6 +212,7 @@ interface AthleteResultsProps {
   handleSort: (key: string) => void;
   showAllColumns: boolean;
   setShowAllColumns: (show: boolean) => void;
+  isMixedResults: boolean;
 }
 
 export function AthleteResults({
@@ -224,7 +225,8 @@ export function AthleteResults({
   sortConfig,
   handleSort,
   showAllColumns,
-  setShowAllColumns
+  setShowAllColumns,
+  isMixedResults
 }: AthleteResultsProps) {
   const resultsTableRef = useRef<HTMLDivElement>(null);
 
@@ -506,9 +508,14 @@ export function AthleteResults({
                                 title={result.meet_name}
                               >
                                 {result.meet_name}
-                                {result._source === 'IWF' && (
+                                {isMixedResults && result._source === 'IWF' && (
                                   <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-900/30 text-red-400 border border-red-800/50">
                                     IWF
+                                  </span>
+                                )}
+                                {isMixedResults && result._source === 'USAW' && (
+                                  <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-900/30 text-blue-400 border border-blue-800/50">
+                                    USAW
                                   </span>
                                 )}
                               </Link>
@@ -549,9 +556,14 @@ export function AthleteResults({
                                 title={result.meet_name}
                               >
                                 {result.meet_name}
-                                {result._source === 'IWF' && (
+                                {isMixedResults && result._source === 'IWF' && (
                                   <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-900/30 text-red-400 border border-red-800/50">
                                     IWF
+                                  </span>
+                                )}
+                                {isMixedResults && result._source === 'USAW' && (
+                                  <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-900/30 text-blue-400 border border-blue-800/50">
+                                    USAW
                                   </span>
                                 )}
                               </Link>

@@ -152,7 +152,7 @@ export function adaptIWFAthlete(iwfLifter: IWFLifter): AdaptedAthlete {
 export function adaptIWFResult(iwfResult: IWFMeetResult): AdaptedResult {
   return {
     // Map primary IDs
-    result_id: iwfResult.db_result_id,
+    result_id: iwfResult.id || iwfResult.db_result_id,
     lifter_id: iwfResult.db_lifter_id,
     lifter_name: iwfResult.lifter_name ?? '',
 
@@ -160,7 +160,7 @@ export function adaptIWFResult(iwfResult: IWFMeetResult): AdaptedResult {
     date: iwfResult.date ?? '',
     meet_name: iwfResult.meet_name ?? '',
     meet_id: iwfResult.iwf_meets?.iwf_meet_id ?? iwfResult.db_meet_id ?? undefined,
-    meets: undefined, // level not available on IWFMeetResult, only on IWFMeet
+    meets: iwfResult.meets || (iwfResult.iwf_meets ? { Level: iwfResult.iwf_meets.level || 'International' } : undefined),
 
     // Lift attempts (all fields match directly)
     snatch_lift_1: iwfResult.snatch_lift_1 ?? null,
@@ -185,7 +185,7 @@ export function adaptIWFResult(iwfResult: IWFMeetResult): AdaptedResult {
     bounce_back_cj_2: iwfResult.bounce_back_cj_2 ?? undefined,
     bounce_back_cj_3: iwfResult.bounce_back_cj_3 ?? undefined,
 
-    // Q-scores (available for IWF as per user confirmation)
+    // Q-scores
     qpoints: iwfResult.qpoints ?? undefined,
     q_youth: iwfResult.q_youth ?? undefined,
     q_masters: iwfResult.q_masters ?? undefined,

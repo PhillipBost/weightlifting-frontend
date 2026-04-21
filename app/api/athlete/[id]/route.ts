@@ -94,8 +94,15 @@ export async function GET(
 
           if (!mergedData) {
             mergedData = shardData;
+            // Standardize federation-specific names from shard Metadata
+            mergedData.usaw_name = shardData.usaw_athlete_name || (outcome.value.type === 'USAW' ? shardData.athlete_name : undefined);
+            mergedData.iwf_name = shardData.iwf_athlete_name || (outcome.value.type === 'IWF' ? shardData.athlete_name : undefined);
           } else {
-            // Deduplicate and merge results
+            // Update names if missing
+            if (!mergedData.usaw_name) mergedData.usaw_name = shardData.usaw_athlete_name;
+            if (!mergedData.iwf_name) mergedData.iwf_name = shardData.iwf_athlete_name;
+
+            // Merge result lists (Assembler now handles this, but we deduplicate as a safety layer)
             const existingIds = new Set(mergedData.usaw_results?.map((r: any) => r.id) || []);
             const existingIwfIds = new Set(mergedData.iwf_results?.map((r: any) => r.id) || []);
 

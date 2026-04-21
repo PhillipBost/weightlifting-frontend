@@ -36,7 +36,7 @@ export function AthleteHeader({
             <User className="h-12 w-12 text-app-secondary" />
           </div>
           <div className="flex flex-col">
-            <h1 className="text-3xl font-bold text-app-primary mb-2">{athlete.athlete_name}</h1>
+            <h1 className="text-3xl font-bold text-app-primary mb-2">{athlete.displayName}</h1>
             <div className="flex flex-wrap gap-4 text-sm text-app-secondary">
               {forceIwfMode ? (
                 <>
@@ -67,14 +67,18 @@ export function AthleteHeader({
             <div className="flex flex-wrap gap-4 text-sm text-app-secondary mt-2">
               {forceIwfMode ? (
                 <>
-                  <div className="flex items-center space-x-1">
-                    <MapPin className="h-4 w-4" />
-                    <span>Country Code: {athlete.nation_code || 'USA'}</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Dumbbell className="h-4 w-4" />
-                    <span>Country: {athlete.nation || 'United States'}</span>
-                  </div>
+                  {athlete.nation_code && (
+                    <div className="flex items-center space-x-1">
+                      <MapPin className="h-4 w-4" />
+                      <span>Country Code: {athlete.nation_code}</span>
+                    </div>
+                  )}
+                  {athlete.nation && (
+                    <div className="flex items-center space-x-1">
+                      <Dumbbell className="h-4 w-4" />
+                      <span>Country: {athlete.nation}</span>
+                    </div>
+                  )}
                 </>
               ) : (
                 <>
@@ -99,8 +103,8 @@ export function AthleteHeader({
         {/* Internal Navigation Links & Toggle */}
         {iwfProfiles.length > 0 && (
           <div className="flex flex-col gap-3 my-4 md:my-0 md:pt-2 items-start justify-center px-4">
-            {/* Link back to USAW Profile */}
-            {forceIwfMode && (
+            {/* Link back to USAW Profile - Only if it exists */}
+            {forceIwfMode && athlete.membership_number && (
               <Link
                 href={`/athlete/${athlete.membership_number}`}
                 className="inline-flex items-center space-x-2 px-3 py-1.5 bg-transparent hover:bg-app-tertiary border border-app-secondary rounded-md text-app-secondary hover:text-white transition-colors text-sm"
@@ -123,8 +127,8 @@ export function AthleteHeader({
                 </Link>
               ))}
             
-            {/* IWF Results Toggle - Repurposed as 'Show USAW Results' in forced mode */}
-            {iwfResults.length > 0 && (
+            {/* Results Toggle: Only show if there's a linked identity to toggle to */}
+            {((forceIwfMode ? athlete.membership_number : iwfResults.length > 0)) && (
               <label className="flex items-center space-x-3 cursor-pointer mt-1">
                 <div className="relative">
                   <input 

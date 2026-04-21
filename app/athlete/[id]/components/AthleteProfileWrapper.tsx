@@ -6,6 +6,7 @@ import { AthleteHeader } from './AthleteHeader';
 import { AthleteBests } from './AthleteBests';
 import { AthleteCharts } from './AthleteCharts';
 import { AthleteResults } from './AthleteResults';
+import { adaptIWFResult } from '@/lib/adapters/iwfAdapter';
 import { HeaderSkeleton, BestsSkeleton, ChartsSkeleton, ResultsSkeleton } from './AthleteSkeleton';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -42,37 +43,34 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }:
     direction: 'asc' | 'desc';
   }>({ key: null, direction: 'asc' });
 
-  // 1. Results Normalization (Preserving Source Fidelity)
   const results = useMemo(() => {
     if (!athleteData) return [];
     
-    const usaw = (athleteData.usaw_results || []).map((r: any) => ({
+    const usaw = (athleteData.usaw_results || []).map((r: any, idx: number) => ({
       ...r,
       _source: 'USAW',
-      // v3.5 Support: Prioritize nested meets.Level, fallback to r.level
+      // Phase 4.5 Shards now include native 'id' and 'meets'
       meets: r.meets || { Level: r.level || 'Unknown' },
-      // v3.5 Support: Stabilize the key using the DB primary key
-      key: r.id || `usaw-${r.date}-${r.total}`
+      key: r.id || `usaw-${r.date}-${r.total}-${idx}`
     }));
 
-    const iwf = (athleteData.iwf_results || []).map((r: any) => ({
-      ...r,
+    const iwf = (athleteData.iwf_results || []).map((r: any, idx: number) => ({
+      ...adaptIWFResult(r),
       _source: 'IWF',
-      key: r.id || `iwf-${r.date}-${r.total}`
+      // Phase 4.5 Shards provide native 'id', fallback to index-based key
+      key: r.id || `iwf-${r.date}-${r.total}-${idx}`
     }));
 
-    // Bidirectional Logic: 
-    // If showIwfResults is true (in non-forced) -> show ALL
-    // If showIwfResults is false (in forced) -> show ALL
-    // This allows the toggle to 'Include' the other source in both directions.
+    // Results are largely pre-merged by the Phase 4.5 Assembler,
+    // so we just combine and Sort.
     const shouldShowCombined = forceIwfMode ? !showIwfResults : showIwfResults;
 
     if (!shouldShowCombined) {
       return forceIwfMode ? iwf : usaw;
     }
     
-    return [...usaw, ...iwf].sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    return [...usaw, ...iwf].sort((a, b) => 
+      new Date(b.date).getTime() - new Date(a.date).getTime()
     );
   }, [athleteData, showIwfResults, forceIwfMode]);
 
@@ -163,8 +161,13 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }:
     if (!athleteData) return null;
     return {
       athlete_name: athleteData.athlete_name,
+      usaw_name: athleteData.usaw_name,
+      iwf_name: athleteData.iwf_name,
+      displayName: forceIwfMode ? (athleteData.iwf_name || athleteData.athlete_name) : (athleteData.usaw_name || athleteData.athlete_name),
       membership_number: athleteData.membership_number,
       gender: athleteData.gender,
+      nation_code: athleteData.country_code,
+      nation: athleteData.country_name,
       internal_id: athleteData.internal_id,
       internal_id_2: athleteData.internal_id_2,
       iwf_profiles: (athleteData.iwf_profiles || []).map((p: any) => ({
@@ -175,12 +178,56 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }:
   }, [athleteData]);
 
   const personalBests = useMemo(() => {
-    if (!results.length) return { best_snatch: 0, best_cj: 0, best_total: 0, best_qpoints: 0 };
+    if (!results.length) return { 
+      best_snatch: { value: 0, date: null }, 
+      best_cj: { value: 0, date: null }, 
+      best_total: { value: 0, date: null }, 
+      best_q: { value: 0, label: 'N/A', color: 'var(--chart-qpoints)', date: null },
+      best_gamx: { value: 0, label: 'N/A', color: 'var(--chart-gamx-total)', date: null }
+    };
+
+    const findBest = (list: any[], field: string) => {
+      if (!list?.length) return null;
+      return [...list]
+        .filter(r => (parseFloat(r[field]) || 0) > 0)
+        .sort((a, b) => {
+          const valA = parseFloat(a[field]) || 0;
+          const valB = parseFloat(b[field]) || 0;
+          if (valB !== valA) return valB - valA;
+          // Tie-break: most recent
+          return new Date(b.date).getTime() - new Date(a.date).getTime();
+        })[0] || null;
+    };
+
+    const bestSnatchObj = findBest(results, 'best_snatch');
+    const bestCJObj = findBest(results, 'best_cj');
+    const bestTotalObj = findBest(results, 'total');
+
+    // Q-Score Logic (Points, Youth, Masters)
+    const qScores = results.flatMap((r: any) => [
+      { value: parseFloat(r.qpoints) || 0, label: 'Q-Points', color: 'var(--chart-qpoints)', date: r.date },
+      { value: parseFloat(r.q_youth) || 0, label: 'Q-Youth', color: 'var(--chart-qyouth)', date: r.date },
+      { value: parseFloat(r.q_masters) || 0, label: 'Q-Masters', color: 'var(--chart-qmasters)', date: r.date }
+    ]);
+    const bestQ = qScores.reduce((prev, curr) => (curr.value > prev.value) ? curr : prev, { value: 0, label: 'N/A', color: 'var(--chart-qpoints)', date: null });
+
+    // GAMX Logic (Total, S, J, U, A, Masters)
+    const gamxScores = results.flatMap((r: any) => [
+      { value: parseFloat(r.gamx_total) || 0, label: 'GAMX-Total', color: 'var(--chart-gamx-total)', date: r.date },
+      { value: parseFloat(r.gamx_s) || 0, label: 'GAMX-S', color: 'var(--chart-gamx-s)', date: r.date },
+      { value: parseFloat(r.gamx_j) || 0, label: 'GAMX-J', color: 'var(--chart-gamx-j)', date: r.date },
+      { value: parseFloat(r.gamx_u) || 0, label: 'GAMX-U', color: 'var(--chart-gamx-u)', date: r.date },
+      { value: parseFloat(r.gamx_a) || 0, label: 'GAMX-A', color: 'var(--chart-gamx-a)', date: r.date },
+      { value: parseFloat(r.gamx_masters) || 0, label: 'GAMX-Masters', color: 'var(--chart-gamx-masters)', date: r.date }
+    ]);
+    const bestGamx = gamxScores.reduce((prev, curr) => (curr.value > prev.value) ? curr : prev, { value: 0, label: 'N/A', color: 'var(--chart-gamx-total)', date: null });
+
     return {
-      best_snatch: Math.max(...results.map((r: any) => parseInt(r.best_snatch || '0')).filter((v: any) => v > 0), 0),
-      best_cj: Math.max(...results.map((r: any) => parseInt(r.best_cj || '0')).filter((v: any) => v > 0), 0),
-      best_total: Math.max(...results.map((r: any) => parseInt(r.total || '0')).filter((v: any) => v > 0), 0),
-      best_qpoints: Math.max(...results.map((r: any) => r.qpoints || 0).filter((v: any) => v > 0), 0)
+      best_snatch: { value: parseFloat(bestSnatchObj?.best_snatch) || 0, date: bestSnatchObj?.date || null },
+      best_cj: { value: parseFloat(bestCJObj?.best_cj) || 0, date: bestCJObj?.date || null },
+      best_total: { value: parseFloat(bestTotalObj?.total) || 0, date: bestTotalObj?.date || null },
+      best_q: bestQ,
+      best_gamx: bestGamx
     };
   }, [results]);
 
@@ -318,6 +365,7 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }:
               }}
               showAllColumns={showAllColumns}
               setShowAllColumns={setShowAllColumns}
+              isMixedResults={forceIwfMode ? !showIwfResults : showIwfResults}
             />
           ) : (
             <ResultsSkeleton />

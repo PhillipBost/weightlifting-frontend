@@ -36,7 +36,7 @@ export default function GamxChart({ chartData, athlete, legendFlags }: GamxChart
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-4">
         <h3 className="text-lg font-semibold text-app-primary flex items-center">
           <Activity className="h-5 w-5 mr-2" />
-          {athlete.athlete_name} GAMX Scores
+          {athlete.displayName} GAMX Scores
         </h3>
 
         {/* Controls Container */}

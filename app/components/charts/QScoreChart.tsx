@@ -29,7 +29,7 @@ export default function QScoreChart({ chartData, athlete, legendFlags }: QScoreC
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-4">
         <h3 className="text-lg font-semibold text-app-primary flex items-center">
           <BarChart3 className="h-5 w-5 mr-2" />
-          {athlete.athlete_name} Q-Scores Over Time
+          {athlete.displayName} Q-Scores Over Time
         </h3>
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
           {/* Q-score toggles */}
