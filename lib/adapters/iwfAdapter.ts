@@ -15,7 +15,7 @@ import type { IWFLifter, IWFMeetResult, IWFResultWithMeetData } from '../supabas
  * Adapted athlete data that matches USAW lifters table structure
  */
 export interface AdaptedAthlete {
-  lifter_id: number;
+  lifter_id: number | string;
   athlete_name: string;
   membership_number: number | null; // N/A for IWF
   gender?: string;
@@ -35,8 +35,8 @@ export interface AdaptedAthlete {
  * Adapted competition result that matches USAW meet_results structure
  */
 export interface AdaptedResult {
-  result_id: number; // Added: maps to db_result_id
-  lifter_id: number;
+  result_id: number | string; // Added: maps to db_result_id
+  lifter_id: number | string;
   lifter_name: string; // Added: athlete's name from database
   date: string;
   meet_name?: string;
