@@ -138,17 +138,13 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
       try {
         setLoading(true);
 
-        // First, fetch meet information (convert string ID to integer)
-        const { data: meetData, error: meetError } = await supabase
-          .from('usaw_meets')
-          .select('Meet, Date, Level, city, state, address, elevation_meters, latitude, longitude, URL')
-          .eq('meet_id', parseInt(resolvedParams.id))
-          .single();
-
-        if (meetError || !meetData) {
-          setError(`Meet not found: ${meetError?.message || 'No data returned'}`);
-          return;
+        const res = await fetch(`/api/meet/${resolvedParams.id}`);
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          throw new Error(errorData.error || `Failed to fetch meet data (Status: ${res.status})`);
         }
+
+        const { meet: meetData, results: resultsData } = await res.json();
 
         // Build location string directly from meets columns
         let locationStr = 'Location TBD';
@@ -175,58 +171,42 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
           URL: meetData.URL
         });
 
-        // Then fetch all results for this meet - join with lifters table to get membership_number
-        const { data: resultsData, error: resultsError } = await supabase
-          .from('usaw_meet_results')
-          .select(`
-            result_id,
-            lifter_name,
-            lifter_id,
-            weight_class,
-            best_snatch,
-            best_cj,
-            total,
-            snatch_lift_1,
-            snatch_lift_2,
-            snatch_lift_3,
-            cj_lift_1,
-            cj_lift_2,
-            cj_lift_3,
-            body_weight_kg,
-            gender,
-            age_category,
-            competition_age,
-            wso,
-            club_name,
-            qpoints,
-            q_youth,
-            q_masters,
-            gamx_total,
-            gamx_s,
-            gamx_j,
-            gamx_u,
-            gamx_a,
-            gamx_masters,
-            lifters:usaw_lifters!inner(membership_number)
-          `)
-          .eq('meet_id', parseInt(resolvedParams.id));
-
-        if (resultsError) {
-          setError(`Error loading meet results: ${resultsError.message}`);
-          return;
-        }
-
         setResults(resultsData || []);
 
+        // Initial sort for GAMX summary: Most populous category
+        if (resultsData && resultsData.length > 0) {
+          const counts: Record<string, number> = {
+            gamx_total: 0,
+            gamx_s: 0,
+            gamx_j: 0,
+            gamx_u: 0,
+            gamx_a: 0,
+            gamx_masters: 0
+          };
+
+          resultsData.forEach((r: any) => {
+            if ((r.gamx_total || 0) > 0) counts.gamx_total++;
+            if ((r.gamx_s || 0) > 0) counts.gamx_s++;
+            if ((r.gamx_j || 0) > 0) counts.gamx_j++;
+            if ((r.gamx_u || 0) > 0) counts.gamx_u++;
+            if ((r.gamx_a || 0) > 0) counts.gamx_a++;
+            if ((r.gamx_masters || 0) > 0) counts.gamx_masters++;
+          });
+
+          const dominant = Object.entries(counts).reduce((a, b) => (b[1] > a[1] ? b : a))[0];
+          setGamxSortConfig({ key: dominant, direction: 'desc' });
+        }
+
       } catch (err) {
-        setError('An unexpected error occurred');
+        console.error('[MEET PAGE FETCH ERROR]:', err);
+        setError(err instanceof Error ? err.message : 'An unexpected error occurred');
       } finally {
         setLoading(false);
       }
     };
 
     fetchMeetData();
-  }, [resolvedParams]);
+  }, [resolvedParams, supabase]);
 
   const getAgeAppropriateDivision = (result: MeetResult, officialWeightClass: string): string | null => {
     if (!result.competition_age || !officialWeightClass) return null;
@@ -1195,14 +1175,18 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
           };
 
           const renderGamxTable = (title: string, data: MeetResult[], show: boolean, toggle: () => void) => {
-            const validData = data.filter(r => r.gamx_total != null && r.gamx_total > 0);
-            if (validData.length === 0) return null;
-
-            const sortedData = [...validData].sort((a, b) => {
+            // Rule: No filter. We show all athletes, but non-scored ones go to bottom.
+            const sortedData = [...data].sort((a, b) => {
               const aVal = (a as any)[gamxSortConfig.key] ?? 0;
               const bVal = (b as any)[gamxSortConfig.key] ?? 0;
+              
+              // Handle sorting: 0/null values always go to bottom regardless of direction
               if (aVal === 0 && bVal !== 0) return 1;
               if (aVal !== 0 && bVal === 0) return -1;
+              if (aVal === 0 && bVal === 0) {
+                return a.lifter_name.localeCompare(b.lifter_name);
+              }
+              
               return gamxSortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
             });
 
@@ -1255,10 +1239,10 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                               <tr key={`gamx-${idx}`} className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors group" style={{ borderTopColor: 'var(--border-secondary)' }}>
                                 <td className="px-2 py-2 whitespace-nowrap text-sm font-medium text-app-primary">
                                   <div className="flex items-center gap-1">
-                                    <span>{idx + 1}</span>
-                                    {idx === 0 && <Medal className="h-4 w-4" style={{ color: '#FFD700' }} />}
-                                    {idx === 1 && <Medal className="h-4 w-4" style={{ color: '#C0C0C0' }} />}
-                                    {idx === 2 && <Medal className="h-4 w-4" style={{ color: '#CD7F32' }} />}
+                                    <span>{((r as any)[gamxSortConfig.key] || 0) > 0 ? (idx + 1) : '-'}</span>
+                                    {idx === 0 && ((r as any)[gamxSortConfig.key] || 0) > 0 && <Medal className="h-4 w-4" style={{ color: '#FFD700' }} />}
+                                    {idx === 1 && ((r as any)[gamxSortConfig.key] || 0) > 0 && <Medal className="h-4 w-4" style={{ color: '#C0C0C0' }} />}
+                                    {idx === 2 && ((r as any)[gamxSortConfig.key] || 0) > 0 && <Medal className="h-4 w-4" style={{ color: '#CD7F32' }} />}
                                   </div>
                                 </td>
                                 <td className="px-2 py-2 max-w-[200px] truncate" title={r.lifter_name}>

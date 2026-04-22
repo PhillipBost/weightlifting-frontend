@@ -267,34 +267,17 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
       try {
         setLoading(true);
 
-
-
-        // First, fetch meet information (convert string ID to integer)
-        const { data: meetData, error: meetError } = await supabaseIWF
-          .from('iwf_meets')
-          .select('iwf_meet_id, db_meet_id, meet, date, level, url')
-          .eq('iwf_meet_id', resolvedParams.id)
-          .single();
-
-        if (meetError) {
-          setError(`Meet not found: ${meetError.message}`);
-          return;
+        const res = await fetch(`/api/meet/iwf/${resolvedParams.id}`);
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          throw new Error(errorData.error || `Failed to fetch international meet data (Status: ${res.status})`);
         }
 
-
-        // Fetch location data using iwf_meet_id
-        const { data: locationData, error: locationError } = await supabaseIWF
-          .from('iwf_meet_locations')
-          .select('*')
-          .eq('iwf_meet_id', meetData?.iwf_meet_id);
-
-        // Debug logging for meet 6187
-        if (resolvedParams.id === '6187') {
-        }
+        const { meet: meetData, locations: locationData, results: rawIWFResults } = await res.json();
 
         // Build location string from available data
         let locationStr = 'Location TBD';
-        if (locationData && locationData.length > 0 && !locationError) {
+        if (locationData && locationData.length > 0) {
           const loc = locationData[0]; // Take the first location record
 
           // Prefer location_text if available, then build from components
@@ -308,9 +291,6 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
             locationStr = loc.address;
           } else if (loc.country) {
             locationStr = loc.country;
-          }
-        } else {
-          if (locationError) {
           }
         }
 
@@ -326,68 +306,8 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
           longitude: locationData && locationData.length > 0 ? locationData[0].longitude : null
         });
 
-        // Fetch results from IWF table - select existing fields only
-        const { data: rawIWFResults, error: resultsError } = await supabaseIWF
-          .from('iwf_meet_results')
-          .select(`
-            db_result_id,
-            db_lifter_id,
-            db_meet_id,
-            lifter_name,
-            weight_class,
-            best_snatch,
-            best_cj,
-            total,
-            snatch_lift_1,
-            snatch_lift_2,
-            snatch_lift_3,
-            cj_lift_1,
-            cj_lift_2,
-            cj_lift_3,
-            body_weight_kg,
-            gender,
-            age_category,
-            competition_age,
-            birth_year,
-            country_code,
-            country_name,
-            country:country_name,
-            competition_group,
-            rank,
-            qpoints,
-            q_youth,
-            q_masters,
-            gamx_total,
-            gamx_s,
-            gamx_j,
-            gamx_u,
-            gamx_a,
-            gamx_masters,
-            best_snatch_ytd,
-            best_cj_ytd,
-            best_total_ytd,
-            snatch_successful_attempts,
-            cj_successful_attempts,
-            total_successful_attempts,
-            bounce_back_snatch_2,
-            bounce_back_snatch_3,
-            bounce_back_cj_2,
-            bounce_back_cj_3,
-            manual_override,
-            created_at,
-            updated_at,
-            iwf_lifters!inner(iwf_lifter_id)
-          `)
-          .eq('db_meet_id', meetData.db_meet_id);
-
-        if (resultsError) {
-          setError(`Error loading meet results: ${resultsError.message}`);
-          return;
-        }
-
-        // Ensure type compatibility and merge meet data from separate fetch
-        const typedResults = rawIWFResults as Partial<IWFMeetResult>[];
-        const mergedResults = typedResults.map(result => ({
+        // Ensure type compatibility and merge meet data
+        const mergedResults = (rawIWFResults as any[]).map(result => ({
           ...result,
           db_result_id: result.db_result_id || 0,
           db_lifter_id: result.db_lifter_id || 0,
@@ -396,7 +316,6 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
           meet_name: meetData?.meet || '',
           date: meetData?.date || '',
           level: meetData?.level || 'International',
-          // country_code and country_name are already included via ...result spread
           birth_year: result.birth_year || 0,
           manual_override: result.manual_override || false
         })) as IWFMeetResult[];
@@ -405,8 +324,33 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         const adaptedResults = adaptIWFResults(mergedResults);
         setResults(adaptedResults as MeetResult[]);
 
+        // Initial sort for GAMX summary: Most populous category
+        if (adaptedResults && adaptedResults.length > 0) {
+          const counts: Record<string, number> = {
+            gamx_total: 0,
+            gamx_s: 0,
+            gamx_j: 0,
+            gamx_u: 0,
+            gamx_a: 0,
+            gamx_masters: 0
+          };
+
+          adaptedResults.forEach((r: any) => {
+            if ((r.gamx_total || 0) > 0) counts.gamx_total++;
+            if ((r.gamx_s || 0) > 0) counts.gamx_s++;
+            if ((r.gamx_j || 0) > 0) counts.gamx_j++;
+            if ((r.gamx_u || 0) > 0) counts.gamx_u++;
+            if ((r.gamx_a || 0) > 0) counts.gamx_a++;
+            if ((r.gamx_masters || 0) > 0) counts.gamx_masters++;
+          });
+
+          const dominant = Object.entries(counts).reduce((a, b) => (b[1] > a[1] ? b : a))[0];
+          setGamxSortConfig({ key: dominant, direction: 'desc' });
+        }
+
       } catch (err) {
-        setError('An unexpected error occurred');
+        console.error('[IWF MEET PAGE FETCH ERROR]:', err);
+        setError(err instanceof Error ? err.message : 'An unexpected error occurred');
       } finally {
         setLoading(false);
       }
@@ -1367,9 +1311,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
 
         {/* Overall Rankings by GAMX */}
         {(() => {
-          const validGamxData = results.filter(r => (r as any).gamx_total != null && (r as any).gamx_total > 0);
-          if (validGamxData.length === 0) return null;
-
+          // Rule: No filter. We show all athletes, but non-scored ones go to bottom.
           const handleGamxSort = (key: string) => {
             setGamxSortConfig(prev =>
               prev.key === key
@@ -1378,11 +1320,17 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
             );
           };
 
-          const sortedGamx = [...validGamxData].sort((a, b) => {
+          const sortedGamx = [...results].sort((a, b) => {
             const aVal = (a as any)[gamxSortConfig.key] ?? 0;
             const bVal = (b as any)[gamxSortConfig.key] ?? 0;
+            
+            // Handle sorting: 0/null values always go to bottom regardless of direction
             if (aVal === 0 && bVal !== 0) return 1;
             if (aVal !== 0 && bVal === 0) return -1;
+            if (aVal === 0 && bVal === 0) {
+              return a.lifter_name.localeCompare(b.lifter_name);
+            }
+            
             return gamxSortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
           });
 
@@ -1435,10 +1383,10 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                             <tr key={`gamx-${idx}`} className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors group" style={{ borderTopColor: 'var(--border-secondary)' }}>
                               <td className="px-2 py-2 whitespace-nowrap text-sm font-medium text-app-primary">
                                 <div className="flex items-center gap-1">
-                                  <span>{idx + 1}</span>
-                                  {idx === 0 && <Medal className="h-4 w-4" style={{ color: '#FFD700' }} />}
-                                  {idx === 1 && <Medal className="h-4 w-4" style={{ color: '#C0C0C0' }} />}
-                                  {idx === 2 && <Medal className="h-4 w-4" style={{ color: '#CD7F32' }} />}
+                                  <span>{((r as any)[gamxSortConfig.key] || 0) > 0 ? (idx + 1) : '-'}</span>
+                                  {idx === 0 && ((r as any)[gamxSortConfig.key] || 0) > 0 && <Medal className="h-4 w-4" style={{ color: '#FFD700' }} />}
+                                  {idx === 1 && ((r as any)[gamxSortConfig.key] || 0) > 0 && <Medal className="h-4 w-4" style={{ color: '#C0C0C0' }} />}
+                                  {idx === 2 && ((r as any)[gamxSortConfig.key] || 0) > 0 && <Medal className="h-4 w-4" style={{ color: '#CD7F32' }} />}
                                 </div>
                               </td>
                               <td className="px-2 py-2 max-w-[200px] truncate" title={r.lifter_name}>
