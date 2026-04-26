@@ -17,9 +17,9 @@ export default async function AthletePage({ params }: { params: Promise<{ id: st
   let initialData = null;
   try {
     const res = await fetch(`${baseUrl}/api/athlete/${encodeURIComponent(id)}`, {
-      next: { revalidate: 3600 },
+      next: { revalidate: 0 },
       headers: {
-        'Cache-Control': 's-maxage=3600, stale-while-revalidate=59'
+        'Cache-Control': 'no-store, max-age=0'
       }
     });
     

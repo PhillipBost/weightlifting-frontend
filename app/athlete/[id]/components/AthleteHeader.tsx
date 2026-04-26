@@ -115,7 +115,11 @@ export function AthleteHeader({
             )}
 
             {iwfProfiles
-              .filter(p => !currentIwfId || String(p.id) !== String(currentIwfId))
+              .filter(p => {
+                const cleanCurrentId = currentIwfId?.replace('iwf-', '');
+                const cleanProfileId = String(p.id).replace('iwf-', '');
+                return !cleanCurrentId || cleanProfileId !== cleanCurrentId;
+              })
               .map((p) => (
                 <Link
                   key={p.id}
@@ -141,7 +145,7 @@ export function AthleteHeader({
                   <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${(forceIwfMode ? !showIwfResults : showIwfResults) ? 'transform translate-x-4' : ''}`}></div>
                 </div>
                 <span className="text-sm font-medium text-app-secondary select-none text-nowrap">
-                  {forceIwfMode ? 'Show USAW Results' : 'Include IWF Results'}
+                  {forceIwfMode ? 'Include USAW Results' : 'Include IWF Results'}
                 </span>
               </label>
             )}

@@ -53,3 +53,6 @@ CLAUDE.md
 *.backup
 *.bak*
 .serena/project.yml
+
+# bun
+bun.lockb

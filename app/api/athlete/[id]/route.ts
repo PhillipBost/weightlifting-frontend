@@ -145,8 +145,11 @@ export async function GET(
 
   try {
     const res = await fetch(shardUrl, {
-      next: { revalidate: 3600 },
-      headers: { 'Accept-Encoding': 'gzip' }
+      next: { revalidate: 0 },
+      headers: { 
+        'Accept-Encoding': 'gzip',
+        'Cache-Control': 'no-store'
+      }
     });
 
     if (res.ok) {

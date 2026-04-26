@@ -6,6 +6,8 @@ import { AthleteHeader } from './AthleteHeader';
 import { AthleteBests } from './AthleteBests';
 import { AthleteCharts } from './AthleteCharts';
 import { AthleteResults } from './AthleteResults';
+import { AthleteCard } from '../../../components/AthleteCard';
+import { AuthGuard } from '../../../components/AuthGuard';
 import { adaptIWFResult } from '@/lib/adapters/iwfAdapter';
 import { HeaderSkeleton, BestsSkeleton, ChartsSkeleton, ResultsSkeleton } from './AthleteSkeleton';
 import { DisambiguationUI } from './DisambiguationUI';
@@ -362,7 +364,17 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }:
 
           {/* STEP 3: RESULTS TABLE (THE HYDRATION TAX) */}
           {renderStep >= 3 ? (
-            <AthleteResults 
+            <>
+              <AuthGuard requireRole="admin" fallback={<></>}>
+                <AthleteCard 
+                  athleteName={athlete.athlete_name} 
+                  results={results} 
+                  dataSource={forceIwfMode ? 'iwf' : 'usaw'} 
+                  population_percentiles={athleteData.population_percentiles}
+                  historical_stats={athleteData.historical_stats}
+                />
+              </AuthGuard>
+              <AthleteResults 
               athlete={athlete} 
               results={results}
               displayResults={displayResults}
@@ -382,6 +394,7 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }:
               setShowAllColumns={setShowAllColumns}
               isMixedResults={forceIwfMode ? !showIwfResults : showIwfResults}
             />
+            </>
           ) : (
             <ResultsSkeleton />
           )}

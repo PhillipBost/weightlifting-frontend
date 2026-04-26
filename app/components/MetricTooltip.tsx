@@ -171,7 +171,7 @@ export function MetricTooltip({ title, description, methodology, children }: Met
           onMouseLeave={() => setIsVisible(false)}
         >
           {children}
-          <Info className="h-3 w-3 ml-1 text-app-muted opacity-60 hover:opacity-100 transition-opacity" />
+          <Info className="h-4 w-4 ml-1 text-app-muted opacity-60 hover:opacity-100 transition-opacity flex-shrink-0" />
         </div>
       </div>
 
