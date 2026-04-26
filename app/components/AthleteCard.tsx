@@ -1872,13 +1872,13 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
                 }
                 
                 // Big swing attempts (percentage-based to avoid demographic bias)
-                if (analytics.attemptJumps.snatch.avgSecondToThirdPercent >= 5 || analytics.attemptJumps.cleanJerk.avgSecondToThirdPercent >= 6) {
+                if (analytics.attemptJumps.snatch.secondToThirdPercent.avg >= 5 || analytics.attemptJumps.cleanJerk.secondToThirdPercent.avg >= 6) {
                   insights.push(
                     <MetricTooltip
                       key="big-swing"
                       title="Big Swing Attempts"
                       description="Takes large jumps on final attempts, showing aggressive risk-taking for maximum results."
-                      methodology={`Large final jumps: Snatch ${analytics.attemptJumps.snatch.avgSecondToThirdPercent}%, C&J ${analytics.attemptJumps.cleanJerk.avgSecondToThirdPercent}%`}
+                      methodology={`Large final jumps: Snatch ${analytics.attemptJumps.snatch.secondToThirdPercent.avg}%, C&J ${analytics.attemptJumps.cleanJerk.secondToThirdPercent.avg}%`}
                     >
                       <div className="text-orange-400 cursor-help">• Big swing attempts</div>
                     </MetricTooltip>
