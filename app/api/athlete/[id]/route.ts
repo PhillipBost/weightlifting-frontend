@@ -176,7 +176,7 @@ export async function GET(
         }
       }
 
-      return new NextResponse(decompressed, {
+      return new NextResponse(new Uint8Array(decompressed), {
         status: 200,
         headers: {
           'Content-Type': 'application/json',
