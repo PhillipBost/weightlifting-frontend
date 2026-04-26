@@ -131,7 +131,7 @@ export function usePopulationStats(
                        (data.sampleSize > 25 || context.sampleSize > 25) ? 'moderate' : 'low',
             demographicDescription: (data.bucket || context.bucket || 'athletes')
               .split('_')
-              .map(part => {
+              .map((part: string) => {
                 if (part === 'usaw') return 'USAW';
                 if (part === 'iwf') return 'IWF';
                 if (part === 'M') return 'Male';
