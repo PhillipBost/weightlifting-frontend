@@ -826,8 +826,8 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
     // Additional fun categories
     const isLateBloomer = validAge !== null && validAge >= 25 && recentYoyTrend > 8;
     const isSteadyEddie = consistencyMetrics.score >= 85 && yearsActive >= 3;
-    const isIronWill = clutchPerformance >= 75 && (bounceBackRates.snatch + bounceBackRates.cleanJerk) / 2 >= 75;
-    const isTechnicalWizard = overallSuccessRate >= 90;
+    const isIronWill = clutchPerformance.percentage >= 75 && (bounceBackRates.snatch + bounceBackRates.cleanJerk) / 2 >= 75;
+    const isTechnicalWizard = overallSuccessRate.percentage >= 90;
 
     return {
       isFallback,
