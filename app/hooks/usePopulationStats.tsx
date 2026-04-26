@@ -94,39 +94,65 @@ export function usePopulationStats(
         }
       }
 
-      if (data && (data.successRate !== undefined || data.success_rate !== undefined)) {
-        const dummyMetric = (percentile: number): PopulationMetric => ({
-          percentile25: 0,
-          percentile50: percentile, // We use p50 as the "actual" rank in this mode
-          percentile75: 0,
-          mean: 0,
-          sampleSize: data.sampleSize || context.sampleSize || 0,
-          distribution: [], // No distribution needed for direct ranks
-          confidence: (data.sampleSize > 100 || context.sampleSize > 100) ? 'high' : 
-                     (data.sampleSize > 25 || context.sampleSize > 25) ? 'moderate' : 'low',
-          demographicDescription: (data.bucket || context.bucket || 'athletes')
-            .split('_')
-            .map(part => {
-              if (part === 'usaw') return 'USAW';
-              if (part === 'iwf') return 'IWF';
-              if (part === 'M') return 'Male';
-              if (part === 'F') return 'Female';
-              return part;
-            })
-            .join(' ')
-        });
+      const getMetricValue = (obj: any, key: string) => {
+        if (!obj) return undefined;
+        
+        // Case 1: Nested metrics object (Historical)
+        if (obj.metrics && obj.metrics[key]) {
+          const m = obj.metrics[key];
+          return typeof m === 'object' && m.percentile !== undefined ? m.percentile : m;
+        }
+        
+        // Case 2: Direct property (Career/Recent)
+        const val = obj[key];
+        if (val !== undefined) {
+          if (val && typeof val === 'object' && val.percentile !== undefined) {
+            return val.percentile;
+          }
+          return val;
+        }
+        
+        return undefined;
+      };
+
+      const hasData = getMetricValue(data, 'successRate') !== undefined;
+
+      if (data && hasData) {
+        const dummyMetric = (key: string): PopulationMetric => {
+          const val = getMetricValue(data, key) || 0;
+          return {
+            percentile25: 0,
+            percentile50: val, // We use p50 as the "actual" rank in this mode
+            percentile75: 0,
+            mean: 0,
+            sampleSize: data.sampleSize || context.sampleSize || 0,
+            distribution: [], // No distribution needed for direct ranks
+            confidence: (data.sampleSize > 100 || context.sampleSize > 100) ? 'high' : 
+                       (data.sampleSize > 25 || context.sampleSize > 25) ? 'moderate' : 'low',
+            demographicDescription: (data.bucket || context.bucket || 'athletes')
+              .split('_')
+              .map(part => {
+                if (part === 'usaw') return 'USAW';
+                if (part === 'iwf') return 'IWF';
+                if (part === 'M') return 'Male';
+                if (part === 'F') return 'Female';
+                return part;
+              })
+              .join(' ')
+          };
+        };
 
         setStats({
-          successRate: dummyMetric(data.successRate || 0),
-          snatchSuccessRate: dummyMetric(data.snatchSuccessRate || 0),
-          cleanJerkSuccessRate: dummyMetric(data.cleanJerkSuccessRate || 0),
-          consistencyScore: dummyMetric(data.consistencyScore || 0),
-          clutchPerformance: dummyMetric(data.clutchPerformance || 0),
-          bounceBackRate: dummyMetric(data.bounceBackRate || 0),
-          snatchBounceBackRate: dummyMetric(data.snatchBounceBackRate || 0),
-          cleanJerkBounceBackRate: dummyMetric(data.cleanJerkBounceBackRate || 0),
-          competitionFrequency: dummyMetric(data.competitionFrequency || 0),
-          qScorePerformance: dummyMetric(data.qScorePerformance || 0),
+          successRate: dummyMetric('successRate'),
+          snatchSuccessRate: dummyMetric('snatchSuccessRate'),
+          cleanJerkSuccessRate: dummyMetric('cleanJerkSuccessRate'),
+          consistencyScore: dummyMetric('consistencyScore'),
+          clutchPerformance: dummyMetric('clutchPerformance'),
+          bounceBackRate: dummyMetric('bounceBackRate'),
+          snatchBounceBackRate: dummyMetric('snatchBounceBackRate'),
+          cleanJerkBounceBackRate: dummyMetric('cleanJerkBounceBackRate'),
+          competitionFrequency: dummyMetric('competitionFrequency'),
+          qScorePerformance: dummyMetric('qScorePerformance'),
           openingStrategyRaw: data.openingStrategyRaw,
           jumpPercentageRaw: data.jumpPercentageRaw,
         });

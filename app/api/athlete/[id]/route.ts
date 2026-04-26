@@ -131,17 +131,19 @@ export async function GET(
   }
 
   // Handle explicit internal ID lookup or resolved numeric ID
+  // 1. Unified Shard Lookup (Check Federation-specific storage first)
   const isInternal = athleteId.startsWith('u-');
   const isIwf = athleteId.startsWith('iwf-');
-  const federation = isIwf ? 'iwf' : 'usaw';
   const cleanId = isInternal ? athleteId.replace('u-', '') : isIwf ? athleteId.replace('iwf-', '') : athleteId;
+  const federation = isIwf ? 'iwf' : 'usaw';
+  const shardFolder = isInternal ? 'internal' : federation;
 
-  // 1. Unified Shard Lookup (Check Federation-specific storage first)
-  const shardId = (isNumeric || isInternal || isIwf) ? cleanId.padStart(2, '0').slice(-2) : '00';
+  // Standardization: last two digits of the clean ID
+  const shardId = cleanId.padStart(2, '0').slice(-2);
   const baseUrlData = 'http://46.62.223.85:8888';
-  const shardUrl = isNumeric || isIwf
-    ? `${baseUrlData}/${federation}/${shardId}/${cleanId}.json.gz`
-    : `${baseUrlData}/${federation}/00/${cleanId}.json.gz`;
+  const shardUrl = (isNumeric || isIwf || isInternal)
+    ? `${baseUrlData}/${shardFolder}/${shardId}/${cleanId}.json.gz`
+    : `${baseUrlData}/${shardFolder}/00/${cleanId}.json.gz`;
 
   try {
     const res = await fetch(shardUrl, {
@@ -154,8 +156,27 @@ export async function GET(
 
     if (res.ok) {
       const arrayBuffer = await res.arrayBuffer();
-      const decompressed = await gunzip(Buffer.from(arrayBuffer));
-      return new NextResponse(new Uint8Array(decompressed), {
+      const buffer = Buffer.from(arrayBuffer);
+      
+      let decompressed;
+      // Safety: Check if it's already decompressed (JSON start) or gzipped (magic number 0x1f8b)
+      if (buffer[0] === 0x7b) { // '{'
+        decompressed = buffer;
+      } else {
+        try {
+          decompressed = await gunzip(buffer);
+        } catch (gzErr) {
+          console.warn(`[GUNZIP FAILED for ${shardUrl}]:`, gzErr);
+          // Fallback: If it's already text, send as is
+          if (buffer[0] === 0x7b || buffer.toString().trim().startsWith('{')) {
+            decompressed = buffer;
+          } else {
+            throw gzErr;
+          }
+        }
+      }
+
+      return new NextResponse(decompressed, {
         status: 200,
         headers: {
           'Content-Type': 'application/json',
@@ -179,11 +200,21 @@ export async function GET(
     const supabaseAdmin = createAdminClient(supabaseUrl, supabaseServiceKey);
 
     if (federation === 'iwf') {
-      const { data: lifter } = await supabaseAdmin
+      let { data: lifter } = await supabaseAdmin
         .from('iwf_lifters')
         .select('*')
         .eq('db_lifter_id', cleanId)
         .single();
+      
+      // Fallback: If not found by db_lifter_id, try official iwf_lifter_id
+      if (!lifter && /^\d+$/.test(cleanId)) {
+        const { data: lifterByIwfId } = await supabaseAdmin
+          .from('iwf_lifters')
+          .select('*')
+          .eq('iwf_lifter_id', parseInt(cleanId))
+          .single();
+        lifter = lifterByIwfId;
+      }
       
       if (lifter) {
         const { data: results } = await supabaseAdmin

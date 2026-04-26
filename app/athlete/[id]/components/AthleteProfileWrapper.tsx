@@ -171,21 +171,26 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }:
     if (!athleteData) return null;
     return {
       athlete_name: athleteData.athlete_name,
-      usaw_name: athleteData.usaw_name,
-      iwf_name: athleteData.iwf_name,
-      displayName: forceIwfMode ? (athleteData.iwf_name || athleteData.athlete_name) : (athleteData.usaw_name || athleteData.athlete_name),
-      membership_number: athleteData.membership_number,
+      usaw_name: athleteData.usaw_athlete_name || athleteData.usaw_name,
+      iwf_name: athleteData.iwf_athlete_name || athleteData.iwf_name,
+      displayName: forceIwfMode 
+        ? (athleteData.iwf_athlete_name || athleteData.iwf_name || athleteData.athlete_name) 
+        : (athleteData.usaw_athlete_name || athleteData.usaw_name || athleteData.athlete_name),
+      membership_number: athleteData.linked_usaw_id || athleteData.membership_number,
+      linked_usaw_id: athleteData.linked_usaw_id,
+      linked_iwf_id: athleteData.linked_iwf_id,
       gender: athleteData.gender,
       nation_code: athleteData.country_code,
       nation: athleteData.country_name,
       internal_id: athleteData.internal_id,
       internal_id_2: athleteData.internal_id_2,
+      external_links: athleteData.external_links || [],
       iwf_profiles: (athleteData.iwf_profiles || []).map((p: any) => ({
         ...p,
         url: p.url || `https://iwf.sport/weightlifting_/athletes-bios/?athlete_id=${p.id}`
       }))
     };
-  }, [athleteData]);
+  }, [athleteData, forceIwfMode]);
 
   const personalBests = useMemo(() => {
     if (!results.length) return { 
@@ -336,7 +341,7 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }:
                 athlete={athlete} 
                 recentInfo={recentInfo} 
                 iwfProfiles={athlete.iwf_profiles || []}
-                iwfResults={athleteData.iwf_results || []} 
+                iwfResults={results.filter((r: any) => r._source === 'IWF')} 
                 showIwfResults={showIwfResults} 
                 setShowIwfResults={setShowIwfResults} 
                 forceIwfMode={forceIwfMode}

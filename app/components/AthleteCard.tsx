@@ -93,6 +93,15 @@ const calculateSuccessRate = (attempts: (string | null | undefined)[]) => {
 };
 
 
+const formatPerspectiveLabel = (key: string) => {
+  const parts = key.split('_');
+  if (parts.length < 3) return key;
+  const fed = parts[0].toUpperCase();
+  const gender = parts[1] === 'F' ? 'Female' : 'Male';
+  const ageGroup = parts[2];
+  return `${fed} ${gender} ${ageGroup}`;
+};
+
 const calculateClutchPerformance = (results: CompetitionResult[]): { 
   percentage: number; successes: number; total: number;
 } => {
@@ -440,7 +449,10 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
   const availableYears = React.useMemo(() => {
     const history = historical_stats?.[dataSource || 'usaw'];
     if (!history) return [];
-    return Object.keys(history).sort((a, b) => b.localeCompare(a));
+    const currentYear = new Date().getFullYear().toString();
+    return Object.keys(history)
+      .filter(year => year !== currentYear)
+      .sort((a, b) => b.localeCompare(a));
   }, [historical_stats, dataSource]);
 
   React.useEffect(() => {
@@ -493,34 +505,26 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
 
     const getAvailableDemographicKeys = (data: any, age: number | null) => {
       if (!data) return [];
+      const athleteGender = (results[0]?.gender || '').toString().toUpperCase().startsWith('F') ? 'F' : 'M';
+      
       return Object.keys(data).filter(k => {
         const item = data[k];
         if (!item || typeof item !== 'object') return false;
         
-        const isDemographic = item.metrics || item.career || item.recent || 
-                            ['senior', 'masters', 'youth', 'junior', 'age_group'].includes(k);
-        if (!isDemographic) return false;
-
+        const parts = k.split('_');
+        if (parts.length < 3) return false;
+        
+        // Gender Match
+        if (parts[1] !== athleteGender) return false;
+        
+        // Age Eligibility Check
         if (age !== null && Number.isFinite(age)) {
-          const bucket = (item.bucket || '').toLowerCase();
-          const isMaster = k.toLowerCase().includes('master') || bucket.includes('master');
-          const isYouth = k.toLowerCase().includes('youth') || bucket.includes('youth');
-          const isJunior = k.toLowerCase().includes('junior') || bucket.includes('junior');
-          const isSenior = k.toLowerCase().includes('senior') || bucket.includes('senior');
-
-          if (age < 35 && isMaster) return false;
-          if ((age < 13 || age > 17) && isYouth) return false;
-          if ((age < 15 || age > 20) && isJunior) return false;
-          if (age < 15 && isSenior) return false;
+          const ageCategory = parts[2].toLowerCase();
+          if (age < 35 && ageCategory.includes('master')) return false;
+          if ((age < 13 || age > 17) && ageCategory.includes('youth')) return false;
+          if ((age < 15 || age > 20) && ageCategory.includes('junior')) return false;
+          if (age < 15 && ageCategory.includes('senior')) return false;
         }
-
-        const athleteGender = (results[0]?.gender || '').toString().toLowerCase();
-        const isAthleteFemale = athleteGender.startsWith('f');
-        const isAthleteMale = athleteGender.startsWith('m');
-        const bucketLabel = (item.bucket || k || '').toLowerCase();
-
-        if (isAthleteFemale && (bucketLabel.includes('_m_') || bucketLabel.includes('male'))) return false;
-        if (isAthleteMale && (bucketLabel.includes('_f_') || bucketLabel.includes('female'))) return false;
 
         return true;
       });
@@ -528,27 +532,30 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
 
     const availableKeys = getAvailableDemographicKeys(contextData, snapshotAge);
 
-    const resolvePerspective = (p: string, age: number | null, keys: string[], data: any) => {
-      if (p !== 'age_group' && keys.includes(p)) return p;
+    const resolvePerspective = (p: string, age: number | null, keys: string[]) => {
+      if (keys.includes(p)) return p;
       if (age !== null) {
         if (age >= 35) {
-          const mastersKey = keys.find(k => k === 'masters' || (data?.[k]?.bucket?.toLowerCase().includes('master')));
-          if (mastersKey) return mastersKey;
-          if (keys.includes('age_group')) return 'age_group';
+          const k = keys.find(k => k.toLowerCase().includes('master'));
+          if (k) return k;
         }
-        if (age <= 17) {
-          const youthKey = keys.find(k => k === 'youth' || (data?.[k]?.bucket?.toLowerCase().includes('youth')));
-          if (youthKey) return youthKey;
+        if (age >= 13 && age <= 17) {
+          const k = keys.find(k => k.toLowerCase().includes('youth'));
+          if (k) return k;
         }
-        if (age <= 20) {
-          const juniorKey = keys.find(k => k === 'junior' || (data?.[k]?.bucket?.toLowerCase().includes('junior')));
-          if (juniorKey) return juniorKey;
+        if (age >= 15 && age <= 20) {
+          const k = keys.find(k => k.toLowerCase().includes('junior'));
+          if (k) return k;
+        }
+        if (age >= 15) {
+          const k = keys.find(k => k.toLowerCase().includes('senior'));
+          if (k) return k;
         }
       }
-      return keys.find(k => k === 'age_group') || keys.find(k => k === 'senior') || keys[0];
+      return keys[0] || p;
     };
 
-    const resolvedPerspective = resolvePerspective(perspective, snapshotAge, availableKeys, contextData);
+    const resolvedPerspective = resolvePerspective(perspective, snapshotAge, availableKeys);
 
     return {
       snapshotAge,
@@ -575,7 +582,7 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
 
     // Extract the metrics shard
     const historicalData = historicalYearData 
-      ? (historicalYearData[resolvedPerspective] || historicalYearData.age_group || historicalYearData.senior || (historicalYearData.metrics ? historicalYearData : null)) 
+      ? (historicalYearData[resolvedPerspective] || historicalYearData.metrics || (historicalYearData[availableKeys[0]] ? historicalYearData[availableKeys[0]] : null)) 
       : null;
 
     const anchorDate = isHistorical 
@@ -635,7 +642,7 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
     // Year-over-year performance trend using YTD best lifts
     const yearlyBests = new Map<number, { total: number, snatch: number, cj: number }>();
     
-    results.forEach(result => {
+    targetResults.forEach(result => {
       const year = new Date(result.date).getFullYear();
       const total = result.best_total_ytd || parseAttempt(result.total);
       const snatch = result.best_snatch_ytd || parseAttempt(result.best_snatch);
@@ -698,9 +705,9 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
     }
 
     // Calculate Q-score metrics - use recent competitions for athletes with 4+ meets
-    const shouldUseRecentQScores = results.length >= 4;
+    const shouldUseRecentQScores = targetResults.length >= 4;
     const recentQScores = shouldUseRecentQScores 
-      ? results.slice(0, Math.round(results.length * 0.25))
+      ? targetResults.slice(0, Math.round(targetResults.length * 0.25))
           .reduce((scores: number[], result) => {
             if (result.qpoints) scores.push(result.qpoints);
             if (result.q_youth) scores.push(result.q_youth);
@@ -717,14 +724,14 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
     if (qScores.length > 0) {
       const bestScore = Math.max(...qScores);
       // Find which type produced the best score by looking at latest result
-      const latestResult = results[0];
+      const latestResult = targetResults[0];
       if (latestResult) {
         if (latestResult.q_youth === bestScore) bestQScoreType = 'Q-youth';
         else if (latestResult.q_masters === bestScore) bestQScoreType = 'Q-masters';
         else if (latestResult.qpoints === bestScore) bestQScoreType = 'Q-points';
         // If none match exactly from latest, check all results for the best score
         else {
-          for (const result of results) {
+          for (const result of targetResults) {
             if (result.q_youth === bestScore) { bestQScoreType = 'Q-youth'; break; }
             if (result.q_masters === bestScore) { bestQScoreType = 'Q-masters'; break; }
             if (result.qpoints === bestScore) { bestQScoreType = 'Q-points'; break; }
@@ -784,7 +791,7 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
       avgOverallOpenerPercentage >= 93 ? 'aggressive' : 'balanced';
     
     // Check for masters achievements (lifetime PRs achieved as masters athlete)
-    const mastersAchievements = results.filter(result => {
+    const mastersAchievements = targetResults.filter(result => {
       const age = result.competition_age || 0;
       if (age < 35) return false; // Masters categories typically start at 35
       
@@ -795,9 +802,9 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
       if (!snatch || !cj || !total) return false;
       
       // Check if this competition result matches personal bests
-      const maxSnatch = Math.max(...results.map(r => parseAttempt(r.best_snatch) || 0));
-      const maxCj = Math.max(...results.map(r => parseAttempt(r.best_cj) || 0));
-      const maxTotal = Math.max(...results.map(r => parseAttempt(r.total) || 0));
+      const maxSnatch = Math.max(...targetResults.map(r => parseAttempt(r.best_snatch) || 0));
+      const maxCj = Math.max(...targetResults.map(r => parseAttempt(r.best_cj) || 0));
+      const maxTotal = Math.max(...targetResults.map(r => parseAttempt(r.total) || 0));
       
       return snatch === maxSnatch || cj === maxCj || total === maxTotal;
     }).length > 0;
@@ -805,7 +812,7 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
     // Check for young achiever (≤20 with strong recent YOY)
     // Find the first valid competition_age from any result to avoid defaulting to 0
     const getValidAge = (): number | null => {
-      for (const result of results) {
+      for (const result of targetResults) {
         if (result.competition_age && result.competition_age > 0) {
           return result.competition_age;
         }
@@ -870,12 +877,13 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
       isSteadyEddie,
       isIronWill,
       isTechnicalWizard,
-      selectedYear,
-      isHistorical,
-      historicalData,
+      snapshotAge,
       availableKeys,
       resolvedPerspective,
-      snapshotAge
+      historicalData,
+      isHistorical,
+      selectedYear,
+      activeContext: contextData
     };
   }, [results, viewMode, selectedYear, dataSource, historical_stats, perspective, population_percentiles]);
 
@@ -1044,43 +1052,12 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             {/* Demographic Selector */}
             {(() => {
-              const { availableKeys, resolvedPerspective, snapshotAge, historicalData: histContext } = analytics;
-              const fedData = population_percentiles?.[dataSource || 'usaw'];
-              const activeContext = isHistorical ? histContext : fedData;
+              const { availableKeys, resolvedPerspective, snapshotAge, activeContext } = analytics;
               
               if (!activeContext) return null;
               
               const getFullLabel = (key: string) => {
-                let label = activeContext[key]?.bucket;
-                
-                const athleteGender = (results.find(r => r.gender)?.gender || '').toString().toLowerCase();
-                const genderPrefix = athleteGender.startsWith('f') ? 'Female' : 'Male';
-                
-                // Intelligent fallback for missing bucket descriptions (common in Career age_group keys)
-                if (!label) {
-                  if (key === 'senior') label = `${genderPrefix} Senior`;
-                  else if (key === 'masters') label = `${genderPrefix} Masters`;
-                  else if (key === 'age_group') {
-                    if (snapshotAge && snapshotAge >= 35) label = `${genderPrefix} Masters`;
-                    else if (snapshotAge && snapshotAge <= 17) label = `${genderPrefix} Youth`;
-                    else if (snapshotAge && snapshotAge <= 20) label = `${genderPrefix} Junior`;
-                    else label = `${genderPrefix} Senior`;
-                  } else {
-                    label = key;
-                  }
-                }
-                
-                // Deterministic Formatting (Fixes _M_Senior regression)
-                label = label
-                  .replace(/_/g, ' ')
-                  .replace(/usaw/gi, '')
-                  .replace(/iwf/gi, '')
-                  .replace(/\bM\b/g, 'Male')
-                  .replace(/\bF\b/g, 'Female')
-                  .trim();
-                
-                const prefix = dataSource === 'iwf' ? 'IWF' : 'USAW';
-                return `${prefix} ${label}`;
+                return formatPerspectiveLabel(key);
               };
 
               // Consolidate options by their formatted human labels
@@ -1250,8 +1227,9 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
                     <>
                       {Math.round(analytics.historicalData.metrics.successRate.value)}%
                       <span className="text-app-muted ml-1 text-[10px]">
-                        ({getOrdinal(analytics.historicalData.metrics.successRate.percentile)} percentile)
+                        ({analytics.overallSuccesses}/{analytics.overallTotal})
                       </span>
+                      {` (${getOrdinal(analytics.historicalData.metrics.successRate.percentile)} percentile)`}
                     </>
                   ) : (
                     <>
@@ -1271,8 +1249,9 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
                     <>
                       {Math.round(analytics.historicalData.metrics.snatchSuccessRate.value)}%
                       <span className="text-app-muted ml-1 text-[10px]">
-                        ({getOrdinal(analytics.historicalData.metrics.snatchSuccessRate.percentile)} percentile)
+                        ({analytics.snatchSuccesses}/{analytics.snatchTotal})
                       </span>
+                      {` (${getOrdinal(analytics.historicalData.metrics.snatchSuccessRate.percentile)} percentile)`}
                     </>
                   ) : (
                     <>
@@ -1292,8 +1271,9 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
                     <>
                       {Math.round(analytics.historicalData.metrics.cleanJerkSuccessRate.value)}%
                       <span className="text-app-muted ml-1 text-[10px]">
-                        ({getOrdinal(analytics.historicalData.metrics.cleanJerkSuccessRate.percentile)} percentile)
+                        ({analytics.cjSuccesses}/{analytics.cjTotal})
                       </span>
+                      {` (${getOrdinal(analytics.historicalData.metrics.cleanJerkSuccessRate.percentile)} percentile)`}
                     </>
                   ) : (
                     <>
@@ -1301,7 +1281,7 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
                       <span className="text-app-muted ml-1 text-[10px]">
                         ({analytics.cjSuccesses}/{analytics.cjTotal})
                       </span>
-                      {getPercentileText(analytics.cjSuccessRate, populationStats?.cleanJerkBounceBackRate)}
+                      {getPercentileText(analytics.cjSuccessRate, populationStats?.cleanJerkSuccessRate)}
                     </>
                   )}
                 </span>
@@ -1337,21 +1317,7 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
                   Mental Game
                 </h3>
               </MetricTooltip>
-              <span className="text-xs text-app-muted">
-                {(() => {
-                  const consistencyPercentile = populationStats?.consistencyScore ? calculatePercentile(analytics.consistencyScore, populationStats.consistencyScore) : 0;
-                  const clutchPercentile = populationStats?.clutchPerformance && analytics.clutchPerformance > 0 ? calculatePercentile(analytics.clutchPerformance, populationStats.clutchPerformance) : 0;
-                  const snatchBouncePercentile = populationStats?.snatchBounceBackRate && analytics.bounceBackRates.snatch > 0 ? calculatePercentile(analytics.bounceBackRates.snatch, populationStats.snatchBounceBackRate) : 0;
-                  const cjBouncePercentile = populationStats?.cleanJerkBounceBackRate && analytics.bounceBackRates.cleanJerk > 0 ? calculatePercentile(analytics.bounceBackRates.cleanJerk, populationStats.cleanJerkBounceBackRate) : 0;
-                  
-                  const validPercentiles = [consistencyPercentile, clutchPercentile, snatchBouncePercentile, cjBouncePercentile].filter(p => p > 0);
-                  const averagePercentile = validPercentiles.length > 0 ? validPercentiles.reduce((sum, p) => sum + p, 0) / validPercentiles.length : consistencyPercentile;
-                  
-                  if (averagePercentile >= 75) return <CheckCircle className="h-3 w-3 text-green-400" />;
-                  if (averagePercentile >= 25) return <AlertCircle className="h-3 w-3 text-yellow-400" />;
-                  return <XCircle className="h-3 w-3 text-red-400" />;
-                })()}
-              </span>
+
             </div>
             <div className="space-y-2 text-xs">
               <div className="flex justify-between items-start min-w-0 gap-4">
@@ -1365,7 +1331,7 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
                   </span>
                 </MetricTooltip>
                 <span className="font-medium text-app-primary text-right max-w-[120px] break-words leading-tight">
-                  {analytics.consistencyScore}%{getPercentileText(analytics.consistencyScore, populationStats?.consistencyScore)}
+                  {analytics.consistencyScore}%
                 </span>
               </div>
               <div className="flex justify-between items-start min-w-0 gap-4">
@@ -1379,11 +1345,22 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
                 <span className="font-medium text-app-primary text-right max-w-[150px] break-words leading-tight">
                   {analytics.clutchTotal > 0 ? (
                     <>
-                      {analytics.clutchPerformance}%
-                      <span className="text-app-muted ml-1 text-[10px]">
-                        ({analytics.clutchSuccesses}/{analytics.clutchTotal})
-                      </span>
-                      {getPercentileText(analytics.clutchPerformance, populationStats?.clutchPerformance)}
+                      {analytics.historicalData?.metrics?.clutchPerformance ? (
+                        <>
+                          {Math.round(analytics.historicalData.metrics.clutchPerformance.value)}%
+                          <span className="text-app-muted ml-1 text-[10px]">
+                            ({analytics.clutchSuccesses}/{analytics.clutchTotal})
+                          </span>
+                          {` (${getOrdinal(analytics.historicalData.metrics.clutchPerformance.percentile)} percentile)`}
+                        </>
+                      ) : (
+                        <>
+                          {analytics.clutchPerformance}%
+                          <span className="text-app-muted ml-1 text-[10px]">
+                            ({analytics.clutchSuccesses}/{analytics.clutchTotal})
+                          </span>
+                        </>
+                      )}
                     </>
                   ) : <span className="text-app-muted">N/A</span>}
                 </span>
@@ -1399,11 +1376,22 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
                 <span className="font-medium text-app-primary text-right max-w-[150px] break-words leading-tight">
                   {analytics.bounceBackRates.snatchTotal > 0 ? (
                     <>
-                      {analytics.bounceBackRates.snatch}%
-                      <span className="text-app-muted ml-1 text-[10px]">
-                        ({analytics.bounceBackRates.snatchSuccesses}/{analytics.bounceBackRates.snatchTotal})
-                      </span>
-                      {getPercentileText(analytics.bounceBackRates.snatch, populationStats?.snatchBounceBackRate)}
+                      {analytics.historicalData?.metrics?.snatchBounceBackRate ? (
+                        <>
+                          {Math.round(analytics.historicalData.metrics.snatchBounceBackRate.value)}%
+                          <span className="text-app-muted ml-1 text-[10px]">
+                            ({analytics.bounceBackRates.snatchSuccesses}/{analytics.bounceBackRates.snatchTotal})
+                          </span>
+                          {` (${getOrdinal(analytics.historicalData.metrics.snatchBounceBackRate.percentile)} percentile)`}
+                        </>
+                      ) : (
+                        <>
+                          {analytics.bounceBackRates.snatch}%
+                          <span className="text-app-muted ml-1 text-[10px]">
+                            ({analytics.bounceBackRates.snatchSuccesses}/{analytics.bounceBackRates.snatchTotal})
+                          </span>
+                        </>
+                      )}
                     </>
                   ) : <span className="text-app-muted">N/A</span>}
                 </span>
@@ -1419,11 +1407,22 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
                 <span className="font-medium text-app-primary text-right max-w-[150px] break-words leading-tight">
                   {analytics.bounceBackRates.cleanJerkTotal > 0 ? (
                     <>
-                      {analytics.bounceBackRates.cleanJerk}%
-                      <span className="text-app-muted ml-1 text-[10px]">
-                        ({analytics.bounceBackRates.cleanJerkSuccesses}/{analytics.bounceBackRates.cleanJerkTotal})
-                      </span>
-                      {getPercentileText(analytics.bounceBackRates.cleanJerk, populationStats?.cleanJerkBounceBackRate)}
+                      {analytics.historicalData?.metrics?.cleanJerkBounceBackRate ? (
+                        <>
+                          {Math.round(analytics.historicalData.metrics.cleanJerkBounceBackRate.value)}%
+                          <span className="text-app-muted ml-1 text-[10px]">
+                            ({analytics.bounceBackRates.cleanJerkSuccesses}/{analytics.bounceBackRates.cleanJerkTotal})
+                          </span>
+                          {` (${getOrdinal(analytics.historicalData.metrics.cleanJerkBounceBackRate.percentile)} percentile)`}
+                        </>
+                      ) : (
+                        <>
+                          {analytics.bounceBackRates.cleanJerk}%
+                          <span className="text-app-muted ml-1 text-[10px]">
+                            ({analytics.bounceBackRates.cleanJerkSuccesses}/{analytics.bounceBackRates.cleanJerkTotal})
+                          </span>
+                        </>
+                      )}
                     </>
                   ) : <span className="text-app-muted">N/A</span>}
                 </span>
@@ -1518,13 +1517,13 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
           <div className="card-secondary">
             <div className="flex items-center justify-between mb-3">
               <MetricTooltip
-                title={`${dataSource === 'iwf' ? 'IWF' : 'USAW'} Career Competition Profile`}
+                title={`${dataSource === 'iwf' ? 'IWF' : 'USAW'} Career Competition Profile${isHistorical ? ` (up to ${selectedYear})` : ''}`}
                 description="Activity level and competitive experience. More frequent competition often correlates with higher performance levels and better competition management."
                 methodology="Competitions per year = total meets ÷ active years. Years active calculated from date range of competition history."
               >
                 <h3 className="text-sm font-medium text-app-secondary flex items-center">
                   <Activity className="h-4 w-4 mr-1" />
-                  {dataSource === 'iwf' ? 'IWF' : 'USAW'} Career Competition Profile
+                  {`${dataSource === 'iwf' ? 'IWF' : 'USAW'} Career Competition Profile${isHistorical ? ` (up to ${selectedYear})` : ''}`}
                 </h3>
               </MetricTooltip>
             </div>
@@ -1532,7 +1531,16 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
               <div className="flex justify-between">
                 <span className="text-app-secondary">Competitions/Year:</span>
                 <span className="font-medium text-app-primary">
-                  {analytics.competitionFrequency}{getPercentileText(analytics.competitionFrequency, populationStats?.competitionFrequency)}
+                  {analytics.historicalData?.metrics?.competitionFrequency ? (
+                    <>
+                      {analytics.historicalData.metrics.competitionFrequency.value.toFixed(1)}
+                      {` (${getOrdinal(analytics.historicalData.metrics.competitionFrequency.percentile)} percentile)`}
+                    </>
+                  ) : (
+                    <>
+                      {analytics.competitionFrequency}{getPercentileText(analytics.competitionFrequency, populationStats?.competitionFrequency)}
+                    </>
+                  )}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -1550,13 +1558,13 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
           <div className="card-secondary">
             <div className="flex items-center justify-between mb-3">
               <MetricTooltip
-                title={`${dataSource === 'iwf' ? 'IWF' : 'USAW'} Career Performance Trends`}
+                title={`${dataSource === 'iwf' ? 'IWF' : 'USAW'} Career Performance Trends${isHistorical ? ` (up to ${selectedYear})` : ''}`}
                 description="Overall and recent career trend analysis, including improvement streak tracking. Shows how an athlete's performance has evolved over their competitive career."
                 methodology="Calculates year-over-year percentage changes in best totals. Career trend averages all YOY changes, recent trend uses last 2 years. Current streak counts consecutive improvement years from most recent, best streak is longest ever."
               >
                 <h3 className="text-sm font-medium text-app-secondary flex items-center">
                   <TrendingUp className="h-4 w-4 mr-1" />
-                  {dataSource === 'iwf' ? 'IWF' : 'USAW'} Career Performance Trends
+                  {`${dataSource === 'iwf' ? 'IWF' : 'USAW'} Career Performance Trends${isHistorical ? ` (up to ${selectedYear})` : ''}`}
                 </h3>
               </MetricTooltip>
               <span className="text-xs text-app-muted">
@@ -1615,8 +1623,15 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
               {(() => {
                 const insights = [];
                 
+                // Consolidate percentile calculation for insights
+                const getMetricPercentile = (value: number, popStats: any, historicalMetric?: { percentile: number }) => {
+                  if (historicalMetric) return historicalMetric.percentile;
+                  if (popStats) return calculatePercentile(value, popStats);
+                  return 0;
+                };
+
                 // Elite insights (90th+ percentile)
-                if (populationStats && calculatePercentile(analytics.overallSuccessRate, populationStats.successRate) >= 90) {
+                if (getMetricPercentile(analytics.overallSuccessRate, populationStats?.successRate, analytics.historicalData?.metrics?.successRate) >= 90) {
                   insights.push(
                     <MetricTooltip
                       key="elite-conversion"
@@ -1627,7 +1642,7 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
                       <div className="text-yellow-400 cursor-help">• Elite attempt conversion</div>
                     </MetricTooltip>
                   );
-                } else if (populationStats && calculatePercentile(analytics.overallSuccessRate, populationStats.successRate) >= 75) {
+                } else if (getMetricPercentile(analytics.overallSuccessRate, populationStats?.successRate, analytics.historicalData?.metrics?.successRate) >= 75) {
                   insights.push(
                     <MetricTooltip
                       key="strong-conversion"
@@ -1638,7 +1653,7 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
                       <div className="text-green-400 cursor-help">• Strong attempt conversion</div>
                     </MetricTooltip>
                   );
-                } else if (populationStats && calculatePercentile(analytics.overallSuccessRate, populationStats.successRate) >= 60) {
+                } else if (getMetricPercentile(analytics.overallSuccessRate, populationStats?.successRate, analytics.historicalData?.metrics?.successRate) >= 60) {
                   insights.push(
                     <MetricTooltip
                       key="solid-conversion"
@@ -1652,7 +1667,7 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
                 }
                 
                 // Clutch performance insights with broader tiers
-                if (populationStats && calculatePercentile(analytics.clutchPerformance, populationStats.clutchPerformance) >= 85 && analytics.clutchPerformance > 0) {
+                if (getMetricPercentile(analytics.clutchPerformance, populationStats?.clutchPerformance, analytics.historicalData?.metrics?.clutchPerformance) >= 85 && analytics.clutchPerformance > 0) {
                   insights.push(
                     <MetricTooltip
                       key="elite-pressure"
@@ -1663,7 +1678,7 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
                       <div className="text-yellow-400 cursor-help">• Elite under pressure</div>
                     </MetricTooltip>
                   );
-                } else if (populationStats && calculatePercentile(analytics.clutchPerformance, populationStats.clutchPerformance) >= 65 && analytics.clutchPerformance > 0) {
+                } else if (getMetricPercentile(analytics.clutchPerformance, populationStats?.clutchPerformance, analytics.historicalData?.metrics?.clutchPerformance) >= 65 && analytics.clutchPerformance > 0) {
                   insights.push(
                     <MetricTooltip
                       key="good-pressure"
@@ -1677,7 +1692,7 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
                 }
                 
                 // Consistency insights with broader coverage
-                if (populationStats && calculatePercentile(analytics.consistencyScore, populationStats.consistencyScore) >= 85) {
+                if (getMetricPercentile(analytics.consistencyScore, populationStats?.consistencyScore, analytics.historicalData?.metrics?.consistencyScore) >= 85) {
                   insights.push(
                     <MetricTooltip
                       key="very-consistent"
@@ -1688,7 +1703,7 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
                       <div className="text-purple-400 cursor-help">• Very consistent performer</div>
                     </MetricTooltip>
                   );
-                } else if (populationStats && calculatePercentile(analytics.consistencyScore, populationStats.consistencyScore) >= 65) {
+                } else if (getMetricPercentile(analytics.consistencyScore, populationStats?.consistencyScore, analytics.historicalData?.metrics?.consistencyScore) >= 65) {
                   insights.push(
                     <MetricTooltip
                       key="reliable-performer"
@@ -1702,7 +1717,7 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
                 }
                 
                 // Q-Score Performance insights (lowered threshold from >1000 to >500)
-                if (populationStats && populationStats.qScorePerformance.sampleSize > 500 && calculatePercentile(analytics.bestQScore, populationStats.qScorePerformance) >= 90) {
+                if (getMetricPercentile(analytics.bestQScore, populationStats?.qScorePerformance, analytics.historicalData?.metrics?.qScorePerformance) >= 90) {
                   insights.push(
                     <MetricTooltip
                       key="elite-qscore"
@@ -1713,7 +1728,7 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
                       <div className="text-yellow-400 cursor-help">• Elite Q-score performance</div>
                     </MetricTooltip>
                   );
-                } else if (populationStats && populationStats.qScorePerformance.sampleSize > 500 && calculatePercentile(analytics.bestQScore, populationStats.qScorePerformance) >= 75) {
+                } else if (getMetricPercentile(analytics.bestQScore, populationStats?.qScorePerformance, analytics.historicalData?.metrics?.qScorePerformance) >= 75) {
                   insights.push(
                     <MetricTooltip
                       key="strong-qscore"
