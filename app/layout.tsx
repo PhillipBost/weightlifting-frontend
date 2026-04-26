@@ -6,7 +6,10 @@ import { AuthProvider } from "./components/AuthProvider";
 import { GlobalHeader } from "./components/GlobalHeader";
 
 export const metadata: Metadata = {
-  title: "WeightliftingDB",
+  title: {
+    template: '%s | OWLanalytics',
+    default: 'WeightliftingDB',
+  },
   description: "Olympic Weightlifting Results Database",
 };
 

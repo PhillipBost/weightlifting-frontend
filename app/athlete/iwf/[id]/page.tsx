@@ -1,6 +1,25 @@
 import React, { Suspense } from 'react';
+import type { Metadata } from 'next';
 import AthleteSkeleton from '../../[id]/components/AthleteSkeleton';
 import { AthleteProfileWrapper } from '../../[id]/components/AthleteProfileWrapper';
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  
+  try {
+    const res = await fetch(`${baseUrl}/api/athlete/iwf-${id}`);
+    if (res.ok) {
+      const data = await res.json();
+      const name = data.iwf_athlete_name || data.athlete_name || `Athlete IWF-${id}`;
+      return { title: `${name} | IWF` };
+    }
+  } catch (err) {
+    console.error("IWF Metadata fetch error:", err);
+  }
+
+  return { title: "International Athlete | IWF" };
+}
 
 /**
  * PRODUCTION IWF ATHLETE PAGE (v7.0)

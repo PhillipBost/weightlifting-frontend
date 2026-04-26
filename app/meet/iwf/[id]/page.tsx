@@ -231,6 +231,12 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
     key: keyof MeetResult | 'place';
     direction: 'asc' | 'desc';
   } | null>(null);
+
+  useEffect(() => {
+    if (meet?.meet_name) {
+      document.title = `${meet.meet_name} | IWF | OWLanalytics`;
+    }
+  }, [meet]);
   /* Updated to match new section titles */
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set(["Men's Results by Division", "Women's Results by Division"]));
   // Weight class cards, All Ages rows, and subcategory rows start collapsed.

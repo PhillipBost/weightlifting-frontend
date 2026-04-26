@@ -1,6 +1,25 @@
 import React, { Suspense } from 'react';
+import type { Metadata } from 'next';
 import AthleteSkeleton from './components/AthleteSkeleton';
 import { AthleteProfileWrapper } from './components/AthleteProfileWrapper';
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  
+  try {
+    const res = await fetch(`${baseUrl}/api/athlete/${encodeURIComponent(id)}`);
+    if (res.ok) {
+      const data = await res.json();
+      const name = data.usaw_athlete_name || data.athlete_name || `Athlete ${id}`;
+      return { title: `${name} | USAW` };
+    }
+  } catch (err) {
+    console.error("Metadata fetch error:", err);
+  }
+
+  return { title: "Athlete Profile | USAW" };
+}
 
 /**
  * PRODUCTION USAW ATHLETE PAGE (v7.0)
