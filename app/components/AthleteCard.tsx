@@ -1637,7 +1637,7 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
                       key="elite-conversion"
                       title="Elite Attempt Conversion"
                       description="This athlete converts their attempts to successful lifts at an elite level, better than 90% of similar athletes."
-                      methodology={`Success rate: ${analytics.overallSuccessRate.toFixed(1)}% (${getOrdinal(calculatePercentile(analytics.overallSuccessRate, populationStats.successRate))} percentile)`}
+                      methodology={`Success rate: ${analytics.overallSuccessRate.toFixed(1)}% (${getOrdinal(calculatePercentile(analytics.overallSuccessRate, populationStats?.successRate))} percentile)`}
                     >
                       <div className="text-yellow-400 cursor-help">• Elite attempt conversion</div>
                     </MetricTooltip>
@@ -1648,7 +1648,7 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
                       key="strong-conversion"
                       title="Strong Attempt Conversion"
                       description="Reliable attempt conversion rate, better than 75% of similar athletes."
-                      methodology={`Success rate: ${analytics.overallSuccessRate.toFixed(1)}% (${getOrdinal(calculatePercentile(analytics.overallSuccessRate, populationStats.successRate))} percentile)`}
+                      methodology={`Success rate: ${analytics.overallSuccessRate.toFixed(1)}% (${getOrdinal(calculatePercentile(analytics.overallSuccessRate, populationStats?.successRate))} percentile)`}
                     >
                       <div className="text-green-400 cursor-help">• Strong attempt conversion</div>
                     </MetricTooltip>
@@ -1659,7 +1659,7 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
                       key="solid-conversion"
                       title="Solid Technical Foundation"
                       description="Above-average technical reliability with consistent attempt conversion."
-                      methodology={`Success rate: ${analytics.overallSuccessRate.toFixed(1)}% (${getOrdinal(calculatePercentile(analytics.overallSuccessRate, populationStats.successRate))} percentile)`}
+                      methodology={`Success rate: ${analytics.overallSuccessRate.toFixed(1)}% (${getOrdinal(calculatePercentile(analytics.overallSuccessRate, populationStats?.successRate))} percentile)`}
                     >
                       <div className="text-blue-400 cursor-help">• Solid technical foundation</div>
                     </MetricTooltip>
@@ -1673,7 +1673,7 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
                       key="elite-pressure"
                       title="Elite Under Pressure"
                       description="Exceptional performance in high-pressure must-make situations."
-                      methodology={`Clutch success rate: ${analytics.clutchPerformance}% (${getOrdinal(calculatePercentile(analytics.clutchPerformance, populationStats.clutchPerformance))} percentile)`}
+                      methodology={`Clutch success rate: ${analytics.clutchPerformance}% (${getOrdinal(calculatePercentile(analytics.clutchPerformance, populationStats?.clutchPerformance))} percentile)`}
                     >
                       <div className="text-yellow-400 cursor-help">• Elite under pressure</div>
                     </MetricTooltip>
@@ -1684,7 +1684,7 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
                       key="good-pressure"
                       title="Good Under Pressure"
                       description="Above-average performance in high-pressure situations."
-                      methodology={`Clutch success rate: ${analytics.clutchPerformance}% (${getOrdinal(calculatePercentile(analytics.clutchPerformance, populationStats.clutchPerformance))} percentile)`}
+                      methodology={`Clutch success rate: ${analytics.clutchPerformance}% (${getOrdinal(calculatePercentile(analytics.clutchPerformance, populationStats?.clutchPerformance))} percentile)`}
                     >
                       <div className="text-blue-400 cursor-help">• Good under pressure</div>
                     </MetricTooltip>
@@ -1698,7 +1698,7 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
                       key="very-consistent"
                       title="Very Consistent Performer"
                       description="Shows stable, predictable performance across competitions with minimal variation."
-                      methodology={`Consistency score: ${analytics.consistencyScore}% (${getOrdinal(calculatePercentile(analytics.consistencyScore, populationStats.consistencyScore))} percentile)`}
+                      methodology={`Consistency score: ${analytics.consistencyScore}% (${getOrdinal(calculatePercentile(analytics.consistencyScore, populationStats?.consistencyScore))} percentile)`}
                     >
                       <div className="text-purple-400 cursor-help">• Very consistent performer</div>
                     </MetricTooltip>
@@ -1709,7 +1709,7 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
                       key="reliable-performer"
                       title="Reliable Performer"
                       description="Above-average consistency with predictable competition results."
-                      methodology={`Consistency score: ${analytics.consistencyScore}% (${getOrdinal(calculatePercentile(analytics.consistencyScore, populationStats.consistencyScore))} percentile)`}
+                      methodology={`Consistency score: ${analytics.consistencyScore}% (${getOrdinal(calculatePercentile(analytics.consistencyScore, populationStats?.consistencyScore))} percentile)`}
                     >
                       <div className="text-green-400 cursor-help">• Reliable performer</div>
                     </MetricTooltip>
@@ -1723,7 +1723,7 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
                       key="elite-qscore"
                       title="Elite Q-Score Performance"
                       description="Exceptional competitive performance showing elite-level weightlifting ability. Based on recent performance for experienced athletes."
-                      methodology={`Recent best Q-score: ${analytics.bestQScore} (${analytics.bestQScoreType}) - ${getOrdinal(calculatePercentile(analytics.bestQScore, populationStats.qScorePerformance))} percentile. Uses 25% most recent competitions for athletes with 4+ meets.`}
+                      methodology={`Recent best Q-score: ${analytics.bestQScore} (${analytics.bestQScoreType}) - ${getOrdinal(calculatePercentile(analytics.bestQScore, populationStats?.qScorePerformance))} percentile. Uses 25% most recent competitions for athletes with 4+ meets.`}
                     >
                       <div className="text-yellow-400 cursor-help">• Elite Q-score performance</div>
                     </MetricTooltip>
@@ -1734,18 +1734,18 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
                       key="strong-qscore"
                       title="Strong Q-Score Performance"
                       description="Above-average competitive performance demonstrating strong weightlifting ability. Based on recent performance for experienced athletes."
-                      methodology={`Recent best Q-score: ${analytics.bestQScore} (${analytics.bestQScoreType}) - ${getOrdinal(calculatePercentile(analytics.bestQScore, populationStats.qScorePerformance))} percentile. Uses 25% most recent competitions for athletes with 4+ meets.`}
+                      methodology={`Recent best Q-score: ${analytics.bestQScore} (${analytics.bestQScoreType}) - ${getOrdinal(calculatePercentile(analytics.bestQScore, populationStats?.qScorePerformance))} percentile. Uses 25% most recent competitions for athletes with 4+ meets.`}
                     >
                       <div className="text-green-400 cursor-help">• Strong Q-score performance</div>
                     </MetricTooltip>
                   );
-                } else if (populationStats && populationStats.qScorePerformance.sampleSize > 500 && calculatePercentile(analytics.bestQScore, populationStats.qScorePerformance) >= 60) {
+                } else if (populationStats && populationStats?.qScorePerformance.sampleSize > 500 && calculatePercentile(analytics.bestQScore, populationStats?.qScorePerformance) >= 60) {
                   insights.push(
                     <MetricTooltip
                       key="solid-qscore"
                       title="Solid Q-Score Performance"
                       description="Reliable competitive performance showing good weightlifting fundamentals. Based on recent performance for experienced athletes."
-                      methodology={`Recent best Q-score: ${analytics.bestQScore} (${analytics.bestQScoreType}) - ${getOrdinal(calculatePercentile(analytics.bestQScore, populationStats.qScorePerformance))} percentile. Uses 25% most recent competitions for athletes with 4+ meets.`}
+                      methodology={`Recent best Q-score: ${analytics.bestQScore} (${analytics.bestQScoreType}) - ${getOrdinal(calculatePercentile(analytics.bestQScore, populationStats?.qScorePerformance))} percentile. Uses 25% most recent competitions for athletes with 4+ meets.`}
                     >
                       <div className="text-blue-400 cursor-help">• Solid Q-score performance</div>
                     </MetricTooltip>
@@ -1753,48 +1753,48 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
                 }
                 
                 // Bounce-back insights with multiple tiers
-                if (populationStats && calculatePercentile(analytics.bounceBackRates.snatch, populationStats.snatchBounceBackRate) >= 90 && analytics.bounceBackRates.snatch > 0) {
+                if (populationStats && calculatePercentile(analytics.bounceBackRates.snatch, populationStats?.snatchBounceBackRate) >= 90 && analytics.bounceBackRates.snatch > 0) {
                   insights.push(
                     <MetricTooltip
                       key="elite-snatch-bounce"
                       title="Elite Snatch Recovery"
                       description="Exceptional mental resilience for snatch attempts after misses."
-                      methodology={`Snatch bounce-back: ${analytics.bounceBackRates.snatch}% (${getOrdinal(calculatePercentile(analytics.bounceBackRates.snatch, populationStats.snatchBounceBackRate))} percentile)`}
+                      methodology={`Snatch bounce-back: ${analytics.bounceBackRates.snatch}% (${getOrdinal(calculatePercentile(analytics.bounceBackRates.snatch, populationStats?.snatchBounceBackRate))} percentile)`}
                     >
                       <div className="text-yellow-400 cursor-help">• Elite snatch recovery</div>
                     </MetricTooltip>
                   );
-                } else if (populationStats && calculatePercentile(analytics.bounceBackRates.snatch, populationStats.snatchBounceBackRate) >= 70 && analytics.bounceBackRates.snatch > 0) {
+                } else if (populationStats && calculatePercentile(analytics.bounceBackRates.snatch, populationStats?.snatchBounceBackRate) >= 70 && analytics.bounceBackRates.snatch > 0) {
                   insights.push(
                     <MetricTooltip
                       key="good-snatch-bounce"
                       title="Good Snatch Recovery"
                       description="Above-average ability to bounce back from snatch misses."
-                      methodology={`Snatch bounce-back: ${analytics.bounceBackRates.snatch}% (${getOrdinal(calculatePercentile(analytics.bounceBackRates.snatch, populationStats.snatchBounceBackRate))} percentile)`}
+                      methodology={`Snatch bounce-back: ${analytics.bounceBackRates.snatch}% (${getOrdinal(calculatePercentile(analytics.bounceBackRates.snatch, populationStats?.snatchBounceBackRate))} percentile)`}
                     >
                       <div className="text-green-400 cursor-help">• Good snatch recovery</div>
                     </MetricTooltip>
                   );
                 }
                 
-                if (populationStats && calculatePercentile(analytics.bounceBackRates.cleanJerk, populationStats.cleanJerkBounceBackRate) >= 90 && analytics.bounceBackRates.cleanJerk > 0) {
+                if (populationStats && calculatePercentile(analytics.bounceBackRates.cleanJerk, populationStats?.cleanJerkBounceBackRate) >= 90 && analytics.bounceBackRates.cleanJerk > 0) {
                   insights.push(
                     <MetricTooltip
                       key="elite-cj-bounce"
                       title="Elite C&J Recovery"
                       description="Exceptional ability to recover from clean & jerk misses."
-                      methodology={`C&J bounce-back: ${analytics.bounceBackRates.cleanJerk}% (${getOrdinal(calculatePercentile(analytics.bounceBackRates.cleanJerk, populationStats.cleanJerkBounceBackRate))} percentile)`}
+                      methodology={`C&J bounce-back: ${analytics.bounceBackRates.cleanJerk}% (${getOrdinal(calculatePercentile(analytics.bounceBackRates.cleanJerk, populationStats?.cleanJerkBounceBackRate))} percentile)`}
                     >
                       <div className="text-yellow-400 cursor-help">• Elite C&J recovery</div>
                     </MetricTooltip>
                   );
-                } else if (populationStats && calculatePercentile(analytics.bounceBackRates.cleanJerk, populationStats.cleanJerkBounceBackRate) >= 70 && analytics.bounceBackRates.cleanJerk > 0) {
+                } else if (populationStats && calculatePercentile(analytics.bounceBackRates.cleanJerk, populationStats?.cleanJerkBounceBackRate) >= 70 && analytics.bounceBackRates.cleanJerk > 0) {
                   insights.push(
                     <MetricTooltip
                       key="good-cj-bounce"
                       title="Good C&J Recovery"
                       description="Above-average ability to bounce back from C&J misses."
-                      methodology={`C&J bounce-back: ${analytics.bounceBackRates.cleanJerk}% (${getOrdinal(calculatePercentile(analytics.bounceBackRates.cleanJerk, populationStats.cleanJerkBounceBackRate))} percentile)`}
+                      methodology={`C&J bounce-back: ${analytics.bounceBackRates.cleanJerk}% (${getOrdinal(calculatePercentile(analytics.bounceBackRates.cleanJerk, populationStats?.cleanJerkBounceBackRate))} percentile)`}
                     >
                       <div className="text-green-400 cursor-help">• Good C&J recovery</div>
                     </MetricTooltip>
@@ -1827,13 +1827,13 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
                 }
                 
                 // Competition frequency insights
-                if (populationStats && calculatePercentile(analytics.competitionFrequency, populationStats.competitionFrequency) >= 80) {
+                if (populationStats && calculatePercentile(analytics.competitionFrequency, populationStats?.competitionFrequency) >= 80) {
                   insights.push(
                     <MetricTooltip
                       key="high-activity"
                       title="High Competition Activity"
                       description="Competes more frequently than most athletes, showing strong competitive engagement."
-                      methodology={`Competition frequency: ${analytics.competitionFrequency}/year (${getOrdinal(calculatePercentile(analytics.competitionFrequency, populationStats.competitionFrequency))} percentile)`}
+                      methodology={`Competition frequency: ${analytics.competitionFrequency}/year (${getOrdinal(calculatePercentile(analytics.competitionFrequency, populationStats?.competitionFrequency))} percentile)`}
                     >
                       <div className="text-orange-400 cursor-help">• High competition activity</div>
                     </MetricTooltip>
@@ -1841,7 +1841,7 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
                 }
                 
                 // Constructive lower-end insights split by experience level
-                if (populationStats && calculatePercentile(analytics.overallSuccessRate, populationStats.successRate) <= 40 && analytics.recentYoyTrend > 0) {
+                if (populationStats && calculatePercentile(analytics.overallSuccessRate, populationStats?.successRate) <= 40 && analytics.recentYoyTrend > 0) {
                   // Split based on competition experience and opener strategy
                   const isExperienced = analytics.totalCompetitions >= 5;
                   const hasAggressiveOpeners = analytics.averageSnatchOpening >= 93 || analytics.averageCjOpening >= 93;
@@ -1852,7 +1852,7 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
                         key="bold-strategy"
                         title="Bold Strategy"
                         description="Experienced competitor with aggressive attempt selection. Taking calculated risks for maximum results."
-                        methodology={`${analytics.totalCompetitions} competitions with aggressive opener strategy but ${getOrdinal(calculatePercentile(analytics.overallSuccessRate, populationStats.successRate))} percentile success rate`}
+                        methodology={`${analytics.totalCompetitions} competitions with aggressive opener strategy but ${getOrdinal(calculatePercentile(analytics.overallSuccessRate, populationStats?.successRate))} percentile success rate`}
                       >
                         <div className="text-orange-400 cursor-help">• Bold strategy</div>
                       </MetricTooltip>
@@ -1863,7 +1863,7 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
                         key="building-foundation"
                         title="Building Foundation"
                         description="Developing technical skills with positive improvement trend. Every elite lifter started here!"
-                        methodology={`Success rate improving despite current ${getOrdinal(calculatePercentile(analytics.overallSuccessRate, populationStats.successRate))} percentile with ${analytics.totalCompetitions} competitions`}
+                        methodology={`Success rate improving despite current ${getOrdinal(calculatePercentile(analytics.overallSuccessRate, populationStats?.successRate))} percentile with ${analytics.totalCompetitions} competitions`}
                       >
                         <div className="text-cyan-400 cursor-help">• Building foundation</div>
                       </MetricTooltip>
@@ -2068,11 +2068,11 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
             <div className="text-xs text-app-muted space-y-2">
               <div>
                 <strong>Comparison Context:</strong> Percentiles based on{' '}
-                {populationStats.successRate.sampleSize.toLocaleString()} unique {populationStats.successRate.demographicDescription}.{' '}
-                {getConfidenceText(populationStats.successRate.confidence)}.
+                {populationStats?.successRate.sampleSize.toLocaleString()} unique {populationStats?.successRate.demographicDescription}.{' '}
+                {getConfidenceText(populationStats?.successRate.confidence)}.
               </div>
               
-              {populationStats.successRate.confidence === 'low' && (
+              {populationStats?.successRate.confidence === 'low' && (
                 <div className="text-yellow-400 text-xs">
                   ⚠ Small sample size - percentiles may be less reliable. Use insights as general guidance rather than definitive comparisons.
                 </div>
