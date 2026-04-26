@@ -59,7 +59,7 @@ export function usePopulationStats(
   precomputed?: any, 
   mode: 'career' | 'recent' = 'career',
   federation: 'usaw' | 'iwf' = 'usaw',
-  perspective: 'age_group' | 'senior' = 'age_group'
+  perspective: string = 'age_group'
 ) {
   const [stats, setStats] = useState<PopulationStats | null>(null);
   const [loading, setLoading] = useState(true);
