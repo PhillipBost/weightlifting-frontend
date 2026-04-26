@@ -159,7 +159,7 @@ export function adaptIWFResult(iwfResult: IWFMeetResult): AdaptedResult {
     // Meet info
     date: iwfResult.date ?? '',
     meet_name: iwfResult.meet_name ?? '',
-    meet_id: iwfResult.iwf_meets?.iwf_meet_id ?? iwfResult.db_meet_id ?? undefined,
+    meet_id: iwfResult.iwf_meets?.iwf_meet_id || (iwfResult as any).iwf_meet_id || iwfResult.db_meet_id?.toString() || undefined,
     meets: iwfResult.meets || (iwfResult.iwf_meets ? { Level: iwfResult.iwf_meets.level || 'International' } : undefined),
 
     // Lift attempts (all fields match directly)

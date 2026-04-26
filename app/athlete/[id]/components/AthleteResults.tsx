@@ -503,7 +503,7 @@ export function AthleteResults({
                             <td className="px-2 py-1 whitespace-nowrap text-xs">{new Date(result.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
                             <td className="px-2 py-1 max-w-20 text-xs">
                               <Link
-                                href={result._source === 'IWF' ? `/meet/iwf/${result.meet_id}` : `/meet/${result.meet_id}`}
+                                href={result._source === 'IWF' ? `/meet/iwf/${result.meet_id || result.db_meet_id || result.iwf_meet_id}` : `/meet/${result.meet_id}`}
                                 className="text-accent-primary hover:text-accent-primary-hover transition-colors truncate max-w-full block text-left hover:underline"
                                 title={result.meet_name}
                               >
@@ -551,7 +551,7 @@ export function AthleteResults({
                             <td className="px-2 py-1 whitespace-nowrap text-xs">{new Date(result.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
                             <td className="px-2 py-1 max-w-xs text-xs">
                               <Link
-                                href={result._source === 'IWF' ? `/meet/iwf/${result.meet_id}` : `/meet/${result.meet_id}`}
+                                href={result._source === 'IWF' ? `/meet/iwf/${result.meet_id || result.db_meet_id || result.iwf_meet_id}` : `/meet/${result.meet_id}`}
                                 className="text-accent-primary hover:text-accent-primary-hover transition-colors truncate max-w-full block text-left hover:underline"
                                 title={result.meet_name}
                               >
