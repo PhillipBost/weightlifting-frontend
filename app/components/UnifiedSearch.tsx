@@ -266,10 +266,13 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
                         if (isRecFemale !== targetIsFemale) return;
                     }
 
+                    const displayGender = r.gender === 'M' ? 'Male' : r.gender === 'F' ? 'Female' : r.gender;
+                    const location = [r.club, r.wso].filter(Boolean).join(' • ');
+
                     combinedAthletes.push({
                         id: `usaw-${r.id}`,
                         label: r.name,
-                        subLabel: `${r.gender} • ${r.club || r.state || 'N/A'} • #${r.membership_number || ''}`,
+                        subLabel: `${displayGender}${displayGender && location ? ' • ' : ''}${location || 'N/A'} • #${r.membership_number || ''}`,
                         category: 'Athletes',
                         icon: <User className="h-4 w-4" />,
                         data: { ...r, source: 'USAW', type: 'athlete' },
@@ -293,10 +296,11 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
                         if (!targetCountries.includes(rCountry)) return;
                     }
 
+                    const displayGenderIwf = r.gender === 'M' ? 'Male' : r.gender === 'F' ? 'Female' : r.gender;
                     combinedAthletes.push({
                         id: `iwf-${r.id}`,
                         label: r.name,
-                        subLabel: `${r.gender} • ${r.country} • #${r.id}`,
+                        subLabel: `${displayGenderIwf}${displayGenderIwf && r.country ? ' • ' : ''}${r.country || 'N/A'} • #${r.id}`,
                         category: 'Athletes',
                         icon: <User className="h-4 w-4" />,
                         data: { ...r, source: 'IWF', type: 'athlete' },

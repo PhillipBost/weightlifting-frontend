@@ -202,8 +202,14 @@ async function generateUSAWAthleteIndex() {
                         console.warn('Error fetching results chunk:', resError);
                     } else if (results) {
                         results.forEach(r => {
-                            if (!resultsMap.has(r.lifter_id)) {
-                                resultsMap.set(r.lifter_id, r); // First one is latest due to order
+                            const existing = resultsMap.get(r.lifter_id);
+                            if (!existing) {
+                                resultsMap.set(r.lifter_id, { ...r }); // Store a copy
+                            } else {
+                                // If the existing (more recent) record is missing fields, backfill them
+                                if ((!existing.gender || existing.gender === '') && r.gender) existing.gender = r.gender;
+                                if ((!existing.club_name || existing.club_name === '' || existing.club_name === '-') && r.club_name && r.club_name !== '-') existing.club_name = r.club_name;
+                                if ((!existing.wso || existing.wso === '') && r.wso) existing.wso = r.wso;
                             }
                         });
                     }

@@ -10,11 +10,11 @@ import dotenv from 'dotenv';
 // If not (e.g., in GitHub Actions), environment variables are already set
 dotenv.config({ path: '.env.local' });
 
-const IWF_URL = process.env.NEXT_PUBLIC_SUPABASE_IWF_URL;
+const IWF_URL = process.env.NEXT_PUBLIC_SUPABASE_IWF_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
 const IWF_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!IWF_URL || !IWF_KEY) {
-    console.error('Missing IWF Supabase environment variables (NEXT_PUBLIC_SUPABASE_IWF_URL, SUPABASE_SERVICE_ROLE_KEY)');
+    console.error('Missing Supabase environment variables (NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_IWF_URL, and SUPABASE_SERVICE_ROLE_KEY)');
     process.exit(1);
 }
 
