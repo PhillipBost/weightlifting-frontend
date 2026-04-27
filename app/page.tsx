@@ -115,7 +115,7 @@ export default function WeightliftingLandingPage() {
             <Link href="/" className="flex items-center space-x-4 hover:opacity-80 transition-opacity">
               <Image
                 src="/logo.png"
-                alt="WeightliftingDB Logo"
+                alt="OWLanalytics Logo"
                 width={56}
                 height={56}
                 className="h-14 w-14 object-contain"
@@ -374,7 +374,7 @@ export default function WeightliftingLandingPage() {
               <div className="flex items-center justify-center md:justify-start space-x-2 mb-4">
                 <Image
                   src="/logo.png"
-                  alt="WeightliftingDB Logo"
+                  alt="OWLanalytics Logo"
                   width={24}
                   height={24}
                   className="h-6 w-6 object-contain"

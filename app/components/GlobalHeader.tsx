@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
@@ -34,6 +34,11 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
   const router = useRouter();
   const pathname = usePathname();
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Do NOT render on Home. Home has its own dedicated header.
   if (pathname === "/") {
@@ -59,7 +64,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
               className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
             >
               <Image
-                alt="WeightliftingDB Logo"
+                alt="OWLanalytics Logo"
                 src="/logo.png"
                 width={40}
                 height={40}
@@ -67,7 +72,11 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
               />
               <div className="hidden sm:block">
                 <div className="text-lg font-bold text-app-primary">
-                  OWL<span className="font-normal opacity-80">analytics</span>
+                  {mounted ? (
+                    <>OWL<span className="font-normal opacity-80">analytics</span></>
+                  ) : (
+                    <span className="opacity-0">OWLanalytics</span>
+                  )}
                 </div>
                 <div className="text-xs text-app-tertiary">
                   Olympic Weightlifting Analytics & Results Database
