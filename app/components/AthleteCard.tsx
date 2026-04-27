@@ -1468,7 +1468,7 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
               </div>
 
               {/* Snatch Section */}
-              <div className="pt-2 border-t border-app-secondary/30">
+              <div className="pt-2 border-t border-app-secondary">
                 <div className="flex justify-between items-center mb-1.5">
                   <div className="font-medium" style={{ color: 'var(--chart-snatch)' }}>Snatch</div>
                   <div className="text-app-primary font-medium">Opening: {analytics.averageSnatchOpening > 0 ? `${Math.round(analytics.averageSnatchOpening)}%` : 'N/A'}</div>
@@ -1490,7 +1490,7 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
               </div>
 
               {/* Clean & Jerk Section */}
-              <div className="pt-2 border-t border-app-secondary/30">
+              <div className="pt-2 border-t border-app-secondary">
                 <div className="flex justify-between items-center mb-1.5">
                   <div className="font-medium" style={{ color: 'var(--chart-cleanjerk)' }}>Clean & Jerk</div>
                   <div className="text-app-primary font-medium">Opening: {analytics.averageCjOpening > 0 ? `${Math.round(analytics.averageCjOpening)}%` : 'N/A'}</div>
