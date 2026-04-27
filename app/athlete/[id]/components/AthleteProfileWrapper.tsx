@@ -11,6 +11,7 @@ import { AuthGuard } from '../../../components/AuthGuard';
 import { adaptIWFResult } from '@/lib/adapters/iwfAdapter';
 import { HeaderSkeleton, BestsSkeleton, ChartsSkeleton, ResultsSkeleton } from './AthleteSkeleton';
 import { DisambiguationUI } from './DisambiguationUI';
+import { ROLES } from '@/lib/roles';
 
 const fetcher = async (url: string) => {
   const res = await fetch(url);
@@ -164,6 +165,32 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }:
 
         return baseData;
       });
+  }, [results]);
+
+  // --- LAYER 2.5: ACCESS CONTROL LOGIC ---
+  const isElite = useMemo(() => {
+    if (!results || results.length === 0) return false;
+    
+    const fourYearsAgo = new Date();
+    fourYearsAgo.setFullYear(fourYearsAgo.getFullYear() - 4);
+    
+    return results.some((r: any) => {
+      const level = (r.meets?.Level || r.level || '').toLowerCase();
+      const meetName = (r.meet_name || '').toLowerCase();
+      const date = new Date(r.date);
+
+      // 1. Initial check: International/World level within 4 years
+      const isInternational = date >= fourYearsAgo && (level.includes('international') || level.includes('world'));
+      
+      if (!isInternational) return false;
+
+      // 2. Whitelist: These events do NOT trigger elite/restricted status
+      const isWhitelisted = 
+        meetName.includes('2025 umwf world championships') || 
+        (meetName.includes('world') && meetName.includes('masters'));
+
+      return !isWhitelisted;
+    });
   }, [results]);
 
   // 3. Metadata Extraction (High-Speed Initial Paint)
@@ -370,7 +397,20 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }:
           {/* STEP 3: RESULTS TABLE (THE HYDRATION TAX) */}
           {renderStep >= 3 ? (
             <>
-              <AuthGuard requireRole="admin" fallback={<></>}>
+              {isElite ? (
+                <AuthGuard 
+                  requireAnyRole={[ROLES.ADMIN, ROLES.VIP, ROLES.USAW_NATIONAL_TEAM_COACH]} 
+                  fallback={<></>}
+                >
+                  <AthleteCard 
+                    athleteName={athlete.athlete_name} 
+                    results={results} 
+                    dataSource={forceIwfMode ? 'iwf' : 'usaw'} 
+                    population_percentiles={athleteData.population_percentiles}
+                    historical_stats={athleteData.historical_stats}
+                  />
+                </AuthGuard>
+              ) : (
                 <AthleteCard 
                   athleteName={athlete.athlete_name} 
                   results={results} 
@@ -378,7 +418,7 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }:
                   population_percentiles={athleteData.population_percentiles}
                   historical_stats={athleteData.historical_stats}
                 />
-              </AuthGuard>
+              )}
               <AthleteResults 
               athlete={athlete} 
               results={results}
