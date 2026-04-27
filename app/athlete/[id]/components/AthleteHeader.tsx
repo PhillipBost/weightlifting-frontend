@@ -41,7 +41,7 @@ export function AthleteHeader({
               {forceIwfMode ? (
                 <>
                   <div className="flex items-center space-x-1">
-                    <span>IWF Athlete ID: {currentIwfId}</span>
+                    <span>IWF Athlete ID: {currentIwfId?.replace('iwf-', '')}</span>
                   </div>
                   {athlete.gender && (
                     <div className="flex items-center space-x-1">
