@@ -121,8 +121,10 @@ export default function WeightliftingLandingPage() {
                 className="h-14 w-14 object-contain"
               />
               <div>
-                <h1 className="text-2xl font-bold text-app-primary">WeightliftingDB</h1>
-                <p className="text-sm text-app-tertiary">Olympic Weightlifting Results Database</p>
+                <h1 className="text-2xl font-bold text-app-primary">
+                  OWL<span className="font-normal opacity-80">analytics</span>
+                </h1>
+                <p className="text-sm text-app-tertiary">Olympic Weightlifting Analytics & Results Database</p>
               </div>
             </Link>
 
@@ -140,7 +142,7 @@ export default function WeightliftingLandingPage() {
         <div className="max-w-[1200px] mx-auto text-center">
           <h2 className="text-4xl sm:text-5xl font-bold text-app-primary mb-6">
             Olympic Weightlifting
-            <span className="block text-blue-400">Results Database</span>
+            <span className="block text-blue-400">Analytics & Results Database</span>
           </h2>
           <p className="text-xl text-app-tertiary mb-8 leading-relaxed">
             Search through <span className="font-bold text-blue-500">{dbStats?.results ? dbStats.results.toLocaleString() : '394,908'}</span> competition results by <span className="font-bold text-blue-500">{dbStats?.athletes ? dbStats.athletes.toLocaleString() : '86,877'}</span> athletes across <span className="font-bold text-blue-500">{dbStats?.meets ? dbStats.meets.toLocaleString() : '7,720'}</span> meets from USA and International Olympic Weightlifting.
@@ -377,7 +379,9 @@ export default function WeightliftingLandingPage() {
                   height={24}
                   className="h-6 w-6 object-contain"
                 />
-                <span className="font-bold">WeightliftingDB</span>
+                <span className="font-bold">
+                  OWL<span className="font-normal opacity-80">analytics</span>
+                </span>
               </div>
               <p className="text-app-tertiary text-sm">
                 Open source project, MIT License. Data sourced from official competition results.
@@ -402,13 +406,7 @@ export default function WeightliftingLandingPage() {
 
           {/* Copyright - always centered */}
           <div className="border-t border-app-secondary mt-8 pt-8 text-center text-sm text-app-tertiary">
-            <div className="flex flex-wrap items-center justify-center gap-x-1 gap-y-1">
-              <span className="whitespace-nowrap">2025 WeightliftingDB.</span>
-              <span className="inline-flex items-center gap-1 whitespace-nowrap">
-                Built with <Heart className="h-4 w-4 text-blue-400" fill="currentColor" /> for
-              </span>
-              <span className="whitespace-nowrap">the weightlifting community.</span>
-            </div>
+            2025-2026 | <span className="font-semibold">OWL</span><span className="font-normal opacity-80">analytics.org</span> | Built with <Heart className="h-4 w-4 text-blue-400 inline-block mb-0.5" fill="currentColor" /> for the weightlifting community
           </div>
         </div>
       </footer>

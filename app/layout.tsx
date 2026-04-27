@@ -8,9 +8,9 @@ import { GlobalHeader } from "./components/GlobalHeader";
 export const metadata: Metadata = {
   title: {
     template: '%s | OWLanalytics',
-    default: 'WeightliftingDB',
+    default: 'OWLanalytics',
   },
-  description: "Olympic Weightlifting Results Database",
+  description: "Olympic Weightlifting Analytics & Results Database",
 };
 
 export default function RootLayout({

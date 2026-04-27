@@ -67,10 +67,10 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
               />
               <div className="hidden sm:block">
                 <div className="text-lg font-bold text-app-primary">
-                  WeightliftingDB
+                  OWL<span className="font-normal opacity-80">analytics</span>
                 </div>
                 <div className="text-xs text-app-tertiary">
-                  Olympic Weightlifting Results Database
+                  Olympic Weightlifting Analytics & Results Database
                 </div>
               </div>
             </Link>
