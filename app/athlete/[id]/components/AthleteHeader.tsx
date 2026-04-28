@@ -180,22 +180,30 @@ export function AthleteHeader({
           <div className="flex flex-col gap-2 items-end">
             <p className="text-xs font-semibold text-app-secondary border-b border-app-secondary pb-0.5 mb-1 self-stretch text-right">External Links</p>
             {athlete.external_links && athlete.external_links.length > 0 ? (
-              athlete.external_links.map((link: any, idx: number) => (
-                <a
-                  key={`ext-${idx}`}
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors text-sm"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  <span>
-                    {link.type === 'usaw' ? 'USAW Official Profile' : 
-                     link.type === 'iwf' ? 'IWF Official Profile' : 
-                     'External Link'}
-                  </span>
-                </a>
-              ))
+              athlete.external_links.map((link: any, idx: number) => {
+                // Fix for incorrect Sport80 URL format coming from legacy data
+                let url = link.url;
+                if (link.type === 'usaw' && athlete.internal_id) {
+                  url = `https://usaweightlifting.sport80.com/public/rankings/member/${athlete.internal_id}`;
+                }
+                
+                return (
+                  <a
+                    key={`ext-${idx}`}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors text-sm"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    <span>
+                      {link.type === 'usaw' ? 'USAW Official Profile' : 
+                       link.type === 'iwf' ? 'IWF Official Profile' : 
+                       'External Link'}
+                    </span>
+                  </a>
+                );
+              })
             ) : (
               <>
                 {athlete.internal_id && (

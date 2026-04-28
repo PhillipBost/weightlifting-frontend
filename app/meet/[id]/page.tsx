@@ -152,18 +152,23 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
 
         const { meet: meetData, results: resultsData } = await res.json();
 
-        // Build location string directly from meets columns
+        // Build location string with priority: Listings Granular > Meet Granular > Raw Address
+        const listing = meetData.listings?.[0];
+        const city = listing?.city || meetData.city;
+        const state = listing?.state || meetData.state;
+        const street = listing?.street_address || meetData.street_address;
+        const zip = listing?.zip_code || meetData.zip_code;
+
         let locationStr = 'Location TBD';
-        if (meetData.address && meetData.city && meetData.state) {
-          locationStr = `${meetData.address}, ${meetData.city}, ${meetData.state}`;
-        } else if (meetData.city && meetData.state) {
-          locationStr = `${meetData.city}, ${meetData.state}`;
-        } else if (meetData.city) {
-          locationStr = meetData.city;
-        } else if (meetData.state) {
-          locationStr = meetData.state;
-        } else if (meetData.address) {
-          locationStr = meetData.address;
+        
+        if (street && city && state) {
+          locationStr = `${street}, ${city}, ${state} ${zip || ''}`.trim();
+        } else if (city && state) {
+          locationStr = `${city}, ${state}`;
+        } else if (street) {
+          locationStr = street;
+        } else {
+          locationStr = meetData.address || 'Location TBD';
         }
 
         setMeet({

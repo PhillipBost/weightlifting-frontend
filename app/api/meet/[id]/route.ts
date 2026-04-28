@@ -18,10 +18,31 @@ export async function GET(
   }
 
   try {
-    // 1. Fetch Meet Metadata
+    // 1. Fetch Meet Metadata with joined listing data for enriched location info
     const { data: meet, error: meetError } = await supabaseAdmin
       .from('usaw_meets')
-      .select('Meet, Date, Level, city, state, address, elevation_meters, latitude, longitude, URL')
+      .select(`
+        Meet, 
+        Date, 
+        Level, 
+        city, 
+        state, 
+        address, 
+        street_address, 
+        zip_code,
+        elevation_meters, 
+        latitude, 
+        longitude, 
+        URL,
+        listings:usaw_meet_listings(
+          street_address,
+          city,
+          state,
+          zip_code,
+          address,
+          location_text
+        )
+      `)
       .eq('meet_id', meetId)
       .single();
 
