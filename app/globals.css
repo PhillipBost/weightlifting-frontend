@@ -495,4 +495,61 @@ body {
     background-color: var(--bg-header);
     transition: background-color 0.3s ease;
   }
+
+  /* ===========================================
+     ACHIEVEMENT STYLES
+     =========================================== */
+  .bg-medal-gold {
+    background: linear-gradient(135deg, #FFD700 0%, #B8860B 100%);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+  }
+  .bg-medal-silver {
+    background: linear-gradient(135deg, #C0C0C0 0%, #808080 100%);
+    box-shadow: 0 0 15px rgba(192, 192, 192, 0.2);
+  }
+  .bg-medal-bronze {
+    background: linear-gradient(135deg, #CD7F32 0%, #8B4513 100%);
+    box-shadow: 0 0 15px rgba(205, 127, 50, 0.2);
+  }
+
+  .text-medal-gold { color: #FFD700; }
+  .text-medal-silver { color: #C0C0C0; }
+  .text-medal-bronze { color: #CD7F32; }
+
+  .card-achievement {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dark .card-achievement {
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .light .card-achievement {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(0, 0, 0, 0.05);
+  }
+
+  .card-achievement:hover {
+    background: rgba(255, 255, 255, 0.06);
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+
+  .light .card-achievement:hover {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.1);
+  }
+
+  .animate-achievement-pop {
+    animation: achievement-pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  }
+
+  @keyframes achievement-pop {
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
 }

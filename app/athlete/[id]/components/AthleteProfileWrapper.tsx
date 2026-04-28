@@ -6,12 +6,14 @@ import { AthleteHeader } from './AthleteHeader';
 import { AthleteBests } from './AthleteBests';
 import { AthleteCharts } from './AthleteCharts';
 import { AthleteResults } from './AthleteResults';
+import { AthleteAchievements } from './AthleteAchievements';
 import { AthleteCard } from '../../../components/AthleteCard';
 import { AuthGuard } from '../../../components/AuthGuard';
 import { adaptIWFResult } from '@/lib/adapters/iwfAdapter';
 import { HeaderSkeleton, BestsSkeleton, ChartsSkeleton, ResultsSkeleton } from './AthleteSkeleton';
 import { DisambiguationUI } from './DisambiguationUI';
 import { ROLES } from '@/lib/roles';
+import { AthleteAchievementsData } from './types';
 
 const fetcher = async (url: string) => {
   const res = await fetch(url);
@@ -215,7 +217,8 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }:
       iwf_profiles: (athleteData.iwf_profiles || []).map((p: any) => ({
         ...p,
         url: p.url || `https://iwf.sport/weightlifting_/athletes-bios/?athlete_id=${p.id}`
-      }))
+      })),
+      achievements: athleteData.achievements as AthleteAchievementsData || null
     };
   }, [athleteData, forceIwfMode]);
 
@@ -438,6 +441,11 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }:
               showAllColumns={showAllColumns}
               setShowAllColumns={setShowAllColumns}
               isMixedResults={forceIwfMode ? !showIwfResults : showIwfResults}
+            />
+            <AthleteAchievements 
+              achievements={athlete.achievements} 
+              athleteName={athlete.displayName || 'Athlete'}
+              results={results}
             />
             </>
           ) : (
