@@ -1487,6 +1487,14 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                 });
               });
 
+              // Sort All Ages results by total descending, then bodyweight ascending
+              allAgesResults.sort((a, b) => {
+                const aTotal = parseFloat((a as any).total || '0');
+                const bTotal = parseFloat((b as any).total || '0');
+                if (aTotal !== bTotal) return bTotal - aTotal;
+                return parseFloat((a as any).body_weight_kg || '999') - parseFloat((b as any).body_weight_kg || '999');
+              });
+
               const sortSubcategory = (label: string) => {
                 if (/junior/i.test(label)) return 0;
                 if (/youth/i.test(label) || /under/i.test(label)) return 1;
@@ -1537,7 +1545,8 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                 </thead>
                 <tbody>
                   {getSortedResults(divResults, divKey).map((result, index) => {
-                    const displayPlace = divResults.indexOf(result) + 1;
+                    // Use the index in the CURRENT sorted view for display rank
+                    const displayPlace = index + 1;
                     return (
                       <tr key={result.result_id} className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors group" style={{ borderTopColor: 'var(--border-secondary)' }}>
                         <td className="px-2 py-1 whitespace-nowrap text-sm font-medium text-app-primary">

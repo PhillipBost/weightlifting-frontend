@@ -1361,6 +1361,14 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                 });
               });
 
+              // Sort All Ages results by total descending, then bodyweight ascending
+              allAgesResults.sort((a, b) => {
+                const aTotal = parseFloat(a.total || '0');
+                const bTotal = parseFloat(b.total || '0');
+                if (aTotal !== bTotal) return bTotal - aTotal;
+                return parseFloat(a.body_weight_kg || '999') - parseFloat(b.body_weight_kg || '999');
+              });
+
               // Children = only age-specific divisions (Junior, Masters, Youth, etc.)
               const sortSubcategory = (label: string) => {
                 if (/junior/i.test(label)) return 0;
@@ -1409,7 +1417,8 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                 </thead>
                 <tbody>
                   {getSortedResults(divResults, divKey).map((result, index) => {
-                    const displayPlace = divResults.indexOf(result) + 1;
+                    // Use the index in the CURRENT sorted view for display rank
+                    const displayPlace = index + 1;
                     const membershipNumber = Array.isArray(result.lifters) ? result.lifters[0]?.membership_number : result.lifters?.membership_number;
                     return (
                       <tr key={result.result_id} className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors group" style={{ borderTopColor: 'var(--border-secondary)' }}>
