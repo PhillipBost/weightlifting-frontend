@@ -218,7 +218,10 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }:
         ...p,
         url: p.url || `https://iwf.sport/weightlifting_/athletes-bios/?athlete_id=${p.id}`
       })),
-      achievements: athleteData.achievements as AthleteAchievementsData || null
+      achievements: athleteData.achievements as AthleteAchievementsData || null,
+      birthYear: athleteData.birthYear,
+      population_percentiles: athleteData.population_percentiles,
+      historical_stats: athleteData.historical_stats
     };
   }, [athleteData, forceIwfMode]);
 
@@ -407,19 +410,21 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }:
                 >
                   <AthleteCard 
                     athleteName={athlete.athlete_name} 
+                    birthYear={athlete.birthYear}
                     results={results} 
                     dataSource={forceIwfMode ? 'iwf' : 'usaw'} 
-                    population_percentiles={athleteData.population_percentiles}
-                    historical_stats={athleteData.historical_stats}
+                    population_percentiles={athlete.population_percentiles}
+                    historical_stats={athlete.historical_stats}
                   />
                 </AuthGuard>
               ) : (
                 <AthleteCard 
                   athleteName={athlete.athlete_name} 
+                  birthYear={athlete.birthYear}
                   results={results} 
                   dataSource={forceIwfMode ? 'iwf' : 'usaw'} 
-                  population_percentiles={athleteData.population_percentiles}
-                  historical_stats={athleteData.historical_stats}
+                  population_percentiles={athlete.population_percentiles}
+                  historical_stats={athlete.historical_stats}
                 />
               )}
               <AthleteResults 
@@ -442,11 +447,13 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }:
               setShowAllColumns={setShowAllColumns}
               isMixedResults={forceIwfMode ? !showIwfResults : showIwfResults}
             />
-            <AthleteAchievements 
-              achievements={athlete.achievements} 
-              athleteName={athlete.displayName || 'Athlete'}
-              results={results}
-            />
+            {!forceIwfMode && (
+              <AthleteAchievements 
+                achievements={athlete.achievements} 
+                athleteName={athlete.displayName || 'Athlete'}
+                results={results}
+              />
+            )}
             </>
           ) : (
             <ResultsSkeleton />

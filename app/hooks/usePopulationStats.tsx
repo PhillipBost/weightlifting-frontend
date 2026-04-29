@@ -115,21 +115,36 @@ export function usePopulationStats(
         return undefined;
       };
 
-      const hasData = getMetricValue(data, 'successRate') !== undefined;
+      const hasData = getMetricValue(data, 'successRate') !== undefined || 
+                      getMetricValue(data, 'qScorePerformance') !== undefined ||
+                      getMetricValue(data, 'consistencyScore') !== undefined;
+
+      console.debug('📊 [POPULATION_HOOK_RESOLUTION]', {
+        federation,
+        perspective,
+        mode,
+        hasData,
+        sampleSize: data?.sampleSize || context?.sampleSize,
+        keysInShard: precomputed ? Object.keys(precomputed[federation] || {}) : []
+      });
 
       if (data && hasData) {
         const dummyMetric = (key: string): PopulationMetric => {
-          const val = getMetricValue(data, key) || 0;
+          const val = getMetricValue(data, key);
+          
+          // Robustly resolve sampleSize and bucket label from nested context
+          const sampleSize = data.sampleSize || context.sampleSize || (precomputed[federation] && precomputed[federation].sampleSize) || 0;
+          const bucketLabel = data.bucket || context.bucket || (precomputed[federation] && precomputed[federation].bucket) || 'athletes';
+
           return {
             percentile25: 0,
-            percentile50: val, // We use p50 as the "actual" rank in this mode
+            percentile50: val !== undefined ? val : 0, // Use percentile as the value
             percentile75: 0,
             mean: 0,
-            sampleSize: data.sampleSize || context.sampleSize || 0,
-            distribution: [], // No distribution needed for direct ranks
-            confidence: (data.sampleSize > 100 || context.sampleSize > 100) ? 'high' : 
-                       (data.sampleSize > 25 || context.sampleSize > 25) ? 'moderate' : 'low',
-            demographicDescription: (data.bucket || context.bucket || 'athletes')
+            sampleSize: sampleSize,
+            distribution: [],
+            confidence: sampleSize > 100 ? 'high' : sampleSize > 25 ? 'moderate' : 'low',
+            demographicDescription: bucketLabel
               .split('_')
               .map((part: string) => {
                 if (part === 'usaw') return 'USAW';
@@ -226,7 +241,7 @@ export function usePopulationStats(
     }
 
     resolveStats();
-  }, [filter?.ageCategory, filter?.gender, filter?.dataSource, precomputed, mode, perspective]);
+  }, [filter?.ageCategory, filter?.gender, filter?.dataSource, precomputed, mode, perspective, federation]);
 
   return { stats, loading, error };
 }

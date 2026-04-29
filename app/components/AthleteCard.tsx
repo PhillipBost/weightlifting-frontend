@@ -62,6 +62,7 @@ interface CompetitionResult {
 
 interface AthleteCardProps {
   athleteName: string;
+  birthYear?: number | null;
   results: CompetitionResult[];
   dataSource?: 'usaw' | 'iwf';
   population_percentiles?: Record<string, any>;
@@ -182,83 +183,104 @@ const calculateBounceBackRate = (results: CompetitionResult[]): {
 };
 
 const calculateAttemptJumps = (results: CompetitionResult[]) => {
-  const relevantResults = results.length >= 4 
-    ? results.slice(0, Math.max(4, Math.round(results.length * 0.25)))
-    : results;
+  const relevantResults = results;
   
-  const snatchJumps = { 
-    first_to_second: [] as number[], 
-    second_to_third: [] as number[], 
-    ranges: [] as number[],
-    first_to_second_percent: [] as number[],
-    second_to_third_percent: [] as number[]
-  };
-  const cjJumps = { 
-    first_to_second: [] as number[], 
-    second_to_third: [] as number[], 
-    ranges: [] as number[],
-    first_to_second_percent: [] as number[],
-    second_to_third_percent: [] as number[]
-  };
+  const initJumps = () => ({
+    firstToSecond: { afterMake: [] as number[], afterMiss: [] as number[] },
+    secondToThird: { afterMake: [] as number[], afterMiss: [] as number[] }
+  });
+
+  const snatchJumps = initJumps();
+  const cjJumps = initJumps();
   
   relevantResults.forEach(result => {
+    // Snatch
     const sn1 = parseAttempt(result.snatch_lift_1);
     const sn2 = parseAttempt(result.snatch_lift_2);
     const sn3 = parseAttempt(result.snatch_lift_3);
     
-    if (sn1 && sn2 && sn1 > 0 && sn2 > 0) {
-      snatchJumps.first_to_second.push(sn2 - sn1);
-      snatchJumps.first_to_second_percent.push(((sn2 - sn1) / sn1) * 100);
+    if (sn1 && sn2) {
+      const jump = Math.abs(sn2) - Math.abs(sn1);
+      if (sn1 > 0) snatchJumps.firstToSecond.afterMake.push(jump);
+      else snatchJumps.firstToSecond.afterMiss.push(jump);
     }
-    if (sn2 && sn3 && sn2 > 0 && sn3 > 0) {
-      snatchJumps.second_to_third.push(sn3 - sn2);
-      snatchJumps.second_to_third_percent.push(((sn3 - sn2) / sn2) * 100);
+    if (sn2 && sn3) {
+      const jump = Math.abs(sn3) - Math.abs(sn2);
+      if (sn2 > 0) snatchJumps.secondToThird.afterMake.push(jump);
+      else snatchJumps.secondToThird.afterMiss.push(jump);
     }
     
+    // Clean & Jerk
     const cj1 = parseAttempt(result.cj_lift_1);
     const cj2 = parseAttempt(result.cj_lift_2);
     const cj3 = parseAttempt(result.cj_lift_3);
     
-    if (cj1 && cj2 && cj1 > 0 && cj2 > 0) {
-      cjJumps.first_to_second.push(cj2 - cj1);
-      cjJumps.first_to_second_percent.push(((cj2 - cj1) / cj1) * 100);
+    if (cj1 && cj2) {
+      const jump = Math.abs(cj2) - Math.abs(cj1);
+      if (cj1 > 0) cjJumps.firstToSecond.afterMake.push(jump);
+      else cjJumps.firstToSecond.afterMiss.push(jump);
     }
-    if (cj2 && cj3 && cj2 > 0 && cj3 > 0) {
-      cjJumps.second_to_third.push(cj3 - cj2);
-      cjJumps.second_to_third_percent.push(((cj3 - cj2) / cj2) * 100);
+    if (cj2 && cj3) {
+      const jump = Math.abs(cj3) - Math.abs(cj2);
+      if (cj2 > 0) cjJumps.secondToThird.afterMake.push(jump);
+      else cjJumps.secondToThird.afterMiss.push(jump);
     }
   });
   
   const getStats = (arr: number[]) => {
-    if (arr.length === 0) return { avg: 0, min: 0, max: 0 };
+    if (arr.length === 0) return null;
     return {
       avg: Math.round(arr.reduce((sum, val) => sum + val, 0) / arr.length),
       min: Math.min(...arr),
-      max: Math.max(...arr)
+      max: Math.max(...arr),
+      count: arr.length
     };
   };
 
-  const getPercentStats = (arr: number[]) => {
-    if (arr.length === 0) return { avg: 0, min: 0, max: 0 };
+  const getFullStats = (jumps: { afterMake: number[], afterMiss: number[] }, attemptWeights: number[]) => {
+    const all = [...jumps.afterMake, ...jumps.afterMiss];
+    const percents = all.map((j, i) => (j / attemptWeights[i]) * 100);
+    
     return {
-      avg: Math.round((arr.reduce((sum, val) => sum + val, 0) / arr.length) * 10) / 10,
-      min: Math.round(Math.min(...arr) * 10) / 10,
-      max: Math.round(Math.max(...arr) * 10) / 10
+      avg: getStats(all)?.avg || 0,
+      min: getStats(all)?.min || 0,
+      max: getStats(all)?.max || 0,
+      percent: {
+        avg: Math.round((percents.reduce((sum, v) => sum + v, 0) / (percents.length || 1)) * 10) / 10
+      },
+      afterMake: getStats(jumps.afterMake),
+      afterMiss: getStats(jumps.afterMiss)
     };
   };
   
+  // To calculate percentages correctly, we need the base weights
+  const snatch1Weights = [] as number[];
+  const snatch2Weights = [] as number[];
+  const cj1Weights = [] as number[];
+  const cj2Weights = [] as number[];
+
+  relevantResults.forEach(result => {
+    const sn1 = parseAttempt(result.snatch_lift_1);
+    const sn2 = parseAttempt(result.snatch_lift_2);
+    const sn3 = parseAttempt(result.snatch_lift_3);
+    if (sn1 && sn2) snatch1Weights.push(Math.abs(sn1));
+    if (sn2 && sn3) snatch2Weights.push(Math.abs(sn2));
+
+    const cj1 = parseAttempt(result.cj_lift_1);
+    const cj2 = parseAttempt(result.cj_lift_2);
+    const cj3 = parseAttempt(result.cj_lift_3);
+    if (cj1 && cj2) cj1Weights.push(Math.abs(cj1));
+    if (cj2 && cj3) cj2Weights.push(Math.abs(cj2));
+  });
+
   return {
     snatch: {
-      firstToSecond: getStats(snatchJumps.first_to_second),
-      firstToSecondPercent: getPercentStats(snatchJumps.first_to_second_percent),
-      secondToThird: getStats(snatchJumps.second_to_third),
-      secondToThirdPercent: getPercentStats(snatchJumps.second_to_third_percent)
+      firstToSecond: getFullStats(snatchJumps.firstToSecond, snatch1Weights),
+      secondToThird: getFullStats(snatchJumps.secondToThird, snatch2Weights)
     },
     cleanJerk: {
-      firstToSecond: getStats(cjJumps.first_to_second),
-      firstToSecondPercent: getPercentStats(cjJumps.first_to_second_percent),
-      secondToThird: getStats(cjJumps.second_to_third),
-      secondToThirdPercent: getPercentStats(cjJumps.second_to_third_percent)
+      firstToSecond: getFullStats(cjJumps.firstToSecond, cj1Weights),
+      secondToThird: getFullStats(cjJumps.secondToThird, cj2Weights)
     }
   };
 };
@@ -435,7 +457,7 @@ const getOrdinal = (n: number): string => {
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
 };
 
-export function AthleteCard({ athleteName, results, dataSource, population_percentiles, historical_stats }: AthleteCardProps) {
+export function AthleteCard({ athleteName, birthYear, results, dataSource, population_percentiles, historical_stats }: AthleteCardProps) {
   const [viewMode, setViewMode] = React.useState<'career' | 'recent'>('recent');
   const [selectedYear, setSelectedYear] = React.useState<string>('All-Time');
   const [perspective, setPerspective] = React.useState<string>('age_group');
@@ -479,25 +501,16 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
     if (results.length === 0) return null;
 
     const snapshotAge = (() => {
-      const recentAge = recentResult?.competition_age || null;
-      if (!isHistorical || selectedYear === 'All-Time') return recentAge;
+      const recentAge = recentResult?.competition_age || (birthYear ? new Date().getFullYear() - birthYear : null);
       
-      const getYearFromDate = (dateStr: string) => {
-        if (!dateStr) return null;
-        const parts = dateStr.includes('-') ? dateStr.split('-') : dateStr.split('/');
-        const year = parseInt(parts[0].length === 4 ? parts[0] : parts[parts.length - 1]);
-        return isNaN(year) ? null : year;
-      };
-
-      const targetYear = parseInt(selectedYear);
-      const match = results.find(r => getYearFromDate(r.date) === targetYear);
-      if (match?.competition_age) return match.competition_age;
-      
-      const recentYear = getYearFromDate(recentResult?.date || '');
-      if (recentAge && recentYear && !isNaN(targetYear)) {
-        return recentAge - (recentYear - targetYear);
+      if (isHistorical && selectedYear !== 'All-Time') {
+        const targetYear = parseInt(selectedYear);
+        if (!isNaN(targetYear) && birthYear) {
+          return targetYear - birthYear;
+        }
       }
-      return null;
+      
+      return recentAge;
     })();
 
     const historicalYearData = isHistorical ? historical_stats?.[dataSource || 'usaw']?.[selectedYear] : null;
@@ -507,7 +520,7 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
       if (!data) return [];
       const athleteGender = (results[0]?.gender || '').toString().toUpperCase().startsWith('F') ? 'F' : 'M';
       
-      return Object.keys(data).filter(k => {
+      const keys = Object.keys(data).filter(k => {
         const item = data[k];
         if (!item || typeof item !== 'object') return false;
         
@@ -520,14 +533,23 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
         // Age Eligibility Check
         if (age !== null && Number.isFinite(age)) {
           const ageCategory = parts[2].toLowerCase();
-          if (age < 35 && ageCategory.includes('master')) return false;
-          if ((age < 13 || age > 17) && ageCategory.includes('youth')) return false;
-          if ((age < 15 || age > 20) && ageCategory.includes('junior')) return false;
-          if (age < 15 && ageCategory.includes('senior')) return false;
+          if (ageCategory.includes('master') && age < 35) return false;
+          if (ageCategory.includes('youth') && (age < 13 || age > 17)) return false;
+          if (ageCategory.includes('junior') && (age < 15 || age > 20)) return false;
+          if (ageCategory.includes('senior') && age < 15) return false;
         }
 
         return true;
       });
+
+      console.debug('🕵️ [DEMOGRAPHIC_FILTER_AUDIT]', {
+        inputAge: age,
+        inputGender: athleteGender,
+        allKeysInShard: Object.keys(data),
+        filteredKeys: keys
+      });
+
+      return keys;
     };
 
     const availableKeys = getAvailableDemographicKeys(contextData, snapshotAge);
@@ -565,6 +587,13 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
       contextData
     };
   }, [results, selectedYear, dataSource, historical_stats, perspective, population_percentiles]);
+
+  // Sync perspective state with resolved demographic context
+  React.useEffect(() => {
+    if (demographicContext?.resolvedPerspective && perspective === 'age_group') {
+      setPerspective(demographicContext.resolvedPerspective);
+    }
+  }, [demographicContext?.resolvedPerspective, perspective]);
 
   // --- Layer 2: Statistics Engine ---
   const { stats: populationStats, loading: statsLoading, error: statsError } = usePopulationStats(
@@ -741,15 +770,21 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
     }
 
     // Calculate opening attempt strategy metrics - compare each meet to previous meet
+    // IMPROVEMENT: To ensure "Recent" view has accurate data for the first meet in its window, 
+    // we look at the meet immediately before the window starts if it exists.
     const sortedResults = [...targetResults].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    
     const snatchOpeningPercentages: number[] = [];
     const cjOpeningPercentages: number[] = [];
     
-    // Start from second meet (index 1) since we need previous meet to compare
-    for (let i = 1; i < sortedResults.length; i++) {
-      const currentMeet = sortedResults[i];
-      const previousMeet = sortedResults[i - 1];
+    // Find the global index of the first meet in our sorted targetResults relative to the full resultsUpToAnchor
+    const resultsAsc = [...resultsUpToAnchor].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    
+    sortedResults.forEach((currentMeet) => {
+      // Find this meet in the full historical record to find its predecessor
+      const currentIndex = resultsAsc.findIndex(r => r.key === currentMeet.key);
+      if (currentIndex <= 0) return; // No predecessor exists
+      
+      const previousMeet = resultsAsc[currentIndex - 1];
       
       // Get opening attempts from current meet
       const currentSnatchOpener = parseAttempt(currentMeet.snatch_lift_1);
@@ -769,15 +804,20 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
         const cjPercentage = (Math.abs(currentCjOpener) / prevCjBest) * 100;
         cjOpeningPercentages.push(cjPercentage);
       }
-    }
+    });
     
-    // Calculate averages
-    const averageSnatchOpening = snatchOpeningPercentages.length > 0 
-      ? snatchOpeningPercentages.reduce((sum, pct) => sum + pct, 0) / snatchOpeningPercentages.length 
-      : 0;
-    const averageCjOpening = cjOpeningPercentages.length > 0 
-      ? cjOpeningPercentages.reduce((sum, pct) => sum + pct, 0) / cjOpeningPercentages.length 
-      : 0;
+    const getOpenerStats = (arr: number[]) => {
+      if (arr.length === 0) return null;
+      return {
+        avg: Math.round(arr.reduce((sum, p) => sum + p, 0) / arr.length),
+        min: Math.round(Math.min(...arr)),
+        max: Math.round(Math.max(...arr)),
+        count: arr.length
+      };
+    };
+
+    const snatchOpeningStats = getOpenerStats(snatchOpeningPercentages);
+    const cjOpeningStats = getOpenerStats(cjOpeningPercentages);
     
     // Calculate overall strategy based on all valid percentages
     const allValidPercentages = [...snatchOpeningPercentages, ...cjOpeningPercentages];
@@ -785,7 +825,7 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
       ? allValidPercentages.reduce((sum, p) => sum + p, 0) / allValidPercentages.length 
       : 0;
     
-  const openerStrategy: 'conservative' | 'aggressive' | 'balanced' | 'insufficient data' =
+    const openerStrategy: 'conservative' | 'aggressive' | 'balanced' | 'insufficient data' =
       allValidPercentages.length === 0 ? 'insufficient data' :
       avgOverallOpenerPercentage <= 88 ? 'conservative' :
       avgOverallOpenerPercentage >= 93 ? 'aggressive' : 'balanced';
@@ -869,8 +909,8 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
       averageQScore: Math.round(averageQScore * 10) / 10,
       bestQScoreType,
       openerStrategy,
-      averageSnatchOpening: Math.round(averageSnatchOpening),
-      averageCjOpening: Math.round(averageCjOpening),
+      averageSnatchOpening: snatchOpeningStats,
+      averageCjOpening: cjOpeningStats,
       mastersAchievements,
       isYoungAchiever,
       isLateBloomer,
@@ -885,7 +925,7 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
       selectedYear,
       activeContext: contextData
     };
-  }, [results, viewMode, selectedYear, dataSource, historical_stats, perspective, population_percentiles]);
+  }, [results, viewMode, selectedYear, isHistorical, demographicContext, dataSource, historical_stats, perspective, population_percentiles]);
 
   // SURGICAL: Force state reset when year changes and current selection is invalid
   React.useEffect(() => {
@@ -1471,21 +1511,57 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
               <div className="pt-2 border-t border-app-secondary">
                 <div className="flex justify-between items-center mb-1.5">
                   <div className="font-medium" style={{ color: 'var(--chart-snatch)' }}>Snatch</div>
-                  <div className="text-app-primary font-medium">Opening: {analytics.averageSnatchOpening > 0 ? `${Math.round(analytics.averageSnatchOpening)}%` : 'N/A'}</div>
+                  <div className="text-app-primary font-medium">
+                    Opening: {analytics.averageSnatchOpening ? (
+                      <>
+                        {analytics.averageSnatchOpening.avg}% avg
+                        <span className="text-app-muted ml-1 text-[10px] font-normal">
+                          ({analytics.averageSnatchOpening.min}-{analytics.averageSnatchOpening.max}%, {analytics.averageSnatchOpening.count} samples)
+                        </span>
+                      </>
+                    ) : 'N/A'}
+                  </div>
                 </div>
                 <div className="space-y-1 ml-1">
-                  <div className="flex justify-between">
-                    <span className="text-app-muted">1st→2nd Jump:</span>
-                    <span className="font-medium text-app-primary">
-                      {analytics.attemptJumps.snatch.firstToSecond.avg}kg <span className="text-app-muted ml-0.5">(Range: {analytics.attemptJumps.snatch.firstToSecond.min}-{analytics.attemptJumps.snatch.firstToSecond.max}kg)</span>
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-app-muted">2nd→3rd Jump:</span>
-                    <span className="font-medium text-app-primary">
-                      {analytics.attemptJumps.snatch.secondToThird.avg}kg <span className="text-app-muted ml-0.5">(Range: {analytics.attemptJumps.snatch.secondToThird.min}-{analytics.attemptJumps.snatch.secondToThird.max}kg)</span>
-                    </span>
-                  </div>
+                  {/* 1st to 2nd */}
+                  {analytics.attemptJumps.snatch.firstToSecond.afterMake && (
+                    <div className="flex justify-between">
+                      <span className="text-app-muted text-xs">1st→2nd (after Make):</span>
+                      <span className="font-medium text-app-primary text-xs">
+                        {analytics.attemptJumps.snatch.firstToSecond.afterMake.avg}kg avg 
+                        <span className="text-app-muted ml-1">({analytics.attemptJumps.snatch.firstToSecond.afterMake.min}-{analytics.attemptJumps.snatch.firstToSecond.afterMake.max}kg, {analytics.attemptJumps.snatch.firstToSecond.afterMake.count} samples)</span>
+                      </span>
+                    </div>
+                  )}
+                  {analytics.attemptJumps.snatch.firstToSecond.afterMiss && (
+                    <div className="flex justify-between">
+                      <span className="text-app-muted text-xs">1st→2nd (after Miss):</span>
+                      <span className="font-medium text-app-primary text-xs">
+                        {analytics.attemptJumps.snatch.firstToSecond.afterMiss.avg}kg avg 
+                        <span className="text-app-muted ml-1">({analytics.attemptJumps.snatch.firstToSecond.afterMiss.min}-{analytics.attemptJumps.snatch.firstToSecond.afterMiss.max}kg, {analytics.attemptJumps.snatch.firstToSecond.afterMiss.count} samples)</span>
+                      </span>
+                    </div>
+                  )}
+                  
+                  {/* 2nd to 3rd */}
+                  {analytics.attemptJumps.snatch.secondToThird.afterMake && (
+                    <div className="flex justify-between pt-1">
+                      <span className="text-app-muted text-xs">2nd→3rd (after Make):</span>
+                      <span className="font-medium text-app-primary text-xs">
+                        {analytics.attemptJumps.snatch.secondToThird.afterMake.avg}kg avg 
+                        <span className="text-app-muted ml-1">({analytics.attemptJumps.snatch.secondToThird.afterMake.min}-{analytics.attemptJumps.snatch.secondToThird.afterMake.max}kg, {analytics.attemptJumps.snatch.secondToThird.afterMake.count} samples)</span>
+                      </span>
+                    </div>
+                  )}
+                  {analytics.attemptJumps.snatch.secondToThird.afterMiss && (
+                    <div className="flex justify-between">
+                      <span className="text-app-muted text-xs">2nd→3rd (after Miss):</span>
+                      <span className="font-medium text-app-primary text-xs">
+                        {analytics.attemptJumps.snatch.secondToThird.afterMiss.avg}kg avg 
+                        <span className="text-app-muted ml-1">({analytics.attemptJumps.snatch.secondToThird.afterMiss.min}-{analytics.attemptJumps.snatch.secondToThird.afterMiss.max}kg, {analytics.attemptJumps.snatch.secondToThird.afterMiss.count} samples)</span>
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1493,21 +1569,57 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
               <div className="pt-2 border-t border-app-secondary">
                 <div className="flex justify-between items-center mb-1.5">
                   <div className="font-medium" style={{ color: 'var(--chart-cleanjerk)' }}>Clean & Jerk</div>
-                  <div className="text-app-primary font-medium">Opening: {analytics.averageCjOpening > 0 ? `${Math.round(analytics.averageCjOpening)}%` : 'N/A'}</div>
+                  <div className="text-app-primary font-medium">
+                    Opening: {analytics.averageCjOpening ? (
+                      <>
+                        {analytics.averageCjOpening.avg}% avg
+                        <span className="text-app-muted ml-1 text-[10px] font-normal">
+                          ({analytics.averageCjOpening.min}-{analytics.averageCjOpening.max}%, {analytics.averageCjOpening.count} samples)
+                        </span>
+                      </>
+                    ) : 'N/A'}
+                  </div>
                 </div>
                 <div className="space-y-1 ml-1">
-                  <div className="flex justify-between">
-                    <span className="text-app-muted">1st→2nd Jump:</span>
-                    <span className="font-medium text-app-primary">
-                      {analytics.attemptJumps.cleanJerk.firstToSecond.avg}kg <span className="text-app-muted ml-0.5">(Range: {analytics.attemptJumps.cleanJerk.firstToSecond.min}-{analytics.attemptJumps.cleanJerk.firstToSecond.max}kg)</span>
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-app-muted">2nd→3rd Jump:</span>
-                    <span className="font-medium text-app-primary">
-                      {analytics.attemptJumps.cleanJerk.secondToThird.avg}kg <span className="text-app-muted ml-0.5">(Range: {analytics.attemptJumps.cleanJerk.secondToThird.min}-{analytics.attemptJumps.cleanJerk.secondToThird.max}kg)</span>
-                    </span>
-                  </div>
+                  {/* 1st to 2nd */}
+                  {analytics.attemptJumps.cleanJerk.firstToSecond.afterMake && (
+                    <div className="flex justify-between">
+                      <span className="text-app-muted text-xs">1st→2nd (after Make):</span>
+                      <span className="font-medium text-app-primary text-xs">
+                        {analytics.attemptJumps.cleanJerk.firstToSecond.afterMake.avg}kg avg 
+                        <span className="text-app-muted ml-1">({analytics.attemptJumps.cleanJerk.firstToSecond.afterMake.min}-{analytics.attemptJumps.cleanJerk.firstToSecond.afterMake.max}kg, {analytics.attemptJumps.cleanJerk.firstToSecond.afterMake.count} samples)</span>
+                      </span>
+                    </div>
+                  )}
+                  {analytics.attemptJumps.cleanJerk.firstToSecond.afterMiss && (
+                    <div className="flex justify-between">
+                      <span className="text-app-muted text-xs">1st→2nd (after Miss):</span>
+                      <span className="font-medium text-app-primary text-xs">
+                        {analytics.attemptJumps.cleanJerk.firstToSecond.afterMiss.avg}kg avg 
+                        <span className="text-app-muted ml-1">({analytics.attemptJumps.cleanJerk.firstToSecond.afterMiss.min}-{analytics.attemptJumps.cleanJerk.firstToSecond.afterMiss.max}kg, {analytics.attemptJumps.cleanJerk.firstToSecond.afterMiss.count} samples)</span>
+                      </span>
+                    </div>
+                  )}
+                  
+                  {/* 2nd to 3rd */}
+                  {analytics.attemptJumps.cleanJerk.secondToThird.afterMake && (
+                    <div className="flex justify-between pt-1">
+                      <span className="text-app-muted text-xs">2nd→3rd (after Make):</span>
+                      <span className="font-medium text-app-primary text-xs">
+                        {analytics.attemptJumps.cleanJerk.secondToThird.afterMake.avg}kg avg 
+                        <span className="text-app-muted ml-1">({analytics.attemptJumps.cleanJerk.secondToThird.afterMake.min}-{analytics.attemptJumps.cleanJerk.secondToThird.afterMake.max}kg, {analytics.attemptJumps.cleanJerk.secondToThird.afterMake.count} samples)</span>
+                      </span>
+                    </div>
+                  )}
+                  {analytics.attemptJumps.cleanJerk.secondToThird.afterMiss && (
+                    <div className="flex justify-between">
+                      <span className="text-app-muted text-xs">2nd→3rd (after Miss):</span>
+                      <span className="font-medium text-app-primary text-xs">
+                        {analytics.attemptJumps.cleanJerk.secondToThird.afterMiss.avg}kg avg 
+                        <span className="text-app-muted ml-1">({analytics.attemptJumps.cleanJerk.secondToThird.afterMiss.min}-{analytics.attemptJumps.cleanJerk.secondToThird.afterMiss.max}kg, {analytics.attemptJumps.cleanJerk.secondToThird.afterMiss.count} samples)</span>
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -1872,13 +1984,13 @@ export function AthleteCard({ athleteName, results, dataSource, population_perce
                 }
                 
                 // Big swing attempts (percentage-based to avoid demographic bias)
-                if (analytics.attemptJumps.snatch.secondToThirdPercent.avg >= 5 || analytics.attemptJumps.cleanJerk.secondToThirdPercent.avg >= 6) {
+                if (analytics.attemptJumps.snatch.secondToThird.percent.avg >= 5 || analytics.attemptJumps.cleanJerk.secondToThird.percent.avg >= 6) {
                   insights.push(
                     <MetricTooltip
                       key="big-swing"
                       title="Big Swing Attempts"
                       description="Takes large jumps on final attempts, showing aggressive risk-taking for maximum results."
-                      methodology={`Large final jumps: Snatch ${analytics.attemptJumps.snatch.secondToThirdPercent.avg}%, C&J ${analytics.attemptJumps.cleanJerk.secondToThirdPercent.avg}%`}
+                      methodology={`Large final jumps: Snatch ${analytics.attemptJumps.snatch.secondToThird.percent.avg}%, C&J ${analytics.attemptJumps.cleanJerk.secondToThird.percent.avg}%`}
                     >
                       <div className="text-orange-400 cursor-help">• Big swing attempts</div>
                     </MetricTooltip>
