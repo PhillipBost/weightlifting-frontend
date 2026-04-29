@@ -647,15 +647,20 @@ export function AthletePageUI({ params, initialData = null }: { params: { id: st
                 .in('db_lifter_id', iwfDbIds);
                 
               if (!iwfError && iwfData) {
-                iwfResultsData = (iwfData as IWFMeetResult[]).map(result => ({
+                iwfResultsData = (iwfData as IWFMeetResult[]).map((result, idx) => ({
                   ...adaptIWFResult(result),
-                  _source: 'IWF'
+                  _source: 'IWF',
+                  key: result.id || `iwf-${result.date}-${result.total}-${idx}`
                 }));
               }
             }
           }
           
-          const taggedUsawResults = (resultsData || []).map((r: any) => ({ ...r, _source: 'USAW' }));
+          const taggedUsawResults = (resultsData || []).map((r: any, idx: number) => ({ 
+            ...r, 
+            _source: 'USAW',
+            key: r.id || `usaw-${r.date}-${r.total}-${idx}`
+          }));
 
           if (isMounted) {
             setAthlete(athleteData);

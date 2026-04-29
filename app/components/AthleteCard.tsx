@@ -37,6 +37,7 @@ interface AttemptData {
 }
 
 interface CompetitionResult {
+  key: string;
   date: string;
   meet_name?: string;
   meets?: { Level?: string };
@@ -1956,7 +1957,7 @@ export function AthleteCard({ athleteName, birthYear, results, dataSource, popul
                 if (populationStats && calculatePercentile(analytics.overallSuccessRate, populationStats?.successRate) <= 40 && analytics.recentYoyTrend > 0) {
                   // Split based on competition experience and opener strategy
                   const isExperienced = analytics.totalCompetitions >= 5;
-                  const hasAggressiveOpeners = analytics.averageSnatchOpening >= 93 || analytics.averageCjOpening >= 93;
+                  const hasAggressiveOpeners = (analytics.averageSnatchOpening?.avg ?? 0) >= 93 || (analytics.averageCjOpening?.avg ?? 0) >= 93;
                   
                   if (isExperienced && hasAggressiveOpeners) {
                     insights.push(
@@ -1998,14 +1999,14 @@ export function AthleteCard({ athleteName, birthYear, results, dataSource, popul
                 }
                 
                 // Safety-first approach (very conservative)
-                if (analytics.averageSnatchOpening > 0 && analytics.averageCjOpening > 0 && 
-                    (analytics.averageSnatchOpening + analytics.averageCjOpening) / 2 <= 85) {
+                if (analytics.averageSnatchOpening?.avg && analytics.averageCjOpening?.avg && 
+                    (analytics.averageSnatchOpening.avg + analytics.averageCjOpening.avg) / 2 <= 85) {
                   insights.push(
                     <MetricTooltip
                       key="safety-first"
                       title="Safety-First Approach"
                       description="Conservative opening strategy prioritizes making successful attempts over aggressive positioning."
-                      methodology={`Average opening: ${Math.round((analytics.averageSnatchOpening + analytics.averageCjOpening) / 2)}% of previous best`}
+                      methodology={`Average opening: ${Math.round(((analytics.averageSnatchOpening?.avg ?? 0) + (analytics.averageCjOpening?.avg ?? 0)) / 2)}% of previous best`}
                     >
                       <div className="text-blue-400 cursor-help">• Safety-first approach</div>
                     </MetricTooltip>
