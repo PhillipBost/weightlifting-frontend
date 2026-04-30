@@ -9,9 +9,20 @@ interface MetricTooltipProps {
   description: string;
   methodology?: string;
   children: React.ReactNode;
+  showIcon?: boolean;
+  iconSize?: string;
+  className?: string;
 }
 
-export function MetricTooltip({ title, description, methodology, children }: MetricTooltipProps) {
+export function MetricTooltip({ 
+  title, 
+  description, 
+  methodology, 
+  children, 
+  showIcon = true,
+  iconSize = "h-4 w-4",
+  className = ""
+}: MetricTooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [position, setPosition] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
   const [verticalPlacement, setVerticalPlacement] = useState<'top' | 'bottom'>('top');
@@ -164,18 +175,20 @@ export function MetricTooltip({ title, description, methodology, children }: Met
 
   return (
     <>
-      <div className="relative inline-block" ref={triggerRef}>
+      <div className={`relative inline-block ${className}`} ref={triggerRef}>
         <div
           className="flex items-center cursor-help"
           onMouseEnter={() => setIsVisible(true)}
           onMouseLeave={() => setIsVisible(false)}
         >
           {children}
-          <Info className="h-4 w-4 ml-1 text-app-muted opacity-60 hover:opacity-100 transition-opacity flex-shrink-0" />
+          {showIcon && (
+            <Info className={`${iconSize} ml-1 text-app-muted opacity-60 hover:opacity-100 transition-opacity flex-shrink-0`} />
+          )}
         </div>
       </div>
 
       {mounted && createPortal(tooltipContent, document.body)}
     </>
   );
-}
+}

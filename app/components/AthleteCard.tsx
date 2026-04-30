@@ -101,7 +101,20 @@ const formatPerspectiveLabel = (key: string) => {
   const fed = parts[0].toUpperCase();
   const gender = parts[1] === 'F' ? 'Female' : 'Male';
   const ageGroup = parts[2];
-  return `${fed} ${gender} ${ageGroup}`;
+  const weightClass = parts[3];
+  
+  return `${fed} ${gender} ${ageGroup} ${weightClass || ''}`;
+};
+
+const renderScenario = (key: string) => {
+  return key.split('').map((char, index) => (
+    <React.Fragment key={index}>
+      {index > 0 && <span className="text-app-muted opacity-50 px-0.5">-</span>}
+      <span style={{ color: char === 'M' ? 'var(--color-success)' : 'var(--color-error)' }}>
+        {char === 'M' ? 'make' : 'miss'}
+      </span>
+    </React.Fragment>
+  ));
 };
 
 const calculateClutchPerformance = (results: CompetitionResult[]): { 
@@ -200,12 +213,12 @@ const calculateAttemptJumps = (results: CompetitionResult[]) => {
     const sn2 = parseAttempt(result.snatch_lift_2);
     const sn3 = parseAttempt(result.snatch_lift_3);
     
-    if (sn1 && sn2) {
+    if (sn1 !== null && sn2 !== null) {
       const jump = Math.abs(sn2) - Math.abs(sn1);
       if (sn1 > 0) snatchJumps.firstToSecond.afterMake.push(jump);
       else snatchJumps.firstToSecond.afterMiss.push(jump);
     }
-    if (sn2 && sn3) {
+    if (sn2 !== null && sn3 !== null) {
       const jump = Math.abs(sn3) - Math.abs(sn2);
       if (sn2 > 0) snatchJumps.secondToThird.afterMake.push(jump);
       else snatchJumps.secondToThird.afterMiss.push(jump);
@@ -216,12 +229,12 @@ const calculateAttemptJumps = (results: CompetitionResult[]) => {
     const cj2 = parseAttempt(result.cj_lift_2);
     const cj3 = parseAttempt(result.cj_lift_3);
     
-    if (cj1 && cj2) {
+    if (cj1 !== null && cj2 !== null) {
       const jump = Math.abs(cj2) - Math.abs(cj1);
       if (cj1 > 0) cjJumps.firstToSecond.afterMake.push(jump);
       else cjJumps.firstToSecond.afterMiss.push(jump);
     }
-    if (cj2 && cj3) {
+    if (cj2 !== null && cj3 !== null) {
       const jump = Math.abs(cj3) - Math.abs(cj2);
       if (cj2 > 0) cjJumps.secondToThird.afterMake.push(jump);
       else cjJumps.secondToThird.afterMiss.push(jump);
@@ -264,14 +277,14 @@ const calculateAttemptJumps = (results: CompetitionResult[]) => {
     const sn1 = parseAttempt(result.snatch_lift_1);
     const sn2 = parseAttempt(result.snatch_lift_2);
     const sn3 = parseAttempt(result.snatch_lift_3);
-    if (sn1 && sn2) snatch1Weights.push(Math.abs(sn1));
-    if (sn2 && sn3) snatch2Weights.push(Math.abs(sn2));
+    if (sn1 !== null && sn2 !== null) snatch1Weights.push(Math.abs(sn1));
+    if (sn2 !== null && sn3 !== null) snatch2Weights.push(Math.abs(sn2));
 
     const cj1 = parseAttempt(result.cj_lift_1);
     const cj2 = parseAttempt(result.cj_lift_2);
     const cj3 = parseAttempt(result.cj_lift_3);
-    if (cj1 && cj2) cj1Weights.push(Math.abs(cj1));
-    if (cj2 && cj3) cj2Weights.push(Math.abs(cj2));
+    if (cj1 !== null && cj2 !== null) cj1Weights.push(Math.abs(cj1));
+    if (cj2 !== null && cj3 !== null) cj2Weights.push(Math.abs(cj2));
   });
 
   return {
@@ -282,6 +295,127 @@ const calculateAttemptJumps = (results: CompetitionResult[]) => {
     cleanJerk: {
       firstToSecond: getFullStats(cjJumps.firstToSecond, cj1Weights),
       secondToThird: getFullStats(cjJumps.secondToThird, cj2Weights)
+    }
+  };
+};
+
+const calculateScenarioSuccessRates = (results: CompetitionResult[]) => {
+  const initStats = () => ({ make: 0, total: 0 });
+  
+  const stats = {
+    snatch: {
+      second: { afterMake: initStats(), afterMiss: initStats() },
+      third: { 
+        afterMake: initStats(), 
+        afterMiss: initStats(),
+        afterMM: initStats(),
+        afterMX: initStats(),
+        afterXM: initStats(),
+        afterXX: initStats()
+      }
+    },
+    cj: {
+      second: { afterMake: initStats(), afterMiss: initStats() },
+      third: { 
+        afterMake: initStats(), 
+        afterMiss: initStats(),
+        afterMM: initStats(),
+        afterMX: initStats(),
+        afterXM: initStats(),
+        afterXX: initStats()
+      }
+    }
+  };
+
+  results.forEach(result => {
+    // Snatch
+    const s1 = parseAttempt(result.snatch_lift_1);
+    const s2 = parseAttempt(result.snatch_lift_2);
+    const s3 = parseAttempt(result.snatch_lift_3);
+
+    if (s1 !== null && s2 !== null) {
+      const bucket = s1 > 0 ? stats.snatch.second.afterMake : stats.snatch.second.afterMiss;
+      bucket.total++;
+      if (s2 > 0) bucket.make++;
+    }
+
+    if (s2 !== null && s3 !== null) {
+      const bucket = s2 > 0 ? stats.snatch.third.afterMake : stats.snatch.third.afterMiss;
+      bucket.total++;
+      if (s3 > 0) bucket.make++;
+
+      if (s1 !== null) {
+        let scenarioBucket;
+        if (s1 > 0 && s2 > 0) scenarioBucket = stats.snatch.third.afterMM;
+        else if (s1 > 0 && s2 <= 0) scenarioBucket = stats.snatch.third.afterMX;
+        else if (s1 <= 0 && s2 > 0) scenarioBucket = stats.snatch.third.afterXM;
+        else if (s1 <= 0 && s2 <= 0) scenarioBucket = stats.snatch.third.afterXX;
+        
+        if (scenarioBucket) {
+          scenarioBucket.total++;
+          if (s3 > 0) scenarioBucket.make++;
+        }
+      }
+    }
+
+    // Clean & Jerk
+    const c1 = parseAttempt(result.cj_lift_1);
+    const c2 = parseAttempt(result.cj_lift_2);
+    const c3 = parseAttempt(result.cj_lift_3);
+
+    if (c1 !== null && c2 !== null) {
+      const bucket = c1 > 0 ? stats.cj.second.afterMake : stats.cj.second.afterMiss;
+      bucket.total++;
+      if (c2 > 0) bucket.make++;
+    }
+
+    if (c2 !== null && c3 !== null) {
+      const bucket = c2 > 0 ? stats.cj.third.afterMake : stats.cj.third.afterMiss;
+      bucket.total++;
+      if (c3 > 0) bucket.make++;
+
+      if (c1 !== null) {
+        let scenarioBucket;
+        if (c1 > 0 && c2 > 0) scenarioBucket = stats.cj.third.afterMM;
+        else if (c1 > 0 && c2 <= 0) scenarioBucket = stats.cj.third.afterMX;
+        else if (c1 <= 0 && c2 > 0) scenarioBucket = stats.cj.third.afterXM;
+        else if (c1 <= 0 && c2 <= 0) scenarioBucket = stats.cj.third.afterXX;
+        
+        if (scenarioBucket) {
+          scenarioBucket.total++;
+          if (c3 > 0) scenarioBucket.make++;
+        }
+      }
+    }
+  });
+
+  const getRate = (s: { make: number, total: number }) => ({
+    rate: s.total > 0 ? Math.round((s.make / s.total) * 100) : 0,
+    samples: s.total
+  });
+
+  return {
+    snatch: {
+      second: { afterMake: getRate(stats.snatch.second.afterMake), afterMiss: getRate(stats.snatch.second.afterMiss) },
+      third: { 
+        afterMake: getRate(stats.snatch.third.afterMake), 
+        afterMiss: getRate(stats.snatch.third.afterMiss),
+        afterMM: getRate(stats.snatch.third.afterMM),
+        afterMX: getRate(stats.snatch.third.afterMX),
+        afterXM: getRate(stats.snatch.third.afterXM),
+        afterXX: getRate(stats.snatch.third.afterXX)
+      }
+    },
+    cj: {
+      second: { afterMake: getRate(stats.cj.second.afterMake), afterMiss: getRate(stats.cj.second.afterMiss) },
+      third: { 
+        afterMake: getRate(stats.cj.third.afterMake), 
+        afterMiss: getRate(stats.cj.third.afterMiss),
+        afterMM: getRate(stats.cj.third.afterMM),
+        afterMX: getRate(stats.cj.third.afterMX),
+        afterXM: getRate(stats.cj.third.afterXM),
+        afterXX: getRate(stats.cj.third.afterXX)
+      }
     }
   };
 };
@@ -654,7 +788,7 @@ export function AthleteCard({ athleteName, birthYear, results, dataSource, popul
     const consistencyMetrics = calculate3YearConsistency(targetResults);
     const clutchPerformance = calculateClutchPerformance(targetResults);
     const bounceBackRates = calculateBounceBackRate(targetResults);
-    const attemptJumps = calculateAttemptJumps(targetResults);
+    const scenarioSuccessRates = calculateScenarioSuccessRates(targetResults);
     const detailedSuccessRates = calculateDetailedSuccessRates(targetResults);
     const performanceScaling = calculatePerformanceScaling(targetResults);
     
@@ -770,43 +904,75 @@ export function AthleteCard({ athleteName, birthYear, results, dataSource, popul
       }
     }
 
-    // Calculate opening attempt strategy metrics - compare each meet to previous meet
-    // IMPROVEMENT: To ensure "Recent" view has accurate data for the first meet in its window, 
-    // we look at the meet immediately before the window starts if it exists.
+    // Consolidated Tactical Metrics Calculation (Opening & Jumps)
     const sortedResults = [...targetResults].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const resultsAsc = [...resultsUpToAnchor].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    
     const snatchOpeningPercentages: number[] = [];
     const cjOpeningPercentages: number[] = [];
     
-    // Find the global index of the first meet in our sorted targetResults relative to the full resultsUpToAnchor
-    const resultsAsc = [...resultsUpToAnchor].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    
+    // Jump Stats Calculation handled by calculateAttemptJumps inside the loop
+    // But we'll keep the existing standalone function call for consistency for now 
+    // unless we want to fully integrate it. 
+    // STANDALONE is safer for now as long as they use the same targetResults.
+    const attemptJumps = calculateAttemptJumps(targetResults);
+    const initScenarioBuckets = () => ({
+      MMM: [] as number[],
+      MMX: [] as number[],
+      MXM: [] as number[],
+      MXX: [] as number[],
+      XMM: [] as number[],
+      XMX: [] as number[],
+      XXM: [] as number[],
+      XXX: [] as number[]
+    });
+
+    const snatchScenarios = initScenarioBuckets();
+    const cjScenarios = initScenarioBuckets();
+
     sortedResults.forEach((currentMeet) => {
-      // Find this meet in the full historical record to find its predecessor
       const currentIndex = resultsAsc.findIndex(r => r.key === currentMeet.key);
-      if (currentIndex <= 0) return; // No predecessor exists
+      if (currentIndex <= 0) return;
       
-      const previousMeet = resultsAsc[currentIndex - 1];
-      
-      // Get opening attempts from current meet
       const currentSnatchOpener = parseAttempt(currentMeet.snatch_lift_1);
       const currentCjOpener = parseAttempt(currentMeet.cj_lift_1);
-      
-      // Get best lifts from previous meet
-      const prevSnatchBest = parseAttempt(previousMeet.best_snatch);
-      const prevCjBest = parseAttempt(previousMeet.best_cj);
-      
-      // Calculate percentages if we have valid data
-      if (currentSnatchOpener && prevSnatchBest && prevSnatchBest > 0) {
-        const snatchPercentage = (Math.abs(currentSnatchOpener) / prevSnatchBest) * 100;
-        snatchOpeningPercentages.push(snatchPercentage);
+      const prevMeet = resultsAsc[currentIndex - 1];
+
+      const getScenarioKey = (a1: string | number | null, a2: string | number | null, a3: string | number | null) => {
+        const v1 = parseAttempt(a1);
+        const v2 = parseAttempt(a2);
+        const v3 = parseAttempt(a3);
+        if (v1 === null || v2 === null || v3 === null) return null;
+        return `${v1 > 0 ? 'M' : 'X'}${v2 > 0 ? 'M' : 'X'}${v3 > 0 ? 'M' : 'X'}` as keyof ReturnType<typeof initScenarioBuckets>;
+      };
+
+      const snatchScenarioKey = getScenarioKey(prevMeet.snatch_lift_1, prevMeet.snatch_lift_2, prevMeet.snatch_lift_3);
+      const cjScenarioKey = getScenarioKey(prevMeet.cj_lift_1, prevMeet.cj_lift_2, prevMeet.cj_lift_3);
+
+      let prevSnatchBest = 0;
+      let prevCjBest = 0;
+      for (let i = currentIndex - 1; i >= 0; i--) {
+        const best = parseAttempt(resultsAsc[i].best_snatch);
+        if (best && best > 0) { prevSnatchBest = best; break; }
+      }
+      for (let i = currentIndex - 1; i >= 0; i--) {
+        const best = parseAttempt(resultsAsc[i].best_cj);
+        if (best && best > 0) { prevCjBest = best; break; }
       }
       
-      if (currentCjOpener && prevCjBest && prevCjBest > 0) {
-        const cjPercentage = (Math.abs(currentCjOpener) / prevCjBest) * 100;
-        cjOpeningPercentages.push(cjPercentage);
+      if (currentSnatchOpener && prevSnatchBest > 0) {
+        const pct = (Math.abs(currentSnatchOpener) / prevSnatchBest) * 100;
+        snatchOpeningPercentages.push(pct);
+        if (snatchScenarioKey) snatchScenarios[snatchScenarioKey].push(pct);
+      }
+      
+      if (currentCjOpener && prevCjBest > 0) {
+        const pct = (Math.abs(currentCjOpener) / prevCjBest) * 100;
+        cjOpeningPercentages.push(pct);
+        if (cjScenarioKey) cjScenarios[cjScenarioKey].push(pct);
       }
     });
-    
+
     const getOpenerStats = (arr: number[]) => {
       if (arr.length === 0) return null;
       return {
@@ -817,10 +983,20 @@ export function AthleteCard({ athleteName, birthYear, results, dataSource, popul
       };
     };
 
+    const getScenarioStats = (buckets: ReturnType<typeof initScenarioBuckets>) => {
+      const stats: Record<string, any> = {};
+      Object.entries(buckets).forEach(([key, arr]) => {
+        const s = getOpenerStats(arr);
+        if (s) stats[key] = s;
+      });
+      return stats;
+    };
+
     const snatchOpeningStats = getOpenerStats(snatchOpeningPercentages);
     const cjOpeningStats = getOpenerStats(cjOpeningPercentages);
+    const snatchScenarioStats = getScenarioStats(snatchScenarios);
+    const cjScenarioStats = getScenarioStats(cjScenarios);
     
-    // Calculate overall strategy based on all valid percentages
     const allValidPercentages = [...snatchOpeningPercentages, ...cjOpeningPercentages];
     const avgOverallOpenerPercentage = allValidPercentages.length > 0 
       ? allValidPercentages.reduce((sum, p) => sum + p, 0) / allValidPercentages.length 
@@ -883,6 +1059,7 @@ export function AthleteCard({ athleteName, birthYear, results, dataSource, popul
       cjSuccesses: cjSuccessRate.successes,
       cjTotal: cjSuccessRate.total,
       detailedSuccessRates,
+      scenarioSuccessRates,
       consistencyScore: consistencyMetrics.score,
       coefficientOfVariation: consistencyMetrics.coefficientOfVariation,
       consistencySampleSize: consistencyMetrics.sampleSize,
@@ -912,6 +1089,8 @@ export function AthleteCard({ athleteName, birthYear, results, dataSource, popul
       openerStrategy,
       averageSnatchOpening: snatchOpeningStats,
       averageCjOpening: cjOpeningStats,
+      snatchScenarioStats,
+      cjScenarioStats,
       mastersAchievements,
       isYoungAchiever,
       isLateBloomer,
@@ -1022,7 +1201,14 @@ export function AthleteCard({ athleteName, birthYear, results, dataSource, popul
     }
 
     // MODE: Distribution Calculation
-    if (!popStats.distribution || popStats.distribution.length === 0 || popStats.sampleSize === 0) {
+    const hasDistribution = popStats.distribution && popStats.distribution.length > 0;
+    const isPreCalculated = popStats.percentile50 > 0;
+
+    if (!hasDistribution && !isPreCalculated) {
+      return '';
+    }
+    
+    if (popStats.sampleSize === 0 && !isPreCalculated) {
       return '';
     }
     
@@ -1243,7 +1429,6 @@ export function AthleteCard({ athleteName, birthYear, results, dataSource, popul
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Detailed Success Rate Analysis */}
           <div className="card-secondary">
             <div className="flex items-center justify-between mb-3">
               <MetricTooltip
@@ -1328,17 +1513,459 @@ export function AthleteCard({ athleteName, birthYear, results, dataSource, popul
                 </span>
               </div>
               <div className="space-y-1 text-xs pt-2 border-t border-app-secondary">
-                <div className="text-white font-medium mb-1 mt-1">Make Rate for Individual Attempts</div>
+                <div className="text-white font-medium mb-1 mt-1">Overall Make Rate for Individual Attempts</div>
                 <div className="flex justify-between">
                   <span className="text-app-muted" style={{ color: 'var(--chart-snatch)' }}>Snatch 1st/2nd/3rd:</span>
                   <span className="font-medium text-app-primary text-right">
-                    {analytics.detailedSuccessRates.snatch.first.percentage}% / {analytics.detailedSuccessRates.snatch.second.percentage}% / {analytics.detailedSuccessRates.snatch.third.percentage}%
+                    {Math.round(analytics.detailedSuccessRates.snatch.first.percentage)}% / {Math.round(analytics.detailedSuccessRates.snatch.second.percentage)}% / {Math.round(analytics.detailedSuccessRates.snatch.third.percentage)}%
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-app-muted" style={{ color: 'var(--chart-cleanjerk)' }}>C&J 1st/2nd/3rd:</span>
                   <span className="font-medium text-app-primary text-right">
-                    {analytics.detailedSuccessRates.cj.first.percentage}% / {analytics.detailedSuccessRates.cj.second.percentage}% / {analytics.detailedSuccessRates.cj.third.percentage}%
+                    {Math.round(analytics.detailedSuccessRates.cj.first.percentage)}% / {Math.round(analytics.detailedSuccessRates.cj.second.percentage)}% / {Math.round(analytics.detailedSuccessRates.cj.third.percentage)}%
+                  </span>
+                </div>
+              </div>
+
+              {/* Conditional Success Rates */}
+              <div className="space-y-1 text-xs pt-2 border-t border-app-secondary">
+                <div className="text-white font-medium mb-1 mt-1">Response to previous outcome within the same meet</div>
+                
+                <div className="grid grid-cols-2 gap-x-4">
+                  {/* Snatch Column */}
+                  <div className="space-y-1">
+                    <div className="text-[10px] uppercase font-bold mb-0.5 flex items-baseline">
+                      <span style={{ color: 'var(--chart-snatch)' }}>Snatch</span>
+                      <span className="text-app-muted font-normal lowercase ml-1">[make rate %]</span>
+                    </div>
+                    {analytics.scenarioSuccessRates.snatch.second.afterMake.samples > 0 && (
+                      <div className="flex justify-between ml-1.5">
+                        <span className="text-app-muted">2nd <span className="text-[10px]">(after {renderScenario('M')})</span>:</span>
+                        <span className="font-medium text-app-primary">{analytics.scenarioSuccessRates.snatch.second.afterMake.rate}%</span>
+                      </div>
+                    )}
+                    {analytics.scenarioSuccessRates.snatch.second.afterMiss.samples > 0 && (
+                      <div className="flex justify-between ml-1.5">
+                        <span className="text-app-muted">2nd <span className="text-[10px]">(after {renderScenario('X')})</span>:</span>
+                        <span className="font-medium text-app-primary">{analytics.scenarioSuccessRates.snatch.second.afterMiss.rate}%</span>
+                      </div>
+                    )}
+                    {analytics.scenarioSuccessRates.snatch.third.afterMM.samples > 0 && (
+                      <div className="flex justify-between ml-1.5">
+                        <span className="text-app-muted">3rd <span className="text-[10px]">(after {renderScenario('MM')})</span>:</span>
+                        <span className="font-medium text-app-primary">{analytics.scenarioSuccessRates.snatch.third.afterMM.rate}%</span>
+                      </div>
+                    )}
+                    {analytics.scenarioSuccessRates.snatch.third.afterMX.samples > 0 && (
+                      <div className="flex justify-between ml-1.5">
+                        <span className="text-app-muted">3rd <span className="text-[10px]">(after {renderScenario('MX')})</span>:</span>
+                        <span className="font-medium text-app-primary">{analytics.scenarioSuccessRates.snatch.third.afterMX.rate}%</span>
+                      </div>
+                    )}
+                    {analytics.scenarioSuccessRates.snatch.third.afterXM.samples > 0 && (
+                      <div className="flex justify-between ml-1.5">
+                        <span className="text-app-muted">3rd <span className="text-[10px]">(after {renderScenario('XM')})</span>:</span>
+                        <span className="font-medium text-app-primary">{analytics.scenarioSuccessRates.snatch.third.afterXM.rate}%</span>
+                      </div>
+                    )}
+                    {analytics.scenarioSuccessRates.snatch.third.afterXX.samples > 0 && (
+                      <div className="flex justify-between ml-1.5">
+                        <span className="text-app-muted">3rd <span className="text-[10px]">(after {renderScenario('XX')})</span>:</span>
+                        <span className="font-medium text-app-primary">{analytics.scenarioSuccessRates.snatch.third.afterXX.rate}%</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* C&J Column */}
+                  <div className="space-y-1">
+                    <div className="text-[10px] uppercase font-bold mb-0.5 flex items-baseline">
+                      <span style={{ color: 'var(--chart-cleanjerk)' }}>Clean & Jerk</span>
+                      <span className="text-app-muted font-normal lowercase ml-1">[make rate %]</span>
+                    </div>
+                    {analytics.scenarioSuccessRates.cj.second.afterMake.samples > 0 && (
+                      <div className="flex justify-between ml-1.5">
+                        <span className="text-app-muted">2nd <span className="text-[10px]">(after {renderScenario('M')})</span>:</span>
+                        <span className="font-medium text-app-primary">{analytics.scenarioSuccessRates.cj.second.afterMake.rate}%</span>
+                      </div>
+                    )}
+                    {analytics.scenarioSuccessRates.cj.second.afterMiss.samples > 0 && (
+                      <div className="flex justify-between ml-1.5">
+                        <span className="text-app-muted">2nd <span className="text-[10px]">(after {renderScenario('X')})</span>:</span>
+                        <span className="font-medium text-app-primary">{analytics.scenarioSuccessRates.cj.second.afterMiss.rate}%</span>
+                      </div>
+                    )}
+                    {analytics.scenarioSuccessRates.cj.third.afterMM.samples > 0 && (
+                      <div className="flex justify-between ml-1.5">
+                        <span className="text-app-muted">3rd <span className="text-[10px]">(after {renderScenario('MM')})</span>:</span>
+                        <span className="font-medium text-app-primary">{analytics.scenarioSuccessRates.cj.third.afterMM.rate}%</span>
+                      </div>
+                    )}
+                    {analytics.scenarioSuccessRates.cj.third.afterMX.samples > 0 && (
+                      <div className="flex justify-between ml-1.5">
+                        <span className="text-app-muted">3rd <span className="text-[10px]">(after {renderScenario('MX')})</span>:</span>
+                        <span className="font-medium text-app-primary">{analytics.scenarioSuccessRates.cj.third.afterMX.rate}%</span>
+                      </div>
+                    )}
+                    {analytics.scenarioSuccessRates.cj.third.afterXM.samples > 0 && (
+                      <div className="flex justify-between ml-1.5">
+                        <span className="text-app-muted">3rd <span className="text-[10px]">(after {renderScenario('XM')})</span>:</span>
+                        <span className="font-medium text-app-primary">{analytics.scenarioSuccessRates.cj.third.afterXM.rate}%</span>
+                      </div>
+                    )}
+                    {analytics.scenarioSuccessRates.cj.third.afterXX.samples > 0 && (
+                      <div className="flex justify-between ml-1.5">
+                        <span className="text-app-muted">3rd <span className="text-[10px]">(after {renderScenario('XX')})</span>:</span>
+                        <span className="font-medium text-app-primary">{analytics.scenarioSuccessRates.cj.third.afterXX.rate}%</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Opening Attempt Strategy */}
+          <div className="card-secondary">
+            <div className="flex items-center justify-between mb-3">
+              <MetricTooltip
+                title="Opening Attempt Strategy"
+                description="Opening attempt selection patterns relative to the Most Recent Successful Competition Best. Shows risk tolerance and strategic planning approach."
+                methodology="Strategy based on average opening percentages across all valid meets. Each opener is compared to the athlete's last successful competition best in that lift."
+              >
+                <h3 className="text-sm font-medium text-app-secondary flex items-center">
+                  <Crosshair className="h-4 w-4 mr-1" />
+                  Opening Attempt Strategy
+                </h3>
+              </MetricTooltip>
+              <span className="text-xs text-app-muted">
+                {analytics.openerStrategy === 'aggressive' ? (
+                  <Flame className="h-3 w-3 text-orange-400" />
+                ) : analytics.openerStrategy === 'conservative' ? (
+                  <Shield className="h-3 w-3 text-blue-400" />
+                ) : (
+                  <Scale className="h-3 w-3 text-app-secondary" />
+                )}
+              </span>
+            </div>
+            <div className="space-y-2 text-xs">
+              <div className="flex justify-between mb-1">
+                <MetricTooltip
+                  title="Open Attempt Strategy"
+                  description="Overall approach to opening attempt selection based on comparison to previous competition results. Conservative athletes prioritize making their opener, aggressive athletes take bigger risks for better positioning."
+                  methodology="Compares each competition's opening attempts to the best lifts from the previous competition, then averages the percentages. Conservative: ≤88%, Balanced: 89-92%, Aggressive: ≥93%"
+                >
+                  <span className="text-app-secondary font-medium cursor-help">Open Attempt Strategy:</span>
+                </MetricTooltip>
+                <span className="font-medium text-app-primary capitalize text-right">
+                  {analytics?.openerStrategy === 'insufficient data' ? 'Insufficient Data' : analytics?.openerStrategy}
+                </span>
+              </div>
+
+              {/* Opening Attempt Details */}
+              <div className="pt-2 border-t border-app-secondary space-y-3">
+                {/* Snatch Opening */}
+                <div>
+                  <div className="flex items-end justify-between mb-1 gap-4">
+                    <div className="font-medium text-app-secondary flex-1 leading-tight">
+                      <span style={{ color: 'var(--chart-snatch)' }}>Snatch Opening</span> compared to best make attempt in previous meet
+                    </div>
+                    <div className="text-app-primary font-medium text-xs text-right whitespace-nowrap">
+                      {analytics?.averageSnatchOpening ? (
+                        <>
+                          {analytics.averageSnatchOpening.avg}% avg
+                          <span className="text-app-muted ml-1 text-[10px] font-normal">
+                            ({analytics.averageSnatchOpening.min}-{analytics.averageSnatchOpening.max}%, {analytics.averageSnatchOpening.count} samples)
+                          </span>
+                        </>
+                      ) : 'N/A'}
+                    </div>
+                  </div>
+                  {analytics?.snatchScenarioStats && Object.entries(analytics.snatchScenarioStats).map(([key, stats]: [string, any]) => (
+                    <div key={key} className="flex justify-between items-center ml-2 text-[10px]">
+                      <div className="flex items-center">
+                        <span className="text-app-muted">after {renderScenario(key)}:</span>
+                        {key === 'XXX' && (
+                          <MetricTooltip
+                            title="Bomb Out Look-Back"
+                            description="Following a bomb-out (0/3), the opening percentage is calculated relative to the best result from the most recent successful competition prior to the bomb out."
+                            methodology="Scans backwards through athlete history until the last meet with a successful lift is found to provide a meaningful benchmark."
+                            showIcon={true}
+                            iconSize="h-2.5 w-2.5"
+                            className="ml-0.5"
+                          >
+                            {null}
+                          </MetricTooltip>
+                        )}
+                      </div>
+                      <span className="text-app-secondary font-medium">
+                        {stats.avg}% avg
+                        <span className="text-app-muted ml-1 font-normal">
+                          ({stats.min}-{stats.max}%, {stats.count} samples)
+                        </span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* C&J Opening */}
+                <div>
+                  <div className="flex items-end justify-between mb-1 gap-4">
+                    <div className="font-medium text-app-secondary flex-1 leading-tight">
+                      <span style={{ color: 'var(--chart-cleanjerk)' }}>C&J Opening</span> compared to best make attempt in previous meet
+                    </div>
+                    <div className="text-app-primary font-medium text-xs text-right whitespace-nowrap">
+                      {analytics?.averageCjOpening ? (
+                        <>
+                          {analytics.averageCjOpening.avg}% avg
+                          <span className="text-app-muted ml-1 text-[10px] font-normal">
+                            ({analytics.averageCjOpening.min}-{analytics.averageCjOpening.max}%, {analytics.averageCjOpening.count} samples)
+                          </span>
+                        </>
+                      ) : 'N/A'}
+                    </div>
+                  </div>
+                  {analytics?.cjScenarioStats && Object.entries(analytics.cjScenarioStats).map(([key, stats]: [string, any]) => (
+                    <div key={key} className="flex justify-between items-center ml-2 text-[10px]">
+                      <div className="flex items-center">
+                        <span className="text-app-muted">after {renderScenario(key)}:</span>
+                        {key === 'XXX' && (
+                          <MetricTooltip
+                            title="Bomb Out Look-Back"
+                            description="Following a bomb-out (0/3), the opening percentage is calculated relative to the best result from the most recent successful competition prior to the bomb out."
+                            methodology="Scans backwards through athlete history until the last meet with a successful lift is found to provide a meaningful benchmark."
+                            showIcon={true}
+                            iconSize="h-2.5 w-2.5"
+                            className="ml-0.5"
+                          >
+                            {null}
+                          </MetricTooltip>
+                        )}
+                      </div>
+                      <span className="text-app-secondary font-medium">
+                        {stats.avg}% avg
+                        <span className="text-app-muted ml-1 font-normal">
+                          ({stats.min}-{stats.max}%, {stats.count} samples)
+                        </span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Jump Attempt Strategy Mini-Card */}
+          <div className="card-secondary">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-1.5">
+                <MetricTooltip
+                  title="Jump Attempt Strategy"
+                  description="Average weight increments between successful and failed attempts. Measures how much an athlete typically increases the load during competition."
+                  methodology="Calculates the kg difference between consecutive attempts. Samples are counted for each successful pair of attempts (e.g., 1st and 2nd both recorded)."
+                >
+                  <h3 className="text-sm font-medium text-app-secondary flex items-center cursor-help">
+                    <TrendingUp className="h-4 w-4 mr-1.5" />
+                    Jump Attempt Strategy
+                  </h3>
+                </MetricTooltip>
+              </div>
+            </div>
+            
+            <div className="space-y-3 text-xs">
+              {/* Snatch Jumps */}
+              <div>
+                <div className="font-medium mb-1.5" style={{ color: 'var(--chart-snatch)' }}>Snatch Jumps</div>
+                <div className="space-y-1 ml-1">
+                  {analytics?.attemptJumps?.snatch?.firstToSecond?.afterMake && (
+                    <div className="flex justify-between">
+                      <span className="text-app-muted">1st→2nd (after {renderScenario('M')}):</span>
+                      <span className="font-medium text-app-primary">
+                        {analytics.attemptJumps.snatch.firstToSecond.afterMake.avg}kg avg 
+                        <span className="text-app-muted ml-1 font-normal text-[10px]">
+                          ({analytics.attemptJumps.snatch.firstToSecond.afterMake.min}-{analytics.attemptJumps.snatch.firstToSecond.afterMake.max}kg, {analytics.attemptJumps.snatch.firstToSecond.afterMake.count} samples)
+                        </span>
+                      </span>
+                    </div>
+                  )}
+                  {analytics?.attemptJumps?.snatch?.firstToSecond?.afterMiss && (
+                    <div className="flex justify-between">
+                      <span className="text-app-muted">1st→2nd (after {renderScenario('X')}):</span>
+                      <span className="font-medium text-app-primary">
+                        {analytics.attemptJumps.snatch.firstToSecond.afterMiss.avg}kg avg 
+                        <span className="text-app-muted ml-1 font-normal text-[10px]">
+                          ({analytics.attemptJumps.snatch.firstToSecond.afterMiss.min}-{analytics.attemptJumps.snatch.firstToSecond.afterMiss.max}kg, {analytics.attemptJumps.snatch.firstToSecond.afterMiss.count} samples)
+                        </span>
+                      </span>
+                    </div>
+                  )}
+                  {analytics?.attemptJumps?.snatch?.secondToThird?.afterMake && (
+                    <div className="flex justify-between pt-0.5">
+                      <span className="text-app-muted">2nd→3rd (after {renderScenario('M')}):</span>
+                      <span className="font-medium text-app-primary">
+                        {analytics.attemptJumps.snatch.secondToThird.afterMake.avg}kg avg 
+                        <span className="text-app-muted ml-1 font-normal text-[10px]">
+                          ({analytics.attemptJumps.snatch.secondToThird.afterMake.min}-{analytics.attemptJumps.snatch.secondToThird.afterMake.max}kg, {analytics.attemptJumps.snatch.secondToThird.afterMake.count} samples)
+                        </span>
+                      </span>
+                    </div>
+                  )}
+                  {analytics?.attemptJumps?.snatch?.secondToThird?.afterMiss && (
+                    <div className="flex justify-between">
+                      <span className="text-app-muted">2nd→3rd (after {renderScenario('X')}):</span>
+                      <span className="font-medium text-app-primary">
+                        {analytics.attemptJumps.snatch.secondToThird.afterMiss.avg}kg avg 
+                        <span className="text-app-muted ml-1 font-normal text-[10px]">
+                          ({analytics.attemptJumps.snatch.secondToThird.afterMiss.min}-{analytics.attemptJumps.snatch.secondToThird.afterMiss.max}kg, {analytics.attemptJumps.snatch.secondToThird.afterMiss.count} samples)
+                        </span>
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* C&J Jumps */}
+              <div className="pt-2 border-t border-app-secondary">
+                <div className="font-medium mb-1.5" style={{ color: 'var(--chart-cleanjerk)' }}>Clean & Jerk Jumps</div>
+                <div className="space-y-1 ml-1">
+                  {analytics?.attemptJumps?.cleanJerk?.firstToSecond?.afterMake && (
+                    <div className="flex justify-between">
+                      <span className="text-app-muted">1st→2nd (after {renderScenario('M')}):</span>
+                      <span className="font-medium text-app-primary">
+                        {analytics.attemptJumps.cleanJerk.firstToSecond.afterMake.avg}kg avg 
+                        <span className="text-app-muted ml-1 font-normal text-[10px]">
+                          ({analytics.attemptJumps.cleanJerk.firstToSecond.afterMake.min}-{analytics.attemptJumps.cleanJerk.firstToSecond.afterMake.max}kg, {analytics.attemptJumps.cleanJerk.firstToSecond.afterMake.count} samples)
+                        </span>
+                      </span>
+                    </div>
+                  )}
+                  {analytics?.attemptJumps?.cleanJerk?.firstToSecond?.afterMiss && (
+                    <div className="flex justify-between">
+                      <span className="text-app-muted">1st→2nd (after {renderScenario('X')}):</span>
+                      <span className="font-medium text-app-primary">
+                        {analytics.attemptJumps.cleanJerk.firstToSecond.afterMiss.avg}kg avg 
+                        <span className="text-app-muted ml-1 font-normal text-[10px]">
+                          ({analytics.attemptJumps.cleanJerk.firstToSecond.afterMiss.min}-{analytics.attemptJumps.cleanJerk.firstToSecond.afterMiss.max}kg, {analytics.attemptJumps.cleanJerk.firstToSecond.afterMiss.count} samples)
+                        </span>
+                      </span>
+                    </div>
+                  )}
+                  {analytics?.attemptJumps?.cleanJerk?.secondToThird?.afterMake && (
+                    <div className="flex justify-between pt-0.5">
+                      <span className="text-app-muted">2nd→3rd (after {renderScenario('M')}):</span>
+                      <span className="font-medium text-app-primary">
+                        {analytics.attemptJumps.cleanJerk.secondToThird.afterMake.avg}kg avg 
+                        <span className="text-app-muted ml-1 font-normal text-[10px]">
+                          ({analytics.attemptJumps.cleanJerk.secondToThird.afterMake.min}-{analytics.attemptJumps.cleanJerk.secondToThird.afterMake.max}kg, {analytics.attemptJumps.cleanJerk.secondToThird.afterMake.count} samples)
+                        </span>
+                      </span>
+                    </div>
+                  )}
+                  {analytics?.attemptJumps?.cleanJerk?.secondToThird?.afterMiss && (
+                    <div className="flex justify-between">
+                      <span className="text-app-muted">2nd→3rd (after {renderScenario('X')}):</span>
+                      <span className="font-medium text-app-primary">
+                        {analytics.attemptJumps.cleanJerk.secondToThird.afterMiss.avg}kg avg 
+                        <span className="text-app-muted ml-1 font-normal text-[10px]">
+                          ({analytics.attemptJumps.cleanJerk.secondToThird.afterMiss.min}-{analytics.attemptJumps.cleanJerk.secondToThird.afterMiss.max}kg, {analytics.attemptJumps.cleanJerk.secondToThird.afterMiss.count} samples)
+                        </span>
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Career Profile */}
+          <div className="card-secondary">
+            {/* Section 1: Competition Profile */}
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-3">
+                <MetricTooltip
+                  title={`${dataSource === 'iwf' ? 'IWF' : 'USAW'} Career Competition Profile${isHistorical ? ` (up to ${selectedYear})` : ''}`}
+                  description="Activity level and competitive experience. More frequent competition often correlates with higher performance levels and better competition management."
+                  methodology="Competitions per year = total meets ÷ active years. Years active calculated from date range of competition history."
+                >
+                  <h3 className="text-sm font-medium text-app-secondary flex items-center cursor-help">
+                    <Activity className="h-4 w-4 mr-1" />
+                    {`${dataSource === 'iwf' ? 'IWF' : 'USAW'} Career Competition Profile${isHistorical ? ` (up to ${selectedYear})` : ''}`}
+                  </h3>
+                </MetricTooltip>
+              </div>
+              
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-app-secondary">Competitions/Year:</span>
+                  <span className="font-medium text-app-primary text-right">
+                    {analytics.historicalData?.metrics?.competitionFrequency ? (
+                      <>
+                        {analytics.historicalData.metrics.competitionFrequency.value.toFixed(1)}
+                        {` (${getOrdinal(analytics.historicalData.metrics.competitionFrequency.percentile)} percentile)`}
+                      </>
+                    ) : (
+                      <>
+                        {analytics.competitionFrequency}{getPercentileText(analytics.competitionFrequency, populationStats?.competitionFrequency)}
+                      </>
+                    )}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-app-secondary">Total Meets:</span>
+                  <span className="font-medium text-app-primary text-right">{analytics.totalCompetitions}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-app-secondary">Years Active:</span>
+                  <span className="font-medium text-app-primary text-right">{analytics.yearsActive}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Section 2: Performance Trends */}
+            <div className="pt-4 border-t border-app-secondary">
+              <div className="flex items-center justify-between mb-3">
+                <MetricTooltip
+                  title={`${dataSource === 'iwf' ? 'IWF' : 'USAW'} Career Performance Trends${isHistorical ? ` (up to ${selectedYear})` : ''}`}
+                  description="Overall and recent career trend analysis, including improvement streak tracking. Shows how an athlete's performance has evolved over their competitive career."
+                  methodology="Calculates year-over-year percentage changes in best totals. Career trend averages all YOY changes, recent trend uses last 2 years. Current streak counts consecutive improvement years from most recent, best streak is longest ever."
+                >
+                  <h3 className="text-sm font-medium text-app-secondary flex items-center cursor-help">
+                    <TrendingUp className="h-4 w-4 mr-1" />
+                    {`${dataSource === 'iwf' ? 'IWF' : 'USAW'} Career Performance Trends${isHistorical ? ` (up to ${selectedYear})` : ''}`}
+                  </h3>
+                </MetricTooltip>
+                {getTrendIcon(analytics.performanceTrend)}
+              </div>
+              
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-app-secondary">Career Trend:</span>
+                  <span className={`font-medium text-right ${
+                    analytics.performanceTrend > 0 ? 'text-green-400' : 
+                    analytics.performanceTrend < 0 ? 'text-red-400' : 'text-app-primary'
+                  }`}>
+                    {analytics.performanceTrend > 0 ? '+' : ''}{analytics.performanceTrend}%
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-app-secondary">Recent Year-Over-Year Trend:</span>
+                  <span className={`font-medium text-right ${
+                    analytics.recentYoyTrend > 0 ? 'text-green-400' : 
+                    analytics.recentYoyTrend < 0 ? 'text-red-400' : 'text-app-primary'
+                  }`}>
+                    {analytics.recentYoyTrend > 0 ? '+' : ''}{analytics.recentYoyTrend}%
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-app-secondary">Current YOY Improvement Streak:</span>
+                  <span className="font-medium text-app-primary text-right">
+                    {analytics.improvementStreak} year{analytics.improvementStreak !== 1 ? 's' : ''}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-app-secondary">Best YOY Improvement Streak:</span>
+                  <span className="font-medium text-app-primary text-right">
+                    {analytics.bestImprovementStreak} year{analytics.bestImprovementStreak !== 1 ? 's' : ''}
                   </span>
                 </div>
               </div>
@@ -1350,7 +1977,7 @@ export function AthleteCard({ athleteName, birthYear, results, dataSource, popul
             <div className="flex items-center justify-between mb-3">
               <MetricTooltip
                 title="Mental Game"
-                description="Measures psychological aspects of competitive performance including trend-adjusted consistency, high-pressure situations, and recovery from misses."
+                description="Measures psychological aspects of competitive performance including trend-adjusted stability, high-pressure situations, and recovery from misses."
                 methodology="Performance Stability Score uses detrended analysis to separate systematic improvement/decline from random variation. Must-Make Success Rate measures success when final chance to avoid bombing out (3rd attempts after missing first two). Bounce-back measures recovery rate on follow-up attempts after a previous miss."
               >
                 <h3 className="text-sm font-medium text-app-secondary flex items-center">
@@ -1364,8 +1991,8 @@ export function AthleteCard({ athleteName, birthYear, results, dataSource, popul
               <div className="flex justify-between items-start min-w-0 gap-4">
                 <MetricTooltip
                   title="Performance Stability Score"
-                  description="How consistent an athlete's performance is across recent competitions. Measures reliability and predictability of results within competitive windows."
-                  methodology={`3-Year Coefficient of Variation analysis. Uses last 3 years of competition data (${analytics.consistencySampleSize} competitions) to calculate (standard deviation ÷ mean) × 100, then inverted to consistency score: 100 - CV%. Higher scores indicate lower variability and more predictable performance.`}
+                  description="How stable an athlete's performance is across recent competitions. Measures reliability and predictability of results within competitive windows."
+                  methodology={`3-Year Coefficient of Variation analysis. Uses last 3 years of competition data (${analytics.consistencySampleSize} competitions) to calculate (standard deviation ÷ mean) × 100, then inverted to performance stability score: 100 - CV%. Higher scores indicate lower variability and more predictable performance.`}
                 >
                   <span className="text-app-secondary font-medium cursor-help flex-shrink-0 break-words">
                     Performance Stability:
@@ -1471,253 +2098,6 @@ export function AthleteCard({ athleteName, birthYear, results, dataSource, popul
             </div>
           </div>
 
-          {/* Attempt Strategy & Jumps */}
-          <div className="card-secondary">
-            <div className="flex items-center justify-between mb-3">
-              <MetricTooltip
-                title="Opening Attempt Strategy & Jumps"
-                description="Opening attempt selection patterns and jump sizes between attempts. Shows risk tolerance and strategic planning approach."
-                methodology="Strategy based on weighted average opening percentages. Jumps calculated as differences between attempt weights."
-              >
-                <h3 className="text-sm font-medium text-app-secondary flex items-center">
-                  <Crosshair className="h-4 w-4 mr-1" />
-                  Opening Attempt Strategy & Jumps
-                </h3>
-              </MetricTooltip>
-              <span className="text-xs text-app-muted">
-                {analytics.openerStrategy === 'aggressive' ? (
-                  <Flame className="h-3 w-3 text-orange-400" />
-                ) : analytics.openerStrategy === 'conservative' ? (
-                  <Shield className="h-3 w-3 text-blue-400" />
-                ) : (
-                  <Scale className="h-3 w-3 text-app-secondary" />
-                )}
-              </span>
-            </div>
-            <div className="space-y-2 text-xs">
-              <div className="flex justify-between mb-1">
-                <MetricTooltip
-                  title="Open Attempt Strategy"
-                  description="Overall approach to opening attempt selection based on comparison to previous competition results. Conservative athletes prioritize making their opener, aggressive athletes take bigger risks for better positioning."
-                  methodology="Compares each competition's opening attempts to the best lifts from the previous competition, then averages the percentages. Conservative: ≤88%, Balanced: 89-92%, Aggressive: ≥93%"
-                >
-                  <span className="text-app-secondary font-medium cursor-help">Open Attempt Strategy:</span>
-                </MetricTooltip>
-                <span className="font-medium text-app-primary capitalize text-right">
-                  {analytics.openerStrategy === 'insufficient data' ? 'Insufficient Data' : analytics.openerStrategy}
-                </span>
-              </div>
-
-              {/* Snatch Section */}
-              <div className="pt-2 border-t border-app-secondary">
-                <div className="flex justify-between items-center mb-1.5">
-                  <div className="font-medium" style={{ color: 'var(--chart-snatch)' }}>Snatch</div>
-                  <div className="text-app-primary font-medium">
-                    Opening: {analytics.averageSnatchOpening ? (
-                      <>
-                        {analytics.averageSnatchOpening.avg}% avg
-                        <span className="text-app-muted ml-1 text-[10px] font-normal">
-                          ({analytics.averageSnatchOpening.min}-{analytics.averageSnatchOpening.max}%, {analytics.averageSnatchOpening.count} samples)
-                        </span>
-                      </>
-                    ) : 'N/A'}
-                  </div>
-                </div>
-                <div className="space-y-1 ml-1">
-                  {/* 1st to 2nd */}
-                  {analytics.attemptJumps.snatch.firstToSecond.afterMake && (
-                    <div className="flex justify-between">
-                      <span className="text-app-muted text-xs">1st→2nd (after Make):</span>
-                      <span className="font-medium text-app-primary text-xs">
-                        {analytics.attemptJumps.snatch.firstToSecond.afterMake.avg}kg avg 
-                        <span className="text-app-muted ml-1">({analytics.attemptJumps.snatch.firstToSecond.afterMake.min}-{analytics.attemptJumps.snatch.firstToSecond.afterMake.max}kg, {analytics.attemptJumps.snatch.firstToSecond.afterMake.count} samples)</span>
-                      </span>
-                    </div>
-                  )}
-                  {analytics.attemptJumps.snatch.firstToSecond.afterMiss && (
-                    <div className="flex justify-between">
-                      <span className="text-app-muted text-xs">1st→2nd (after Miss):</span>
-                      <span className="font-medium text-app-primary text-xs">
-                        {analytics.attemptJumps.snatch.firstToSecond.afterMiss.avg}kg avg 
-                        <span className="text-app-muted ml-1">({analytics.attemptJumps.snatch.firstToSecond.afterMiss.min}-{analytics.attemptJumps.snatch.firstToSecond.afterMiss.max}kg, {analytics.attemptJumps.snatch.firstToSecond.afterMiss.count} samples)</span>
-                      </span>
-                    </div>
-                  )}
-                  
-                  {/* 2nd to 3rd */}
-                  {analytics.attemptJumps.snatch.secondToThird.afterMake && (
-                    <div className="flex justify-between pt-1">
-                      <span className="text-app-muted text-xs">2nd→3rd (after Make):</span>
-                      <span className="font-medium text-app-primary text-xs">
-                        {analytics.attemptJumps.snatch.secondToThird.afterMake.avg}kg avg 
-                        <span className="text-app-muted ml-1">({analytics.attemptJumps.snatch.secondToThird.afterMake.min}-{analytics.attemptJumps.snatch.secondToThird.afterMake.max}kg, {analytics.attemptJumps.snatch.secondToThird.afterMake.count} samples)</span>
-                      </span>
-                    </div>
-                  )}
-                  {analytics.attemptJumps.snatch.secondToThird.afterMiss && (
-                    <div className="flex justify-between">
-                      <span className="text-app-muted text-xs">2nd→3rd (after Miss):</span>
-                      <span className="font-medium text-app-primary text-xs">
-                        {analytics.attemptJumps.snatch.secondToThird.afterMiss.avg}kg avg 
-                        <span className="text-app-muted ml-1">({analytics.attemptJumps.snatch.secondToThird.afterMiss.min}-{analytics.attemptJumps.snatch.secondToThird.afterMiss.max}kg, {analytics.attemptJumps.snatch.secondToThird.afterMiss.count} samples)</span>
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Clean & Jerk Section */}
-              <div className="pt-2 border-t border-app-secondary">
-                <div className="flex justify-between items-center mb-1.5">
-                  <div className="font-medium" style={{ color: 'var(--chart-cleanjerk)' }}>Clean & Jerk</div>
-                  <div className="text-app-primary font-medium">
-                    Opening: {analytics.averageCjOpening ? (
-                      <>
-                        {analytics.averageCjOpening.avg}% avg
-                        <span className="text-app-muted ml-1 text-[10px] font-normal">
-                          ({analytics.averageCjOpening.min}-{analytics.averageCjOpening.max}%, {analytics.averageCjOpening.count} samples)
-                        </span>
-                      </>
-                    ) : 'N/A'}
-                  </div>
-                </div>
-                <div className="space-y-1 ml-1">
-                  {/* 1st to 2nd */}
-                  {analytics.attemptJumps.cleanJerk.firstToSecond.afterMake && (
-                    <div className="flex justify-between">
-                      <span className="text-app-muted text-xs">1st→2nd (after Make):</span>
-                      <span className="font-medium text-app-primary text-xs">
-                        {analytics.attemptJumps.cleanJerk.firstToSecond.afterMake.avg}kg avg 
-                        <span className="text-app-muted ml-1">({analytics.attemptJumps.cleanJerk.firstToSecond.afterMake.min}-{analytics.attemptJumps.cleanJerk.firstToSecond.afterMake.max}kg, {analytics.attemptJumps.cleanJerk.firstToSecond.afterMake.count} samples)</span>
-                      </span>
-                    </div>
-                  )}
-                  {analytics.attemptJumps.cleanJerk.firstToSecond.afterMiss && (
-                    <div className="flex justify-between">
-                      <span className="text-app-muted text-xs">1st→2nd (after Miss):</span>
-                      <span className="font-medium text-app-primary text-xs">
-                        {analytics.attemptJumps.cleanJerk.firstToSecond.afterMiss.avg}kg avg 
-                        <span className="text-app-muted ml-1">({analytics.attemptJumps.cleanJerk.firstToSecond.afterMiss.min}-{analytics.attemptJumps.cleanJerk.firstToSecond.afterMiss.max}kg, {analytics.attemptJumps.cleanJerk.firstToSecond.afterMiss.count} samples)</span>
-                      </span>
-                    </div>
-                  )}
-                  
-                  {/* 2nd to 3rd */}
-                  {analytics.attemptJumps.cleanJerk.secondToThird.afterMake && (
-                    <div className="flex justify-between pt-1">
-                      <span className="text-app-muted text-xs">2nd→3rd (after Make):</span>
-                      <span className="font-medium text-app-primary text-xs">
-                        {analytics.attemptJumps.cleanJerk.secondToThird.afterMake.avg}kg avg 
-                        <span className="text-app-muted ml-1">({analytics.attemptJumps.cleanJerk.secondToThird.afterMake.min}-{analytics.attemptJumps.cleanJerk.secondToThird.afterMake.max}kg, {analytics.attemptJumps.cleanJerk.secondToThird.afterMake.count} samples)</span>
-                      </span>
-                    </div>
-                  )}
-                  {analytics.attemptJumps.cleanJerk.secondToThird.afterMiss && (
-                    <div className="flex justify-between">
-                      <span className="text-app-muted text-xs">2nd→3rd (after Miss):</span>
-                      <span className="font-medium text-app-primary text-xs">
-                        {analytics.attemptJumps.cleanJerk.secondToThird.afterMiss.avg}kg avg 
-                        <span className="text-app-muted ml-1">({analytics.attemptJumps.cleanJerk.secondToThird.afterMiss.min}-{analytics.attemptJumps.cleanJerk.secondToThird.afterMiss.max}kg, {analytics.attemptJumps.cleanJerk.secondToThird.afterMiss.count} samples)</span>
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Competition Activity */}
-          <div className="card-secondary">
-            <div className="flex items-center justify-between mb-3">
-              <MetricTooltip
-                title={`${dataSource === 'iwf' ? 'IWF' : 'USAW'} Career Competition Profile${isHistorical ? ` (up to ${selectedYear})` : ''}`}
-                description="Activity level and competitive experience. More frequent competition often correlates with higher performance levels and better competition management."
-                methodology="Competitions per year = total meets ÷ active years. Years active calculated from date range of competition history."
-              >
-                <h3 className="text-sm font-medium text-app-secondary flex items-center">
-                  <Activity className="h-4 w-4 mr-1" />
-                  {`${dataSource === 'iwf' ? 'IWF' : 'USAW'} Career Competition Profile${isHistorical ? ` (up to ${selectedYear})` : ''}`}
-                </h3>
-              </MetricTooltip>
-            </div>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-app-secondary">Competitions/Year:</span>
-                <span className="font-medium text-app-primary">
-                  {analytics.historicalData?.metrics?.competitionFrequency ? (
-                    <>
-                      {analytics.historicalData.metrics.competitionFrequency.value.toFixed(1)}
-                      {` (${getOrdinal(analytics.historicalData.metrics.competitionFrequency.percentile)} percentile)`}
-                    </>
-                  ) : (
-                    <>
-                      {analytics.competitionFrequency}{getPercentileText(analytics.competitionFrequency, populationStats?.competitionFrequency)}
-                    </>
-                  )}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-app-secondary">Total Meets:</span>
-                <span className="font-medium text-app-primary">{analytics.totalCompetitions}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-app-secondary">Years Active:</span>
-                <span className="font-medium text-app-primary">{analytics.yearsActive}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Performance Trend */}
-          <div className="card-secondary">
-            <div className="flex items-center justify-between mb-3">
-              <MetricTooltip
-                title={`${dataSource === 'iwf' ? 'IWF' : 'USAW'} Career Performance Trends${isHistorical ? ` (up to ${selectedYear})` : ''}`}
-                description="Overall and recent career trend analysis, including improvement streak tracking. Shows how an athlete's performance has evolved over their competitive career."
-                methodology="Calculates year-over-year percentage changes in best totals. Career trend averages all YOY changes, recent trend uses last 2 years. Current streak counts consecutive improvement years from most recent, best streak is longest ever."
-              >
-                <h3 className="text-sm font-medium text-app-secondary flex items-center">
-                  <TrendingUp className="h-4 w-4 mr-1" />
-                  {`${dataSource === 'iwf' ? 'IWF' : 'USAW'} Career Performance Trends${isHistorical ? ` (up to ${selectedYear})` : ''}`}
-                </h3>
-              </MetricTooltip>
-              <span className="text-xs text-app-muted">
-                {getTrendIcon(analytics.performanceTrend)}
-              </span>
-            </div>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-app-secondary">Career Trend:</span>
-                <span className={`font-medium text-right ${
-                  analytics.performanceTrend > 0 ? 'text-green-400' : 
-                  analytics.performanceTrend < 0 ? 'text-red-400' : 'text-app-primary'
-                }`}>
-                  {analytics.performanceTrend > 0 ? '+' : ''}{analytics.performanceTrend}%
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-app-secondary">Recent Year-Over-Year Trend:</span>
-                <span className={`font-medium text-right ${
-                  analytics.recentYoyTrend > 0 ? 'text-green-400' : 
-                  analytics.recentYoyTrend < 0 ? 'text-red-400' : 'text-app-primary'
-                }`}>
-                  {analytics.recentYoyTrend > 0 ? '+' : ''}{analytics.recentYoyTrend}%
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-app-secondary">Current YOY Improvement Streak:</span>
-                <span className="font-medium text-app-primary text-right">
-                  {analytics.improvementStreak} year{analytics.improvementStreak !== 1 ? 's' : ''}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-app-secondary">Best YOY Improvement Streak:</span>
-                <span className="font-medium text-app-primary text-right">
-                  {analytics.bestImprovementStreak} year{analytics.bestImprovementStreak !== 1 ? 's' : ''}
-                </span>
-              </div>
-            </div>
-          </div>
-
           {/* Performance Insights */}
           <div className="card-secondary">
             <div className="flex items-center justify-between mb-3">
@@ -1728,7 +2108,7 @@ export function AthleteCard({ athleteName, birthYear, results, dataSource, popul
               >
                 <h3 className="text-sm font-medium text-app-secondary flex items-center">
                   <KeyRound className="h-4 w-4 mr-1" />
-                  Key Insights
+                  Key Insight Superlatives
                 </h3>
               </MetricTooltip>
             </div>
@@ -1804,16 +2184,16 @@ export function AthleteCard({ athleteName, birthYear, results, dataSource, popul
                   );
                 }
                 
-                // Consistency insights with broader coverage
+                // Stability insights with broader coverage
                 if (getMetricPercentile(analytics.consistencyScore, populationStats?.consistencyScore, analytics.historicalData?.metrics?.consistencyScore) >= 85) {
                   insights.push(
                     <MetricTooltip
-                      key="very-consistent"
-                      title="Very Consistent Performer"
+                      key="very-stable"
+                      title="Very Stable Performer"
                       description="Shows stable, predictable performance across competitions with minimal variation."
-                      methodology={`Consistency score: ${analytics.consistencyScore}% (${getOrdinal(calculatePercentile(analytics.consistencyScore, populationStats?.consistencyScore))} percentile)`}
+                      methodology={`Performance Stability Score: ${analytics.consistencyScore}% (${getOrdinal(calculatePercentile(analytics.consistencyScore, populationStats?.consistencyScore))} percentile)`}
                     >
-                      <div className="text-purple-400 cursor-help">• Very consistent performer</div>
+                      <div className="text-purple-400 cursor-help">• Very stable performer</div>
                     </MetricTooltip>
                   );
                 } else if (getMetricPercentile(analytics.consistencyScore, populationStats?.consistencyScore, analytics.historicalData?.metrics?.consistencyScore) >= 65) {
@@ -1821,8 +2201,8 @@ export function AthleteCard({ athleteName, birthYear, results, dataSource, popul
                     <MetricTooltip
                       key="reliable-performer"
                       title="Reliable Performer"
-                      description="Above-average consistency with predictable competition results."
-                      methodology={`Consistency score: ${analytics.consistencyScore}% (${getOrdinal(calculatePercentile(analytics.consistencyScore, populationStats?.consistencyScore))} percentile)`}
+                      description="Above-average stability with predictable competition results."
+                      methodology={`Performance Stability Score: ${analytics.consistencyScore}% (${getOrdinal(calculatePercentile(analytics.consistencyScore, populationStats?.consistencyScore))} percentile)`}
                     >
                       <div className="text-green-400 cursor-help">• Reliable performer</div>
                     </MetricTooltip>
@@ -2125,8 +2505,8 @@ export function AthleteCard({ athleteName, birthYear, results, dataSource, popul
                     <MetricTooltip
                       key="steady-eddie"
                       title="Steady Eddie"
-                      description="Reliable, consistent performer over multiple years. The dependable competitor you can count on."
-                      methodology="Consistency score ≥85% and active for 3+ years"
+                      description="Reliable, stable performer over multiple years. The dependable competitor you can count on."
+                      methodology="Performance Stability Score ≥85% and active for 3+ years"
                     >
                       <div className="text-purple-400 cursor-help">• Steady Eddie</div>
                     </MetricTooltip>

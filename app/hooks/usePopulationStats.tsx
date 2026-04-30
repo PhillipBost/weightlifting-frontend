@@ -77,7 +77,11 @@ export function usePopulationStats(
           const fedData = precomputed[federation];
           if (fedData[perspective]) {
             context = fedData[perspective];
+            // Prefer the specific mode data, but keep context for metadata (sampleSize, etc)
             data = fedData[perspective][mode] || fedData[perspective];
+          } else if (fedData.metrics) {
+            context = fedData;
+            data = fedData.metrics[mode] || fedData.metrics;
           } else {
             // Fallback to old structure if perspective keys are missing
             context = fedData;
@@ -115,26 +119,40 @@ export function usePopulationStats(
         return undefined;
       };
 
-      const hasData = getMetricValue(data, 'successRate') !== undefined || 
-                      getMetricValue(data, 'qScorePerformance') !== undefined ||
-                      getMetricValue(data, 'consistencyScore') !== undefined;
-
-      console.debug('📊 [POPULATION_HOOK_RESOLUTION]', {
+      console.debug('📊 [POPULATION_RESOLUTION_DIAGNOSTIC]', {
         federation,
         perspective,
         mode,
-        hasData,
-        sampleSize: data?.sampleSize || context?.sampleSize,
-        keysInShard: precomputed ? Object.keys(precomputed[federation] || {}) : []
+        hasPrecomputed: !!precomputed,
+        precomputedKeys: precomputed ? Object.keys(precomputed) : [],
+        resolvedContextKeys: context ? Object.keys(context) : [],
+        resolvedDataKeys: data ? Object.keys(data) : [],
+        sampleSizeFromData: data?.sampleSize,
+        sampleSizeFromContext: context?.sampleSize,
+        sampleSizeInFed: precomputed?.[federation]?.sampleSize,
+        sampleSizeInPerspective: precomputed?.[federation]?.[perspective]?.sampleSize
       });
+
+      const hasData = getMetricValue(data, 'successRate') !== undefined || 
+                      getMetricValue(data, 'qScorePerformance') !== undefined ||
+                      getMetricValue(data, 'consistencyScore') !== undefined;
 
       if (data && hasData) {
         const dummyMetric = (key: string): PopulationMetric => {
           const val = getMetricValue(data, key);
           
           // Robustly resolve sampleSize and bucket label from nested context
-          const sampleSize = data.sampleSize || context.sampleSize || (precomputed[federation] && precomputed[federation].sampleSize) || 0;
-          const bucketLabel = data.bucket || context.bucket || (precomputed[federation] && precomputed[federation].bucket) || 'athletes';
+          const sampleSize = data?.sampleSize || 
+                           context?.sampleSize || 
+                           (precomputed && precomputed.sampleSize) ||
+                           (precomputed && precomputed[federation]?.sampleSize) || 
+                           (precomputed && precomputed[federation]?.[perspective]?.sampleSize) || 0;
+          
+          const bucketLabel = data?.bucket || 
+                            context?.bucket || 
+                            (precomputed && precomputed.bucket) ||
+                            (precomputed && precomputed[federation]?.bucket) || 
+                            (precomputed && precomputed[federation]?.[perspective]?.bucket) || 'athletes';
 
           return {
             percentile25: 0,

@@ -447,13 +447,11 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }:
               setShowAllColumns={setShowAllColumns}
               isMixedResults={forceIwfMode ? !showIwfResults : showIwfResults}
             />
-            {!forceIwfMode && (
-              <AthleteAchievements 
-                achievements={athlete.achievements} 
-                athleteName={athlete.displayName || 'Athlete'}
-                results={results}
-              />
-            )}
+            <AthleteAchievements 
+              achievements={athlete.achievements} 
+              athleteName={athlete.displayName || 'Athlete'}
+              results={results}
+            />
             </>
           ) : (
             <ResultsSkeleton />
