@@ -71,18 +71,19 @@ interface AthleteCardProps {
 }
 
 // Helper functions for analytics calculations
-const parseAttempt = (attempt: string | null | undefined): number | null => {
-  if (!attempt || attempt === '0') return null;
+const parseAttempt = (attempt: string | number | null | undefined): number | null => {
+  if (attempt === null || attempt === undefined || attempt === '0' || attempt === 0) return null;
+  if (typeof attempt === 'number') return attempt;
   const parsed = parseInt(attempt);
   return isNaN(parsed) ? null : parsed;
 };
 
-const isSuccessfulAttempt = (attempt: string | null | undefined): boolean => {
+const isSuccessfulAttempt = (attempt: string | number | null | undefined): boolean => {
   const parsed = parseAttempt(attempt);
   return parsed !== null && parsed > 0;
 };
 
-const calculateSuccessRate = (attempts: (string | null | undefined)[]) => {
+const calculateSuccessRate = (attempts: (string | number | null | undefined)[]) => {
   const validAttempts = attempts.filter(attempt => parseAttempt(attempt) !== null);
   if (validAttempts.length === 0) return { percentage: 0, successes: 0, total: 0 };
   
