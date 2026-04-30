@@ -1667,7 +1667,7 @@ export function AthleteCard({ athleteName, birthYear, results, dataSource, popul
               <div className="pt-2 border-t border-app-secondary space-y-3">
                 {/* Snatch Opening */}
                 <div>
-                  <div className="flex items-end justify-between mb-1 gap-4">
+                  <div className="flex items-center justify-between mb-1 gap-4">
                     <div className="font-medium text-app-secondary flex-1 leading-tight">
                       <span style={{ color: 'var(--chart-snatch)' }}>Snatch Opening</span> compared to best make attempt in previous meet
                     </div>
@@ -1711,7 +1711,7 @@ export function AthleteCard({ athleteName, birthYear, results, dataSource, popul
 
                 {/* C&J Opening */}
                 <div>
-                  <div className="flex items-end justify-between mb-1 gap-4">
+                  <div className="flex items-center justify-between mb-1 gap-4">
                     <div className="font-medium text-app-secondary flex-1 leading-tight">
                       <span style={{ color: 'var(--chart-cleanjerk)' }}>C&J Opening</span> compared to best make attempt in previous meet
                     </div>
