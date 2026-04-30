@@ -939,7 +939,7 @@ export function AthleteCard({ athleteName, birthYear, results, dataSource, popul
       const currentCjOpener = parseAttempt(currentMeet.cj_lift_1);
       const prevMeet = resultsAsc[currentIndex - 1];
 
-      const getScenarioKey = (a1: string | number | null, a2: string | number | null, a3: string | number | null) => {
+      const getScenarioKey = (a1: string | number | null | undefined, a2: string | number | null | undefined, a3: string | number | null | undefined) => {
         const v1 = parseAttempt(a1);
         const v2 = parseAttempt(a2);
         const v3 = parseAttempt(a3);
