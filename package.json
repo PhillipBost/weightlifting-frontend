@@ -40,7 +40,7 @@
     "leaflet-defaulticon-compatibility": "^0.1.2",
     "lucide-react": "^0.536.0",
     "minisearch": "^7.2.0",
-    "next": "^15.5.9",
+    "next": "^15.5.12",
     "papaparse": "^5.5.3",
     "pg": "^8.16.3",
     "react": "19.1.1",
@@ -61,7 +61,7 @@
     "autoprefixer": "^10.4.21",
     "eslint": "^9.37.0",
     "eslint-config-next": "^15.5.4",
-    "postcss": "^8.5.6",
+    "postcss": "^8.5.14",
     "tailwindcss": "^3.4.0",
     "typescript": "^5"
   }
