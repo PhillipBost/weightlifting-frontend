@@ -36,6 +36,7 @@
     "d3": "^7.9.0",
     "d3-voronoi-treemap": "^1.1.2",
     "dotenv": "^17.2.2",
+    "jsonwebtoken": "^9.0.3",
     "leaflet": "^1.9.4",
     "leaflet-defaulticon-compatibility": "^0.1.2",
     "lucide-react": "^0.536.0",
