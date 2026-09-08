@@ -1,5 +1,6 @@
 | Date of &nbsp; update | Description |
 | ---------------- | ----------- |
+| 9-7-2026         | Fixed CARTO "API KEY REQUIRED" watermark on meet and club maps by introducing centralized map tile configuration supporting `NEXT_PUBLIC_CARTO_API_KEY` with automatic dark-filtered OpenStreetMap fallback. |
 | 9-27-2025        | Added WSO pages |
 | 9-14-2025        | Added elevation data to meets |
 | 9-13-2025        | Added persistent account creation and login capabilities enabled by Supabase Auth |

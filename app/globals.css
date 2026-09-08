@@ -553,3 +553,8 @@ body {
     100% { transform: scale(1); opacity: 1; }
   }
 }
+
+/* Dark mode filter for map tiles (applied when unauthenticated to avoid CARTO watermark) */
+.dark-tile-layer {
+  filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
+}

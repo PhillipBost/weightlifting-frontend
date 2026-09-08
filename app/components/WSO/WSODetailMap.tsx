@@ -11,6 +11,7 @@ import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility
 import { useWSOMapData } from "../../hooks/useWSOMapData"
 import { useWSODetailData } from "../../hooks/useWSODetailData"
 import { useTheme } from "../ThemeProvider"
+import { getMapTileConfig } from "@/lib/mapTiles"
 
 // Hook to get current zoom level
 function useMapZoom() {
@@ -238,21 +239,6 @@ export default function WSODetailMap({
     return currentPalette[colorIndex]
   }
 
-  // Get theme-appropriate tile layer
-  const getTileLayer = () => {
-    if (theme === 'dark') {
-      return {
-        url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-      }
-    } else {
-      return {
-        url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      }
-    }
-  }
-
   // Enhanced styling function for single WSO display with main map colors
   const getWSOStyle = (): PathOptions => {
     const fillColor = currentWSO ? getWSOColor(currentWSO.wso_id) : 'transparent'
@@ -430,7 +416,7 @@ export default function WSODetailMap({
     )
   }
 
-  const tileLayer = getTileLayer()
+  const tileLayer = getMapTileConfig(theme)
 
   return (
     <div className={`${className} relative`}>
@@ -581,6 +567,7 @@ export default function WSODetailMap({
         <TileLayer
           attribution={tileLayer.attribution}
           url={tileLayer.url}
+          className={tileLayer.className}
         />
 
         {/* Component to auto-fit WSO polygon bounds */}

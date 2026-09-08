@@ -9,6 +9,7 @@ import "leaflet/dist/leaflet.css"
 import "leaflet-defaulticon-compatibility"
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css"
 import { useTheme } from "../ThemeProvider"
+import { getMapTileConfig } from "@/lib/mapTiles"
 
 interface MapProps {
   className?: string
@@ -82,21 +83,6 @@ export default function Map({
       '#6B8B6B', // Muted Green
       '#9A8B5A'  // Muted Gold
     ]
-  }
-
-  // Get theme-appropriate tile layer
-  const getTileLayer = () => {
-    if (theme === 'dark') {
-      return {
-        url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-      }
-    } else {
-      return {
-        url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      }
-    }
   }
 
   const currentPalette = colorPalettes[theme]
@@ -227,7 +213,7 @@ export default function Map({
 
 
 
-  const tileLayer = getTileLayer()
+  const tileLayer = getMapTileConfig(theme)
 
   return (
     <div className={`${className} relative`}>
@@ -268,6 +254,7 @@ export default function Map({
         <TileLayer
           attribution={tileLayer.attribution}
           url={tileLayer.url}
+          className={tileLayer.className}
         />
 
         {/* State borders layer (underneath WSO shapes) */}

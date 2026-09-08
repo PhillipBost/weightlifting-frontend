@@ -9,6 +9,7 @@ import "leaflet-defaulticon-compatibility"
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css"
 import { useClubData } from "../../hooks/useClubData"
 import { useTheme } from "../ThemeProvider"
+import { getMapTileConfig } from "@/lib/mapTiles"
 
 interface ClubMapProps {
   className?: string
@@ -71,21 +72,6 @@ export default function ClubMap({
 
   // Toggle states
   const [filterByActivity, setFilterByActivity] = React.useState(false)
-
-  // Get theme-appropriate tile layer
-  const getTileLayer = () => {
-    if (theme === 'dark') {
-      return {
-        url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-      }
-    } else {
-      return {
-        url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      }
-    }
-  }
 
   // Create custom club marker icon
   const createClubIcon = () => {
@@ -153,7 +139,7 @@ export default function ClubMap({
     )
   }
 
-  const tileLayer = getTileLayer()
+  const tileLayer = getMapTileConfig(theme)
 
   // Filter clubs based on activity toggle
   const displayedClubs = filterByActivity
@@ -249,6 +235,7 @@ export default function ClubMap({
         <TileLayer
           attribution={tileLayer.attribution}
           url={tileLayer.url}
+          className={tileLayer.className}
         />
 
         {/* Club Markers Layer */}

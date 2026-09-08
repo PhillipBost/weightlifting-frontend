@@ -8,6 +8,7 @@ import "leaflet/dist/leaflet.css"
 import "leaflet-defaulticon-compatibility"
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css"
 import { useTheme } from "./ThemeProvider"
+import { getMapTileConfig } from "@/lib/mapTiles"
 
 // Convert country code to flag emoji
 const getCountryFlagEmoji = (code: string): string => {
@@ -174,22 +175,7 @@ export default function MeetHubSpokeMap({
   error = null
 }: MeetHubSpokeMapProps) {
   const { theme } = useTheme()
-
-  const getTileLayer = () => {
-    if (theme === 'dark') {
-      return {
-        url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-      }
-    } else {
-      return {
-        url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      }
-    }
-  }
-
-  const tileLayer = getTileLayer()
+  const tileLayer = getMapTileConfig(theme)
 
   const hubIcon = useMemo(() => createHubIcon(theme, hubType), [theme, hubType])
   const spokeIcons = useMemo(() => spokes.map(spoke => createSpokeIcon(type, spoke.count, theme, spoke.code)), [spokes, type, theme])
@@ -241,7 +227,7 @@ export default function MeetHubSpokeMap({
         style={{ height: "100%", width: "100%" }}
         className="rounded-lg border border-app-secondary"
       >
-        <TileLayer attribution={tileLayer.attribution} url={tileLayer.url} />
+        <TileLayer attribution={tileLayer.attribution} url={tileLayer.url} className={tileLayer.className} />
 
         {spokes.length > 0 && <FitBounds meetLat={meetLat} meetLng={meetLng} spokes={spokes} />}
 
