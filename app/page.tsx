@@ -100,6 +100,21 @@ export default function WeightliftingLandingPage() {
   const searchPlaceholder = `Search for ${placeholderName}, ${placeholderMeet}, or local clubs...`;
 
   const { user } = useAuth();
+  const [pendingMeetsCount, setPendingMeetsCount] = useState<number>(0);
+
+  useEffect(() => {
+    if (user?.role === ROLES.ADMIN) {
+      fetch('/api/owlcms/pending-count')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && typeof data.count === 'number') {
+            setPendingMeetsCount(data.count);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [user?.role]);
+
   const canViewRankings =
     !!user &&
     (user.role === ROLES.ADMIN ||
@@ -305,22 +320,58 @@ export default function WeightliftingLandingPage() {
             {/* Admin Dashboard Navigation Card - visible only to Admin */}
             {user?.role === ROLES.ADMIN && (
               <Link href="/admin" className="group h-full">
-                <div className="bg-app-secondary border border-app-primary rounded-xl p-6 hover:bg-app-hover transition-all duration-200 hover:shadow-lg hover:scale-105 h-full flex flex-col justify-between">
-                  <div className="flex items-center space-x-4">
-                    <div className="bg-red-500/10 rounded-full p-3 group-hover:bg-red-500/20 transition-colors">
-                      <Shield className="h-6 w-6 text-red-500" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-app-primary group-hover:text-red-400 transition-colors">
-                        Admin
-                      </h3>
-                      <p className="text-sm text-app-tertiary mt-1">
-                        Manage user access settings
-                      </p>
+                <div
+                  className={`rounded-xl p-6 transition-all duration-300 hover:scale-105 h-full flex flex-col justify-between relative overflow-hidden ${
+                    pendingMeetsCount > 0
+                      ? 'bg-gradient-to-br from-app-secondary via-app-secondary to-amber-950/40 border-2 border-amber-400 shadow-[0_0_30px_rgba(245,158,11,0.4)] hover:shadow-[0_0_40px_rgba(245,158,11,0.6)]'
+                      : 'bg-app-secondary border border-app-primary hover:bg-app-hover hover:shadow-lg'
+                  }`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div
+                        className={`rounded-full p-3 transition-colors ${
+                          pendingMeetsCount > 0
+                            ? 'bg-amber-500/20 text-amber-400 animate-pulse'
+                            : 'bg-red-500/10 text-red-500 group-hover:bg-red-500/20'
+                        }`}
+                      >
+                        <Shield className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3
+                            className={`text-lg font-semibold transition-colors ${
+                              pendingMeetsCount > 0
+                                ? 'text-amber-300 group-hover:text-amber-200'
+                                : 'text-app-primary group-hover:text-red-400'
+                            }`}
+                          >
+                            Admin
+                          </h3>
+                          {pendingMeetsCount > 0 && (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/25 border border-amber-400/50 text-amber-300 animate-pulse">
+                              <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+                              {pendingMeetsCount} Pending
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-app-tertiary mt-1">
+                          {pendingMeetsCount > 0
+                            ? `${pendingMeetsCount} ${pendingMeetsCount === 1 ? 'meet revision awaits' : 'meet revisions await'} review`
+                            : 'Manage user access settings'}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center mt-4 text-sm text-red-500 group-hover:text-red-400 transition-colors">
-                    <span>Go to dashboard</span>
+                  <div
+                    className={`flex items-center mt-4 text-sm font-semibold transition-colors ${
+                      pendingMeetsCount > 0
+                        ? 'text-amber-400 group-hover:text-amber-300'
+                        : 'text-red-500 group-hover:text-red-400'
+                    }`}
+                  >
+                    <span>{pendingMeetsCount > 0 ? 'Review pending uploads' : 'Go to dashboard'}</span>
                     <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>

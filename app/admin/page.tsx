@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '../components/AuthProvider';
 import { AuthGuard } from '../components/AuthGuard';
 import { ROLES } from '../../lib/roles';
-import { ArrowLeft, Users, Shield, Search, RefreshCw, Medal } from 'lucide-react';
+import { ArrowLeft, Users, Shield, Search, RefreshCw, Medal, UploadCloud, ArrowRight } from 'lucide-react';
 import { ThemeSwitcher } from '../components/ThemeSwitcher';
 import { UserTable } from './components/UserTable';
 
@@ -27,6 +28,19 @@ export default function AdminPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [pendingMeetsCount, setPendingMeetsCount] = useState<number>(0);
+
+  const fetchPendingCount = async () => {
+    try {
+      const res = await fetch('/api/owlcms/pending-count');
+      const data = await res.json();
+      if (data && typeof data.count === 'number') {
+        setPendingMeetsCount(data.count);
+      }
+    } catch {
+      // ignore
+    }
+  };
 
   const fetchUsers = async () => {
     try {
@@ -49,6 +63,7 @@ export default function AdminPage() {
     } finally {
       setLoading(false);
       setRefreshing(false);
+      fetchPendingCount();
     }
   };
 
@@ -148,6 +163,65 @@ export default function AdminPage() {
                 <span>Refresh</span>
               </button>
             </div>
+          </div>
+
+          {/* Admin Quick Tools */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            <Link href="/admin/owlcms" className="group">
+              <div
+                className={`p-5 rounded-xl transition-all flex items-center justify-between ${
+                  pendingMeetsCount > 0
+                    ? 'bg-gradient-to-br from-app-secondary via-app-secondary to-amber-950/30 border-2 border-amber-400 shadow-[0_0_25px_rgba(245,158,11,0.35)] hover:shadow-[0_0_35px_rgba(245,158,11,0.55)]'
+                    : 'card-primary hover:border-sky-500/50 hover:shadow-lg'
+                }`}
+              >
+                <div className="flex items-center space-x-4">
+                  <div
+                    className={`rounded-xl p-3 transition-colors ${
+                      pendingMeetsCount > 0
+                        ? 'bg-amber-500/20 text-amber-400 animate-pulse'
+                        : 'bg-sky-500/10 text-sky-400 group-hover:bg-sky-500/20'
+                    }`}
+                  >
+                    <UploadCloud className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3
+                        className={`text-lg font-bold transition-colors ${
+                          pendingMeetsCount > 0
+                            ? 'text-amber-300 group-hover:text-amber-200'
+                            : 'text-app-primary group-hover:text-sky-400'
+                        }`}
+                      >
+                        OWLCMS Meet Importer
+                      </h3>
+                      {pendingMeetsCount > 0 && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/25 border border-amber-400/50 text-amber-300 animate-pulse">
+                          <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+                          {pendingMeetsCount} Pending
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-app-secondary mt-0.5">
+                      {pendingMeetsCount > 0
+                        ? `${pendingMeetsCount} staged ${pendingMeetsCount === 1 ? 'revision requires' : 'revisions require'} review before database merge`
+                        : 'Ingest OWLCMS JSON competition files directly into the database'}
+                    </p>
+                  </div>
+                </div>
+                <div
+                  className={`flex items-center text-sm font-medium ${
+                    pendingMeetsCount > 0 ? 'text-amber-400' : 'text-sky-400'
+                  }`}
+                >
+                  <span className="hidden sm:inline mr-1">
+                    {pendingMeetsCount > 0 ? 'Review Revisions' : 'Open Importer'}
+                  </span>
+                  <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </div>
+            </Link>
           </div>
 
           {/* Stats Cards */}
