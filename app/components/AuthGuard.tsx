@@ -13,9 +13,20 @@ interface AuthGuardProps {
 
 export function AuthGuard({ children, requireRole, requireAnyRole, fallback }: AuthGuardProps) {
   const { user, isLoading, isLoadingProfile } = useAuth();
+  const hasEverBeenAuthorized = React.useRef(false);
 
-  // Show loading state for initial auth
-  if (isLoading) {
+  const isRoleMet = requireRole
+    ? user?.role === requireRole
+    : requireAnyRole && requireAnyRole.length > 0
+    ? Boolean(user?.role && requireAnyRole.includes(user.role))
+    : true;
+
+  if (isRoleMet) {
+    hasEverBeenAuthorized.current = true;
+  }
+
+  // Show loading state for initial auth only if never yet authorized
+  if (isLoading && !hasEverBeenAuthorized.current) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
@@ -24,7 +35,7 @@ export function AuthGuard({ children, requireRole, requireAnyRole, fallback }: A
   }
 
   // User not authenticated
-  if (!user) {
+  if (!user && !hasEverBeenAuthorized.current) {
     return fallback || (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -41,10 +52,10 @@ export function AuthGuard({ children, requireRole, requireAnyRole, fallback }: A
 
   // Check multi-role requirement
   if (requireAnyRole && requireAnyRole.length > 0) {
-    const hasRequiredRole = user.role && requireAnyRole.includes(user.role);
+    const hasRequiredRole = user?.role && requireAnyRole.includes(user.role);
 
-    // Show loading state while profile is being verified
-    if (!hasRequiredRole && (isLoadingProfile || isLoading)) {
+    // Show loading state while profile is being verified only if never authorized
+    if (!hasRequiredRole && !hasEverBeenAuthorized.current && (isLoadingProfile || isLoading)) {
       return (
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
@@ -60,8 +71,8 @@ export function AuthGuard({ children, requireRole, requireAnyRole, fallback }: A
       );
     }
 
-    // Only show access denied after profile is loaded
-    if (!hasRequiredRole) {
+    // Only show access denied after profile is loaded and verified not authorized
+    if (!hasRequiredRole && !hasEverBeenAuthorized.current) {
       return fallback || (
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
@@ -72,7 +83,7 @@ export function AuthGuard({ children, requireRole, requireAnyRole, fallback }: A
               You don't have permission to view the rankings.
             </p>
             <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
-              Required role: {requireAnyRole.join(', ')}, Your role: {user.role || 'none'}
+              Required role: {requireAnyRole.join(', ')}, Your role: {user?.role || 'none'}
             </p>
           </div>
         </div>
@@ -82,10 +93,10 @@ export function AuthGuard({ children, requireRole, requireAnyRole, fallback }: A
 
   // Check single-role requirement
   if (requireRole) {
-    const hasRequiredRole = user.role === requireRole;
+    const hasRequiredRole = user?.role === requireRole;
 
-    // Show loading state while profile is being verified
-    if (!hasRequiredRole && (isLoadingProfile || isLoading)) {
+    // Show loading state while profile is being verified only if never authorized
+    if (!hasRequiredRole && !hasEverBeenAuthorized.current && (isLoadingProfile || isLoading)) {
       return (
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
@@ -101,8 +112,8 @@ export function AuthGuard({ children, requireRole, requireAnyRole, fallback }: A
       );
     }
 
-    // Only show access denied after profile is loaded
-    if (!hasRequiredRole) {
+    // Only show access denied after profile is loaded and verified not authorized
+    if (!hasRequiredRole && !hasEverBeenAuthorized.current) {
       return fallback || (
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
@@ -113,7 +124,7 @@ export function AuthGuard({ children, requireRole, requireAnyRole, fallback }: A
               You don't have permission to access this page.
             </p>
             <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
-              Required role: {requireRole}, Your role: {user.role || 'none'}
+              Required role: {requireRole}, Your role: {user?.role || 'none'}
             </p>
           </div>
         </div>

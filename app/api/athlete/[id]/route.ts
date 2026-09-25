@@ -1,9 +1,108 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { promisify } from 'util';
 import zlib from 'zlib';
 
 const gunzip = promisify(zlib.gunzip);
+
+function getSupabaseAdmin() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL!;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY!;
+  const basicAuthUser = process.env.BASIC_AUTH_USER;
+  const basicAuthPass = process.env.BASIC_AUTH_PASSWORD;
+
+  const customHeaders: Record<string, string> = {};
+  if (basicAuthUser && basicAuthPass) {
+    customHeaders['Proxy-Authorization'] = `Basic ${Buffer.from(`${basicAuthUser}:${basicAuthPass}`).toString('base64')}`;
+  }
+  return createAdminClient(supabaseUrl, supabaseServiceKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+    global: { headers: customHeaders }
+  });
+}
+
+async function enrichWithOwlcms(data: any, usawLifterId?: number | null, iwfDbLifterId?: number | null) {
+  if (!usawLifterId && !iwfDbLifterId) return data;
+  try {
+    const supabase = getSupabaseAdmin();
+    let query = supabase.from('athlete_aliases').select('owlcms_lifter_id');
+    if (usawLifterId) {
+      query = query.eq('usaw_lifter_id', usawLifterId);
+    } else if (iwfDbLifterId) {
+      query = query.eq('iwf_db_lifter_id', iwfDbLifterId);
+    }
+    const { data: alias } = await query.maybeSingle();
+
+    if (alias?.owlcms_lifter_id) {
+      data.linked_owlcms_id = alias.owlcms_lifter_id;
+      const { data: owlcmsRes } = await supabase
+        .from('owlcms_meet_results')
+        .select(`
+          result_id,
+          meet_id,
+          body_weight_kg,
+          category,
+          snatch_1,
+          snatch_2,
+          snatch_3,
+          best_snatch,
+          cj_1,
+          cj_2,
+          cj_3,
+          best_cj,
+          total,
+          qpoints,
+          gamx_total,
+          gamx_s,
+          gamx_j,
+          gamx_u,
+          gamx_a,
+          gamx_masters,
+          meet:owlcms_meets (
+            meet_name,
+            start_date
+          )
+        `)
+        .eq('lifter_id', alias.owlcms_lifter_id);
+
+      if (owlcmsRes && owlcmsRes.length > 0) {
+        data.owlcms_results = owlcmsRes.map((r: any) => {
+          const meet = Array.isArray(r.meet) ? r.meet[0] : r.meet;
+          return {
+            result_id: r.result_id,
+            meet_id: r.meet_id,
+            meet_name: meet?.meet_name || `Meet #${r.meet_id}`,
+            date: meet?.start_date,
+            category: r.category,
+            weight_class: r.category,
+            body_weight_kg: r.body_weight_kg,
+            snatch_lift_1: r.snatch_1 ? String(r.snatch_1) : null,
+            snatch_lift_2: r.snatch_2 ? String(r.snatch_2) : null,
+            snatch_lift_3: r.snatch_3 ? String(r.snatch_3) : null,
+            best_snatch: r.best_snatch ? String(r.best_snatch) : null,
+            cj_lift_1: r.cj_1 ? String(r.cj_1) : null,
+            cj_lift_2: r.cj_2 ? String(r.cj_2) : null,
+            cj_lift_3: r.cj_3 ? String(r.cj_3) : null,
+            best_cj: r.best_cj ? String(r.best_cj) : null,
+            total: r.total ? String(r.total) : null,
+            qpoints: r.qpoints,
+            gamx_total: r.gamx_total,
+            gamx_s: r.gamx_s,
+            gamx_j: r.gamx_j,
+            gamx_u: r.gamx_u,
+            gamx_a: r.gamx_a,
+            gamx_masters: r.gamx_masters,
+            _source: 'OWLCMS'
+          };
+        });
+      }
+    }
+  } catch (err) {
+    console.error('[OWLCMS ENRICHMENT ERROR]:', err);
+  }
+  return data;
+}
 
 /**
  * Athlete Data Proxy (v4.0 - BACK TO BASICS)
@@ -176,6 +275,28 @@ export async function GET(
         }
       }
 
+      let payload: any;
+      try {
+        payload = JSON.parse(decompressed.toString('utf8'));
+      } catch {
+        payload = null;
+      }
+
+      if (payload) {
+        const usawId = federation === 'usaw' ? payload.lifter_id : null;
+        const iwfId = federation === 'iwf' ? payload.lifter_id : null;
+        payload = await enrichWithOwlcms(payload, usawId, iwfId);
+        return NextResponse.json(payload, {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Response-Time': `${Date.now() - startTime}ms`,
+            'X-Shard-ID': shardId,
+            'X-Federation': federation
+          }
+        });
+      }
+
       return new NextResponse(new Uint8Array(decompressed), {
         status: 200,
         headers: {
@@ -192,12 +313,7 @@ export async function GET(
 
   // 2. Resilient Database Fallback (Direct fetch if shard is missing)
   try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-    
-    // We use a dedicated admin client to ensure 100% visibility for the backup path
-    const { createClient: createAdminClient } = await import('@supabase/supabase-js');
-    const supabaseAdmin = createAdminClient(supabaseUrl, supabaseServiceKey);
+    const supabaseAdmin = getSupabaseAdmin();
 
     if (federation === 'iwf') {
       let { data: lifter } = await supabaseAdmin
@@ -223,13 +339,16 @@ export async function GET(
           .eq('db_lifter_id', cleanId)
           .order('date', { ascending: false });
 
-        return NextResponse.json({
+        let iwfPayload: any = {
           lifter_id: lifter.db_lifter_id,
           athlete_name: lifter.athlete_name,
           iwf_results: results || [],
           usaw_results: [],
           source: 'IWF'
-        }, { headers: { 'X-Response-Source': 'Direct-DB-Backup' } });
+        };
+        iwfPayload = await enrichWithOwlcms(iwfPayload, null, lifter.db_lifter_id);
+
+        return NextResponse.json(iwfPayload, { headers: { 'X-Response-Source': 'Direct-DB-Backup' } });
       }
     } else {
       // USAW Database extraction if shard is missing
@@ -246,13 +365,16 @@ export async function GET(
           .eq('lifter_id', lifter.lifter_id)
           .order('date', { ascending: false });
 
-        return NextResponse.json({
+        let usawPayload: any = {
           lifter_id: lifter.lifter_id,
           athlete_name: lifter.athlete_name,
           membership_number: lifter.membership_number,
           usaw_results: results || [],
           iwf_results: []
-        }, { headers: { 'X-Response-Source': 'Direct-DB-Backup' } });
+        };
+        usawPayload = await enrichWithOwlcms(usawPayload, lifter.lifter_id, null);
+
+        return NextResponse.json(usawPayload, { headers: { 'X-Response-Source': 'Direct-DB-Backup' } });
       }
     }
   } catch (fallbackErr) {

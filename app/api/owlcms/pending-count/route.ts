@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { createClient as createServerClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,6 +28,12 @@ function getSupabaseAdmin() {
 
 export async function GET() {
   try {
+    // 0. Admin Authentication Check — this endpoint is an internal ops signal
+    // (quarantine/review badge counter) and is never part of the public API surface.
+    const serverSupabase = await createServerClient();
+    const { data: { user }, error: userError } = await serverSupabase.auth.getUser();
+    if (userError || !user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+
     const supabaseAdmin = getSupabaseAdmin();
     let totalCount = 0;
 

@@ -80,7 +80,8 @@ export async function GET() {
           const startDate = normalizeDate(comp.competitionDate || comp.localizedCompetitionDate || json.startDate);
           const endDate = normalizeDate(comp.competitionEndDate || comp.competitionDate || json.endDate);
           const city = comp.competitionCity || json.city || null;
-          const country = comp.competitionSite || comp.country || json.country || null;
+          const venue = comp.competitionSite || json.venue || null;
+          const country = comp.country || json.country || null;
           const formatVersion = (json.formatVersion || json.version || '1.0').toString();
 
           const athletes = Array.isArray(json.athletes)
@@ -117,6 +118,7 @@ export async function GET() {
             start_date: startDate,
             end_date: endDate,
             city,
+            venue,
             country,
             format_version: formatVersion,
             athlete_count: athletes.length,

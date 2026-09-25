@@ -23,16 +23,26 @@ export default function OwlcmsAdminPage() {
         setMeetReviewCount(meetData.count);
       }
 
-      // 2. Fetch pending athlete review count
-      const athleteRes = await fetch('/api/owlcms/reviews');
-      const athleteData = await athleteRes.json();
-      if (athleteData.success && typeof athleteData.count === 'number') {
-        setAthleteReviewCount(athleteData.count);
+      // 2. Fetch pending athlete review count across all 4 categories
+      const reviewRes = await fetch('/api/admin/review-queue?limit=1');
+      const reviewData = await reviewRes.json();
+      if (reviewData.success && typeof reviewData.counts?.total === 'number') {
+        setAthleteReviewCount(reviewData.counts.total);
       }
     } catch {
       // Ignore background counter errors
     }
   };
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get('tab');
+      if (tab === 'athlete_review' || tab === 'meet_review' || tab === 'importer') {
+        setActiveTab(tab);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     fetchCounts();
@@ -47,7 +57,7 @@ export default function OwlcmsAdminPage() {
             <Shield className="h-16 w-16 text-rose-500 mx-auto mb-4" />
             <h1 className="text-2xl font-bold text-white mb-2">Access Denied</h1>
             <p className="text-slate-400 text-sm mb-6">
-              Admin access is required to access the OWLCMS competition importer.
+              Admin access is required to access the owlcms competition importer.
             </p>
             <Link
               href="/"
@@ -124,19 +134,21 @@ export default function OwlcmsAdminPage() {
             </div>
           </div>
 
-          {/* Active Tab View */}
+          {/* Active Tab View - Preserved with CSS display to prevent unmounting and state loss */}
           <div className="w-full">
-            {activeTab === 'importer' && <OwlcmsUploader />}
-            {activeTab === 'meet_review' && (
+            <div className={activeTab === 'importer' ? 'block' : 'hidden'}>
+              <OwlcmsUploader />
+            </div>
+            <div className={activeTab === 'meet_review' ? 'block' : 'hidden'}>
               <QuarantineReviewQueue
                 onCountChange={(newCount) => setMeetReviewCount(newCount)}
               />
-            )}
-            {activeTab === 'athlete_review' && (
+            </div>
+            <div className={activeTab === 'athlete_review' ? 'block' : 'hidden'}>
               <AthleteReviewQueue
                 onCountChange={(newCount) => setAthleteReviewCount(newCount)}
               />
-            )}
+            </div>
           </div>
         </div>
       </div>

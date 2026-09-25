@@ -13,6 +13,10 @@ interface AthleteHeaderProps {
   setShowIwfResults: (show: boolean) => void;
   forceIwfMode?: boolean;
   currentIwfId?: string;
+  linkedOwlcmsId?: number | null;
+  owlcmsResults?: any[];
+  showOwlcmsResults?: boolean;
+  setShowOwlcmsResults?: (show: boolean) => void;
 }
 
 export function AthleteHeader({
@@ -23,7 +27,11 @@ export function AthleteHeader({
   showIwfResults,
   setShowIwfResults,
   forceIwfMode = false,
-  currentIwfId
+  currentIwfId,
+  linkedOwlcmsId,
+  owlcmsResults,
+  showOwlcmsResults = false,
+  setShowOwlcmsResults
 }: AthleteHeaderProps) {
   if (!athlete) return null;
 
@@ -101,7 +109,7 @@ export function AthleteHeader({
         </div>
 
         {/* Internal Navigation Links & Toggle */}
-        {(iwfProfiles.length > 0 || iwfResults.length > 0 || athlete.linked_usaw_id || athlete.linked_iwf_id) && (
+        {(iwfProfiles.length > 0 || iwfResults.length > 0 || athlete.linked_usaw_id || athlete.linked_iwf_id || linkedOwlcmsId || (owlcmsResults && owlcmsResults.length > 0)) && (
           <div className="flex flex-col gap-3 my-4 md:my-0 md:pt-2 items-start justify-center px-4">
             {/* Link back to USAW Profile - Only if it exists */}
             {forceIwfMode && (athlete.linked_usaw_id || athlete.membership_number) && (
@@ -169,6 +177,36 @@ export function AthleteHeader({
                 </div>
                 <span className="text-sm font-medium text-app-secondary select-none text-nowrap">
                   {forceIwfMode ? 'Include USAW Results' : 'Include IWF Results'}
+                </span>
+              </label>
+            )}
+
+            {/* Link to owlcms Profile */}
+            {linkedOwlcmsId && (
+              <Link
+                href={`/athlete/owlcms/${linkedOwlcmsId}`}
+                className="inline-flex items-center space-x-2 px-3 py-1.5 bg-transparent hover:bg-app-tertiary border border-app-secondary rounded-md text-app-secondary hover:text-white transition-colors text-sm"
+              >
+                <Dumbbell className="h-3.5 w-3.5 text-emerald-400" />
+                <span>View owlcms Profile</span>
+              </Link>
+            )}
+
+            {/* owlcms Results Toggle */}
+            {owlcmsResults && owlcmsResults.length > 0 && setShowOwlcmsResults && (
+              <label className="flex items-center space-x-3 cursor-pointer mt-1">
+                <div className="relative">
+                  <input 
+                    type="checkbox" 
+                    className="sr-only" 
+                    checked={showOwlcmsResults}
+                    onChange={(e) => setShowOwlcmsResults(e.target.checked)}
+                  />
+                  <div className={`block w-10 h-6 rounded-full transition-colors ${showOwlcmsResults ? 'bg-emerald-600' : 'bg-app-surface border border-app-secondary'}`}></div>
+                  <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${showOwlcmsResults ? 'transform translate-x-4' : ''}`}></div>
+                </div>
+                <span className="text-sm font-medium text-app-secondary select-none text-nowrap">
+                  Include owlcms Results
                 </span>
               </label>
             )}

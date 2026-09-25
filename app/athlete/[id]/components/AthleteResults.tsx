@@ -503,11 +503,22 @@ export function AthleteResults({
                             <td className="px-2 py-1 whitespace-nowrap text-xs">{new Date(result.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
                             <td className="px-2 py-1 max-w-20 text-xs">
                               <Link
-                                href={result._source === 'IWF' ? `/meet/iwf/${result.meet_id || result.db_meet_id || result.iwf_meet_id}` : `/meet/${result.meet_id}`}
+                                href={
+                                  result._source === 'owlcms' || result._source === 'OWLCMS'
+                                    ? `/meet/owlcms/${result.meet_id}`
+                                    : result._source === 'IWF'
+                                      ? `/meet/iwf/${result.meet_id || result.db_meet_id || result.iwf_meet_id}`
+                                      : `/meet/${result.meet_id}`
+                                }
                                 className="text-accent-primary hover:text-accent-primary-hover transition-colors truncate max-w-full block text-left hover:underline"
                                 title={result.meet_name}
                               >
                                 {result.meet_name}
+                                {isMixedResults && (result._source === 'OWLCMS' || result._source === 'owlcms') && (
+                                  <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-900/30 text-emerald-400 border border-emerald-800/50">
+                                    owlcms
+                                  </span>
+                                )}
                                 {isMixedResults && result._source === 'IWF' && (
                                   <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-900/30 text-red-400 border border-red-800/50">
                                     IWF
@@ -551,11 +562,22 @@ export function AthleteResults({
                             <td className="px-2 py-1 whitespace-nowrap text-xs">{new Date(result.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
                             <td className="px-2 py-1 max-w-xs text-xs">
                               <Link
-                                href={result._source === 'IWF' ? `/meet/iwf/${result.meet_id || result.db_meet_id || result.iwf_meet_id}` : `/meet/${result.meet_id}`}
+                                href={
+                                  result._source === 'owlcms' || result._source === 'OWLCMS'
+                                    ? `/meet/owlcms/${result.meet_id}`
+                                    : result._source === 'IWF'
+                                      ? `/meet/iwf/${result.meet_id || result.db_meet_id || result.iwf_meet_id}`
+                                      : `/meet/${result.meet_id}`
+                                }
                                 className="text-accent-primary hover:text-accent-primary-hover transition-colors truncate max-w-full block text-left hover:underline"
                                 title={result.meet_name}
                               >
                                 {result.meet_name}
+                                {isMixedResults && (result._source === 'OWLCMS' || result._source === 'owlcms') && (
+                                  <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-900/30 text-emerald-400 border border-emerald-800/50">
+                                    owlcms
+                                  </span>
+                                )}
                                 {isMixedResults && result._source === 'IWF' && (
                                   <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-900/30 text-red-400 border border-red-800/50">
                                     IWF

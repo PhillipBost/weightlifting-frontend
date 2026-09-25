@@ -29,6 +29,7 @@ export default function AdminPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [pendingMeetsCount, setPendingMeetsCount] = useState<number>(0);
+  const [pendingReviewCount, setPendingReviewCount] = useState<number>(0);
 
   const fetchPendingCount = async () => {
     try {
@@ -36,6 +37,11 @@ export default function AdminPage() {
       const data = await res.json();
       if (data && typeof data.count === 'number') {
         setPendingMeetsCount(data.count);
+      }
+      const revRes = await fetch('/api/admin/review-queue?limit=1');
+      const revData = await revRes.json();
+      if (revData && typeof revData.counts?.total === 'number') {
+        setPendingReviewCount(revData.counts.total);
       }
     } catch {
       // ignore
@@ -194,7 +200,7 @@ export default function AdminPage() {
                             : 'text-app-primary group-hover:text-sky-400'
                         }`}
                       >
-                        OWLCMS Meet Importer
+                        owlcms Meet Importer
                       </h3>
                       {pendingMeetsCount > 0 && (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/25 border border-amber-400/50 text-amber-300 animate-pulse">
@@ -206,7 +212,7 @@ export default function AdminPage() {
                     <p className="text-xs text-app-secondary mt-0.5">
                       {pendingMeetsCount > 0
                         ? `${pendingMeetsCount} staged ${pendingMeetsCount === 1 ? 'revision requires' : 'revisions require'} review before database merge`
-                        : 'Ingest OWLCMS JSON competition files directly into the database'}
+                        : 'Ingest owlcms JSON competition files directly into the database'}
                     </p>
                   </div>
                 </div>
@@ -217,6 +223,63 @@ export default function AdminPage() {
                 >
                   <span className="hidden sm:inline mr-1">
                     {pendingMeetsCount > 0 ? 'Review Revisions' : 'Open Importer'}
+                  </span>
+                  <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </div>
+            </Link>
+
+            {/* Identity & Data Quality Review Suite */}
+            <Link href="/admin/owlcms?tab=athlete_review" className="group">
+              <div
+                className={`p-5 rounded-xl transition-all flex items-center justify-between ${
+                  pendingReviewCount > 0
+                    ? 'bg-gradient-to-br from-app-secondary via-app-secondary to-indigo-950/30 border-2 border-indigo-400 shadow-[0_0_25px_rgba(99,102,241,0.35)] hover:shadow-[0_0_35px_rgba(99,102,241,0.55)]'
+                    : 'card-primary hover:border-indigo-500/50 hover:shadow-lg'
+                }`}
+              >
+                <div className="flex items-center space-x-4">
+                  <div
+                    className={`rounded-xl p-3 transition-colors ${
+                      pendingReviewCount > 0
+                        ? 'bg-indigo-500/20 text-indigo-400 animate-pulse'
+                        : 'bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/20'
+                    }`}
+                  >
+                    <Users className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3
+                        className={`text-lg font-bold transition-colors ${
+                          pendingReviewCount > 0
+                            ? 'text-indigo-300 group-hover:text-indigo-200'
+                            : 'text-app-primary group-hover:text-indigo-400'
+                        }`}
+                      >
+                        Identity & Review Queue
+                      </h3>
+                      {pendingReviewCount > 0 && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-500/25 border border-indigo-400/50 text-indigo-300 animate-pulse">
+                          <span className="w-2 h-2 rounded-full bg-indigo-400 animate-ping" />
+                          {pendingReviewCount.toLocaleString()} Staged
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-app-secondary mt-0.5">
+                      {pendingReviewCount > 0
+                        ? `${pendingReviewCount.toLocaleString()} identity review ${pendingReviewCount === 1 ? 'item requires' : 'items require'} administrative resolution`
+                        : 'Multi-stream identity resolution for homonyms, name changes, and duplicate entries'}
+                    </p>
+                  </div>
+                </div>
+                <div
+                  className={`flex items-center text-sm font-medium ${
+                    pendingReviewCount > 0 ? 'text-indigo-400' : 'text-indigo-400'
+                  }`}
+                >
+                  <span className="hidden sm:inline mr-1">
+                    {pendingReviewCount > 0 ? 'Open Review Suite' : 'View Queue'}
                   </span>
                   <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </div>

@@ -49,6 +49,7 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }:
   });
 
   const [showIwfResults, setShowIwfResults] = useState(forceIwfMode);
+  const [showOwlcmsResults, setShowOwlcmsResults] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [showAllColumns, setShowAllColumns] = useState(false);
   const [sortConfig, setSortConfig] = useState<{
@@ -74,18 +75,26 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }:
       key: r.id || `iwf-${r.date}-${r.total}-${idx}`
     }));
 
+    const owlcms = (athleteData.owlcms_results || []).map((r: any, idx: number) => ({
+      ...r,
+      _source: 'owlcms',
+      meets: { Level: 'Domestic / owlcms' },
+      key: r.result_id ? `owlcms-${r.result_id}` : `owlcms-${r.meet_id}-${r.date}-${idx}`
+    }));
+
     // Results are largely pre-merged by the Phase 4.5 Assembler,
     // so we just combine and Sort.
     const shouldShowCombined = forceIwfMode ? !showIwfResults : showIwfResults;
+    let combined = shouldShowCombined ? [...usaw, ...iwf] : (forceIwfMode ? iwf : usaw);
 
-    if (!shouldShowCombined) {
-      return forceIwfMode ? iwf : usaw;
+    if (showOwlcmsResults && owlcms.length > 0) {
+      combined = [...combined, ...owlcms];
     }
     
-    return [...usaw, ...iwf].sort((a, b) => 
+    return combined.sort((a: any, b: any) => 
       new Date(b.date).getTime() - new Date(a.date).getTime()
     );
-  }, [athleteData, showIwfResults, forceIwfMode]);
+  }, [athleteData, showIwfResults, showOwlcmsResults, forceIwfMode]);
 
   // --- TOP-DOWN STABLE HYDRATION ORCHESTRATOR ---
   const [renderStep, setRenderStep] = React.useState(0);
@@ -208,6 +217,8 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }:
       membership_number: athleteData.linked_usaw_id || athleteData.membership_number,
       linked_usaw_id: athleteData.linked_usaw_id,
       linked_iwf_id: athleteData.linked_iwf_id,
+      linked_owlcms_id: athleteData.linked_owlcms_id,
+      owlcms_results: athleteData.owlcms_results || [],
       gender: athleteData.gender,
       nation_code: athleteData.country_code,
       nation: athleteData.country_name,
@@ -379,6 +390,10 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }:
                 setShowIwfResults={setShowIwfResults} 
                 forceIwfMode={forceIwfMode}
                 currentIwfId={id}
+                linkedOwlcmsId={athlete.linked_owlcms_id}
+                owlcmsResults={athlete.owlcms_results || []}
+                showOwlcmsResults={showOwlcmsResults}
+                setShowOwlcmsResults={setShowOwlcmsResults}
               />
               <AthleteBests personalBests={personalBests} />
             </>
@@ -445,7 +460,7 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }:
               }}
               showAllColumns={showAllColumns}
               setShowAllColumns={setShowAllColumns}
-              isMixedResults={forceIwfMode ? !showIwfResults : showIwfResults}
+              isMixedResults={(forceIwfMode ? !showIwfResults : showIwfResults) || showOwlcmsResults}
             />
             <AthleteAchievements 
               achievements={athlete.achievements} 

@@ -114,7 +114,8 @@ export async function POST(req: NextRequest) {
     const startDate = normalizeDate(comp.competitionDate || comp.localizedCompetitionDate || json.startDate);
     const endDate = normalizeDate(comp.competitionEndDate || comp.competitionDate || json.endDate);
     const city = comp.competitionCity || json.city || null;
-    const country = comp.competitionSite || comp.country || json.country || null;
+    const venue = comp.competitionSite || json.venue || null;
+    const country = comp.country || json.country || null;
     const organizer = comp.competitionOrganizer || comp.federation || json.organizer || null;
     const formatVersion = (json.formatVersion || json.version || '1.0').toString();
 
@@ -277,6 +278,7 @@ export async function POST(req: NextRequest) {
           start_date: startDate,
           end_date: endDate,
           city,
+          venue,
           country,
           organizer,
           format_version: formatVersion,

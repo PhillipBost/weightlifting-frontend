@@ -85,33 +85,38 @@ export async function POST(req: NextRequest) {
   const supabaseAdmin = getSupabaseAdmin();
 
   try {
-    // 1. Dual Authentication Check (API Key or Supabase Admin Session)
+    // 1. Attribution Check (API Key, Supabase Session, or Anonymous-with-attribution)
     const apiKeyHeader = req.headers.get('x-api-key') || req.headers.get('authorization')?.replace(/^Bearer\s+/i, '');
     const configuredApiKey = process.env.OWLCMS_API_KEY;
 
-    let user: { id: string; email: string | null };
+    // `user` is the authenticated account backing the `uploaded_by` uuid column.
+    // It is null for API-key and anonymous uploads — attribution identity is
+    // captured separately via submitter_name / submitter_email / submission_source.
+    let user: { id: string | null; email: string | null } = { id: null, email: null };
+    let submissionSource: 'api' | 'site' = 'site';
 
     if (configuredApiKey && apiKeyHeader && apiKeyHeader === configuredApiKey) {
-      user = { id: 'owlcms_external_api', email: 'api@owlcms' };
+      // External integration path — attribution comes from the wrapper's submitter fields.
+      submissionSource = 'api';
     } else {
       const serverSupabase = await createServerClient();
       const { data: authData, error: userError } = await serverSupabase.auth.getUser();
 
-      if (userError || !authData.user) {
-        return NextResponse.json({ success: false, error: 'Unauthorized: Invalid API key or session' }, { status: 401 });
+      if (authData?.user && !userError) {
+        const { data: profile, error: profileError } = await supabaseAdmin
+          .from('profiles')
+          .select('role')
+          .eq('id', authData.user.id)
+          .single();
+
+        if (profileError || profile?.role !== 'admin') {
+          return NextResponse.json({ success: false, error: 'Admin access required' }, { status: 403 });
+        }
+
+        user = { id: authData.user.id, email: authData.user.email || null };
       }
-
-      const { data: profile, error: profileError } = await supabaseAdmin
-        .from('profiles')
-        .select('role')
-        .eq('id', authData.user.id)
-        .single();
-
-      if (profileError || profile?.role !== 'admin') {
-        return NextResponse.json({ success: false, error: 'Admin access required' }, { status: 403 });
-      }
-
-      user = { id: authData.user.id, email: authData.user.email || null };
+      // No session and no matching API key: anonymous-with-attribution path.
+      // submitterName / submitterEmail are enforced after the body is parsed (below).
     }
 
     // 2. Parse & Validate Payload (Supports both raw OWLCMS JSON and UI wrapper)
@@ -123,8 +128,32 @@ export async function POST(req: NextRequest) {
     const dryRun = Boolean(isWrapper ? body.dryRun : (req.headers.get('x-dry-run') === 'true' || req.nextUrl.searchParams.get('dryRun') === 'true'));
     const batchMode = Boolean(isWrapper ? body.batchMode : req.headers.get('x-batch-mode') === 'true');
     const explicitParentMeetId = isWrapper ? body.parentMeetId : null;
-    const explicitRevisionNotes = isWrapper ? body.revisionNotes : null;
+    const explicitRevisionNotes = isWrapper ? (body.revisionNotes || body.uploaderSelections?.additional_notes || null) : null;
     const forceUpload = Boolean(isWrapper ? body.forceUpload : false);
+    const federationId = isWrapper ? (body.federationId || null) : null;
+    const submitterName = (isWrapper ? body.submitterName : null)?.toString().trim() || null;
+    const submitterEmail = (isWrapper ? body.submitterEmail : null)?.toString().trim() || null;
+    const rawUploaderSelections = isWrapper ? body.uploaderSelections : null;
+    const uploaderSelections = rawUploaderSelections && typeof rawUploaderSelections === 'object' ? {
+      continent_id: rawUploaderSelections.continent_id || null,
+      country_id: rawUploaderSelections.country_id || null,
+      organizer_id: rawUploaderSelections.organizer_id || null,
+      host_country_code: rawUploaderSelections.host_country_code || null,
+      competition_scope: rawUploaderSelections.competition_scope || null,
+      additional_notes: typeof rawUploaderSelections.additional_notes === 'string' ? rawUploaderSelections.additional_notes.trim() || null : null,
+      cleared: Array.isArray(rawUploaderSelections.cleared) ? rawUploaderSelections.cleared : []
+    } : null;
+
+    // 3. Server-side attribution enforcement: anonymous uploads (no session account)
+    // must carry submitter name and contact email before any live ingestion proceeds.
+    if (!user.id && !dryRun) {
+      if (!submitterName) {
+        return NextResponse.json({ success: false, error: 'Submitter name is required for anonymous uploads.' }, { status: 400 });
+      }
+      if (!submitterEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(submitterEmail)) {
+        return NextResponse.json({ success: false, error: 'A valid contact email is required for anonymous uploads.' }, { status: 400 });
+      }
+    }
 
     if (!payload || typeof payload !== 'object' || (!payload.competition && !payload.athletes && !payload.competitors && !payload.formatVersion && !payload.version)) {
       return NextResponse.json({ success: false, error: 'Invalid or missing OWLCMS JSON payload' }, { status: 400 });
@@ -147,11 +176,12 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const meetName = (comp.competitionName || comp.name || payload.competitionName || 'OWLCMS Competition').trim();
+    const meetName = (comp.competitionName || comp.name || payload.competitionName || 'owlcms Competition').trim();
     const startDate = normalizeDate(comp.competitionDate || comp.localizedCompetitionDate || payload.startDate);
     const endDate = normalizeDate(comp.competitionEndDate || comp.competitionDate || payload.endDate);
     const city = comp.competitionCity || payload.city || null;
-    const country = comp.competitionSite || comp.country || payload.country || null;
+    const venue = comp.competitionSite || payload.venue || null;
+    const country = comp.country || payload.country || null;
     const organizer = comp.competitionOrganizer || comp.federation || payload.organizer || null;
 
     const clientIp =
@@ -249,8 +279,13 @@ export async function POST(req: NextRequest) {
               start_date: startDate,
               end_date: endDate,
               city,
+              venue,
               country,
               organizer,
+              host_country_code: uploaderSelections?.host_country_code || null,
+              organizer_federation_id: uploaderSelections?.organizer_id || null,
+              competition_scope: uploaderSelections?.competition_scope || null,
+              uploader_selections: uploaderSelections,
               status: 'pending_review',
               parent_meet_id: parentMeetId,
               revision_notes: revisionNotes,
@@ -331,9 +366,14 @@ export async function POST(req: NextRequest) {
         start_date: startDate,
         end_date: endDate,
         city,
+        venue,
         country,
         organizer,
-        status: parentMeetId ? 'pending_review' : 'published',
+        host_country_code: uploaderSelections?.host_country_code || null,
+        organizer_federation_id: uploaderSelections?.organizer_id || null,
+        competition_scope: uploaderSelections?.competition_scope || null,
+        uploader_selections: uploaderSelections,
+        status: (parentMeetId || revisionNotes) ? 'pending_review' : 'published',
         parent_meet_id: parentMeetId || null,
         revision_notes: revisionNotes || null,
         isRevision,
@@ -342,7 +382,9 @@ export async function POST(req: NextRequest) {
         teams_found: teams.length,
         format_version: String(version),
         uploaded_by: user.id,
-        uploader_email: user.email || null,
+        submitter_name: submitterName,
+        submission_source: submissionSource,
+        uploader_email: submitterEmail || user.email || null,
         uploader_ip: clientIp,
         raw_payload_bytes: Buffer.byteLength(rawPayloadString, 'utf-8'),
         compressed_bytes: rawStorageBytes,
@@ -360,22 +402,50 @@ export async function POST(req: NextRequest) {
     // Step 2 Benchmark: Database Inserts
     const dbStartTime = performance.now();
 
+    // Resolve federation_id: Use explicit federationId or auto-resolve from raw federation string
+    let resolvedFederationId = federationId || null;
+    if (!resolvedFederationId && comp.federation) {
+      try {
+        const { data: searchMatches } = await supabaseAdmin.rpc('search_federations', {
+          query_text: String(comp.federation).trim(),
+          as_of_date: startDate || null
+        });
+        if (searchMatches && searchMatches.length > 0 && searchMatches[0].match_rank >= 80) {
+          resolvedFederationId = searchMatches[0].id;
+        }
+      } catch (fedErr) {
+        console.warn('[OWLCMS_UPLOAD] Federation auto-resolve warning:', fedErr);
+      }
+    }
+
     // 3. Insert Meet Record
+    const hostCountryCode = uploaderSelections?.host_country_code || null;
+    const organizerFederationId = uploaderSelections?.organizer_id || null;
+    const competitionScope = uploaderSelections?.competition_scope || null;
+
     const meetInsertData: Record<string, any> = {
       meet_name: meetName,
       start_date: startDate,
       end_date: endDate,
       city,
+      venue,
       country,
+      host_country_code: hostCountryCode,
       organizer,
+      organizer_federation_id: organizerFederationId,
+      competition_scope: competitionScope,
+      uploader_selections: uploaderSelections,
+      federation_id: resolvedFederationId,
       format_version: String(version),
       source_file_name: fileName || 'upload.json',
       uploaded_by: user.id,
-      uploader_email: user.email || null,
+      submitter_name: submitterName,
+      submission_source: submissionSource,
+      uploader_email: submitterEmail || user.email || null,
       uploader_ip: clientIp,
       raw_payload: payload,
       raw_payload_hash: rawPayloadHash,
-      status: parentMeetId ? 'pending_review' : 'published',
+      status: (parentMeetId || revisionNotes) ? 'pending_review' : 'published',
       parent_meet_id: parentMeetId || null,
       revision_notes: revisionNotes || null
     };
@@ -386,11 +456,20 @@ export async function POST(req: NextRequest) {
       .select('meet_id')
       .single();
 
-    // Fallback if status/parent_meet_id columns are not yet applied via migration
+    // Fallback if revision/status or new cascade columns are not yet applied via migration.
+    // federation_id is intentionally NOT dropped here — a missing-column error
+    // must never silently discard the resolved federation.
     if (meetError && (meetError.message.includes('column') || meetError.code === 'PGRST204')) {
       delete meetInsertData.status;
       delete meetInsertData.parent_meet_id;
       delete meetInsertData.revision_notes;
+      delete meetInsertData.submitter_name;
+      delete meetInsertData.submission_source;
+      delete meetInsertData.venue;
+      delete meetInsertData.host_country_code;
+      delete meetInsertData.organizer_federation_id;
+      delete meetInsertData.competition_scope;
+      delete meetInsertData.uploader_selections;
       const fallback = await supabaseAdmin
         .from('owlcms_meets')
         .insert(meetInsertData)
@@ -592,13 +671,20 @@ export async function POST(req: NextRequest) {
       start_date: startDate,
       end_date: endDate,
       city,
+      venue,
       country,
-      status: parentMeetId ? 'pending_review' : 'published',
+      host_country_code: hostCountryCode,
+      organizer_federation_id: organizerFederationId,
+      competition_scope: competitionScope,
+      uploader_selections: uploaderSelections,
+      status: (parentMeetId || revisionNotes) ? 'pending_review' : 'published',
       parent_meet_id: parentMeetId || null,
       revision_notes: revisionNotes || null,
       isRevision,
       quarantined: isQuarantined,
       format_version: String(version),
+      submitter_name: submitterName,
+      submission_source: submissionSource,
       lifters_created: liftersCreatedCount,
       lifters_reused: 0,
       total_results_imported: results.length,

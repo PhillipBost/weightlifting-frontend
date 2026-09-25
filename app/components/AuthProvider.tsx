@@ -62,7 +62,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const cached = sessionStorage.getItem(PROFILE_CACHE_KEY)
       if (cached) {
         const data = JSON.parse(cached)
-        if (data.userId === userId && data.timestamp > Date.now() - 5 * 60 * 1000) {
+        if (data.userId === userId && data.timestamp > Date.now() - 24 * 60 * 60 * 1000) {
           console.log('[AUTH] Using cached profile')
           return data.profile
         }
@@ -319,24 +319,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setSession(session)
 
       if (session?.user) {
-        // Immediately set user with session data and cached profile as fallback
         const cachedProfile = getCachedProfile(session.user.id)
-        const immediateUser: ExtendedUser = {
-          ...session.user,
-          name: cachedProfile?.name || session.user.email?.split('@')[0] || 'User',
-          role: cachedProfile?.role || 'default'
-        }
+        const currentRole = user?.role || cachedProfile?.role || 'default'
 
         // Only update user if it's different to avoid re-renders
         setUser(prev => {
-          if (prev?.id === immediateUser.id && prev?.role === immediateUser.role) return prev;
-          return immediateUser;
+          const effectiveRole = cachedProfile?.role || prev?.role || 'default'
+          const effectiveName = cachedProfile?.name || prev?.name || session.user.email?.split('@')[0] || 'User'
+          const immediateUser: ExtendedUser = {
+            ...session.user,
+            name: effectiveName,
+            role: effectiveRole
+          }
+          if (prev?.id === immediateUser.id && prev?.role === immediateUser.role && prev?.name === immediateUser.name) return prev
+          return immediateUser
         })
 
         setIsLoading(false)
 
-        // Only show loading profile if we don't have a cached role
-        if (!cachedProfile?.role) {
+        // Only show loading profile if we don't have any known role
+        if (!cachedProfile?.role && !user?.role) {
           setIsLoadingProfile(true)
         }
 
