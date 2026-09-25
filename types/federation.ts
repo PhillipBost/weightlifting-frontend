@@ -17,8 +17,8 @@ export const FEDERATION_LEVEL_LABELS: Record<FederationLevel, string> = {
   global_international: 'Global Apex',
   international: 'International',
   continental: 'Continental',
-  intercontinental_regional: 'Intercontinental Regional',
-  regional: 'Regional',
+  intercontinental_regional: 'Intercontinental Regional (Multi-Country)',
+  regional: 'Regional (Multi-Country)',
   national: 'National',
   regional_state_wso: 'State / Provincial (WSO)',
   club: 'Club'
@@ -486,7 +486,7 @@ export const CANONICAL_ACRONYMS: Record<string, string> = {
   "Central Asian Weightlifting Federation": 'CAWF',
   "Southeast Asian Weightlifting Federation": 'SEAWF',
   "Pacific Islands Weightlifting Federation": 'PIWF',
-  // National Governing Bodies (NGBs)
+  // National Governing Bodies
   "USA Weightlifting": 'USAW',
   "Weightlifting Canada Haltérophilie": 'WCH',
   "Australian Weightlifting Federation Inc.": 'AWF',

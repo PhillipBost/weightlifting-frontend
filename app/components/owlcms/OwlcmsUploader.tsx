@@ -452,14 +452,14 @@ export function OwlcmsUploader() {
           if (/québec|quebec/i.test(compName)) {
             candidateList.push({
               sourceField: 'competition.competitionName',
-              fieldLabel: 'Regional Keyword in Meet Name',
+              fieldLabel: 'State / Provincial Keyword in Meet Name',
               value: 'Québec'
             });
           }
           if (/ontario/i.test(compName)) {
             candidateList.push({
               sourceField: 'competition.competitionName',
-              fieldLabel: 'Regional Keyword in Meet Name',
+              fieldLabel: 'State / Provincial Keyword in Meet Name',
               value: 'Ontario'
             });
           }

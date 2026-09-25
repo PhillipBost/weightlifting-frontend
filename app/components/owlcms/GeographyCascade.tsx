@@ -91,14 +91,14 @@ const SCOPE_OPTIONS: ScopeOptionConfig[] = [
   },
   { 
     value: 'regional', 
-    label: 'Regional', 
+    label: 'Regional (Multi-Country)', 
     description: 'Multi-nation regional or intercontinental championships confined by federation charter or treaty',
     examples: 'Islamic Solidarity Games, Commonwealth Championships, South American Championships, Mediterranean Championships, Nordic Championships'
   },
   { 
     value: 'national', 
     label: 'National', 
-    description: 'Country-wide championship meets sanctioned by a National Governing Body (NGB)',
+    description: 'Country-wide championship meets sanctioned by a national governing federation',
     examples: 'National Championships, Olympic Trials, National Under-25, Junior Nationals'
   },
   { 
@@ -1215,9 +1215,9 @@ export function GeographyCascade({
   if (isRegionalInferred && (selectedRegional || uploaderSelections.custom_regional_name)) {
     const regName = selectedRegional 
       ? formatDefinedFederation(selectedRegional.canonical_name, selectedRegional.short_code)
-      : (uploaderSelections.custom_regional_name || 'Regional Federation');
+      : (uploaderSelections.custom_regional_name || 'Regional Federation (Multi-Country)');
     inferredPillItems.push({
-      field: 'Regional Federation',
+      field: 'Regional Federation (Multi-Country)',
       explanation: `Inferred as ${regName}${sourceValue ? ` (matched from "${sourceValue}")` : ''}`
     });
   }
@@ -1466,7 +1466,7 @@ export function GeographyCascade({
                       <span>Competition Scope</span>
                     </div>
                     <p className="text-slate-300 text-[10.5px] leading-relaxed">
-                      Defines the jurisdictional boundary of the competition (International, Continental, Regional, National, State / Provincial, or Local), governing which federation tiers are applicable and enforcing cross-border multi-nation isolation.
+                      Defines the jurisdictional boundary of the competition (International, Continental, Regional (Multi-Country), National, State / Provincial, or Local), governing which federation tiers are applicable and enforcing cross-border multi-nation isolation.
                     </p>
                   </div>
                 </span>
@@ -1702,20 +1702,20 @@ export function GeographyCascade({
               </div>
             </div>
 
-            {/* Tier 3: Regional Federation — Indented under Continental */}
+            {/* Tier 3: Regional Federation (Multi-Country) — Indented under Continental */}
             <div className={`ml-8 pl-3 border-l-2 border-slate-800 space-y-1 transition-opacity duration-200 ${regRel.isDesaturated ? 'opacity-60 hover:opacity-100' : 'opacity-100'}`}>
               <div className="flex items-center justify-between text-[11px] text-slate-400">
                 <span className="flex items-center gap-1.5 flex-wrap">
                   <Globe2 className="w-3 h-3 text-cyan-400" />
-                  Regional Federation
+                  Regional Federation (Multi-Country)
                   <span className="relative group/regHelp inline-flex items-center">
                     <HelpCircle className="w-3.5 h-3.5 text-slate-400 hover:text-cyan-300 cursor-help transition-colors" />
                     <div className="absolute left-0 bottom-full mb-1.5 hidden group-hover/regHelp:block z-50 w-72 sm:w-80 p-2.5 rounded-xl bg-slate-900/98 backdrop-blur border border-slate-700 shadow-2xl text-left pointer-events-none">
                       <div className="font-semibold text-cyan-300 text-[11px] mb-1 flex items-center gap-1">
-                        <Globe2 className="w-3 h-3" /> Regional Federation
+                        <Globe2 className="w-3 h-3" /> Regional Federation (Multi-Country)
                       </div>
                       <p className="text-slate-300 text-[10px] leading-snug">
-                        Multi-nation regional or intercontinental weightlifting federations established by charter or treaty.
+                        Multi-nation regional or intercontinental weightlifting federations established by charter or treaty (not domestic state or provincial regions).
                       </p>
                       <p className="text-slate-400 text-[9.5px] mt-1">
                         <strong className="text-slate-300">Examples:</strong> South American Weightlifting Confederation (CSLP), Commonwealth Weightlifting Federation (CWF), Nordic Weightlifting Federation (NWF), Mediterranean Weightlifting Federation (MWF)
@@ -1819,7 +1819,7 @@ export function GeographyCascade({
                       : (uploaderSelections.competition_scope === 'international')
                       ? 'None / Not Applicable (International Event)'
                       : (uploaderSelections.competition_scope === 'regional')
-                      ? 'None / Not Applicable (Regional Event)'
+                      ? 'None / Not Applicable (Regional (Multi-Country) Event)'
                       : 'None'}
                   </span>
                   <ChevronDown className={`w-3.5 h-3.5 text-slate-400 flex-shrink-0 ml-1.5 transition-transform ${activeTier === 'country' ? 'rotate-180' : ''}`} />
@@ -1881,7 +1881,7 @@ export function GeographyCascade({
                       : (uploaderSelections.competition_scope === 'international')
                       ? 'None / Not Applicable (International Event)'
                       : (uploaderSelections.competition_scope === 'regional')
-                      ? 'None / Not Applicable (Regional Event)'
+                      ? 'None / Not Applicable (Regional (Multi-Country) Event)'
                       : 'None'}
                   </span>
                   <ChevronDown className={`w-3.5 h-3.5 text-slate-400 flex-shrink-0 ml-1.5 transition-transform ${activeTier === 'organizer' ? 'rotate-180' : ''}`} />
@@ -2291,7 +2291,7 @@ export function GeographyCascade({
                   <input
                     type="text"
                     autoFocus
-                    placeholder="Search regional or intercontinental federations..."
+                    placeholder="Search regional (multi-country) or intercontinental federations..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full bg-transparent text-xs text-white placeholder-slate-500 focus:outline-none"
@@ -2328,7 +2328,7 @@ export function GeographyCascade({
                           {formatDefinedFederation(opt.canonical_name, opt.short_code)}
                         </span>
                         <span className="px-1.5 py-0.5 rounded text-[9px] font-mono tracking-wide bg-slate-800 text-cyan-400 border border-slate-700/80 flex-shrink-0">
-                          {FEDERATION_LEVEL_LABELS[opt.level] || 'Regional'}
+                          {FEDERATION_LEVEL_LABELS[opt.level] || 'Regional (Multi-Country)'}
                         </span>
                       </div>
                       {uploaderSelections.regional_id === opt.id && (
@@ -2338,7 +2338,7 @@ export function GeographyCascade({
                   ))
                 ) : (
                   <div className="p-3 text-center text-xs text-slate-500">
-                    {searchQuery ? `No registered regional bodies match "${searchQuery}"` : 'Type to search regional bodies...'}
+                    {searchQuery ? `No registered regional (multi-country) bodies match "${searchQuery}"` : 'Type to search regional (multi-country) bodies...'}
                   </div>
                 )}
                 {searchQuery.trim().length > 1 && (
@@ -2352,7 +2352,7 @@ export function GeographyCascade({
                     className="w-full px-3 py-2 text-xs text-left text-sky-300 hover:bg-sky-950/70 border-t border-slate-800 flex items-center gap-2 cursor-pointer font-medium"
                   >
                     <Sparkles className="w-3.5 h-3.5 text-sky-400 flex-shrink-0" />
-                    <span>+ Use &quot;{searchQuery.trim()}&quot; as new / unlisted entity</span>
+                    <span>+ Use &quot;{searchQuery.trim()}&quot; as new / unlisted regional (multi-country) entity</span>
                   </button>
                 )}
               </div>
