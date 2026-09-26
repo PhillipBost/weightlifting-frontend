@@ -6,34 +6,67 @@ This directory contains the technical documentation, API specifications, and fro
 
 ## 1. System Architecture Overview
 
-The integration follows a decoupled, client-assisted ingestion architecture:
+The integration follows a client-assisted ingestion architecture where raw owlcms JSON files are inspected by the platform's resolver API to determine governance scope and governing federations before final submission.
+
+<details>
+<summary><b>Click to expand: End-to-End Operational Architecture Diagram</b></summary>
+<br>
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    actor User as Meet Director / User
-    participant Client as owlcms Client / Uploader UI
-    participant Resolver as POST /api/federations/resolve
-    participant Options as GET /api/federations/options
-    participant Ingestion as POST /api/owlcms/upload
-    participant DB as PostgreSQL Database
+flowchart TD
+    %% 1. Input & Parsing
+    Step1["<b>1. File Selection</b><br/>User drops or selects standard owlcms JSON file"]
+    Step2["<b>2. Client-Side Extraction</b><br/>Uploader parses: <code>competitionName</code>, <code>competitionSite</code>,<br/><code>competitionOrganizer</code>, participating teams, competitor nationalities"]
+    Step1 --> Step2
 
-    User->>Client: Selects / Drops raw owlcms JSON file
-    Client->>Client: Reads competitionName, date, site, organizer, teams
-    Client->>Resolver: Sends extracted meet facts & competitor nationalities
-    Resolver->>Resolver: Evaluates scope patterns, delegational analysis & geocoding
-    Resolver-->>Client: Returns inferred scope, host country & governing federations
-    
-    opt User adjusts or searches federations
-        Client->>Options: GET /api/federations/options?level=...&q=...
-        Options-->>Client: Returns matching registered federations
-    end
+    %% 2. Resolution Call
+    Step3["<b>3. Resolution Request</b><br/><code>POST /api/federations/resolve</code><br/><i>Sends extracted meet facts and athlete country list</i>"]
+    Step2 --> Step3
 
-    User->>Client: Enters Submitter Name & Email, clicks Import
-    Client->>Ingestion: Submits meet payload + confirmed selections + submitter info
-    Ingestion->>DB: Validates, deduplicates, stores meet, athletes & attempts
-    Ingestion-->>Client: Returns success (meetId, status, processed count)
+    %% 3. Resolver Internal Heuristics
+    Step4["<b>4. Automated Jurisdiction Engine</b><br/>• Multi-national delegation corroboration (athlete countries vs. team codes)<br/>• Title demonym matching ('Canadian', 'du Québec', 'Panamericano')<br/>• Geographic venue address parsing & OpenStreetMap Photon geocoding<br/>• Multi-tier governance isolation enforcement"]
+    Step3 --> Step4
+
+    %% 4. Inference Return & Display
+    Step5["<b>5. Inference Response (200 OK)</b><br/>Returns: <code>suggested_scope</code>, <code>host_country</code>,<br/>and inferred federations across all 5 tiers with provenance citations"]
+    Step6["<b>6. Interactive UI Hydration</b><br/>Renders 5-tier cascade, highlighting primary governing bodies<br/>and applying <code>&lt;Inferred&gt;</code> sparkles badges"]
+    Step4 --> Step5
+    Step5 --> Step6
+
+    %% 5. Optional Dropdown Search
+    Step7{"<b>7. User Review</b><br/>Are detected scope &<br/>federations accepted?"}
+    Step6 --> Step7
+
+    Step8["<b>7b. Dropdown Query (Optional)</b><br/><code>GET /api/federations/options?level=...&q=...</code><br/>Searches living registry by name or acronym to select alternate body"]
+    Step7 -- "No (User edits a tier)" --> Step8
+    Step8 --> Step6
+
+    %% 6. Submitter Form & Upload
+    Step9["<b>8. Submitter Attribution & Confirmation</b><br/>User enters Submitter Name & Contact Email<br/><i>(Optional Dry-Run toggle for simulation)</i>"]
+    Step7 -- "Yes (Confirm selections)" --> Step9
+
+    Step10["<b>9. Ingestion Request</b><br/><code>POST /api/owlcms/upload</code><br/><i>Submits raw owlcms JSON + uploaderSelections + submitter info</i>"]
+    Step9 --> Step10
+
+    %% 7. Server-side Processing
+    Step11["<b>10. Ingestion Processing</b><br/>• Validates submitter name & email format<br/>• Computes SHA-256 payload hash for duplicate meet prevention<br/>• Ingests competition metadata, athlete roster & attempt history<br/>• Stages in Quarantine Queue (<code>pending_review</code>) if notes/local"]
+    Step10 --> Step11
+
+    %% 8. Final Result
+    Step12["<b>11. Success Response (200 OK)</b><br/>Returns <code>meetId</code> (UUID), <code>status</code>, and processed counts<br/>UI displays confirmation card with summary"]
+    Step11 --> Step12
+
+    %% Styling
+    style Step1 fill:#f8fafc,stroke:#64748b,stroke-width:1.5px
+    style Step3 fill:#f0f9ff,stroke:#0284c7,stroke-width:1.5px
+    style Step4 fill:#f0fdf4,stroke:#16a34a,stroke-width:1.5px
+    style Step8 fill:#fefce8,stroke:#ca8a04,stroke-width:1.5px
+    style Step10 fill:#faf5ff,stroke:#9333ea,stroke-width:1.5px
+    style Step11 fill:#f0fdf4,stroke:#16a34a,stroke-width:1.5px
+    style Step12 fill:#ecfdf5,stroke:#059669,stroke-width:2px
 ```
+
+</details>
 
 ---
 
