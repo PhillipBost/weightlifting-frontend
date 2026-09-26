@@ -3,6 +3,16 @@ import { createClient } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key',
+};
+
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204, headers: corsHeaders });
+}
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY!;
 const basicAuthUser = process.env.BASIC_AUTH_USER;
@@ -89,8 +99,8 @@ export async function GET(request: NextRequest) {
       offset,
       has_more: hasMore,
       items
-    });
+    }, { headers: corsHeaders });
   } catch (err: any) {
-    return NextResponse.json({ success: false, error: err.message || 'Failed to list federation options' }, { status: 500 });
+    return NextResponse.json({ success: false, error: err.message || 'Failed to list federation options' }, { status: 500, headers: corsHeaders });
   }
 }

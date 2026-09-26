@@ -13,6 +13,16 @@ import {
 
 export const dynamic = 'force-dynamic';
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key',
+};
+
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204, headers: corsHeaders });
+}
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY!;
 const basicAuthUser = process.env.BASIC_AUTH_USER;
@@ -1074,9 +1084,9 @@ export async function POST(req: NextRequest) {
       caveats
     };
 
-    return NextResponse.json(response);
+    return NextResponse.json(response, { headers: corsHeaders });
   } catch (err: any) {
     console.error('Error in POST /api/federations/resolve:', err);
-    return NextResponse.json({ success: false, error: err.message || 'Batch resolve failed' }, { status: 500 });
+    return NextResponse.json({ success: false, error: err.message || 'Batch resolve failed' }, { status: 500, headers: corsHeaders });
   }
 }

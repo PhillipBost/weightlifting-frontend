@@ -8,6 +8,24 @@ import { promisify } from 'util';
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key, X-Submitter-Name, X-Submitter-Email, X-Dry-Run, X-File-Name, X-Batch-Mode',
+};
+
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204, headers: corsHeaders });
+}
+
+function jsonResponse(data: any, init: ResponseInit = {}) {
+  const headers = new Headers(init.headers);
+  for (const [key, val] of Object.entries(corsHeaders)) {
+    headers.set(key, val);
+  }
+  return NextResponse.json(data, { ...init, headers });
+}
+
 const gzipAsync = promisify(zlib.gzip);
 
 function calculateSha256(input: Buffer | string): string {
@@ -110,7 +128,7 @@ export async function POST(req: NextRequest) {
           .single();
 
         if (profileError || profile?.role !== 'admin') {
-          return NextResponse.json({ success: false, error: 'Admin access required' }, { status: 403 });
+          return jsonResponse({ success: false, error: 'Admin access required' }, { status: 403 });
         }
 
         user = { id: authData.user.id, email: authData.user.email || null };
@@ -131,8 +149,12 @@ export async function POST(req: NextRequest) {
     const explicitRevisionNotes = isWrapper ? (body.revisionNotes || body.uploaderSelections?.additional_notes || null) : null;
     const forceUpload = Boolean(isWrapper ? body.forceUpload : false);
     const federationId = isWrapper ? (body.federationId || null) : null;
-    const submitterName = (isWrapper ? body.submitterName : null)?.toString().trim() || null;
-    const submitterEmail = (isWrapper ? body.submitterEmail : null)?.toString().trim() || null;
+    const submitterName = (isWrapper ? body.submitterName : null)?.toString().trim()
+      || req.headers.get('x-submitter-name')?.trim()
+      || null;
+    const submitterEmail = (isWrapper ? body.submitterEmail : null)?.toString().trim()
+      || req.headers.get('x-submitter-email')?.trim()
+      || null;
     const rawUploaderSelections = isWrapper ? body.uploaderSelections : null;
     const uploaderSelections = rawUploaderSelections && typeof rawUploaderSelections === 'object' ? {
       continent_id: rawUploaderSelections.continent_id || null,
@@ -148,15 +170,15 @@ export async function POST(req: NextRequest) {
     // must carry submitter name and contact email before any live ingestion proceeds.
     if (!user.id && !dryRun) {
       if (!submitterName) {
-        return NextResponse.json({ success: false, error: 'Submitter name is required for anonymous uploads.' }, { status: 400 });
+        return jsonResponse({ success: false, error: 'Submitter name is required for anonymous uploads.' }, { status: 400 });
       }
       if (!submitterEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(submitterEmail)) {
-        return NextResponse.json({ success: false, error: 'A valid contact email is required for anonymous uploads.' }, { status: 400 });
+        return jsonResponse({ success: false, error: 'A valid contact email is required for anonymous uploads.' }, { status: 400 });
       }
     }
 
     if (!payload || typeof payload !== 'object' || (!payload.competition && !payload.athletes && !payload.competitors && !payload.formatVersion && !payload.version)) {
-      return NextResponse.json({ success: false, error: 'Invalid or missing OWLCMS JSON payload' }, { status: 400 });
+      return jsonResponse({ success: false, error: 'Invalid or missing OWLCMS JSON payload' }, { status: 400 });
     }
 
     // Support both modern v2.0+ and legacy/pre-v2 OWLCMS export files
@@ -218,7 +240,7 @@ export async function POST(req: NextRequest) {
       if (exactMatch) {
         if (batchMode) {
           // In batch mode, auto-skip exact duplicates cleanly
-          return NextResponse.json({
+          return jsonResponse({
             success: true,
             isExactDuplicate: true,
             skipped: true,
@@ -227,7 +249,7 @@ export async function POST(req: NextRequest) {
             message: `Exact duplicate of Meet #${exactMatch.meet_id} ("${exactMatch.meet_name}"). Skipped.`
           });
         }
-        return NextResponse.json({
+        return jsonResponse({
           success: false,
           collisionType: 'exact_duplicate',
           error: `This competition was already imported as Meet #${exactMatch.meet_id} ("${exactMatch.meet_name}"). Duplicate upload was prevented.`,
@@ -241,7 +263,7 @@ export async function POST(req: NextRequest) {
           .from('owlcms-archives')
           .list('rejected', { search: rawPayloadHash });
         if (rejectedFiles && rejectedFiles.length > 0) {
-          return NextResponse.json({
+          return jsonResponse({
             success: false,
             collisionType: 'rejected_hash',
             error: `This competition export was previously rejected and blocklisted. Upload prevented.`
@@ -272,7 +294,7 @@ export async function POST(req: NextRequest) {
 
           // If Dry Run: return simulated quarantine status WITHOUT storage or database writes
           if (dryRun) {
-            return NextResponse.json({
+            return jsonResponse({
               success: true,
               dryRun: true,
               meet_name: meetName,
@@ -326,7 +348,7 @@ export async function POST(req: NextRequest) {
           }
 
           // Return immediately — ZERO RECORDS WRITTEN TO DATABASE
-          return NextResponse.json({
+          return jsonResponse({
             success: true,
             quarantined: true,
             status: 'pending_review',
@@ -359,7 +381,7 @@ export async function POST(req: NextRequest) {
     if (dryRun) {
       const storageDurationMs = Math.round(performance.now() - storageStartTime);
       const totalDurationMs = Math.round(performance.now() - overallStartTime);
-      return NextResponse.json({
+      return jsonResponse({
         success: true,
         dryRun: true,
         meet_name: meetName,
@@ -480,7 +502,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (meetError || !meetRecord) {
-      return NextResponse.json({ success: false, error: `Meet creation failed: ${meetError?.message}` }, { status: 500 });
+      return jsonResponse({ success: false, error: `Meet creation failed: ${meetError?.message}` }, { status: 500 });
     }
 
     const meetId = meetRecord.meet_id;
@@ -664,7 +686,7 @@ export async function POST(req: NextRequest) {
     const dbDurationMs = Math.round(performance.now() - dbStartTime);
     const totalDurationMs = Math.round(performance.now() - overallStartTime);
 
-    return NextResponse.json({
+    return jsonResponse({
       success: true,
       meet_id: meetId,
       meet_name: meetName,
@@ -700,6 +722,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (error: any) {
     console.error('Error in POST /api/owlcms/upload:', error);
-    return NextResponse.json({ success: false, error: error.message || 'Internal server error' }, { status: 500 });
+    return jsonResponse({ success: false, error: error.message || 'Internal server error' }, { status: 500 });
   }
 }

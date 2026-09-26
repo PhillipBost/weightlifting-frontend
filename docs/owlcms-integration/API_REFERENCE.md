@@ -4,9 +4,18 @@ This document provides technical specifications for the three REST endpoints pow
 
 ---
 
+## Global Service Configuration
+
+* **Production Base URL**: `https://owlanalytics.org`
+* **Authentication**: **No API key or Bearer token is required.** Standard submissions authenticate via mandatory Submitter Name and Contact Email attributes.
+* **CORS Support**: All endpoints support Cross-Origin Resource Sharing (`Access-Control-Allow-Origin: *`). You can call these APIs directly from client-side browser applications (`fetch` / `axios`) or backend services (Java, Node.js, Python, curl).
+* **Content Type**: `application/json; charset=utf-8`
+
+---
+
 ## Endpoint 1: Scope & Federation Resolver
 
-### `POST /api/federations/resolve`
+### `POST https://owlanalytics.org/api/federations/resolve`
 
 Analyzes raw meet metadata extracted from an owlcms JSON export to programmatically determine the competition scope, host country, and governing federation hierarchy.
 
@@ -118,7 +127,7 @@ Analyzes raw meet metadata extracted from an owlcms JSON export to programmatica
 
 ## Endpoint 2: Federation Options & Search
 
-### `GET /api/federations/options`
+### `GET https://owlanalytics.org/api/federations/options`
 
 Retrieves active, verified federations from the platform's living registry. Used to populate cascading dropdown selectors or support typeahead search when a user wants to select or adjust a governing body.
 
@@ -129,7 +138,7 @@ Retrieves active, verified federations from the platform's living registry. Used
 | `level` | string | No | null | Comma-separated federation level filter. Supported values:<br>• `global_international`<br>• `continental`<br>• `intercontinental_regional,regional`<br>• `national`<br>• `regional_state_wso`<br>• `club` |
 | `parent_id` | string (UUID) | No | null | Filters child members belonging to a specific parent federation. |
 | `q` | string | No | null | Search query string (matches canonical names, aliases, and acronyms). |
-| `as_of_date` | string (date) | No | current | ISO-8601 date (`YYYY-MM-DD`) for Point-in-Time temporal validity filtering. |
+| `as_of_date` | string (date) | No | current | ISO-8601 date (`YYYY-MM-DD`) for optional Point-in-Time temporal validity filtering. |
 | `limit` | integer | No | `50` | Maximum results to return (max `200`). |
 | `offset` | integer | No | `0` | Pagination offset. |
 
@@ -161,26 +170,50 @@ Retrieves active, verified federations from the platform's living registry. Used
 
 ## Endpoint 3: Meet Ingestion & Upload
 
-### `POST /api/owlcms/upload`
+### `POST https://owlanalytics.org/api/owlcms/upload`
 
-Submits the complete owlcms competition dataset along with submitter attribution and confirmed governance metadata.
+Submits the complete owlcms competition dataset along with submitter attribution.
+
+The endpoint supports two submission modes:
+1. **Mode A (Direct Raw JSON with Headers)**: Send the untouched owlcms JSON file directly as the body, with submitter details in HTTP headers (ideal for CLI scripts and automated exporters).
+2. **Mode B (Wrapped JSON)**: Send a JSON wrapper containing submitter details, user-confirmed governance selections, and the raw payload (ideal for interactive UI uploaders).
+
+---
+
+### Mode A: Direct Raw JSON with HTTP Headers (Simplest)
 
 #### Request Headers
 
 | Header | Value | Required | Description |
 |---|---|---|---|
 | `Content-Type` | `application/json` | Yes | Request payload format |
-| `X-Submitter-Name` | string | Optional* | Submitter full name (*if not provided in body) |
-| `X-Submitter-Email` | string | Optional* | Submitter contact email (*if not provided in body) |
-| `X-Dry-Run` | `true` or `false` | No | Enables test mode without writing to database |
-| `X-File-Name` | string | No | Original filename (e.g., `meet_2026.json`) |
+| `X-Submitter-Name` | string | **Yes** | Submitter full name (e.g., `Alex Mercer`) |
+| `X-Submitter-Email` | string | **Yes** | Valid contact email (e.g., `alex.mercer@club.org`) |
+| `X-Dry-Run` | `true` or `false` | No | If `true`, runs validation without writing to database |
+| `X-File-Name` | string | No | Original filename (defaults to `owlcms_export.json`) |
+
+#### Example (`curl`)
+```bash
+curl -X POST https://owlanalytics.org/api/owlcms/upload \
+  -H "Content-Type: application/json" \
+  -H "X-Submitter-Name: Alex Mercer" \
+  -H "X-Submitter-Email: alex.mercer@club.org" \
+  -H "X-Dry-Run: true" \
+  --data-binary @owlcms_export.json
+```
 
 ---
 
-#### Request Body Format
+### Mode B: Wrapped JSON Payload (Interactive Uploader)
 
-The endpoint accepts a JSON wrapper containing submitter attribution, confirmed governance selections, and the raw owlcms JSON payload:
+Used when submitting user-confirmed governance hierarchy selections alongside the raw file:
 
+#### Request Headers
+| Header | Value | Required | Description |
+|---|---|---|---|
+| `Content-Type` | `application/json` | Yes | Request payload format |
+
+#### Request Body
 ```json
 {
   "submitterName": "Alex Mercer",
@@ -194,7 +227,7 @@ The endpoint accepts a JSON wrapper containing submitter attribution, confirmed 
     "country_id": "b2c3d4e5-0000-0000-0000-000000000002",
     "regional_id": null,
     "organizer_id": "c3d4e5f6-0000-0000-0000-000000000003",
-    "additional_notes": "Provincial youth records contested."
+    "additional_notes": "Provincial records contested."
   },
   "payload": {
     "competition": {
@@ -203,9 +236,7 @@ The endpoint accepts a JSON wrapper containing submitter attribution, confirmed 
       "competitionSite": "Centre Multisports C.A.-Gauvin, Saint-Hyacinthe, QC",
       "competitionOrganizer": "Club La Machine Rouge"
     },
-    "athletes": [
-      ...
-    ]
+    "athletes": [ ... ]
   }
 }
 ```

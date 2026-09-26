@@ -80,12 +80,74 @@ Whenever the resolver automatically suggests a federation or scope:
 
 If building an uploader interface using these APIs:
 
-1. **File Ingestion**: Read the dropped `.json` file using native JavaScript `FileReader`.
-2. **Metadata Extraction**: Parse the JSON and extract:
-   * `competitionName`, `competitionDate`, `competitionSite`, `competitionOrganizer`, `competition.federation`.
-   * Participating team strings (`sampleTeams`).
-   * Distinct competitor nationalities (`athlete_countries`).
-3. **Resolve Call**: Issue a `POST /api/federations/resolve` request with the extracted fields.
-4. **State Hydration**: Pre-populate your scope selector, host country selector, and federation tiers using the returned `suggested_scope`, `host_country`, and `inferred_*_federation` properties.
-5. **Options Querying**: Call `GET /api/federations/options?level=...` to populate the dropdowns when users want to search or change federations.
-6. **Submit**: Collect Submitter Name and Contact Email, then `POST /api/owlcms/upload` with the wrapper containing `payload` and `uploaderSelections`.
+### Step 1: File Ingestion & Metadata Extraction
+Read the dropped `.json` file using native JavaScript `FileReader`. owlcms JSON files (v1.0 and v2.0) have minor property variations; use this battle-tested extraction helper to extract the exact fields expected by `/api/federations/resolve`:
+
+```javascript
+function extractMeetFacts(json) {
+  const comp = json.competition || {};
+  const athletes = json.athletes || json.competitors || [];
+  const teams = json.teams || [];
+
+  return {
+    competition_name: (
+      comp.competitionName ||
+      comp.name ||
+      json.competitionName ||
+      'Unnamed Competition'
+    ).trim(),
+    competition_date: (
+      comp.competitionDate ||
+      comp.localizedCompetitionDate ||
+      json.startDate ||
+      null
+    ),
+    competition_site: (
+      comp.competitionSite ||
+      json.venue ||
+      ''
+    ).trim(),
+    city_text: (comp.competitionCity || json.city || null)?.trim(),
+    host_country_text: (comp.country || json.country || null)?.trim(),
+    organizer_text: (
+      comp.competitionOrganizer ||
+      json.competitionOrganizer ||
+      null
+    )?.trim(),
+    federation_text: (
+      comp.federation ||
+      comp.sanctioningFederation ||
+      json.federation ||
+      null
+    )?.trim(),
+    athlete_countries: Array.from(new Set(
+      athletes
+        .map(a => (a.country || a.nation || a.fed || '').trim().toUpperCase())
+        .filter(c => c.length === 3)
+    )),
+    team_names: Array.from(new Set(
+      teams.map(t => (t.name || t.code || '').trim()).filter(Boolean)
+    ))
+  };
+}
+```
+
+### Step 2: Resolve Call
+Issue a `POST https://owlanalytics.org/api/federations/resolve` request with the extracted meet facts object:
+```javascript
+const resolveRes = await fetch('https://owlanalytics.org/api/federations/resolve', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(extractMeetFacts(json))
+});
+const resolution = await resolveRes.json();
+```
+
+### Step 3: State Hydration
+Pre-populate your scope selector, host country selector, and federation tiers using the returned `resolution.suggested_scope`, `resolution.host_country`, and `resolution.inferred_*_federation` properties.
+
+### Step 4: Dropdown Querying
+Call `GET https://owlanalytics.org/api/federations/options?level=...` to populate dropdowns when users want to search or change federations.
+
+### Step 5: Submission
+Collect **Submitter Name** and **Contact Email**, then post the meet to `POST https://owlanalytics.org/api/owlcms/upload`.
