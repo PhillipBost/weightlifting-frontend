@@ -24,8 +24,16 @@ interface FederationSelectorProps {
   disabled?: boolean;
   hasError?: boolean;
 }
-
-
+async function parseSafeJson<T = any>(res: Response): Promise<T | null> {
+  try {
+    if (!res.ok) return null;
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
 
 export function FederationSelector({
   explicitFederation,
@@ -71,8 +79,8 @@ export function FederationSelector({
         try {
           setLoading(true);
           const res = await fetch(`/api/federations/search?q=${encodeURIComponent(cleanExplicit)}${dateParam}`);
-          const data = await res.json();
-          let topMatch = data.success && data.matches && data.matches.length > 0 ? data.matches[0] : null;
+          const data = await parseSafeJson(res);
+          let topMatch = data?.success && data.matches && data.matches.length > 0 ? data.matches[0] : null;
 
           // If composite string rank is below 80 and begins with an acronym token (e.g. "FHQ Fédération..."),
           // query the acronym token directly for exact 100-rank resolution
@@ -81,8 +89,8 @@ export function FederationSelector({
             if (acronymMatch) {
               const token = acronymMatch[1];
               const tokenRes = await fetch(`/api/federations/search?q=${encodeURIComponent(token)}${dateParam}`);
-              const tokenData = await tokenRes.json();
-              if (tokenData.success && tokenData.matches && tokenData.matches.length > 0) {
+              const tokenData = await parseSafeJson(tokenRes);
+              if (tokenData?.success && tokenData.matches && tokenData.matches.length > 0) {
                 if (!topMatch || tokenData.matches[0].match_rank > topMatch.match_rank) {
                   topMatch = tokenData.matches[0];
                 }
@@ -132,8 +140,8 @@ export function FederationSelector({
             const queryLabel = typeof query === 'string' ? 'Competition Details' : query?.fieldLabel;
             if (!queryValue || queryValue.trim().length < 2) continue;
             const res = await fetch(`/api/federations/search?q=${encodeURIComponent(queryValue.trim())}${dateParam}`);
-            const data = await res.json();
-            if (active && data.success && data.matches && data.matches.length > 0) {
+            const data = await parseSafeJson(res);
+            if (active && data?.success && data.matches && data.matches.length > 0) {
               const topMatch = data.matches[0];
               if (topMatch.match_rank >= 50) {
                 const guessedFed = {
@@ -170,8 +178,8 @@ export function FederationSelector({
       try {
         const dateParam = asOfDate ? `&as_of_date=${encodeURIComponent(asOfDate)}` : '';
         const res = await fetch(`/api/federations/search?q=a${dateParam}`);
-        const data = await res.json();
-        if (isMounted && data.success) {
+        const data = await parseSafeJson(res);
+        if (isMounted && data?.success) {
           setDefaultList(data.matches || []);
         }
       } catch {
@@ -197,8 +205,8 @@ export function FederationSelector({
         setLoading(true);
         const dateParam = asOfDate ? `&as_of_date=${encodeURIComponent(asOfDate)}` : '';
         const res = await fetch(`/api/federations/search?q=${encodeURIComponent(q)}${dateParam}`);
-        const data = await res.json();
-        if (data.success) {
+        const data = await parseSafeJson(res);
+        if (data?.success) {
           setResults(data.matches || []);
         }
       } catch (err) {

@@ -59,6 +59,17 @@ const ALL_HOST_COUNTRIES: HostCountryOption[] = Object.entries(CANONICAL_COUNTRY
   }))
   .sort((a, b) => a.name.localeCompare(b.name));
 
+async function parseSafeJson<T = any>(res: Response): Promise<T | null> {
+  try {
+    if (!res.ok) return null;
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
 function formatHostCountryDisplay(code?: string | null, customCountryName?: string | null): string {
   if (customCountryName) return customCountryName;
   if (!code) return 'Select Host Country (e.g. Ecuador, Canada, USA)...';
@@ -312,11 +323,11 @@ export function GeographyCascade({
           fetch(`/api/federations/options?level=global_international,international${dateParam}&limit=20`),
           fetch(`/api/federations/options?level=continental${dateParam}&limit=10`)
         ]);
-        const intlData = await intlRes.json();
-        const contData = await contRes.json();
+        const intlData = await parseSafeJson(intlRes);
+        const contData = await parseSafeJson(contRes);
         if (active) {
-          if (intlData.success) setInternationalOptions(intlData.items || []);
-          if (contData.success) setContinentOptions(contData.items || []);
+          if (intlData?.success) setInternationalOptions(intlData.items || []);
+          if (contData?.success) setContinentOptions(contData.items || []);
         }
       } catch (err) {
         console.error('Failed to load global federations:', err);
@@ -361,8 +372,8 @@ export function GeographyCascade({
         } else {
           try {
             const res = await fetch(`/api/federations/options?level=global_international,international${dateParam}&limit=20`);
-            const data = await res.json();
-            if (active && data.success) {
+            const data = await parseSafeJson(res);
+            if (active && data?.success) {
               const found = data.items.find((i: FederationTierOption) => i.id === uploaderSelections.international_id);
               if (found) setSelectedInternational(found);
             }
@@ -390,8 +401,8 @@ export function GeographyCascade({
         } else {
           try {
             const res = await fetch(`/api/federations/options?level=continental${dateParam}&limit=200`);
-            const data = await res.json();
-            if (active && data.success) {
+            const data = await parseSafeJson(res);
+            if (active && data?.success) {
               const found = data.items.find((i: FederationTierOption) => i.id === uploaderSelections.continent_id);
               if (found) setSelectedContinent(found);
             }
@@ -418,8 +429,8 @@ export function GeographyCascade({
       } else if (uploaderSelections.regional_id && (!selectedRegional || selectedRegional.id !== uploaderSelections.regional_id)) {
         try {
           const res = await fetch(`/api/federations/options?level=intercontinental_regional,regional${dateParam}&limit=100`);
-          const data = await res.json();
-          if (active && data.success) {
+          const data = await parseSafeJson(res);
+          if (active && data?.success) {
             const found = data.items.find((i: FederationTierOption) => i.id === uploaderSelections.regional_id);
             if (found) setSelectedRegional(found);
           }
@@ -459,8 +470,8 @@ export function GeographyCascade({
         } else {
           try {
             const res = await fetch(`/api/federations/options?level=national${dateParam}&limit=200`);
-            const data = await res.json();
-            if (active && data.success) {
+            const data = await parseSafeJson(res);
+            if (active && data?.success) {
               const found = data.items.find((i: FederationTierOption) => i.id === uploaderSelections.country_id);
               if (found) setSelectedCountry(found);
             }
@@ -501,8 +512,8 @@ export function GeographyCascade({
         } else {
           try {
             const res = await fetch(`/api/federations/options?level=national,regional,regional_state_wso,club${dateParam}&limit=200`);
-            const data = await res.json();
-            if (active && data.success) {
+            const data = await parseSafeJson(res);
+            if (active && data?.success) {
               const found = data.items.find((i: FederationTierOption) => i.id === uploaderSelections.organizer_id);
               if (found) setSelectedOrganizer(found);
             }
@@ -559,9 +570,9 @@ export function GeographyCascade({
 
         const queryParam = searchQuery.trim() ? `&q=${encodeURIComponent(searchQuery.trim())}` : '';
         const res = await fetch(`/api/federations/options?level=${level}${parentConstraint}${queryParam}${dateParam}&limit=100`);
-        const data = await res.json();
+        const data = await parseSafeJson(res);
 
-        if (active && data.success) {
+        if (active && data?.success) {
           if (activeTier === 'international') setInternationalOptions(data.items || []);
           else if (activeTier === 'continent') setContinentOptions(data.items || []);
           else if (activeTier === 'regional') setRegionalOptions(data.items || []);

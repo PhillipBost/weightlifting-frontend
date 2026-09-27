@@ -530,8 +530,11 @@ export function OwlcmsUploader() {
                 competition_date: startDate
               })
             });
-            const resolveData = await resolveRes.json();
-            if (resolveData.success) {
+            const contentType = resolveRes.headers.get('content-type') || '';
+            const resolveData = resolveRes.ok && contentType.includes('application/json')
+              ? await resolveRes.json()
+              : null;
+            if (resolveData?.success) {
               geographyInference = resolveData;
               const fedMatch = resolveData.federation?.match;
               const orgMatch = resolveData.organizer?.match;
@@ -782,7 +785,19 @@ export function OwlcmsUploader() {
           })
         });
 
-        const data = await res.json();
+        let data: any = null;
+        const contentType = res.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          try {
+            data = await res.json();
+          } catch {}
+        } else {
+          const errText = await res.text();
+          data = { success: false, error: `Server error (${res.status}): ${errText.slice(0, 100)}` };
+        }
+        if (!data) {
+          data = { success: false, error: `Failed to parse response (${res.status})` };
+        }
 
         if (!res.ok || !data.success) {
           setQueue((prev) =>
