@@ -10,6 +10,8 @@ import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility
 import { useClubData } from "../../hooks/useClubData"
 import { useTheme } from "../ThemeProvider"
 import { getMapTileConfig } from "@/lib/mapTiles"
+import { createClubSlug } from "@/lib/clubs/slug"
+import Link from "next/link"
 
 interface ClubMapProps {
   className?: string
@@ -73,10 +75,19 @@ export default function ClubMap({
   // Toggle states
   const [filterByActivity, setFilterByActivity] = React.useState(false)
 
-  // Create custom club marker icon
-  const createClubIcon = () => {
+  // Create custom club marker icon, tinted by specialty badges:
+  // - community designation (verbatim community_designation) -> emerald
+  // - collegiate (university join) -> blue
+  // - otherwise -> original orange
+  const createClubIcon = (club?: { communityDesignation?: string | null; isCollegiate?: boolean }) => {
     const size = 20 // Static size for all clubs
-    const bgColor = theme === 'dark' ? '#F59E0B' : '#D97706' // Orange color
+    let bgColor = theme === 'dark' ? '#F59E0B' : '#D97706' // Orange (default)
+    if (club?.isCollegiate) {
+      bgColor = theme === 'dark' ? '#60A5FA' : '#2563EB' // Blue (collegiate)
+    }
+    if (club?.communityDesignation) {
+      bgColor = theme === 'dark' ? '#34D399' : '#059669' // Emerald (community designation takes precedence)
+    }
     const iconColor = theme === 'dark' ? '#1F2937' : '#FFFFFF'
 
     return new DivIcon({
@@ -243,7 +254,7 @@ export default function ClubMap({
           <Marker
             key={`club-${club.id}-${club.name?.replace(/\s+/g, '-') || 'no-name'}-${index}`}
             position={[club.latitude, club.longitude]}
-            icon={createClubIcon()}
+            icon={createClubIcon(club)}
           >
             <Popup>
               <div
@@ -257,6 +268,35 @@ export default function ClubMap({
                   <h3 className="font-bold text-base mb-1">
                     {club.name || 'Unnamed Club'}
                   </h3>
+                  {/* Text-only specialty badges — designation rendered verbatim */}
+                  {(club.communityDesignation || club.isCollegiate) && (
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                      {club.communityDesignation && (
+                        <span
+                          className="inline-block px-2 py-0.5 rounded border text-xs font-semibold"
+                          style={{
+                            backgroundColor: theme === 'dark' ? '#064E3B' : '#ECFDF5',
+                            color: theme === 'dark' ? '#6EE7B7' : '#065F46',
+                            borderColor: theme === 'dark' ? '#065F46' : '#A7F3D0'
+                          }}
+                        >
+                          {club.communityDesignation}
+                        </span>
+                      )}
+                      {club.isCollegiate && (
+                        <span
+                          className="inline-block px-2 py-0.5 rounded border text-xs font-semibold"
+                          style={{
+                            backgroundColor: theme === 'dark' ? '#1E3A8A' : '#EFF6FF',
+                            color: theme === 'dark' ? '#93C5FD' : '#1E40AF',
+                            borderColor: theme === 'dark' ? '#1E40AF' : '#BFDBFE'
+                          }}
+                        >
+                          Collegiate Program
+                        </span>
+                      )}
+                    </div>
+                  )}
                   {club.recentMemberCount > 0 && (
                     <div className="flex items-center text-sm text-blue-600 dark:text-blue-400">
                       <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -285,23 +325,15 @@ export default function ClubMap({
                   )}
                 </div>
 
-                <button
-                  onClick={() => {
-                    const clubSlug = (club.name || 'unknown-club')
-                      .toLowerCase()
-                      .replace(/[^a-z0-9\s-]/g, '')
-                      .replace(/\s+/g, '-')
-                      .replace(/-+/g, '-')
-                      .replace(/^-|-$/g, '')
-                    window.open(`/club/${clubSlug}`, '_blank')
-                  }}
-                  className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white text-sm font-medium py-2 px-3 rounded-md transition-colors duration-200 flex items-center justify-center"
+                <Link
+                  href={`/club/${createClubSlug(club.name || 'unknown-club')}`}
+                  className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white hover:text-white visited:text-white no-underline hover:no-underline text-sm font-medium py-2 px-3 rounded-md transition-colors duration-200 flex items-center justify-center cursor-pointer"
                 >
                   <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
                   View Club Details
-                </button>
+                </Link>
               </div>
             </Popup>
           </Marker>

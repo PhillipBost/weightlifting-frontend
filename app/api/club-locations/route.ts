@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { createClubSlug } from '@/lib/clubs/slug'
 
 // Use service role key for admin access
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -33,7 +34,7 @@ export async function GET() {
     // Query clubs table directly with pre-calculated active_lifters_count
     const { data: clubsData, error: clubsError } = await supabaseAdmin
       .from('usaw_clubs')
-      .select('club_name, address, latitude, longitude, geocode_display_name, active_lifters_count')
+      .select('club_name, address, latitude, longitude, geocode_display_name, active_lifters_count, community_designation')
       .not('latitude', 'is', null)
       .not('longitude', 'is', null)
 
@@ -41,6 +42,17 @@ export async function GET() {
       console.error('Error fetching clubs:', clubsError)
       throw new Error(`Database error: ${clubsError.message}`)
     }
+
+    // Collegiate status via usaw_university_programs join (no flag column)
+    const { data: universityData } = await supabaseAdmin
+      .from('usaw_university_programs')
+      .select('associated_usaw_club')
+
+    const linkedClubNames = new Set(
+      (universityData || [])
+        .map(u => u.associated_usaw_club)
+        .filter((name): name is string => Boolean(name))
+    )
 
     console.log('Clubs fetched from database:', clubsData?.length || 0)
 
@@ -56,7 +68,10 @@ export async function GET() {
         longitude: Number(club.longitude),
         city,
         state,
-        recentMemberCount: club.active_lifters_count || 0
+        recentMemberCount: club.active_lifters_count || 0,
+        slug: createClubSlug(club.club_name),
+        communityDesignation: club.community_designation || null,
+        isCollegiate: linkedClubNames.has(club.club_name)
       }
     })
 

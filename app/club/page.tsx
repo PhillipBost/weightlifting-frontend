@@ -1,6 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 import { Metadata } from 'next'
 import ClubDirectoryClient from '../components/Club/ClubDirectoryClient'
+import { createClubSlug } from '@/lib/clubs/slug'
+import type { UniversityProgram } from '@/types/university'
 
 // Enable ISR with 24-hour revalidation
 export const revalidate = 86400
@@ -39,11 +41,27 @@ async function getClubData() {
     // 1. Fetch club locations data
     const { data: clubsData, error: clubsError } = await supabase
       .from('usaw_clubs')
-      .select('club_name, address, latitude, longitude, geocode_display_name, active_lifters_count')
+      .select('club_name, address, latitude, longitude, geocode_display_name, active_lifters_count, community_designation')
       .not('latitude', 'is', null)
       .not('longitude', 'is', null)
 
     if (clubsError) throw clubsError
+
+    // 1b. University programs: linked clubs get the "Collegiate Program" badge;
+    //     unlinked programs render in the directory's University Programs section.
+    const { data: universityData, error: universityError } = await supabase
+      .from('usaw_university_programs')
+      .select('program_id, school_name, state, city, associated_usaw_club, instagram, website_url')
+      .order('school_name')
+
+    if (universityError) throw universityError
+
+    const universities: UniversityProgram[] = universityData || []
+    const linkedClubNames = new Set(
+      universities
+        .map(u => u.associated_usaw_club)
+        .filter((name): name is string => Boolean(name))
+    )
 
     // Transform to match expected format
     const clubLocations = (clubsData || []).map((club, index) => {
@@ -57,7 +75,10 @@ async function getClubData() {
         longitude: Number(club.longitude),
         city,
         state,
-        recentMemberCount: club.active_lifters_count || 0
+        recentMemberCount: club.active_lifters_count || 0,
+        slug: createClubSlug(club.club_name),
+        communityDesignation: club.community_designation || null,
+        isCollegiate: linkedClubNames.has(club.club_name)
       }
     }).filter(club =>
       !isNaN(club.latitude) && !isNaN(club.longitude) &&
@@ -152,6 +173,17 @@ async function getClubData() {
     const statesCount = uniqueStates.size
     const totalMembers = clubLocations.reduce((sum, club) => sum + club.recentMemberCount, 0)
     const averageMembersPerClub = totalClubs > 0 ? Math.round(totalMembers / totalClubs * 10) / 10 : 0
+    const collegiateClubs = clubLocations.filter(club => club.isCollegiate).length
+    const designatedClubs = clubLocations.filter(club => club.communityDesignation).length
+
+    // Programs shown in the directory section: unlinked programs, plus linked
+    // programs whose club has no profile page yet (non-geocoded clubs 404 on
+    // /club/[slug], so they would otherwise be unreachable). Linked-to-geocoded
+    // programs live on their club's canonical profile page instead.
+    const geocodedSlugs = new Set(clubLocations.map(c => c.slug))
+    const sectionUniversities = universities.filter(u =>
+      !u.associated_usaw_club || !geocodedSlugs.has(createClubSlug(u.associated_usaw_club))
+    )
 
     return {
       clubLocations,
@@ -168,8 +200,12 @@ async function getClubData() {
         totalClubs,
         activeClubs,
         statesCount,
-        averageMembersPerClub
-      }
+        averageMembersPerClub,
+        collegiateClubs,
+        designatedClubs
+      },
+      universityPrograms: sectionUniversities,
+      linkedUniversityCount: universities.filter(u => u.associated_usaw_club).length
     }
   } catch (err) {
     console.error('Error fetching club data:', err)
@@ -190,8 +226,12 @@ async function getClubData() {
         totalClubs: 0,
         activeClubs: 0,
         statesCount: 0,
-        averageMembersPerClub: 0
-      }
+        averageMembersPerClub: 0,
+        collegiateClubs: 0,
+        designatedClubs: 0
+      },
+      universityPrograms: [],
+      linkedUniversityCount: 0
     }
   }
 }

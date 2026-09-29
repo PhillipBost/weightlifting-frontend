@@ -9,6 +9,8 @@ import "leaflet-defaulticon-compatibility"
 import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css"
 import { useTheme } from "./ThemeProvider"
 import { getMapTileConfig } from "@/lib/mapTiles"
+import Link from "next/link"
+import { createClubSlug } from "@/lib/clubs/slug"
 
 // Convert country code to flag emoji
 const getCountryFlagEmoji = (code: string): string => {
@@ -264,16 +266,12 @@ export default function MeetHubSpokeMap({
                       </div>
                     )}
                     {type === 'club' && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          const slug = spoke.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
-                          window.open(`/club/${slug}`, '_blank')
-                        }}
-                        className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white text-sm py-1 px-2 rounded transition-colors"
+                      <Link
+                        href={`/club/${createClubSlug(spoke.name || 'unknown-club')}`}
+                        className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white hover:text-white visited:text-white no-underline hover:no-underline text-sm py-1 px-2 rounded transition-colors text-center cursor-pointer"
                       >
                         View Club
-                      </button>
+                      </Link>
                     )}
                   </div>
                 </Popup>

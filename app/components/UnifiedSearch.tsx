@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Search, X, MapPin, User, CalendarDays, Dumbbell, Filter, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, X, MapPin, User, CalendarDays, Dumbbell, Filter, ChevronDown, ChevronUp, GraduationCap } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import MiniSearch from 'minisearch';
@@ -20,7 +20,7 @@ interface UnifiedSearchProps {
     variant?: 'hero' | 'header';
 }
 
-type SearchCategory = 'Athletes' | 'Meets' | 'Clubs' | 'WSO' | 'Countries' | 'Filters';
+type SearchCategory = 'Athletes' | 'Meets' | 'Clubs' | 'Universities' | 'WSO' | 'Countries' | 'Filters';
 
 interface SuggestionItem {
     id: string;
@@ -377,6 +377,10 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
                     category = 'WSO';
                     type = 'wso';
                     icon = <MapPin className="h-4 w-4" />;
+                } else if (r.type === 'University') {
+                    category = 'Universities';
+                    type = 'university';
+                    icon = <GraduationCap className="h-4 w-4" />;
                 } else if (r.type === 'Country' || r.type === 'Nation') { // Adjust based on actual data
                     category = 'Filters';
                     type = 'country';
@@ -389,7 +393,7 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
                 // (User Rule: "IF any country other than the United states is selected... clubs and WSOs should be excluded")
                 const hasNonUsaCountry = targetCountries.length > 0 && targetCountries.some(c => !['usa', 'united states', 'us'].includes(c));
 
-                if ((type === 'club' || type === 'wso') && (isIwfOnly || hasNonUsaCountry)) {
+                if ((type === 'club' || type === 'wso' || type === 'university') && (isIwfOnly || hasNonUsaCountry)) {
                     return;
                 }
 
@@ -516,6 +520,10 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
 
             } else if (data.type === 'club') {
                 router.push(`/club/${data.slug}`);
+            } else if (data.type === 'university') {
+                // Linked programs carry their canonical club slug; unlinked ones
+                // land on the University Programs section of the /club directory.
+                router.push(data.slug ? `/club/${data.slug}` : '/club#university-programs');
             } else if (data.type === 'wso') {
                 router.push(`/WSO/${data.slug}`);
             }
@@ -611,7 +619,7 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
                         <div className="flex flex-col lg:flex-row relative">
                             {/* Left Column: Search Results */}
                             <div className="flex-1 min-w-0 py-2">
-                                {['Athletes', 'Meets', 'Clubs', 'WSO'].map(cat => {
+                                {['Athletes', 'Meets', 'Clubs', 'Universities', 'WSO'].map(cat => {
                                     const items = groupedSuggestions[cat];
                                     if (!items || items.length === 0) return null;
 
@@ -644,6 +652,8 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
                                                     href = buildMeetUrl(linkId, data.source || 'USAW');
                                                 } else if (data.type === 'club') {
                                                     href = `/club/${data.slug}`;
+                                                } else if (data.type === 'university') {
+                                                    href = data.slug ? `/club/${data.slug}` : '/club#university-programs';
                                                 } else if (data.type === 'wso') {
                                                     href = `/WSO/${data.slug}`;
                                                 }

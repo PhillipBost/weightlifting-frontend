@@ -3,6 +3,8 @@ import type { Metadata } from 'next'
 import { createClient } from '@supabase/supabase-js'
 import { notFound } from 'next/navigation'
 import ClubDetailClient from '../../components/Club/ClubDetailClient'
+import { createClubSlug, buildClubIlikePattern } from '@/lib/clubs/slug'
+import type { UniversityProgram } from '@/types/university'
 
 // Initialize Supabase Admin client for server-side fetching
 // Using Service Role key to bypass RLS and ensure complete data access
@@ -28,6 +30,13 @@ interface ClubData {
   wso_geography: string
   quadrant: 'powerhouse' | 'intensive' | 'sleeping-giant' | 'developing'
   quadrant_label: string
+  // Specialty/contact fields (community_designation rendered verbatim)
+  contact_name: string | null
+  email: string | null
+  phone: string | null
+  instagram: string | null
+  website_url: string | null
+  community_designation: string | null
 }
 
 // Helper function to parse location from geocode display name or address
@@ -80,12 +89,7 @@ function getAgeBucket(age: number): string {
 async function getClubData(slug: string) {
   try {
     // 1. Find the club
-    const words = slug.split('-').filter(w => w.length > 0)
-    const processedWords = words.map(word => {
-      if (word.length === 2) return word.split('').join('%')
-      return word
-    })
-    const simplePattern = processedWords.join('%')
+    const simplePattern = buildClubIlikePattern(slug)
 
     const { data: clubsData, error: clubsError } = await supabaseAdmin
       .from('usaw_clubs')
@@ -99,7 +103,13 @@ async function getClubData(slug: string) {
         latitude,
         longitude,
         wso_geography,
-        geocode_display_name
+        geocode_display_name,
+        contact_name,
+        email,
+        phone,
+        instagram,
+        website_url,
+        community_designation
       `)
       .ilike('club_name', `%${simplePattern}%`)
       .not('latitude', 'is', null)
@@ -115,10 +125,7 @@ async function getClubData(slug: string) {
     let bestMatch = clubsData[0]
 
     // Exact match check
-    const exactMatch = clubsData.find(club => {
-      const clubSlug = (club.club_name || '').toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')
-      return clubSlug === targetSlug
-    })
+    const exactMatch = clubsData.find(club => createClubSlug(club.club_name || '') === targetSlug)
 
     if (exactMatch) bestMatch = exactMatch
 
@@ -141,8 +148,23 @@ async function getClubData(slug: string) {
       longitude: Number(bestMatch.longitude),
       wso_geography: bestMatch.wso_geography || '',
       quadrant,
-      quadrant_label
+      quadrant_label,
+      contact_name: bestMatch.contact_name || null,
+      email: bestMatch.email || null,
+      phone: bestMatch.phone || null,
+      instagram: bestMatch.instagram || null,
+      website_url: bestMatch.website_url || null,
+      community_designation: bestMatch.community_designation || null
     }
+
+    // 1b. Collegiate affiliation (join via usaw_university_programs; no club flag)
+    const { data: universityPrograms } = await supabaseAdmin
+      .from('usaw_university_programs')
+      .select('program_id, school_name, state, city, associated_usaw_club, instagram, website_url')
+      .eq('associated_usaw_club', bestMatch.club_name)
+      .order('school_name')
+
+    const universities: UniversityProgram[] = universityPrograms || []
 
     // 2. Fetch Demographics
     const twoYearsAgo = new Date()
@@ -274,6 +296,7 @@ async function getClubData(slug: string) {
 
     return {
       clubData,
+      universities,
       demographicsData: {
         clubName: bestMatch.club_name,
         demographics,
@@ -315,12 +338,7 @@ export async function generateStaticParams() {
     if (!clubs) return []
 
     return clubs.map((club) => ({
-      slug: club.club_name
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .replace(/^-|-$/g, '')
+      slug: createClubSlug(club.club_name)
     }))
   } catch (err) {
     console.error('Error generating static params:', err)
@@ -341,6 +359,7 @@ export default async function ClubPage({ params }: { params: Promise<{ slug: str
       <ClubDetailClient
         clubData={data.clubData}
         demographicsData={data.demographicsData}
+        universities={data.universities}
       />
     </Suspense>
   )

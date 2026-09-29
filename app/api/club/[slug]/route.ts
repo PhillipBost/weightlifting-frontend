@@ -1,20 +1,12 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { buildClubIlikePattern } from '@/lib/clubs/slug'
 
 // Use service role key for admin access
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
 const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
-
-// Helper function to convert slug to club name pattern
-function slugToClubNamePattern(slug: string): string {
-  // Convert slug back to something we can search for
-  // Add wildcards between words to handle special characters like W/L
-  // Example: "east-coast-gold-wl-team" -> "%east%coast%gold%wl%team%"
-  const words = slug.split('-').filter(w => w.length > 0)
-  return '%' + words.join('%') + '%'
-}
 
 // Helper function to parse location from geocode display name or address
 function parseLocation(club: any): { city: string; state: string } {
@@ -41,7 +33,7 @@ export async function GET(
 ) {
   try {
     const { slug } = await params
-    const searchPattern = slugToClubNamePattern(slug)
+    const searchPattern = `%${buildClubIlikePattern(slug)}%`
 
     console.log('=== CLUB SLUG API CALLED (v2) ===')
     console.log('Slug:', slug)
@@ -52,17 +44,7 @@ export async function GET(
     const words = slug.split('-').filter(w => w.length > 0)
     console.log('Searching for words:', words)
 
-    // Handle 2-letter abbreviations that might have special characters (like W/L)
-    // Insert wildcards between each character for short words to handle special chars
-    const processedWords = words.map(word => {
-      if (word.length === 2) {
-        // For 2-letter words, add wildcard between chars to match things like "W/L"
-        return word.split('').join('%')
-      }
-      return word
-    })
-
-    const simplePattern = processedWords.join('%')
+    const simplePattern = buildClubIlikePattern(slug)
     console.log('Using pattern:', `%${simplePattern}%`)
 
     const { data: clubsData, error: clubsError } = await supabaseAdmin
@@ -77,7 +59,13 @@ export async function GET(
         latitude,
         longitude,
         wso_geography,
-        geocode_display_name
+        geocode_display_name,
+        contact_name,
+        email,
+        phone,
+        instagram,
+        website_url,
+        community_designation
       `)
       .ilike('club_name', `%${simplePattern}%`)
       .not('latitude', 'is', null)
@@ -209,8 +197,21 @@ export async function GET(
       longitude: Number(bestMatch.longitude),
       wso_geography: bestMatch.wso_geography || '',
       quadrant,
-      quadrant_label
+      quadrant_label,
+      contact_name: bestMatch.contact_name || null,
+      email: bestMatch.email || null,
+      phone: bestMatch.phone || null,
+      instagram: bestMatch.instagram || null,
+      website_url: bestMatch.website_url || null,
+      community_designation: bestMatch.community_designation || null
     }
+
+    // Collegiate affiliation via usaw_university_programs join (no club flag)
+    const { data: universityPrograms } = await supabaseAdmin
+      .from('usaw_university_programs')
+      .select('program_id, school_name, state, city, associated_usaw_club, instagram, website_url')
+      .eq('associated_usaw_club', bestMatch.club_name)
+      .order('school_name')
 
     console.log('Final selected club:', {
       name: clubData.club_name,
@@ -219,7 +220,7 @@ export async function GET(
       location: `${city}, ${state}`
     })
 
-    const response = NextResponse.json(clubData)
+    const response = NextResponse.json({ ...clubData, universities: universityPrograms || [] })
 
     // Add caching headers - individual club data changes less frequently
     response.headers.set('Cache-Control', 'public, max-age=3600, s-maxage=3600') // 1 hour

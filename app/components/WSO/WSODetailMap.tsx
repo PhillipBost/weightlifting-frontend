@@ -12,6 +12,8 @@ import { useWSOMapData } from "../../hooks/useWSOMapData"
 import { useWSODetailData } from "../../hooks/useWSODetailData"
 import { useTheme } from "../ThemeProvider"
 import { getMapTileConfig } from "@/lib/mapTiles"
+import Link from "next/link"
+import { createClubSlug } from "@/lib/clubs/slug"
 
 // Hook to get current zoom level
 function useMapZoom() {
@@ -631,23 +633,15 @@ export default function WSODetailMap({
                   )}
                 </div>
 
-                <button
-                  onClick={() => {
-                    const clubSlug = (club.name || 'unknown-club')
-                      .toLowerCase()
-                      .replace(/[^a-z0-9\s-]/g, '')
-                      .replace(/\s+/g, '-')
-                      .replace(/-+/g, '-')
-                      .replace(/^-|-$/g, '')
-                    window.open(`/club/${clubSlug}`, '_blank')
-                  }}
-                  className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white text-sm font-medium py-2 px-3 rounded-md transition-colors duration-200 flex items-center justify-center"
+                <Link
+                  href={`/club/${createClubSlug(club.name || 'unknown-club')}`}
+                  className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white hover:text-white visited:text-white no-underline hover:no-underline text-sm font-medium py-2 px-3 rounded-md transition-colors duration-200 flex items-center justify-center cursor-pointer"
                 >
                   <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
                   View Club Details
-                </button>
+                </Link>
               </div>
             </Popup>
           </Marker>

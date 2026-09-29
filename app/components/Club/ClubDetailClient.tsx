@@ -3,9 +3,12 @@
 import React from "react"
 import Link from "next/link"
 import dynamic from 'next/dynamic'
-import { MapPin, Users, TrendingUp, Calendar, ExternalLink, Dumbbell, BarChart3, PieChart, Map as MapIcon } from "lucide-react"
+import { MapPin, Users, TrendingUp, Calendar, ExternalLink, Dumbbell, BarChart3, PieChart, Map as MapIcon, Mail, Phone, Instagram as InstagramIcon, GraduationCap, User } from "lucide-react"
 import { MetricTooltip } from "../../components/MetricTooltip"
 import ClubDemographics from "./ClubDemographics"
+import { normalizeInstagram, normalizeExternalUrl } from "@/lib/clubs/social"
+import { USAW_BIPOC_LGBTQIA_CLUBS_URL, USAW_UNIVERSITY_PROGRAMS_URL, USAW_CLUB_DIRECTORY_URL } from "@/lib/clubs/links"
+import type { UniversityProgram } from "@/types/university"
 
 const MeetHubSpokeMap = dynamic(() => import('../../components/MeetHubSpokeMap'), {
     ssr: false,
@@ -26,6 +29,13 @@ interface ClubData {
     wso_geography: string
     quadrant: 'powerhouse' | 'intensive' | 'sleeping-giant' | 'developing'
     quadrant_label: string
+    // Specialty/contact fields (community_designation rendered verbatim)
+    contact_name?: string | null
+    email?: string | null
+    phone?: string | null
+    instagram?: string | null
+    website_url?: string | null
+    community_designation?: string | null
 }
 
 interface DemographicsData {
@@ -46,6 +56,7 @@ interface DemographicsData {
 interface ClubDetailClientProps {
     clubData: ClubData
     demographicsData: DemographicsData | null
+    universities?: UniversityProgram[]
 }
 
 // Quadrant color helper
@@ -80,8 +91,23 @@ function getQuadrantDescription(quadrant: string): string {
     }
 }
 
-export default function ClubDetailClient({ clubData, demographicsData }: ClubDetailClientProps) {
+export default function ClubDetailClient({ clubData, demographicsData, universities = [] }: ClubDetailClientProps) {
     const quadrantColor = getQuadrantColor(clubData.quadrant)
+    const designation = clubData.community_designation || null
+    const isCollegiate = universities.length > 0
+    const instagramUrl = normalizeInstagram(clubData.instagram)
+    const websiteUrl = normalizeExternalUrl(clubData.website_url)
+    const hasContactInfo = Boolean(clubData.contact_name || clubData.email || clubData.phone || instagramUrl || websiteUrl)
+    // Collegiate program outbound links, hoisted so the card's top-right rail
+    // and the program rows share one normalization pass.
+    const collegiateProgramLinks = universities.map(program => ({
+        program_id: program.program_id,
+        school_name: program.school_name,
+        city: program.city,
+        state: program.state,
+        instagram: normalizeInstagram(program.instagram),
+        website: normalizeExternalUrl(program.website_url),
+    }))
 
     return (
         <div className="min-h-screen bg-app-gradient">
@@ -106,22 +132,169 @@ export default function ClubDetailClient({ clubData, demographicsData }: ClubDet
                                     <span>WSO: {clubData.wso_geography}</span>
                                 </div>
                             )}
+
+                            {/* Specialty badge — designation rendered byte-verbatim, text-only,
+                                deep-linked to the matching USAW page. */}
+                            {designation && (
+                                <div className="flex flex-wrap items-center gap-2 mt-3">
+                                    <a
+                                        href={USAW_BIPOC_LGBTQIA_CLUBS_URL}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        title="View this club on USA Weightlifting's BIPOC & LGBTQIA+ clubs page"
+                                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded border border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-200 text-sm font-semibold hover:bg-emerald-100 dark:hover:bg-emerald-900 hover:border-emerald-400 dark:hover:border-emerald-600 transition-colors"
+                                    >
+                                        {designation}
+                                        <ExternalLink className="h-3.5 w-3.5 opacity-70" aria-hidden="true" />
+                                    </a>
+                                </div>
+                            )}
+                            {hasContactInfo && (
+                                <div className="mt-4 space-y-2 text-sm text-app-secondary">
+                                    {clubData.contact_name && (
+                                        <div className="flex items-center space-x-2">
+                                            <User className="h-4 w-4 shrink-0 text-app-tertiary" />
+                                            <span>{clubData.contact_name}</span>
+                                        </div>
+                                    )}
+                                    {clubData.email && (
+                                        <div className="flex items-center space-x-2">
+                                            <Mail className="h-4 w-4 shrink-0 text-app-tertiary" />
+                                            <a href={`mailto:${clubData.email}`} className="hover:text-accent-primary transition-colors break-all">
+                                                {clubData.email}
+                                            </a>
+                                        </div>
+                                    )}
+                                    {clubData.phone && (
+                                        <div className="flex items-center space-x-2">
+                                            <Phone className="h-4 w-4 shrink-0 text-app-tertiary" />
+                                            <a href={`tel:${clubData.phone}`} className="hover:text-accent-primary transition-colors">
+                                                {clubData.phone}
+                                            </a>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                            {(instagramUrl || websiteUrl) && (
+                                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-sm">
+                                    {instagramUrl && (
+                                        <a
+                                            href={instagramUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center space-x-1.5 text-app-tertiary hover:text-accent-primary transition-colors"
+                                        >
+                                            <InstagramIcon className="h-4 w-4" />
+                                            <span>Instagram</span>
+                                        </a>
+                                    )}
+                                    {websiteUrl && (
+                                        <a
+                                            href={websiteUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center space-x-1.5 text-app-tertiary hover:text-accent-primary transition-colors"
+                                        >
+                                            <ExternalLink className="h-4 w-4" />
+                                            <span>Website</span>
+                                        </a>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
-                        {/* External Link */}
-                        <div className="flex flex-col gap-2">
+                        {/* External Links */}
+                        <div className="flex flex-col gap-2 shrink-0">
                             <a
-                                href="https://usaweightlifting.sport80.com/public/widget/7"
+                                href={USAW_CLUB_DIRECTORY_URL}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors"
                             >
                                 <ExternalLink className="h-4 w-4" />
-                                <span>Club Directory</span>
+                                <span>USAW Club Directory</span>
                             </a>
+                            {isCollegiate && (
+                                <a
+                                    href={USAW_UNIVERSITY_PROGRAMS_URL}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    title="View USA Weightlifting's University Programs page"
+                                    className="flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors"
+                                >
+                                    <ExternalLink className="h-4 w-4" />
+                                    <span>USAW Collegiate Program Directory</span>
+                                </a>
+                            )}
                         </div>
                     </div>
                 </div>
+
+                {/* Collegiate Program Affiliation (join via usaw_university_programs) */}
+                {isCollegiate && (
+                    <div className="max-w-[1200px] card-primary mb-6" id="collegiate-program">
+                        <div className="flex items-start justify-between gap-4 mb-4">
+                            <div>
+                                <h2 className="text-xl font-semibold text-app-primary mb-2 flex items-center">
+                                    <GraduationCap className="h-5 w-5 mr-2" />
+                                    Collegiate Program
+                                </h2>
+                                <p className="text-app-secondary text-sm">
+                                    {clubData.club_name} is affiliated with the following university program{universities.length > 1 ? 's' : ''}:
+                                </p>
+                            </div>
+                            {collegiateProgramLinks.some(link => link.instagram || link.website) && (
+                                <div className="flex flex-col gap-2 shrink-0">
+                                    {collegiateProgramLinks.map(link => (link.instagram || link.website) && (
+                                        <div key={link.program_id} className="flex flex-col gap-2">
+                                            {collegiateProgramLinks.length > 1 && (
+                                                <div className="text-xs text-app-tertiary">{link.school_name}</div>
+                                            )}
+                                            {link.instagram && (
+                                                <a
+                                                    href={link.instagram}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors"
+                                                >
+                                                    <InstagramIcon className="h-4 w-4" />
+                                                    <span>Instagram</span>
+                                                </a>
+                                            )}
+                                            {link.website && (
+                                                <a
+                                                    href={link.website}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center space-x-2 text-app-tertiary hover:text-accent-primary transition-colors"
+                                                >
+                                                    <ExternalLink className="h-4 w-4" />
+                                                    <span>Website</span>
+                                                </a>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        <div className="space-y-4">
+                            {collegiateProgramLinks.map(link => {
+                                const programLocation = [link.city, link.state].filter(Boolean).join(', ')
+                                return (
+                                    <div key={link.program_id} className="pt-4 border-t border-app-secondary first:border-t-0 first:pt-0">
+                                        <div className="font-semibold text-app-primary">{link.school_name}</div>
+                                        {programLocation && (
+                                            <div className="text-sm text-app-tertiary flex items-center mt-0.5">
+                                                <MapPin className="h-3.5 w-3.5 mr-1" />
+                                                {programLocation}
+                                            </div>
+                                        )}
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    </div>
+                )}
 
                 {/* Club Statistics */}
                 <div className="max-w-[1200px]">

@@ -11,6 +11,11 @@ interface Club {
   city: string
   state: string
   recentMemberCount: number
+  slug?: string
+  /** Verbatim community_designation, or null when not designated. */
+  communityDesignation?: string | null
+  /** True when linked to a row in usaw_university_programs. */
+  isCollegiate?: boolean
 }
 
 interface ClubStats {

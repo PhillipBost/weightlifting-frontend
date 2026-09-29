@@ -54,6 +54,8 @@ export type Database = {
           address: string | null
           analytics_updated_at: string | null
           club_name: string
+          community_designation: string | null
+          contact_name: string | null
           created_at: string | null
           elevation_fetched_at: string | null
           elevation_meters: number | null
@@ -64,6 +66,9 @@ export type Database = {
           geocode_precision_score: number | null
           geocode_strategy_used: string | null
           geocode_success: boolean | null
+          instagram: string | null
+          is_bipoc_owned: boolean | null
+          is_lgbtqia_owned: boolean | null
           latitude: number | null
           longitude: number | null
           phone: string | null
@@ -71,6 +76,7 @@ export type Database = {
           state: string | null
           total_participations: number | null
           updated_at: string | null
+          website_url: string | null
           wso_geography: string | null
         }
         Insert: {
@@ -79,6 +85,8 @@ export type Database = {
           address?: string | null
           analytics_updated_at?: string | null
           club_name: string
+          community_designation?: string | null
+          contact_name?: string | null
           created_at?: string | null
           elevation_fetched_at?: string | null
           elevation_meters?: number | null
@@ -89,6 +97,9 @@ export type Database = {
           geocode_precision_score?: number | null
           geocode_strategy_used?: string | null
           geocode_success?: boolean | null
+          instagram?: string | null
+          is_bipoc_owned?: boolean | null
+          is_lgbtqia_owned?: boolean | null
           latitude?: number | null
           longitude?: number | null
           phone?: string | null
@@ -96,6 +107,7 @@ export type Database = {
           state?: string | null
           total_participations?: number | null
           updated_at?: string | null
+          website_url?: string | null
           wso_geography?: string | null
         }
         Update: {
@@ -104,6 +116,8 @@ export type Database = {
           address?: string | null
           analytics_updated_at?: string | null
           club_name?: string
+          community_designation?: string | null
+          contact_name?: string | null
           created_at?: string | null
           elevation_fetched_at?: string | null
           elevation_meters?: number | null
@@ -114,6 +128,9 @@ export type Database = {
           geocode_precision_score?: number | null
           geocode_strategy_used?: string | null
           geocode_success?: boolean | null
+          instagram?: string | null
+          is_bipoc_owned?: boolean | null
+          is_lgbtqia_owned?: boolean | null
           latitude?: number | null
           longitude?: number | null
           phone?: string | null
@@ -121,6 +138,7 @@ export type Database = {
           state?: string | null
           total_participations?: number | null
           updated_at?: string | null
+          website_url?: string | null
           wso_geography?: string | null
         }
         Relationships: []
@@ -179,6 +197,45 @@ export type Database = {
           national_rank?: number | null
           updated_at?: string | null
           wso?: string | null
+        }
+        Relationships: []
+      }
+      usaw_university_programs: {
+        Row: {
+          associated_usaw_club: string | null
+          city: string | null
+          created_at: string | null
+          instagram: string | null
+          program_id: number
+          school_name: string
+          source_sheet: string | null
+          state: string | null
+          updated_at: string | null
+          website_url: string | null
+        }
+        Insert: {
+          associated_usaw_club?: string | null
+          city?: string | null
+          created_at?: string | null
+          instagram?: string | null
+          program_id?: number
+          school_name: string
+          source_sheet?: string | null
+          state?: string | null
+          updated_at?: string | null
+          website_url?: string | null
+        }
+        Update: {
+          associated_usaw_club?: string | null
+          city?: string | null
+          created_at?: string | null
+          instagram?: string | null
+          program_id?: number
+          school_name?: string
+          source_sheet?: string | null
+          state?: string | null
+          updated_at?: string | null
+          website_url?: string | null
         }
         Relationships: []
       }

@@ -3,7 +3,7 @@ import MiniSearch, { SearchResult } from 'minisearch';
 export interface WsoClubResult {
     id: string; // Unique ID (e.g., 'wso-1', 'club-123')
     name: string;
-    type: 'WSO' | 'Club' | 'Country';
+    type: 'WSO' | 'Club' | 'Country' | 'University';
     location: string; // City, State or just State
     slug: string;
     state: string; // For filtering if needed

@@ -28,7 +28,7 @@ console.log(`[DB Connection] Connecting to: ${urlMask}`);
 interface SearchIndexParams {
     id: string;
     name: string;
-    type: 'WSO' | 'Club' | 'Country';
+    type: 'WSO' | 'Club' | 'Country' | 'University';
     location: string;
     slug: string;
     state: string;
@@ -115,11 +115,31 @@ async function generateWsoClubIndex() {
             }
         }
 
+        // 1b. Fetch University Programs (linked -> canonical club slug; unlinked -> /club directory)
+        console.log('Fetching University Programs from usaw_university_programs...');
+        const { data: universityPrograms, error: universityError } = await usawClient
+            .from('usaw_university_programs')
+            .select('program_id, school_name, state, city, associated_usaw_club');
+
+        // Docs are pushed AFTER the clubs fetch so we only route to club pages
+        // that actually exist (profile pages require geocoded coordinates).
+        const linkedClubNames = new Set<string>();
+        if (universityError) {
+            console.warn('University programs fetch error:', universityError.message);
+        } else {
+            (universityPrograms || []).forEach((program: any) => {
+                if (program.associated_usaw_club) {
+                    linkedClubNames.add(program.associated_usaw_club);
+                }
+            });
+            console.log(`Fetched ${universityPrograms?.length || 0} University Programs (${linkedClubNames.size} linked to clubs)`);
+        }
+
         // 2. Fetch Clubs
         console.log('Fetching Clubs from usaw_clubs...');
         const { data: clubs, error: clubError, count: clubCount } = await usawClient
             .from('usaw_clubs')
-            .select('club_name, address, latitude, longitude, geocode_display_name', { count: 'exact' });
+            .select('club_name, address, latitude, longitude, geocode_display_name, community_designation', { count: 'exact' });
 
         if (clubError) {
             console.error('Club fetch error:', clubError);
@@ -141,7 +161,10 @@ async function generateWsoClubIndex() {
                     location: location,
                     slug: createSlug(name),
                     state: state || '',
-                    searchableText: `${name} ${location}`.toLowerCase()
+                    // community_designation indexed verbatim so specialty searches
+                    // ("lgbtqia", "black owned", ...) find designated clubs, and
+                    // collegiate clubs match "collegiate"/"university" queries.
+                    searchableText: `${name} ${location} ${club.community_designation || ''} ${linkedClubNames.has(club.club_name) ? 'collegiate program university' : ''}`.toLowerCase()
                 });
             });
             console.log(`✅ Added ${clubs.length} Clubs`);
@@ -152,6 +175,36 @@ async function generateWsoClubIndex() {
                 console.warn('   - Service role key lacking permissions');
                 console.warn('   - Empty table in this environment');
             }
+        }
+
+        // 2b. Push University Program docs (after clubs so slug routing is safe:
+        //     /club/[slug] 404s for clubs without geocoded coordinates, so those
+        //     linked programs fall back to the /club University Programs section.)
+        const geocodedClubSlugs = new Set<string>();
+        (clubs || []).forEach((club: any) => {
+            if (club.latitude && club.longitude) {
+                geocodedClubSlugs.add(createSlug(club.club_name || ''));
+            }
+        });
+
+        if (!universityError) {
+            let routedToClub = 0;
+            (universityPrograms || []).forEach((program: any) => {
+                const location = [program.city, program.state].filter(Boolean).join(', ');
+                const clubSlug = program.associated_usaw_club ? createSlug(program.associated_usaw_club) : '';
+                const routableSlug = clubSlug && geocodedClubSlugs.has(clubSlug) ? clubSlug : '';
+                if (routableSlug) routedToClub++;
+                documents.push({
+                    id: `university-${program.program_id}`,
+                    name: program.school_name,
+                    type: 'University',
+                    location,
+                    slug: routableSlug,
+                    state: program.state || '',
+                    searchableText: `${program.school_name} ${location} ${program.associated_usaw_club || ''} university college collegiate weightlifting`.toLowerCase()
+                });
+            });
+            console.log(`✅ Added ${universityPrograms?.length || 0} University Programs (${routedToClub} routed to club pages, ${universityPrograms!.length - routedToClub} to /club section)`);
         }
 
         // 3. Fetch Countries
