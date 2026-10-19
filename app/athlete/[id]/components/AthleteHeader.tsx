@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { User, MapPin, Dumbbell, ExternalLink, Globe } from 'lucide-react';
+import { CANONICAL_COUNTRY_NAMES } from '@/types/federation';
 
 interface AthleteHeaderProps {
   athlete: any;
@@ -12,11 +13,15 @@ interface AthleteHeaderProps {
   showIwfResults: boolean;
   setShowIwfResults: (show: boolean) => void;
   forceIwfMode?: boolean;
+  forceOwlcmsMode?: boolean;
   currentIwfId?: string;
+  currentOwlcmsId?: string;
   linkedOwlcmsId?: number | null;
   owlcmsResults?: any[];
   showOwlcmsResults?: boolean;
   setShowOwlcmsResults?: (show: boolean) => void;
+  showUsawResults?: boolean;
+  setShowUsawResults?: (show: boolean) => void;
 }
 
 export function AthleteHeader({
@@ -27,12 +32,33 @@ export function AthleteHeader({
   showIwfResults,
   setShowIwfResults,
   forceIwfMode = false,
+  forceOwlcmsMode = false,
   currentIwfId,
+  currentOwlcmsId,
   linkedOwlcmsId,
   owlcmsResults,
   showOwlcmsResults = false,
-  setShowOwlcmsResults
+  setShowOwlcmsResults,
+  showUsawResults = false,
+  setShowUsawResults
 }: AthleteHeaderProps) {
+  const representedCountries = React.useMemo(() => {
+    const codes = new Set<string>();
+    if (athlete?.nation_code) codes.add(athlete.nation_code.toUpperCase());
+    (owlcmsResults || []).forEach((r: any) => {
+      const c = r.country || r.country_code || r.nation_code;
+      if (c && typeof c === 'string' && c.length <= 4) codes.add(c.toUpperCase());
+    });
+    (iwfResults || []).forEach((r: any) => {
+      const c = r.country || r.country_code || r.nation;
+      if (c && typeof c === 'string' && c.length <= 4) codes.add(c.toUpperCase());
+    });
+    return Array.from(codes).map(code => {
+      const name = CANONICAL_COUNTRY_NAMES[code];
+      return name ? `${name} (${code})` : code;
+    });
+  }, [athlete, owlcmsResults, iwfResults]);
+
   if (!athlete) return null;
 
   return (
@@ -46,7 +72,18 @@ export function AthleteHeader({
           <div className="flex flex-col">
             <h1 className="text-3xl font-bold text-app-primary mb-2">{athlete.displayName}</h1>
             <div className="flex flex-wrap gap-4 text-sm text-app-secondary">
-              {forceIwfMode ? (
+              {forceOwlcmsMode ? (
+                <>
+                  <div className="flex items-center space-x-1">
+                    <span>owlcms Competitor #{currentOwlcmsId?.replace('owlcms-', '') || athlete.linked_owlcms_id || athlete.lifter_id}</span>
+                  </div>
+                  {athlete.gender && (
+                    <div className="flex items-center space-x-1">
+                      <span>{athlete.gender === 'M' ? 'Male' : 'Female'}</span>
+                    </div>
+                  )}
+                </>
+              ) : forceIwfMode ? (
                 <>
                   <div className="flex items-center space-x-1">
                     <span>IWF Athlete ID: {currentIwfId?.replace('iwf-', '')}</span>
@@ -73,7 +110,25 @@ export function AthleteHeader({
               )}
             </div>
             <div className="flex flex-wrap gap-4 text-sm text-app-secondary mt-2">
-              {forceIwfMode ? (
+              {forceOwlcmsMode ? (
+                <>
+                  {athlete.club_name && (
+                    <div className="flex items-center space-x-1">
+                      <Dumbbell className="h-4 w-4" />
+                      <span>Club: {athlete.club_name}</span>
+                    </div>
+                  )}
+                  {representedCountries.length > 0 && (
+                    <div className="flex items-center space-x-1">
+                      <MapPin className="h-4 w-4" />
+                      <span>
+                        {representedCountries.length > 1 ? 'Countries:' : 'Country:'}{' '}
+                        {representedCountries.join(' • ')}
+                      </span>
+                    </div>
+                  )}
+                </>
+              ) : forceIwfMode ? (
                 <>
                   {athlete.nation_code && (
                     <div className="flex items-center space-x-1">
@@ -109,107 +164,132 @@ export function AthleteHeader({
         </div>
 
         {/* Internal Navigation Links & Toggle */}
-        {(iwfProfiles.length > 0 || iwfResults.length > 0 || athlete.linked_usaw_id || athlete.linked_iwf_id || linkedOwlcmsId || (owlcmsResults && owlcmsResults.length > 0)) && (
+        {(iwfProfiles.length > 0 || iwfResults.length > 0 || athlete.linked_usaw_id || athlete.linked_iwf_id || linkedOwlcmsId || (owlcmsResults && owlcmsResults.length > 0) || (forceOwlcmsMode && (athlete.linked_usaw_id || athlete.linked_iwf_id))) && (
           <div className="flex flex-col gap-3 my-4 md:my-0 md:pt-2 items-start justify-center px-4">
-            {/* Link back to USAW Profile - Only if it exists */}
-            {forceIwfMode && (athlete.linked_usaw_id || athlete.membership_number) && (
-              <Link
-                href={`/athlete/${athlete.linked_usaw_id || athlete.membership_number}`}
-                className="inline-flex items-center space-x-2 px-3 py-1.5 bg-transparent hover:bg-app-tertiary border border-app-secondary rounded-md text-app-secondary hover:text-white transition-colors text-sm"
-              >
-                <User className="h-3.5 w-3.5" />
-                <span>View USAW Profile</span>
-              </Link>
-            )}
-
-            {/* Primary IWF Forward-Link */}
-            {!forceIwfMode && athlete.linked_iwf_id && (
-              <Link
-                href={`/athlete/iwf/${athlete.linked_iwf_id}`}
-                className="inline-flex items-center space-x-2 px-3 py-1.5 bg-transparent hover:bg-app-tertiary border border-app-secondary rounded-md text-app-secondary hover:text-white transition-colors text-sm"
-              >
-                <Globe className="h-3.5 w-3.5" />
-                <span>View IWF Profile</span>
-              </Link>
-            )}
-
-            {/* Legacy IWF Profiles Array (if primary link is missing) */}
-            {!forceIwfMode && !athlete.linked_iwf_id && iwfProfiles
-              .filter(p => {
-                const cleanCurrentId = currentIwfId?.replace('iwf-', '');
-                const cleanProfileId = String(p.id).replace('iwf-', '');
-                return !cleanCurrentId || cleanProfileId !== cleanCurrentId;
-              })
-              .map((p) => (
+            {/* Profile Navigation Links */}
+            <div className="flex flex-col gap-2 items-start">
+              {/* Primary USAW Forward-Link */}
+              {(forceIwfMode || forceOwlcmsMode) && (athlete.linked_usaw_id || athlete.membership_number) && (
                 <Link
-                  key={p.id}
-                  href={`/athlete/iwf/${p.id}`}
+                  href={`/athlete/${athlete.membership_number || `u-${athlete.linked_usaw_id}`}`}
                   className="inline-flex items-center space-x-2 px-3 py-1.5 bg-transparent hover:bg-app-tertiary border border-app-secondary rounded-md text-app-secondary hover:text-white transition-colors text-sm"
                 >
                   <User className="h-3.5 w-3.5" />
-                  <span>View Linked IWF Results{iwfProfiles.length > 1 ? ` (${p.id})` : ''}</span>
+                  <span>View USAW Profile</span>
                 </Link>
-              ))}
-            
-            {/* Fallback link if results exist but profile metadata is missing */}
-            {!forceIwfMode && !athlete.linked_iwf_id && iwfProfiles.length === 0 && iwfResults.length > 0 && (
-              <Link
-                href={`/athlete/iwf/${iwfResults[0].iwf_lifter_id || iwfResults[0].db_lifter_id || iwfResults[0].id}`}
-                className="inline-flex items-center space-x-2 px-3 py-1.5 bg-transparent hover:bg-app-tertiary border border-app-secondary rounded-md text-app-secondary hover:text-white transition-colors text-sm"
-              >
-                <User className="h-3.5 w-3.5" />
-                <span>View Linked IWF Results</span>
-              </Link>
-            )}
-            
-            {/* Results Toggle: Only show if there's a linked identity to toggle to */}
-            {((forceIwfMode ? (athlete.linked_usaw_id || athlete.membership_number) : (athlete.linked_iwf_id || iwfResults.length > 0))) && (
-              <label className="flex items-center space-x-3 cursor-pointer mt-1">
-                <div className="relative">
-                  <input 
-                    type="checkbox" 
-                    className="sr-only" 
-                    checked={forceIwfMode ? !showIwfResults : showIwfResults}
-                    onChange={(e) => setShowIwfResults(forceIwfMode ? !e.target.checked : e.target.checked)}
-                  />
-                  <div className={`block w-10 h-6 rounded-full transition-colors ${(forceIwfMode ? !showIwfResults : showIwfResults) ? 'bg-accent-primary' : 'bg-app-surface border border-app-secondary'}`}></div>
-                  <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${(forceIwfMode ? !showIwfResults : showIwfResults) ? 'transform translate-x-4' : ''}`}></div>
-                </div>
-                <span className="text-sm font-medium text-app-secondary select-none text-nowrap">
-                  {forceIwfMode ? 'Include USAW Results' : 'Include IWF Results'}
-                </span>
-              </label>
-            )}
+              )}
 
-            {/* Link to owlcms Profile */}
-            {linkedOwlcmsId && (
-              <Link
-                href={`/athlete/owlcms/${linkedOwlcmsId}`}
-                className="inline-flex items-center space-x-2 px-3 py-1.5 bg-transparent hover:bg-app-tertiary border border-app-secondary rounded-md text-app-secondary hover:text-white transition-colors text-sm"
-              >
-                <Dumbbell className="h-3.5 w-3.5 text-emerald-400" />
-                <span>View owlcms Profile</span>
-              </Link>
-            )}
+              {/* Primary IWF Forward-Link */}
+              {!forceIwfMode && athlete.linked_iwf_id && (
+                <Link
+                  href={`/athlete/iwf/${athlete.linked_iwf_id}`}
+                  className="inline-flex items-center space-x-2 px-3 py-1.5 bg-transparent hover:bg-app-tertiary border border-app-secondary rounded-md text-app-secondary hover:text-white transition-colors text-sm"
+                >
+                  <Globe className="h-3.5 w-3.5" />
+                  <span>View IWF Profile</span>
+                </Link>
+              )}
 
-            {/* owlcms Results Toggle */}
-            {owlcmsResults && owlcmsResults.length > 0 && setShowOwlcmsResults && (
-              <label className="flex items-center space-x-3 cursor-pointer mt-1">
-                <div className="relative">
-                  <input 
-                    type="checkbox" 
-                    className="sr-only" 
-                    checked={showOwlcmsResults}
-                    onChange={(e) => setShowOwlcmsResults(e.target.checked)}
-                  />
-                  <div className={`block w-10 h-6 rounded-full transition-colors ${showOwlcmsResults ? 'bg-emerald-600' : 'bg-app-surface border border-app-secondary'}`}></div>
-                  <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${showOwlcmsResults ? 'transform translate-x-4' : ''}`}></div>
-                </div>
-                <span className="text-sm font-medium text-app-secondary select-none text-nowrap">
-                  Include owlcms Results
-                </span>
-              </label>
-            )}
+              {/* Legacy IWF Profiles Array (if primary link is missing) */}
+              {!forceIwfMode && !forceOwlcmsMode && !athlete.linked_iwf_id && iwfProfiles
+                .filter(p => {
+                  const cleanCurrentId = currentIwfId?.replace('iwf-', '');
+                  const cleanProfileId = String(p.id).replace('iwf-', '');
+                  return !cleanCurrentId || cleanProfileId !== cleanCurrentId;
+                })
+                .map((p) => (
+                  <Link
+                    key={p.id}
+                    href={`/athlete/iwf/${p.id}`}
+                    className="inline-flex items-center space-x-2 px-3 py-1.5 bg-transparent hover:bg-app-tertiary border border-app-secondary rounded-md text-app-secondary hover:text-white transition-colors text-sm"
+                  >
+                    <User className="h-3.5 w-3.5" />
+                    <span>View Linked IWF Results{iwfProfiles.length > 1 ? ` (${p.id})` : ''}</span>
+                  </Link>
+                ))}
+              
+              {/* Fallback link if results exist but profile metadata is missing */}
+              {!forceIwfMode && !forceOwlcmsMode && !athlete.linked_iwf_id && iwfProfiles.length === 0 && iwfResults.length > 0 && (
+                <Link
+                  href={`/athlete/iwf/${iwfResults[0].iwf_lifter_id || iwfResults[0].db_lifter_id || iwfResults[0].id}`}
+                  className="inline-flex items-center space-x-2 px-3 py-1.5 bg-transparent hover:bg-app-tertiary border border-app-secondary rounded-md text-app-secondary hover:text-white transition-colors text-sm"
+                >
+                  <User className="h-3.5 w-3.5" />
+                  <span>View Linked IWF Results</span>
+                </Link>
+              )}
+
+              {/* Link to owlcms Profile */}
+              {!forceOwlcmsMode && linkedOwlcmsId && (
+                <Link
+                  href={`/athlete/owlcms/${linkedOwlcmsId}`}
+                  className="inline-flex items-center space-x-2 px-3 py-1.5 bg-transparent hover:bg-app-tertiary border border-app-secondary rounded-md text-app-secondary hover:text-white transition-colors text-sm"
+                >
+                  <Dumbbell className="h-3.5 w-3.5" />
+                  <span>View owlcms Profile</span>
+                </Link>
+              )}
+            </div>
+
+            {/* Dataset Toggles */}
+            <div className="flex flex-col gap-2 items-start">
+              {/* USAW Results Toggle (in IWF or OWLCMS mode) */}
+              {(forceIwfMode || forceOwlcmsMode) && (athlete.linked_usaw_id || athlete.membership_number || (athlete.usaw_results && athlete.usaw_results.length > 0)) && setShowUsawResults && (
+                <label className="flex items-center space-x-3 cursor-pointer">
+                  <div className="relative">
+                    <input 
+                      type="checkbox" 
+                      className="sr-only" 
+                      checked={showUsawResults}
+                      onChange={(e) => setShowUsawResults(e.target.checked)}
+                    />
+                    <div className={`block w-10 h-6 rounded-full transition-colors ${showUsawResults ? 'bg-accent-primary' : 'bg-app-surface border border-app-secondary'}`}></div>
+                    <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${showUsawResults ? 'transform translate-x-4' : ''}`}></div>
+                  </div>
+                  <span className="text-sm font-medium text-app-secondary select-none text-nowrap">
+                    Include USAW Results
+                  </span>
+                </label>
+              )}
+
+              {/* IWF Results Toggle (in USAW or OWLCMS mode) */}
+              {!forceIwfMode && (athlete.linked_iwf_id || (athlete.iwf_results && athlete.iwf_results.length > 0) || iwfResults.length > 0) && setShowIwfResults && (
+                <label className="flex items-center space-x-3 cursor-pointer">
+                  <div className="relative">
+                    <input 
+                      type="checkbox" 
+                      className="sr-only" 
+                      checked={showIwfResults}
+                      onChange={(e) => setShowIwfResults(e.target.checked)}
+                    />
+                    <div className={`block w-10 h-6 rounded-full transition-colors ${showIwfResults ? 'bg-accent-primary' : 'bg-app-surface border border-app-secondary'}`}></div>
+                    <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${showIwfResults ? 'transform translate-x-4' : ''}`}></div>
+                  </div>
+                  <span className="text-sm font-medium text-app-secondary select-none text-nowrap">
+                    Include IWF Results
+                  </span>
+                </label>
+              )}
+
+              {/* owlcms Results Toggle (in USAW or IWF mode) */}
+              {!forceOwlcmsMode && owlcmsResults && owlcmsResults.length > 0 && setShowOwlcmsResults && (
+                <label className="flex items-center space-x-3 cursor-pointer">
+                  <div className="relative">
+                    <input 
+                      type="checkbox" 
+                      className="sr-only" 
+                      checked={showOwlcmsResults}
+                      onChange={(e) => setShowOwlcmsResults(e.target.checked)}
+                    />
+                    <div className={`block w-10 h-6 rounded-full transition-colors ${showOwlcmsResults ? 'bg-accent-primary' : 'bg-app-surface border border-app-secondary'}`}></div>
+                    <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${showOwlcmsResults ? 'transform translate-x-4' : ''}`}></div>
+                  </div>
+                  <span className="text-sm font-medium text-app-secondary select-none text-nowrap">
+                    Include owlcms Results
+                  </span>
+                </label>
+              )}
+            </div>
           </div>
         )}
 

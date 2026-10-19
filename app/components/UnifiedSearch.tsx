@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Search, X, MapPin, User, CalendarDays, Dumbbell, Filter, ChevronDown, ChevronUp, GraduationCap } from 'lucide-react';
+import { Search, X, MapPin, User, CalendarDays, Dumbbell, Filter, ChevronDown, ChevronUp, GraduationCap, Shield } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import MiniSearch from 'minisearch';
@@ -12,6 +12,7 @@ import { usawMeetSearch } from '@/lib/search/usawMeetSearch';
 import { iwfMeetSearch } from '@/lib/search/iwfMeetSearch';
 import { wsoClubSearch } from '@/lib/search/wsoClubSearch';
 import { generateAthleteSearchTerms, stripPunctuation } from '@/lib/search/searchUtils';
+import { FEDERATION_LEVEL_LABELS, FederationLevel, CANONICAL_COUNTRY_NAMES, formatDefinedTeam } from '@/types/federation';
 
 // --- Types ---
 
@@ -20,7 +21,7 @@ interface UnifiedSearchProps {
     variant?: 'hero' | 'header';
 }
 
-type SearchCategory = 'Athletes' | 'Meets' | 'Clubs' | 'Universities' | 'WSO' | 'Countries' | 'Filters';
+type SearchCategory = 'Athletes' | 'Meets' | 'Clubs' | 'Universities' | 'WSO' | 'Countries' | 'Federations' | 'Filters';
 
 interface SuggestionItem {
     id: string;
@@ -192,6 +193,7 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
                 { id: 'filter-gender-female', label: 'Gender: Female', type: 'gender', value: 'female', category: 'Filters' },
                 { id: 'filter-fed-usaw', label: 'Federation: USAW', type: 'federation', value: 'USAW', category: 'Filters' },
                 { id: 'filter-fed-iwf', label: 'Federation: IWF', type: 'federation', value: 'IWF', category: 'Filters' },
+                { id: 'filter-source-owlcms', label: 'Source: owlcms', type: 'source', value: 'owlcms', category: 'Filters' },
                 { id: 'filter-country-usa', label: 'Country: United States', type: 'country', value: 'United States', category: 'Countries' } // Keep explicitly as Countries or group under Filters? Logic below uses 'Countries' category.
             ] as const;
 
@@ -214,6 +216,10 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
             const isIwfOnly = fedFilter?.value?.toLowerCase() === 'iwf';
             const isUsawOnly = fedFilter?.value?.toLowerCase() === 'usaw';
 
+            // Determine active source filter
+            const sourceFilter = activeFilters.find(f => f.type === 'source');
+            const isOwlcmsOnly = sourceFilter?.value?.toLowerCase() === 'owlcms';
+
             // Determine active gender filter
             const genderFilter = activeFilters.find(f => f.type === 'gender');
             const targetGender = genderFilter?.value; // 'male' or 'female'
@@ -227,14 +233,6 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
             // 2. Search Athletes (Combined)
             // TODO: Ensure search indices are initialized. They are likely init'd in page.tsx or global context.
             // For safety, we can try initing here or rely on them being ready.
-            await Promise.all([
-                iwfAthleteSearch.init(),
-                usawAthleteSearch.init(),
-                usawMeetSearch.init(),
-                iwfMeetSearch.init(),
-                wsoClubSearch.init()
-            ]);
-
             // Search Options
             const searchOptions = {
                 prefix: true,
@@ -242,12 +240,22 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
                 limit: 20 // Limit per category to avoid clutter but allow expansion
             };
 
-            // USAW Athletes (Skip if IWF only or Country filter is set (unless USA))
+            const [owlcmsRes, fedRes] = await Promise.all([
+                fetch(`/api/owlcms/search?q=${encodeURIComponent(cleanedQuery)}`, { cache: 'no-store' }).then(r => r.json()).catch(() => ({ athletes: [], meets: [] })),
+                fetch(`/api/federations/search?q=${encodeURIComponent(cleanedQuery)}`).then(r => r.json()).catch(() => ({ matches: [] })),
+                iwfAthleteSearch.init(),
+                usawAthleteSearch.init(),
+                usawMeetSearch.init(),
+                iwfMeetSearch.init(),
+                wsoClubSearch.init()
+            ]);
+
+            // USAW Athletes (Skip if IWF only, OWLCMS only, or Country filter is set (unless USA))
             // USAW is effectively USA only, so if targetCountries is set and 'USA'/'United States' is NOT in it, skip USAW.
             const isUsaFilter = targetCountries.length > 0 && targetCountries.some(c => ['usa', 'united states', 'us'].includes(c));
             // If countries ARE selected, but none of them are USA, then we skip USAW.
-            // If NO countries are selected, we show USAW (unless IWF only).
-            const skipUsaw = isIwfOnly || (targetCountries.length > 0 && !isUsaFilter);
+            // If NO countries are selected, we show USAW (unless IWF or OWLCMS only).
+            const skipUsaw = isIwfOnly || isOwlcmsOnly || (targetCountries.length > 0 && !isUsaFilter);
 
             // 2b. Search Athletes (Combined & Ranked)
             // We search both indices (if allowed), combine results, sort by relevance, and then limit.
@@ -281,7 +289,7 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
                 });
             }
 
-            if (!isUsawOnly) {
+            if (!isUsawOnly && !isOwlcmsOnly) {
                 const iwfResults = iwfAthleteSearch.search(cleanedQuery, searchOptions);
                 iwfResults.forEach(r => {
                     // Filter Logic: Gender & Country
@@ -309,6 +317,72 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
                 });
             }
 
+            // owlcms Athletes
+            if (!isUsawOnly && !isIwfOnly && owlcmsRes?.athletes?.length > 0) {
+                owlcmsRes.athletes.forEach((r: any) => {
+                    if (targetGender) {
+                        const recGender = (r.gender || '').toLowerCase();
+                        const isRecFemale = recGender.startsWith('f') || recGender === 'women';
+                        const targetIsFemale = targetGender === 'female';
+                        if (isRecFemale !== targetIsFemale) return;
+                    }
+                    const rawCountryCodes: string[] = Array.isArray(r.country_codes) && r.country_codes.length > 0
+                        ? r.country_codes
+                        : (r.country_code ? [r.country_code] : []);
+
+                    if (targetCountries.length > 0) {
+                        const isMatch = rawCountryCodes.some((code: string) => {
+                            const cCode = code.toLowerCase();
+                            const cName = CANONICAL_COUNTRY_NAMES[code.toUpperCase()]?.toLowerCase() || '';
+                            return targetCountries.some(tc =>
+                                tc === cCode ||
+                                tc === cName ||
+                                (cCode === 'usa' && ['usa', 'united states', 'us'].includes(tc)) ||
+                                (cCode === 'can' && ['can', 'canada'].includes(tc))
+                            );
+                        });
+                        if (!isMatch) return;
+                    }
+
+                    const displayGender = r.gender === 'M' ? 'Male' : r.gender === 'F' ? 'Female' : (r.gender || 'N/A');
+                    const formattedCountries = Array.from(new Set(rawCountryCodes.map((code: string) => formatDefinedTeam(code)))).filter(Boolean);
+                    const countryDisplay = formattedCountries.join(' • ');
+
+                    const rawClubs: string[] = Array.isArray(r.all_clubs) && r.all_clubs.length > 0
+                        ? r.all_clubs
+                        : (r.club_name ? [r.club_name] : []);
+                    const distinctClubs = rawClubs.filter((club: string) => {
+                        const upper = club.toUpperCase();
+                        const isCountryMatch = rawCountryCodes.some((code: string) => code.toUpperCase() === upper);
+                        const isCanonicalCountry = Boolean(CANONICAL_COUNTRY_NAMES[upper]);
+                        return !isCountryMatch && !isCanonicalCountry;
+                    });
+                    const clubDisplay = distinctClubs.join(' • ');
+                    const location = [clubDisplay, countryDisplay].filter(Boolean).join(' • ');
+
+                    const nameLower = (r.athlete_name || '').toLowerCase();
+                    const queryLower = cleanedQuery.toLowerCase();
+                    const queryTokens = queryLower.split(/\s+/).filter(Boolean);
+                    const allTokensMatch = queryTokens.length > 0 && queryTokens.every((tok: string) => nameLower.includes(tok));
+
+                    let athleteScore = 25;
+                    if (nameLower === queryLower) athleteScore = 95;
+                    else if (nameLower.startsWith(queryLower)) athleteScore = 85;
+                    else if (allTokensMatch) athleteScore = 75;
+                    else if (nameLower.includes(queryLower)) athleteScore = 55;
+
+                    combinedAthletes.push({
+                        id: `owlcms-${r.lifter_id}`,
+                        label: r.athlete_name,
+                        subLabel: `${displayGender || ''}${displayGender && location ? ' • ' : ''}${location || 'N/A'} • #owlcms-${r.lifter_id}`,
+                        category: 'Athletes',
+                        icon: <User className="h-4 w-4" />,
+                        data: { ...r, id: r.lifter_id, source: 'OWLCMS', type: 'athlete' },
+                        score: athleteScore
+                    });
+                });
+            }
+
             // Sort by Score Descending -> Push Top 10 to allSuggestions
             combinedAthletes
                 .sort((a, b) => (b.score || 0) - (a.score || 0))
@@ -316,6 +390,25 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
                 .forEach(item => allSuggestions.push(item));
 
             // 3. Search Meets
+            // owlcms Meets
+            if (!isUsawOnly && !isIwfOnly && owlcmsRes?.meets?.length > 0) {
+                owlcmsRes.meets.forEach((r: any) => {
+                    const year = r.start_date ? new Date(r.start_date).getFullYear() : 'owlcms';
+                    const locationParts = [r.city, r.country].filter(Boolean);
+                    const location = locationParts.length > 0 ? locationParts.join(', ') : 'owlcms';
+
+                    allSuggestions.push({
+                        id: `owlcms-meet-${r.meet_id}`,
+                        label: r.meet_name,
+                        subLabel: `${year} • ${location}`,
+                        category: 'Meets',
+                        icon: <CalendarDays className="h-4 w-4" />,
+                        data: { ...r, id: r.meet_id, source: 'OWLCMS', type: 'meet' },
+                        score: 1.5
+                    });
+                });
+            }
+
             if (!skipUsaw) {
                 const usawMeets = usawMeetSearch.search(cleanedQuery, searchOptions);
                 usawMeets.slice(0, 3).forEach(r => {
@@ -331,7 +424,7 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
                 });
             }
 
-            if (!isUsawOnly) {
+            if (!isUsawOnly && !isOwlcmsOnly) {
                 const iwfMeets = iwfMeetSearch.search(cleanedQuery, searchOptions);
                 // Filter IWF meets by country if needed? Usually meets are in a country.
                 const filteredIwfMeets = iwfMeets.filter(r => {
@@ -358,6 +451,23 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
                         icon: <CalendarDays className="h-4 w-4" />,
                         data: { ...r, source: 'IWF', type: 'meet' },
                         score: r.score
+                    });
+                });
+            }
+
+            // Federations
+            if (fedRes?.matches?.length > 0) {
+                fedRes.matches.slice(0, 6).forEach((r: any) => {
+                    const levelLabel = FEDERATION_LEVEL_LABELS[r.level as FederationLevel] || r.level;
+                    const details = [r.matched_acronym || r.short_code, levelLabel, r.country_code].filter(Boolean).join(' • ');
+                    allSuggestions.push({
+                        id: `fed-${r.id}`,
+                        label: r.canonical_name,
+                        subLabel: details,
+                        category: 'Federations',
+                        icon: <Shield className="h-4 w-4" />,
+                        data: { ...r, type: 'federation', value: r.matched_acronym || r.short_code || r.canonical_name },
+                        score: (r.match_rank || 80) / 100
                     });
                 });
             }
@@ -449,7 +559,7 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
     // --- Navigation / Selection Logic ---
 
     const handleSelect = (item: SuggestionItem) => {
-        if (item.category === 'Filters' || item.category === 'Countries') {
+        if (item.category === 'Filters' || item.category === 'Countries' || item.category === 'Federations') {
             // Add filter chip
             setActiveFilters(prev => {
                 let newFilters = [...prev];
@@ -466,11 +576,15 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
                 if (item.data.type === 'gender') {
                     newFilters = newFilters.filter(f => f.type !== 'gender');
                 }
+                // Enforce mutual exclusivity between Federation and Source filters
+                if (item.data.type === 'federation' || item.data.type === 'source') {
+                    newFilters = newFilters.filter(f => f.type !== 'federation' && f.type !== 'source');
+                }
                 // Smart federation switching: non-US countries should use IWF
                 if (item.data.type === 'country' && item.data.value !== 'United States') {
                     // Remove USAW if present, add IWF
                     newFilters = newFilters.filter(f => !(f.type === 'federation' && f.value === 'USAW'));
-                    if (!newFilters.some(f => f.type === 'federation' && f.value === 'IWF')) {
+                    if (!newFilters.some(f => f.type === 'federation' && f.value === 'IWF') && !newFilters.some(f => f.type === 'source')) {
                         newFilters.push({ type: 'federation', value: 'IWF' });
                     }
                 }
@@ -490,6 +604,7 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
             if (isExactMatch) {
                 setQuery('');
             }
+            setIsOpen(false);
             // Else keep the query (e.g. "Genadi blr" -> keeps "Genadi blr" after adding filter)
         } else {
             // Navigate based on type
@@ -499,7 +614,9 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
                 const source = data.source || 'USAW';
                 // Logic borrowed from page.tsx handleResultSelect
                 let athleteId: string;
-                if (source === 'USAW') {
+                if (source === 'OWLCMS' || source === 'owlcms') {
+                    athleteId = (data.lifter_id || data.id).toString();
+                } else if (source === 'USAW') {
                     if (data.membership_number && data.membership_number !== 'null') {
                         athleteId = data.membership_number.toString();
                     } else if (data.id) { // MiniSearch returns 'id' which is lifter_id equivalent
@@ -515,7 +632,7 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
 
             } else if (data.type === 'meet') {
                 const source = data.source || 'USAW';
-                const linkId = data.source === 'IWF' && data.iwfId ? data.iwfId.toString() : data.id.toString();
+                const linkId = (data.source === 'IWF' && data.iwfId) ? data.iwfId.toString() : data.id.toString();
                 router.push(buildMeetUrl(linkId, source));
 
             } else if (data.type === 'club') {
@@ -547,7 +664,7 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
         return acc;
     }, {} as Record<string, SuggestionItem[]>);
 
-    const categoryOrder: SearchCategory[] = ['Filters', 'Countries', 'WSO', 'Clubs', 'Meets', 'Athletes'];
+    const categoryOrder: SearchCategory[] = ['Filters', 'Federations', 'Countries', 'WSO', 'Clubs', 'Meets', 'Athletes'];
 
     const isHeader = variant === 'header';
 
@@ -619,7 +736,7 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
                         <div className="flex flex-col lg:flex-row relative">
                             {/* Left Column: Search Results */}
                             <div className="flex-1 min-w-0 py-2">
-                                {['Athletes', 'Meets', 'Clubs', 'Universities', 'WSO'].map(cat => {
+                                {['Athletes', 'Meets', 'Federations', 'Clubs', 'Universities', 'WSO'].map(cat => {
                                     const items = groupedSuggestions[cat];
                                     if (!items || items.length === 0) return null;
 
@@ -633,13 +750,48 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
                                                 {cat}
                                             </div>
                                             {visibleItems.map(item => {
+                                                const { data } = item;
+                                                const isFederation = cat === 'Federations' || data?.type === 'federation';
+
+                                                if (isFederation) {
+                                                    return (
+                                                        <button
+                                                            key={item.id}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                handleSelect(item);
+                                                                setIsOpen(false);
+                                                            }}
+                                                            className="block w-full text-left px-4 py-2 hover:bg-app-hover flex items-center gap-3 transition-colors group cursor-pointer"
+                                                        >
+                                                            <div className="p-2 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 group-hover:bg-purple-500/20 transition-colors shrink-0">
+                                                                {item.icon}
+                                                            </div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="text-sm font-medium text-app-primary flex items-center gap-2 group-hover:text-purple-500 transition-colors">
+                                                                    <span className="truncate">{item.label}</span>
+                                                                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-purple-100 dark:bg-purple-950 text-purple-800 dark:text-purple-200 border-purple-200 dark:border-purple-800 shrink-0">
+                                                                        Federation
+                                                                    </span>
+                                                                </div>
+                                                                {item.subLabel && (
+                                                                    <div className="text-xs text-app-tertiary truncate">
+                                                                        {item.subLabel}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </button>
+                                                    );
+                                                }
+
                                                 // Helper to build URL (duplicated logic, but necessary in render)
                                                 let href = '#';
-                                                const { data } = item;
                                                 if (data.type === 'athlete') {
                                                     const source = data.source || 'USAW';
                                                     let athleteId = '';
-                                                    if (source === 'USAW') {
+                                                    if (source === 'OWLCMS' || source === 'owlcms') {
+                                                        athleteId = (data.lifter_id || data.id).toString();
+                                                    } else if (source === 'USAW') {
                                                         if (data.membership_number && data.membership_number !== 'null') athleteId = data.membership_number.toString();
                                                         else if (data.id) athleteId = `u-${data.id}`;
                                                         else athleteId = data.name.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').trim();
@@ -648,7 +800,7 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
                                                     }
                                                     href = buildAthleteUrl(athleteId, source);
                                                 } else if (data.type === 'meet') {
-                                                    const linkId = data.source === 'IWF' && data.iwfId ? data.iwfId.toString() : data.id.toString();
+                                                    const linkId = (data.source === 'IWF' && data.iwfId) ? data.iwfId.toString() : data.id.toString();
                                                     href = buildMeetUrl(linkId, data.source || 'USAW');
                                                 } else if (data.type === 'club') {
                                                     href = `/club/${data.slug}`;
@@ -667,7 +819,9 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
                                                             if (data.type === 'athlete') {
                                                                 const source = data.source || 'USAW';
                                                                 let athleteId = '';
-                                                                if (source === 'USAW') {
+                                                                if (source === 'OWLCMS' || source === 'owlcms') {
+                                                                    athleteId = (data.lifter_id || data.id).toString();
+                                                                } else if (source === 'USAW') {
                                                                     if (data.membership_number && data.membership_number !== 'null') athleteId = data.membership_number.toString();
                                                                     else if (data.id) athleteId = data.id.toString();
                                                                 } else {
@@ -678,7 +832,7 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
                                                         }}
                                                         className="block w-full text-left px-4 py-2 hover:bg-app-hover flex items-center gap-3 transition-colors group"
                                                     >
-                                                        <div className="p-2 rounded-lg bg-app-tertiary/10 group-hover:bg-blue-500/10 group-hover:text-blue-500 text-app-secondary transition-colors">
+                                                        <div className="p-2 rounded-lg bg-app-tertiary/10 group-hover:bg-blue-500/10 group-hover:text-blue-500 text-app-secondary transition-colors shrink-0">
                                                             {item.icon}
                                                         </div>
                                                         <div className="flex-1 min-w-0">
@@ -686,8 +840,10 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
                                                                 <span className="truncate">{item.label}</span>
                                                                 {item.data?.source && (
                                                                     <span className={item.data.source === 'USAW'
-                                                                        ? "text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-200 border-blue-200 dark:border-blue-800"
-                                                                        : "text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-200 border-green-200 dark:border-green-800"
+                                                                        ? "text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-200 border-blue-200 dark:border-blue-800 shrink-0"
+                                                                        : item.data.source === 'OWLCMS'
+                                                                        ? "text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-200 border-amber-200 dark:border-amber-800 shrink-0"
+                                                                        : "text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-200 border-green-200 dark:border-green-800 shrink-0"
                                                                     }>
                                                                         {item.data.source}
                                                                     </span>
@@ -738,7 +894,7 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
                                 <div className="px-4 py-2 text-xs font-bold text-app-tertiary uppercase tracking-wider mb-2">
                                     Filter Options
                                 </div>
-                                {['Filters', 'Countries'].map(cat => {
+                                {['Filters', 'Federations', 'Countries'].map(cat => {
                                     const items = groupedSuggestions[cat];
                                     if (!items || items.length === 0) return null;
                                     return (

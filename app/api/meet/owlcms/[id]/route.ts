@@ -78,7 +78,7 @@ export async function GET(
         .select('owlcms_lifter_id, usaw_lifter_id, iwf_db_lifter_id')
         .in('owlcms_lifter_id', lifterIds);
 
-      if (aliases) {
+      if (aliases && aliases.length > 0) {
         aliases.forEach((a: any) => {
           aliasMap[a.owlcms_lifter_id] = {
             usaw_lifter_id: a.usaw_lifter_id,
@@ -91,14 +91,12 @@ export async function GET(
     // 4. Enrich Results with Profile Links
     const enrichedResults = (results || []).map((r: any) => {
       const alias = aliasMap[r.lifter_id];
-      let profile_url = `/athlete/owlcms/${r.lifter_id}`;
+      const profile_url = `/athlete/owlcms/${r.lifter_id}`;
       let linked_federation: 'USAW' | 'IWF' | null = null;
 
       if (alias?.usaw_lifter_id) {
-        profile_url = `/athlete/${alias.usaw_lifter_id}`;
         linked_federation = 'USAW';
       } else if (alias?.iwf_db_lifter_id) {
-        profile_url = `/athlete/iwf/${alias.iwf_db_lifter_id}`;
         linked_federation = 'IWF';
       }
 
@@ -112,7 +110,7 @@ export async function GET(
         gender: r.lifter?.gender || r.gender,
         birth_year: r.lifter?.birth_year || r.birth_year,
         club_name: r.lifter?.club_name || null,
-        country_code: r.lifter?.country_code || null,
+        country_code: r.country_code || r.lifter?.country_code || null,
         membership_number: r.lifter?.membership_number || null
       };
     });
@@ -231,7 +229,11 @@ export async function GET(
         federation: federationDetails?.canonical_name || rawComp.federation || null,
         federation_details: federationDetails,
         venue: rawComp.competitionSite || null,
+        latitude: meet.latitude ?? null,
+        longitude: meet.longitude ?? null,
+        host_country_code: meet.host_country_code ?? null,
         format_version: meet.format_version,
+        raw_payload: meet.raw_payload || null,
         summary: {
           total_athletes: enrichedResults.length,
           total_clubs: clubsSet.size,

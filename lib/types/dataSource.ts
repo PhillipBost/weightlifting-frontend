@@ -12,7 +12,7 @@
 /**
  * Identifies the source database for any piece of data
  */
-export type DataSource = 'USAW' | 'IWF'
+export type DataSource = 'USAW' | 'IWF' | 'OWLCMS'
 
 /**
  * Interface for any data that has a source identifier
@@ -99,6 +99,7 @@ export function hasSource(data: unknown): data is DataWithSource {
  * Get human-readable label for a data source
  */
 export function getSourceLabel(source: DataSource): string {
+  if (source === 'OWLCMS') return 'owlcms'
   return source === 'USAW'
     ? 'USA Weightlifting'
     : 'International (IWF)'
@@ -108,6 +109,7 @@ export function getSourceLabel(source: DataSource): string {
  * Get badge/chip text for displaying source in UI
  */
 export function getSourceBadge(source: DataSource): string {
+  if (source === 'OWLCMS') return 'owlcms'
   return source === 'USAW' ? 'USAW' : 'IWF'
 }
 
@@ -120,6 +122,13 @@ export function getSourceColor(source: DataSource): {
   text: string
   border: string
 } {
+  if (source === 'OWLCMS') {
+    return {
+      bg: 'bg-amber-100 dark:bg-amber-950',
+      text: 'text-amber-800 dark:text-amber-200',
+      border: 'border-amber-300 dark:border-amber-700'
+    }
+  }
   return source === 'USAW'
     ? {
         bg: 'bg-blue-100 dark:bg-blue-950',
@@ -150,8 +159,11 @@ export function getSourceBadgeClasses(source: DataSource): string {
  * USAW: /athlete/[id]
  * IWF: /athlete/iwf-[id]
  */
-export function buildAthleteUrl(id: number | string, source: DataSource): string {
-  if (isIWF(source)) {
+export function buildAthleteUrl(id: number | string, source: DataSource | string): string {
+  if (source === 'OWLCMS' || source === 'owlcms') {
+    return `/athlete/owlcms/${id}`
+  }
+  if (isIWF(source as DataSource)) {
     return `/athlete/iwf/${id}`
   }
   return `/athlete/${id}`
@@ -162,8 +174,11 @@ export function buildAthleteUrl(id: number | string, source: DataSource): string
  * USAW: /meet/[id]
  * IWF: /meet/iwf-[id]
  */
-export function buildMeetUrl(id: number | string, source: DataSource): string {
-  if (isIWF(source)) {
+export function buildMeetUrl(id: number | string, source: DataSource | string): string {
+  if (source === 'OWLCMS' || source === 'owlcms') {
+    return `/meet/owlcms/${id}`
+  }
+  if (isIWF(source as DataSource)) {
     return `/meet/iwf/${id}`
   }
   return `/meet/${id}`

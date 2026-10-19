@@ -501,35 +501,37 @@ export function AthleteResults({
                         {showAllColumns ? (
                           <>
                             <td className="px-2 py-1 whitespace-nowrap text-xs">{new Date(result.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
-                            <td className="px-2 py-1 max-w-20 text-xs">
-                              <Link
-                                href={
-                                  result._source === 'owlcms' || result._source === 'OWLCMS'
-                                    ? `/meet/owlcms/${result.meet_id}`
-                                    : result._source === 'IWF'
-                                      ? `/meet/iwf/${result.meet_id || result.db_meet_id || result.iwf_meet_id}`
-                                      : `/meet/${result.meet_id}`
-                                }
-                                className="text-accent-primary hover:text-accent-primary-hover transition-colors truncate max-w-full block text-left hover:underline"
-                                title={result.meet_name}
-                              >
-                                {result.meet_name}
+                            <td className="px-2 py-1 max-w-xs text-xs">
+                              <div className="flex items-center gap-1.5 min-w-0">
                                 {isMixedResults && (result._source === 'OWLCMS' || result._source === 'owlcms') && (
-                                  <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-900/30 text-emerald-400 border border-emerald-800/50">
-                                    owlcms
+                                  <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-200 border-amber-200 dark:border-amber-800">
+                                    OWLCMS
                                   </span>
                                 )}
                                 {isMixedResults && result._source === 'IWF' && (
-                                  <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-900/30 text-red-400 border border-red-800/50">
+                                  <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-200 border-green-200 dark:border-green-800">
                                     IWF
                                   </span>
                                 )}
                                 {isMixedResults && result._source === 'USAW' && (
-                                  <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-900/30 text-blue-400 border border-blue-800/50">
+                                  <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-200 border-blue-200 dark:border-blue-800">
                                     USAW
                                   </span>
                                 )}
-                              </Link>
+                                <Link
+                                  href={
+                                    result._source === 'owlcms' || result._source === 'OWLCMS'
+                                      ? `/meet/owlcms/${result.meet_id}`
+                                      : result._source === 'IWF'
+                                        ? `/meet/iwf/${result.meet_id || result.db_meet_id || result.iwf_meet_id}`
+                                        : `/meet/${result.meet_id}`
+                                  }
+                                  className="text-accent-primary hover:text-accent-primary-hover transition-colors truncate block text-left hover:underline min-w-0"
+                                  title={result.meet_name}
+                                >
+                                  {result.meet_name}
+                                </Link>
+                              </div>
                             </td>
                             <td className="px-2 py-1 whitespace-nowrap text-xs">{result.meets?.Level || '-'}</td>
                             <td className="px-2 py-1 whitespace-nowrap text-xs">{result.wso || '-'}</td>
@@ -561,34 +563,36 @@ export function AthleteResults({
                           <>
                             <td className="px-2 py-1 whitespace-nowrap text-xs">{new Date(result.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
                             <td className="px-2 py-1 max-w-xs text-xs">
-                              <Link
-                                href={
-                                  result._source === 'owlcms' || result._source === 'OWLCMS'
-                                    ? `/meet/owlcms/${result.meet_id}`
-                                    : result._source === 'IWF'
-                                      ? `/meet/iwf/${result.meet_id || result.db_meet_id || result.iwf_meet_id}`
-                                      : `/meet/${result.meet_id}`
-                                }
-                                className="text-accent-primary hover:text-accent-primary-hover transition-colors truncate max-w-full block text-left hover:underline"
-                                title={result.meet_name}
-                              >
-                                {result.meet_name}
+                              <div className="flex items-center gap-1.5 min-w-0">
                                 {isMixedResults && (result._source === 'OWLCMS' || result._source === 'owlcms') && (
-                                  <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-900/30 text-emerald-400 border border-emerald-800/50">
-                                    owlcms
+                                  <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-200 border-amber-200 dark:border-amber-800">
+                                    OWLCMS
                                   </span>
                                 )}
                                 {isMixedResults && result._source === 'IWF' && (
-                                  <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-900/30 text-red-400 border border-red-800/50">
+                                  <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-200 border-green-200 dark:border-green-800">
                                     IWF
                                   </span>
                                 )}
                                 {isMixedResults && result._source === 'USAW' && (
-                                  <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-900/30 text-blue-400 border border-blue-800/50">
+                                  <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-200 border-blue-200 dark:border-blue-800">
                                     USAW
                                   </span>
                                 )}
-                              </Link>
+                                <Link
+                                  href={
+                                    result._source === 'owlcms' || result._source === 'OWLCMS'
+                                      ? `/meet/owlcms/${result.meet_id}`
+                                      : result._source === 'IWF'
+                                        ? `/meet/iwf/${result.meet_id || result.db_meet_id || result.iwf_meet_id}`
+                                        : `/meet/${result.meet_id}`
+                                  }
+                                  className="text-accent-primary hover:text-accent-primary-hover transition-colors truncate block text-left hover:underline min-w-0"
+                                  title={result.meet_name}
+                                >
+                                  {result.meet_name}
+                                </Link>
+                              </div>
                             </td>
                             <td className="px-2 py-1 whitespace-nowrap text-xs">{result.weight_class || '-'}</td>
                             <td className="px-2 py-1 whitespace-nowrap text-xs font-semibold" style={{ color: 'var(--chart-snatch)' }}>{result.best_snatch ? `${result.best_snatch}kg` : '-'}</td>

@@ -20,7 +20,7 @@ export default function QScoreChart({ chartData, athlete, legendFlags }: QScoreC
   const [autoScaleQScores, setAutoScaleQScores] = useState(true);
   const [showQScoresBrush, setShowQScoresBrush] = useState(false);
   const [showQPoints, setShowQPoints] = useState(true);
-  const [showQYouth, setShowQYouth] = useState(false);
+  const [showQYouth, setShowQYouth] = useState(true);
   const [showQMasters, setShowQMasters] = useState(true);
   const [qScoresMouseX, setQScoresMouseX] = useState<number | null>(null);
 

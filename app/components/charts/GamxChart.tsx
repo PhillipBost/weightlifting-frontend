@@ -27,8 +27,8 @@ export default function GamxChart({ chartData, athlete, legendFlags }: GamxChart
   const [showGamxTotal, setShowGamxTotal] = useState(true);
   const [showGamxS, setShowGamxS] = useState(true);
   const [showGamxJ, setShowGamxJ] = useState(true);
-  const [showGamxU, setShowGamxU] = useState(false);
-  const [showGamxA, setShowGamxA] = useState(false);
+  const [showGamxU, setShowGamxU] = useState(true);
+  const [showGamxA, setShowGamxA] = useState(true);
   const [showGamxMasters, setShowGamxMasters] = useState(false);
 
   return (

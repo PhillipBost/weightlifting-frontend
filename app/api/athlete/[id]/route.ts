@@ -22,49 +22,80 @@ function getSupabaseAdmin() {
   });
 }
 
-async function enrichWithOwlcms(data: any, usawLifterId?: number | null, iwfDbLifterId?: number | null) {
-  if (!usawLifterId && !iwfDbLifterId) return data;
+async function enrichWithOwlcms(
+  data: any, 
+  usawLifterId?: number | null, 
+  iwfDbLifterId?: number | null,
+  membershipNumber?: number | string | null
+) {
+  if (!usawLifterId && !iwfDbLifterId && !membershipNumber && !data?.id) return data;
   try {
     const supabase = getSupabaseAdmin();
-    let query = supabase.from('athlete_aliases').select('owlcms_lifter_id');
-    if (usawLifterId) {
-      query = query.eq('usaw_lifter_id', usawLifterId);
-    } else if (iwfDbLifterId) {
-      query = query.eq('iwf_db_lifter_id', iwfDbLifterId);
+    let resolvedUsawId = usawLifterId;
+    if (membershipNumber || usawLifterId) {
+      const orFilters: string[] = [];
+      if (membershipNumber) orFilters.push(`membership_number.eq.${membershipNumber}`);
+      if (usawLifterId) {
+        orFilters.push(`lifter_id.eq.${usawLifterId}`);
+        orFilters.push(`internal_id.eq.${usawLifterId}`);
+      }
+      const { data: lifter } = await supabase
+        .from('usaw_lifters')
+        .select('lifter_id')
+        .or(orFilters.join(','))
+        .maybeSingle();
+      if (lifter?.lifter_id) resolvedUsawId = lifter.lifter_id;
     }
-    const { data: alias } = await query.maybeSingle();
 
-    if (alias?.owlcms_lifter_id) {
-      data.linked_owlcms_id = alias.owlcms_lifter_id;
-      const { data: owlcmsRes } = await supabase
-        .from('owlcms_meet_results')
-        .select(`
-          result_id,
-          meet_id,
-          body_weight_kg,
-          category,
-          snatch_1,
-          snatch_2,
-          snatch_3,
-          best_snatch,
-          cj_1,
-          cj_2,
-          cj_3,
-          best_cj,
-          total,
-          qpoints,
-          gamx_total,
-          gamx_s,
-          gamx_j,
-          gamx_u,
-          gamx_a,
-          gamx_masters,
-          meet:owlcms_meets (
-            meet_name,
-            start_date
-          )
-        `)
-        .eq('lifter_id', alias.owlcms_lifter_id);
+    const aliasFilters: string[] = [];
+    if (resolvedUsawId) aliasFilters.push(`usaw_lifter_id.eq.${resolvedUsawId}`);
+    if (iwfDbLifterId) aliasFilters.push(`iwf_db_lifter_id.eq.${iwfDbLifterId}`);
+    if (data.id) aliasFilters.push(`iwf_db_lifter_id.eq.${data.id}`);
+
+    if (aliasFilters.length === 0) return data;
+    const { data: aliases, error: aliasErr } = await supabase
+      .from('athlete_aliases')
+      .select('owlcms_lifter_id')
+      .or(aliasFilters.join(','));
+    if (aliasErr || !aliases || aliases.length === 0) return data;
+
+    const owlcmsLifterIds = Array.from(
+      new Set(aliases.map((a: any) => a.owlcms_lifter_id).filter((id): id is number => Boolean(id)))
+    );
+    if (owlcmsLifterIds.length === 0) return data;
+
+    data.linked_owlcms_id = owlcmsLifterIds[0];
+    const { data: owlcmsRes } = await supabase
+      .from('owlcms_meet_results')
+      .select(`
+        result_id,
+        meet_id,
+        body_weight_kg,
+        category,
+        snatch_1,
+        snatch_2,
+        snatch_3,
+        best_snatch,
+        cj_1,
+        cj_2,
+        cj_3,
+        best_cj,
+        total,
+        qpoints,
+        q_youth,
+        q_masters,
+        gamx_total,
+        gamx_s,
+        gamx_j,
+        gamx_u,
+        gamx_a,
+        gamx_masters,
+        meet:owlcms_meets (
+          meet_name,
+          start_date
+        )
+      `)
+      .in('lifter_id', owlcmsLifterIds);
 
       if (owlcmsRes && owlcmsRes.length > 0) {
         data.owlcms_results = owlcmsRes.map((r: any) => {
@@ -87,6 +118,8 @@ async function enrichWithOwlcms(data: any, usawLifterId?: number | null, iwfDbLi
             best_cj: r.best_cj ? String(r.best_cj) : null,
             total: r.total ? String(r.total) : null,
             qpoints: r.qpoints,
+            q_youth: r.q_youth,
+            q_masters: r.q_masters,
             gamx_total: r.gamx_total,
             gamx_s: r.gamx_s,
             gamx_j: r.gamx_j,
@@ -97,7 +130,6 @@ async function enrichWithOwlcms(data: any, usawLifterId?: number | null, iwfDbLi
           };
         });
       }
-    }
   } catch (err) {
     console.error('[OWLCMS ENRICHMENT ERROR]:', err);
   }
@@ -126,7 +158,7 @@ export async function GET(
   let isNumeric = /^\d+$/.test(decodedId);
 
   // 1. Slug Resolution (Point Lookup & Disambiguation)
-  if (!isNumeric && !decodedId.startsWith('u-') && !decodedId.startsWith('iwf-')) {
+  if (!isNumeric && !decodedId.startsWith('u-') && !decodedId.startsWith('iwf-') && !decodedId.startsWith('owlcms-')) {
     try {
       const supabase = await createClient();
       const normalizedName = decodedId.replace(/-/g, ' ').trim();
@@ -233,14 +265,21 @@ export async function GET(
   // 1. Unified Shard Lookup (Check Federation-specific storage first)
   const isInternal = athleteId.startsWith('u-');
   const isIwf = athleteId.startsWith('iwf-');
-  const cleanId = isInternal ? athleteId.replace('u-', '') : isIwf ? athleteId.replace('iwf-', '') : athleteId;
-  const federation = isIwf ? 'iwf' : 'usaw';
+  const isOwlcms = athleteId.startsWith('owlcms-');
+  const cleanId = isInternal 
+    ? athleteId.replace('u-', '') 
+    : isIwf 
+      ? athleteId.replace('iwf-', '') 
+      : isOwlcms 
+        ? athleteId.replace('owlcms-', '') 
+        : athleteId;
+  const federation = isIwf ? 'iwf' : isOwlcms ? 'owlcms' : 'usaw';
   const shardFolder = isInternal ? 'internal' : federation;
 
   // Standardization: last two digits of the clean ID
   const shardId = cleanId.padStart(2, '0').slice(-2);
   const baseUrlData = 'http://46.62.223.85:8888';
-  const shardUrl = (isNumeric || isIwf || isInternal)
+  const shardUrl = (isNumeric || isIwf || isInternal || isOwlcms)
     ? `${baseUrlData}/${shardFolder}/${shardId}/${cleanId}.json.gz`
     : `${baseUrlData}/${shardFolder}/00/${cleanId}.json.gz`;
 
@@ -283,9 +322,13 @@ export async function GET(
       }
 
       if (payload) {
-        const usawId = federation === 'usaw' ? payload.lifter_id : null;
-        const iwfId = federation === 'iwf' ? payload.lifter_id : null;
-        payload = await enrichWithOwlcms(payload, usawId, iwfId);
+        // Zero runtime DB queries if shard was compiled with the owlcms_results schema
+        if (payload.owlcms_results === undefined) {
+          const usawId = federation === 'usaw' ? (payload.internal_id || payload.lifter_id) : null;
+          const iwfId = payload.id || (federation === 'iwf' ? payload.lifter_id : null);
+          const membershipNum = federation === 'usaw' ? (payload.membership_number || cleanId) : null;
+          payload = await enrichWithOwlcms(payload, usawId, iwfId, membershipNum);
+        }
         return NextResponse.json(payload, {
           status: 200,
           headers: {
@@ -315,7 +358,182 @@ export async function GET(
   try {
     const supabaseAdmin = getSupabaseAdmin();
 
-    if (federation === 'iwf') {
+    if (federation === 'owlcms') {
+      const lifterId = parseInt(cleanId, 10);
+      if (!isNaN(lifterId)) {
+        const { data: lifter } = await supabaseAdmin
+          .from('owlcms_lifters')
+          .select('*')
+          .eq('lifter_id', lifterId)
+          .single();
+
+        if (lifter) {
+          // Find sibling owlcms IDs via verified aliases
+          const { data: aliases } = await supabaseAdmin
+            .from('athlete_aliases')
+            .select('usaw_lifter_id, iwf_db_lifter_id')
+            .eq('owlcms_lifter_id', lifterId);
+
+          const usawLifterIds = Array.from(new Set((aliases || []).map((a: any) => a.usaw_lifter_id).filter(Boolean)));
+          const iwfLifterIds = Array.from(new Set((aliases || []).map((a: any) => a.iwf_db_lifter_id).filter(Boolean)));
+
+          let targetOwlcmsIds = [lifterId];
+          if (usawLifterIds.length > 0) {
+            const { data: siblingAliases } = await supabaseAdmin
+              .from('athlete_aliases')
+              .select('owlcms_lifter_id')
+              .in('usaw_lifter_id', usawLifterIds);
+            if (siblingAliases && siblingAliases.length > 0) {
+              targetOwlcmsIds = Array.from(new Set([
+                ...targetOwlcmsIds,
+                ...siblingAliases.map((a: any) => a.owlcms_lifter_id).filter(Boolean)
+              ]));
+            }
+          }
+
+          const { data: results } = await supabaseAdmin
+            .from('owlcms_meet_results')
+            .select(`
+              result_id,
+              meet_id,
+              body_weight_kg,
+              category,
+              snatch_1,
+              snatch_2,
+              snatch_3,
+              best_snatch,
+              cj_1,
+              cj_2,
+              cj_3,
+              best_cj,
+              total,
+              qpoints,
+              q_youth,
+              q_masters,
+              gamx_total,
+              gamx_s,
+              gamx_j,
+              gamx_u,
+              gamx_a,
+              gamx_masters,
+              meet:owlcms_meets (
+                meet_name,
+                start_date
+              )
+            `)
+            .in('lifter_id', targetOwlcmsIds)
+            .order('result_id', { ascending: false });
+
+          const formattedOwlcms = (results || []).map((r: any) => {
+            const meet = Array.isArray(r.meet) ? r.meet[0] : r.meet;
+            return {
+              result_id: r.result_id,
+              meet_id: r.meet_id,
+              meet_name: meet?.meet_name || `Meet #${r.meet_id}`,
+              date: meet?.start_date,
+              category: r.category,
+              weight_class: r.category,
+              body_weight_kg: r.body_weight_kg,
+              snatch_lift_1: r.snatch_1 ? String(r.snatch_1) : null,
+              snatch_lift_2: r.snatch_2 ? String(r.snatch_2) : null,
+              snatch_lift_3: r.snatch_3 ? String(r.snatch_3) : null,
+              best_snatch: r.best_snatch ? String(r.best_snatch) : null,
+              cj_lift_1: r.cj_1 ? String(r.cj_1) : null,
+              cj_lift_2: r.cj_2 ? String(r.cj_2) : null,
+              cj_lift_3: r.cj_3 ? String(r.cj_3) : null,
+              best_cj: r.best_cj ? String(r.best_cj) : null,
+              total: r.total ? String(r.total) : null,
+              qpoints: r.qpoints,
+              q_youth: r.q_youth,
+              q_masters: r.q_masters,
+              gamx_total: r.gamx_total,
+              gamx_s: r.gamx_s,
+              gamx_j: r.gamx_j,
+              gamx_u: r.gamx_u,
+              gamx_a: r.gamx_a,
+              gamx_masters: r.gamx_masters,
+              _source: 'owlcms'
+            };
+          });
+
+          let canonicalUsawId: string | null = null;
+          let canonicalUsawInternalId: string | number | null = null;
+          let canonicalIwfId: string | null = null;
+          let usawResults: any[] = [];
+          let iwfResults: any[] = [];
+
+          if (usawLifterIds.length > 0) {
+            const { data: uLifters } = await supabaseAdmin
+              .from('usaw_lifters')
+              .select('lifter_id, membership_number, internal_id')
+              .in('lifter_id', usawLifterIds);
+            const primaryUsaw = uLifters?.[0];
+            if (primaryUsaw) {
+              canonicalUsawId = primaryUsaw.membership_number
+                ? primaryUsaw.membership_number.toString()
+                : `u-${primaryUsaw.lifter_id}`;
+              canonicalUsawInternalId = primaryUsaw.internal_id || null;
+            }
+            const { data: uRes } = await supabaseAdmin
+              .from('usaw_meet_results')
+              .select('*, meets:usaw_meets(Level)')
+              .in('lifter_id', usawLifterIds)
+              .order('date', { ascending: false });
+            usawResults = uRes || [];
+          }
+
+          if (iwfLifterIds.length > 0) {
+            const { data: iLifters } = await supabaseAdmin
+              .from('iwf_lifters')
+              .select('db_lifter_id, iwf_lifter_id')
+              .in('db_lifter_id', iwfLifterIds);
+            const primaryIwf = iLifters?.[0];
+            if (primaryIwf) {
+              canonicalIwfId = primaryIwf.iwf_lifter_id
+                ? primaryIwf.iwf_lifter_id.toString()
+                : primaryIwf.db_lifter_id.toString();
+            } else {
+              canonicalIwfId = iwfLifterIds[0].toString();
+            }
+
+            const { data: iRes } = await supabaseAdmin
+              .from('iwf_meet_results')
+              .select('*, iwf_meets(meet, level, iwf_meet_id)')
+              .in('db_lifter_id', iwfLifterIds)
+              .order('date', { ascending: false });
+            iwfResults = iRes || [];
+          }
+
+          const owlcmsPayload = {
+            lifter_id: lifter.lifter_id,
+            athlete_name: lifter.athlete_name,
+            first_name: lifter.first_name,
+            last_name: lifter.last_name,
+            gender: lifter.gender,
+            birthYear: lifter.birth_year,
+            country_code: lifter.country_code,
+            club_name: lifter.club_name,
+            membership_number: canonicalUsawId || lifter.membership_number || null,
+            internal_id: canonicalUsawInternalId,
+            linked_owlcms_id: lifter.lifter_id,
+            linked_usaw_id: canonicalUsawId,
+            linked_iwf_id: canonicalIwfId,
+            iwf_lifter_id: canonicalIwfId,
+            owlcms_results: formattedOwlcms,
+            usaw_results: usawResults,
+            iwf_results: iwfResults,
+            source: 'owlcms'
+          };
+
+          return NextResponse.json(owlcmsPayload, {
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Response-Source': 'Direct-DB-Backup'
+            }
+          });
+        }
+      }
+    } else if (federation === 'iwf') {
       let { data: lifter } = await supabaseAdmin
         .from('iwf_lifters')
         .select('*')

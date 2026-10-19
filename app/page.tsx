@@ -159,8 +159,20 @@ export default function WeightliftingLandingPage() {
             Olympic Weightlifting
             <span className="block text-blue-400">Analytics & Results Database</span>
           </h2>
-          <p className="text-xl text-app-tertiary mb-8 leading-relaxed">
-            Search through <span className="font-bold text-blue-500">{dbStats?.results ? dbStats.results.toLocaleString() : '394,908'}</span> competition results by <span className="font-bold text-blue-500">{dbStats?.athletes ? dbStats.athletes.toLocaleString() : '86,877'}</span> athletes across <span className="font-bold text-blue-500">{dbStats?.meets ? dbStats.meets.toLocaleString() : '7,720'}</span> meets from USA and International Olympic Weightlifting.
+          <p className="text-xl text-app-tertiary mb-3 leading-relaxed">
+            Search through <span className="font-bold text-blue-500">{dbStats?.results ? dbStats.results.toLocaleString() : '409,905'}</span> competition results by <span className="font-bold text-blue-500">{dbStats?.athletes ? dbStats.athletes.toLocaleString() : '89,330'}</span> athletes across <span className="font-bold text-blue-500">{dbStats?.meets ? dbStats.meets.toLocaleString() : '8,002'}</span> meets.
+          </p>
+          <p className="text-sm text-app-tertiary max-w-3xl mx-auto">
+            Compiled from published USA Weightlifting (USAW) and International Weightlifting Federation (IWF) archives, plus meet results provided by meet directors worldwide via{' '}
+            <a
+              href="https://owlcms.jflamy.dev/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-400 hover:text-blue-300 hover:underline transition-colors font-medium"
+            >
+              OWLCMS
+            </a>{' '}
+            export files.
           </p>
 
           <div className="w-full max-w-4xl mx-auto mt-8">
@@ -221,35 +233,33 @@ export default function WeightliftingLandingPage() {
               </div>
             </Link>
 
-            {/* owlcms Results Uploader Card - visible only to Admin */}
-            {user?.role === ROLES.ADMIN && (
-              <Link href="/upload/owlcms" className="group h-full">
-                <div className="bg-app-secondary border border-app-primary rounded-xl p-6 hover:bg-app-hover transition-all duration-200 hover:shadow-lg hover:scale-105 h-full flex flex-col justify-between">
-                  <div className="flex items-center space-x-4">
-                    <div className="bg-sky-500/10 rounded-full p-3 group-hover:bg-sky-500/20 transition-colors">
-                      <UploadCloud className="h-6 w-6 text-sky-400" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-lg font-semibold text-app-primary group-hover:text-sky-400 transition-colors">
-                          Upload Meet Results
-                        </h3>
-                        <span className="px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30">
-                          owlcms
-                        </span>
-                      </div>
-                      <p className="text-sm text-app-tertiary mt-1">
-                        Submit competition results directly from owlcms export files
-                      </p>
-                    </div>
+            {/* owlcms Results Uploader Card - publicly visible */}
+            <Link href="/upload/owlcms" className="group h-full">
+              <div className="bg-app-secondary border border-app-primary rounded-xl p-6 hover:bg-app-hover transition-all duration-200 hover:shadow-lg hover:scale-105 h-full flex flex-col justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="bg-sky-500/10 rounded-full p-3 group-hover:bg-sky-500/20 transition-colors">
+                    <UploadCloud className="h-6 w-6 text-sky-400" />
                   </div>
-                  <div className="flex items-center mt-4 text-sm text-sky-400 group-hover:text-sky-300 transition-colors">
-                    <span>Upload competition</span>
-                    <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-lg font-semibold text-app-primary group-hover:text-sky-400 transition-colors">
+                        Upload Meet Results
+                      </h3>
+                      <span className="px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30">
+                        owlcms
+                      </span>
+                    </div>
+                    <p className="text-sm text-app-tertiary mt-1">
+                      Submit competition results directly from owlcms export files
+                    </p>
                   </div>
                 </div>
-              </Link>
-            )}
+                <div className="flex items-center mt-4 text-sm text-sky-400 group-hover:text-sky-300 transition-colors">
+                  <span>Upload competition</span>
+                  <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </div>
+            </Link>
 
             {/* Rankings Navigation Card - visible only to authorized roles */}
             {canViewRankings && (

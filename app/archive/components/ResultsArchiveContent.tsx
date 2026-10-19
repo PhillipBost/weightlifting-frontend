@@ -35,7 +35,7 @@ export interface Meet {
     name: string;
     date: string;
     location: string;
-    federation: 'USAW' | 'IWF';
+    federation: 'USAW' | 'IWF' | 'OWLCMS';
     url?: string;
     meetType?: string;
     athleteCount?: number;
@@ -112,19 +112,19 @@ export function ResultsArchiveContent({ initialMeets = [] }: { initialMeets?: Me
     useEffect(() => {
         if (!meets.length) return;
 
-        // Extract WSO Options (USAW only)
+        // Extract WSO / PSO Options
         const wsos = Array.from(new Set(
             meets
-                .filter(m => m.federation === 'USAW')
+                .filter(m => m.federation === 'USAW' || m.federation === 'OWLCMS')
                 .map(m => m.wso)
                 .filter(Boolean) as string[]
         )).sort();
         setWsoOptions(wsos);
 
-        // Extract State Options (USAW only)
+        // Extract State / Province Options
         const states = Array.from(new Set(
             meets
-                .filter(m => m.federation === 'USAW')
+                .filter(m => m.federation === 'USAW' || m.federation === 'OWLCMS')
                 .map(m => m.state)
                 .filter(Boolean) as string[]
         )).sort();
@@ -134,7 +134,7 @@ export function ResultsArchiveContent({ initialMeets = [] }: { initialMeets?: Me
         const countries = Array.from(new Set([
             'USA',
             ...meets
-                .filter(m => m.federation === 'IWF')
+                .filter(m => m.federation === 'IWF' || m.federation === 'OWLCMS')
                 .map(m => m.country)
                 .filter(Boolean) as string[]
         ])).sort();
@@ -203,13 +203,12 @@ export function ResultsArchiveContent({ initialMeets = [] }: { initialMeets?: Me
                 if (!filters.selectedYears.includes(meetYear)) return false;
             }
 
-            // 4. WSO (USAW Only)
+            // 4. WSO / PSO
             if (filters.selectedWSO.length > 0) {
-                if (meet.federation !== 'USAW') return false;
                 if (!meet.wso || !filters.selectedWSO.includes(meet.wso)) return false;
             }
 
-            // 5. State (USAW Only)
+            // 5. State / Province
             if (filters.selectedStates.length > 0) {
                 if (!meet.state || !filters.selectedStates.includes(meet.state)) return false;
             }
@@ -404,8 +403,8 @@ export function ResultsArchiveContent({ initialMeets = [] }: { initialMeets?: Me
                                             { key: 'name', label: 'Meet Name' },
                                             { key: 'location', label: 'Location' },
                                             { key: 'federation', label: 'Source' },
-                                            { key: 'state', label: 'State' },
-                                            { key: 'wso', label: 'WSO' },
+                                            { key: 'state', label: 'State / Province' },
+                                            { key: 'wso', label: 'WSO / PSO' },
                                             { key: 'level', label: 'Level' },
                                             { key: 'athleteCount', label: 'Participants' },
                                             { key: 'link', label: 'Ext. Link' },
@@ -455,7 +454,7 @@ export function ResultsArchiveContent({ initialMeets = [] }: { initialMeets?: Me
                             <div>
                                 <SearchableDropdown
                                     label="Source"
-                                    options={['USAW', 'IWF']}
+                                    options={['USAW', 'IWF', 'OWLCMS']}
                                     selected={filters.selectedSources}
                                     onSelect={(s: string[]) => handleFilterChange('selectedSources', s)}
                                     placeholder="All Sources"
@@ -468,7 +467,7 @@ export function ResultsArchiveContent({ initialMeets = [] }: { initialMeets?: Me
                             <div>
                                 <SearchableDropdown
                                     label="Level"
-                                    options={['Local', 'National', 'International']}
+                                    options={['Local', 'State/Provincial', 'National', 'International']}
                                     selected={filters.selectedLevels}
                                     onSelect={(s: string[]) => handleFilterChange('selectedLevels', s)}
                                     placeholder="All Levels"
@@ -585,12 +584,12 @@ export function ResultsArchiveContent({ initialMeets = [] }: { initialMeets?: Me
                             {/* State */}
                             <div>
                                 <SearchableDropdown
-                                    label="State (USA Only)"
+                                    label="State / Province"
                                     options={stateOptions}
                                     selected={filters.selectedStates}
                                     onSelect={(s: string[]) => handleFilterChange('selectedStates', s)}
-                                    placeholder="All States"
-                                    disabled={filters.selectedSources.includes('IWF') && !filters.selectedSources.includes('USAW') || (filters.selectedCountries.length > 0 && !filters.selectedCountries.includes('USA'))}
+                                    placeholder="All States & Provinces"
+                                    disabled={filters.selectedSources.length === 1 && filters.selectedSources[0] === 'IWF'}
                                     getValue={(opt: string) => opt}
                                     getLabel={(opt: string) => opt}
                                 />
@@ -598,12 +597,12 @@ export function ResultsArchiveContent({ initialMeets = [] }: { initialMeets?: Me
                             {/* WSO */}
                             <div>
                                 <SearchableDropdown
-                                    label="WSO (USAW)"
+                                    label="WSO / PSO"
                                     options={wsoOptions}
                                     selected={filters.selectedWSO}
                                     onSelect={(s: string[]) => handleFilterChange('selectedWSO', s)}
-                                    placeholder="All WSOs"
-                                    disabled={filters.selectedSources.includes('IWF') && !filters.selectedSources.includes('USAW')}
+                                    placeholder="All Organizations"
+                                    disabled={filters.selectedSources.length === 1 && filters.selectedSources[0] === 'IWF'}
                                     getValue={(opt: string) => opt}
                                     getLabel={(opt: string) => opt}
                                 />
@@ -642,7 +641,7 @@ export function ResultsArchiveContent({ initialMeets = [] }: { initialMeets?: Me
                                             </th>
                                         )}
                                         {visibleColumns.name && (
-                                            <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none group whitespace-nowrap" onClick={() => handleSort('name')}>
+                                            <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none group min-w-[200px]" onClick={() => handleSort('name')}>
                                                 Meet Name {getSortIcon('name')}
                                             </th>
                                         )}
@@ -657,15 +656,15 @@ export function ResultsArchiveContent({ initialMeets = [] }: { initialMeets?: Me
                                             </th>
                                         )}
                                         {/* State - Hidden if IWF selected AND no USAW */}
-                                        {visibleColumns.state && (!(filters.selectedSources.includes('IWF') && !filters.selectedSources.includes('USAW'))) && (
+                                        {visibleColumns.state && !(filters.selectedSources.length === 1 && filters.selectedSources[0] === 'IWF') && (
                                             <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none group whitespace-nowrap" onClick={() => handleSort('state')}>
-                                                State {getSortIcon('state')}
+                                                State / Province {getSortIcon('state')}
                                             </th>
                                         )}
                                         {/* WSO - Hidden if IWF selected AND no USAW */}
-                                        {visibleColumns.wso && (!(filters.selectedSources.includes('IWF') && !filters.selectedSources.includes('USAW'))) && (
+                                        {visibleColumns.wso && !(filters.selectedSources.length === 1 && filters.selectedSources[0] === 'IWF') && (
                                             <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none group whitespace-nowrap" onClick={() => handleSort('wso')}>
-                                                WSO {getSortIcon('wso')}
+                                                WSO / PSO {getSortIcon('wso')}
                                             </th>
                                         )}
                                         {visibleColumns.level && (
@@ -689,7 +688,9 @@ export function ResultsArchiveContent({ initialMeets = [] }: { initialMeets?: Me
                                     {paginatedMeets.map((meet) => {
                                         const destinationUrl = meet.federation === 'USAW'
                                             ? `/meet/${meet.datasetId}`
-                                            : `/meet/iwf/${meet.datasetId}`;
+                                            : meet.federation === 'OWLCMS'
+                                                ? `/meet/owlcms/${meet.datasetId}`
+                                                : `/meet/iwf/${meet.datasetId}`;
 
                                         return (
                                             <tr
@@ -707,46 +708,53 @@ export function ResultsArchiveContent({ initialMeets = [] }: { initialMeets?: Me
                                                     </td>
                                                 )}
                                                 {visibleColumns.name && (
-                                                    <td className="px-2 py-1 font-medium whitespace-nowrap text-xs">
+                                                    <td className="px-2 py-1 font-medium text-xs leading-snug min-w-[200px] max-w-[360px]">
                                                         <Link
-                                                            href={destinationUrl}
-                                                            className="text-blue-400 hover:text-blue-300 hover:underline"
+                                                             href={destinationUrl}
+                                                            className="text-blue-400 hover:text-blue-300 hover:underline break-words"
                                                         >
                                                             {meet.name}
                                                         </Link>
                                                     </td>
                                                 )}
                                                 {visibleColumns.location && (
-                                                    <td className="px-2 py-1 whitespace-nowrap text-xs">
+                                                    <td className="px-2 py-1 text-xs max-w-[180px] truncate" title={meet.location}>
                                                         {meet.location}
                                                     </td>
                                                 )}
                                                 {visibleColumns.federation && (
                                                     <td className="px-2 py-1 whitespace-nowrap">
-                                                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${meet.federation === 'USAW'
-                                                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300'
-                                                            : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'
+                                                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border uppercase tracking-wider ${
+                                                            meet.federation === 'OWLCMS'
+                                                                ? 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-200 border-amber-200 dark:border-amber-800'
+                                                                : meet.federation === 'IWF'
+                                                                    ? 'bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-200 border-green-200 dark:border-green-800'
+                                                                    : 'bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-200 border-blue-200 dark:border-blue-800'
                                                             }`}>
                                                             {meet.federation}
                                                         </span>
                                                     </td>
                                                 )}
                                                 {/* State - Hidden if IWF selected AND no USAW */}
-                                                {visibleColumns.state && (!(filters.selectedSources.includes('IWF') && !filters.selectedSources.includes('USAW'))) && (
+                                                {visibleColumns.state && !(filters.selectedSources.length === 1 && filters.selectedSources[0] === 'IWF') && (
                                                     <td className="px-2 py-1 text-xs whitespace-nowrap">
                                                         {meet.state || '-'}
                                                     </td>
                                                 )}
                                                 {/* WSO - Hidden if IWF selected AND no USAW */}
-                                                {visibleColumns.wso && (!(filters.selectedSources.includes('IWF') && !filters.selectedSources.includes('USAW'))) && (
-                                                    <td className="px-2 py-1 text-xs whitespace-nowrap">
+                                                {visibleColumns.wso && !(filters.selectedSources.length === 1 && filters.selectedSources[0] === 'IWF') && (
+                                                    <td className="px-2 py-1 text-xs max-w-[200px] leading-snug" title={meet.wso || undefined}>
                                                         {meet.wso ? (
-                                                            <Link
-                                                                href={`/WSO/${meet.wso.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').trim()}`}
-                                                                className="text-blue-400 hover:text-blue-300 hover:underline"
-                                                            >
-                                                                {meet.wso}
-                                                            </Link>
+                                                            meet.federation === 'USAW' ? (
+                                                                <Link
+                                                                    href={`/WSO/${meet.wso.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').trim()}`}
+                                                                    className="text-blue-400 hover:text-blue-300 hover:underline break-words"
+                                                                >
+                                                                    {meet.wso}
+                                                                </Link>
+                                                            ) : (
+                                                                <span className="break-words">{meet.wso}</span>
+                                                            )
                                                         ) : '-'}
                                                     </td>
                                                 )}

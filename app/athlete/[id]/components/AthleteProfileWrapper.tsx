@@ -28,6 +28,7 @@ interface AthleteProfileWrapperProps {
   id: string;
   initialData?: any;
   forceIwfMode?: boolean;
+  forceOwlcmsMode?: boolean;
 }
 
 /**
@@ -37,7 +38,8 @@ interface AthleteProfileWrapperProps {
  * It fetches the consolidated JSON and maps it to the UI components
  * using the production-verified data adapter logic.
  */
-export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }: AthleteProfileWrapperProps) {
+export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false, forceOwlcmsMode = false }: AthleteProfileWrapperProps) {
+  const isOwlcmsMode = forceOwlcmsMode || id.startsWith('owlcms-');
   const { data: athleteData, error, isLoading } = useSWR(`/api/athlete/${encodeURIComponent(id)}`, fetcher, {
     fallbackData: initialData,
     revalidateOnFocus: false,
@@ -49,13 +51,37 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }:
   });
 
   const [showIwfResults, setShowIwfResults] = useState(forceIwfMode);
-  const [showOwlcmsResults, setShowOwlcmsResults] = useState(false);
+  const [showOwlcmsResults, setShowOwlcmsResults] = useState(isOwlcmsMode);
+  const [showUsawResults, setShowUsawResults] = useState(!isOwlcmsMode && !forceIwfMode);
   const [currentPage, setCurrentPage] = useState(1);
   const [showAllColumns, setShowAllColumns] = useState(false);
   const [sortConfig, setSortConfig] = useState<{
     key: string | null;
     direction: 'asc' | 'desc';
   }>({ key: null, direction: 'asc' });
+
+  // Comprehensive dataset across all federations for true career personal bests
+  const allAvailableResults = useMemo(() => {
+    if (!athleteData) return [];
+    const usaw = (athleteData.usaw_results || []).map((r: any, idx: number) => ({
+      ...r,
+      _source: 'USAW',
+      meets: r.meets || { Level: r.level || 'Unknown' },
+      key: r.id || `usaw-${r.date}-${r.total}-${idx}`
+    }));
+    const iwf = (athleteData.iwf_results || []).map((r: any, idx: number) => ({
+      ...adaptIWFResult(r),
+      _source: 'IWF',
+      key: r.id || `iwf-${r.date}-${r.total}-${idx}`
+    }));
+    const owlcms = (athleteData.owlcms_results || []).map((r: any, idx: number) => ({
+      ...r,
+      _source: 'owlcms',
+      meets: { Level: 'Domestic / owlcms' },
+      key: r.result_id ? `owlcms-${r.result_id}` : `owlcms-${r.meet_id}-${r.date}-${idx}`
+    }));
+    return [...owlcms, ...usaw, ...iwf];
+  }, [athleteData]);
 
   const results = useMemo(() => {
     if (!athleteData) return [];
@@ -82,19 +108,25 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }:
       key: r.result_id ? `owlcms-${r.result_id}` : `owlcms-${r.meet_id}-${r.date}-${idx}`
     }));
 
-    // Results are largely pre-merged by the Phase 4.5 Assembler,
-    // so we just combine and Sort.
-    const shouldShowCombined = forceIwfMode ? !showIwfResults : showIwfResults;
-    let combined = shouldShowCombined ? [...usaw, ...iwf] : (forceIwfMode ? iwf : usaw);
-
-    if (showOwlcmsResults && owlcms.length > 0) {
-      combined = [...combined, ...owlcms];
+    let combined: any[] = [];
+    if (isOwlcmsMode) {
+      combined = [...owlcms];
+      if (showUsawResults) combined.push(...usaw);
+      if (showIwfResults) combined.push(...iwf);
+    } else if (forceIwfMode) {
+      combined = [...iwf];
+      if (showUsawResults) combined.push(...usaw);
+      if (showOwlcmsResults && owlcms.length > 0) combined.push(...owlcms);
+    } else {
+      combined = [...usaw];
+      if (showIwfResults) combined.push(...iwf);
+      if (showOwlcmsResults && owlcms.length > 0) combined.push(...owlcms);
     }
     
     return combined.sort((a: any, b: any) => 
       new Date(b.date).getTime() - new Date(a.date).getTime()
     );
-  }, [athleteData, showIwfResults, showOwlcmsResults, forceIwfMode]);
+  }, [athleteData, showIwfResults, showOwlcmsResults, showUsawResults, forceIwfMode, isOwlcmsMode]);
 
   // --- TOP-DOWN STABLE HYDRATION ORCHESTRATOR ---
   const [renderStep, setRenderStep] = React.useState(0);
@@ -211,17 +243,22 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }:
       athlete_name: athleteData.athlete_name,
       usaw_name: athleteData.usaw_athlete_name || athleteData.usaw_name,
       iwf_name: athleteData.iwf_athlete_name || athleteData.iwf_name,
-      displayName: forceIwfMode 
-        ? (athleteData.iwf_athlete_name || athleteData.iwf_name || athleteData.athlete_name) 
-        : (athleteData.usaw_athlete_name || athleteData.usaw_name || athleteData.athlete_name),
+      displayName: isOwlcmsMode
+        ? (athleteData.athlete_name || (athleteData.first_name ? `${athleteData.first_name} ${athleteData.last_name || ''}`.trim() : `Athlete owlcms-${id}`))
+        : forceIwfMode 
+          ? (athleteData.iwf_athlete_name || athleteData.iwf_name || athleteData.athlete_name) 
+          : (athleteData.usaw_athlete_name || athleteData.usaw_name || athleteData.athlete_name),
       membership_number: athleteData.linked_usaw_id || athleteData.membership_number,
       linked_usaw_id: athleteData.linked_usaw_id,
       linked_iwf_id: athleteData.linked_iwf_id,
       linked_owlcms_id: athleteData.linked_owlcms_id,
       owlcms_results: athleteData.owlcms_results || [],
+      usaw_results: athleteData.usaw_results || [],
+      iwf_results: athleteData.iwf_results || [],
       gender: athleteData.gender,
       nation_code: athleteData.country_code,
       nation: athleteData.country_name,
+      club_name: athleteData.club_name,
       internal_id: athleteData.internal_id,
       internal_id_2: athleteData.internal_id_2,
       external_links: athleteData.external_links || [],
@@ -234,10 +271,11 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }:
       population_percentiles: athleteData.population_percentiles,
       historical_stats: athleteData.historical_stats
     };
-  }, [athleteData, forceIwfMode]);
+  }, [athleteData, forceIwfMode, isOwlcmsMode, id]);
 
   const personalBests = useMemo(() => {
-    if (!results.length) return { 
+    const dataset = allAvailableResults.length > 0 ? allAvailableResults : results;
+    if (!dataset.length) return { 
       best_snatch: { value: 0, date: null }, 
       best_cj: { value: 0, date: null }, 
       best_total: { value: 0, date: null }, 
@@ -258,12 +296,12 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }:
         })[0] || null;
     };
 
-    const bestSnatchObj = findBest(results, 'best_snatch');
-    const bestCJObj = findBest(results, 'best_cj');
-    const bestTotalObj = findBest(results, 'total');
+    const bestSnatchObj = findBest(dataset, 'best_snatch');
+    const bestCJObj = findBest(dataset, 'best_cj');
+    const bestTotalObj = findBest(dataset, 'total');
 
     // Q-Score Logic (Points, Youth, Masters)
-    const qScores = results.flatMap((r: any) => [
+    const qScores = dataset.flatMap((r: any) => [
       { value: parseFloat(r.qpoints) || 0, label: 'Q-Points', color: 'var(--chart-qpoints)', date: r.date },
       { value: parseFloat(r.q_youth) || 0, label: 'Q-Youth', color: 'var(--chart-qyouth)', date: r.date },
       { value: parseFloat(r.q_masters) || 0, label: 'Q-Masters', color: 'var(--chart-qmasters)', date: r.date }
@@ -271,7 +309,7 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }:
     const bestQ = qScores.reduce((prev: any, curr: any) => (curr.value > prev.value) ? curr : prev, { value: 0, label: 'N/A', color: 'var(--chart-qpoints)', date: null });
 
     // GAMX Logic (Total, S, J, U, A, Masters)
-    const gamxScores = results.flatMap((r: any) => [
+    const gamxScores = dataset.flatMap((r: any) => [
       { value: parseFloat(r.gamx_total) || 0, label: 'GAMX-Total', color: 'var(--chart-gamx-total)', date: r.date },
       { value: parseFloat(r.gamx_s) || 0, label: 'GAMX-S', color: 'var(--chart-gamx-s)', date: r.date },
       { value: parseFloat(r.gamx_j) || 0, label: 'GAMX-J', color: 'var(--chart-gamx-j)', date: r.date },
@@ -288,7 +326,7 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }:
       best_q: bestQ,
       best_gamx: bestGamx
     };
-  }, [results]);
+  }, [allAvailableResults, results]);
 
   const recentInfo = useMemo(() => {
     if (!athleteData) return { wso: null, club: null };
@@ -389,11 +427,15 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }:
                 showIwfResults={showIwfResults} 
                 setShowIwfResults={setShowIwfResults} 
                 forceIwfMode={forceIwfMode}
+                forceOwlcmsMode={isOwlcmsMode}
                 currentIwfId={id}
+                currentOwlcmsId={id}
                 linkedOwlcmsId={athlete.linked_owlcms_id}
                 owlcmsResults={athlete.owlcms_results || []}
                 showOwlcmsResults={showOwlcmsResults}
                 setShowOwlcmsResults={setShowOwlcmsResults}
+                showUsawResults={showUsawResults}
+                setShowUsawResults={setShowUsawResults}
               />
               <AthleteBests personalBests={personalBests} />
             </>
@@ -460,7 +502,7 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false }:
               }}
               showAllColumns={showAllColumns}
               setShowAllColumns={setShowAllColumns}
-              isMixedResults={(forceIwfMode ? !showIwfResults : showIwfResults) || showOwlcmsResults}
+              isMixedResults={(new Set(results.map((r: any) => (r._source || '').toUpperCase()))).size > 1 || (forceIwfMode ? !showIwfResults : showIwfResults) || showOwlcmsResults}
             />
             <AthleteAchievements 
               achievements={athlete.achievements} 

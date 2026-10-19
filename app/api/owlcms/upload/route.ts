@@ -121,16 +121,6 @@ export async function POST(req: NextRequest) {
       const { data: authData, error: userError } = await serverSupabase.auth.getUser();
 
       if (authData?.user && !userError) {
-        const { data: profile, error: profileError } = await supabaseAdmin
-          .from('profiles')
-          .select('role')
-          .eq('id', authData.user.id)
-          .single();
-
-        if (profileError || profile?.role !== 'admin') {
-          return jsonResponse({ success: false, error: 'Admin access required' }, { status: 403 });
-        }
-
         user = { id: authData.user.id, email: authData.user.email || null };
       }
       // No session and no matching API key: anonymous-with-attribution path.
