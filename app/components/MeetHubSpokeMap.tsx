@@ -265,7 +265,7 @@ export default function MeetHubSpokeMap({
                         <span className="text-sm">{spoke.name}</span>
                       </div>
                     )}
-                    {type === 'club' && (
+                    {type === 'club' && !spoke.code && (
                       <Link
                         href={`/club/${createClubSlug(spoke.name || 'unknown-club')}`}
                         className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white hover:text-white visited:text-white no-underline hover:no-underline text-sm py-1 px-2 rounded transition-colors text-center cursor-pointer"

@@ -1,0 +1,18 @@
+{
+  "Australian Capital Territory": { "lat": -35.2809, "lng": 149.1300, "code": "ACT", "name": "Australian Capital Territory (ACT)" },
+  "ACT": { "lat": -35.2809, "lng": 149.1300, "code": "ACT", "name": "Australian Capital Territory (ACT)" },
+  "New South Wales": { "lat": -33.8688, "lng": 151.2093, "code": "NSW", "name": "New South Wales (NSW)" },
+  "NSW": { "lat": -33.8688, "lng": 151.2093, "code": "NSW", "name": "New South Wales (NSW)" },
+  "Northern Territory": { "lat": -12.4634, "lng": 130.8456, "code": "NT", "name": "Northern Territory (NT)" },
+  "NT": { "lat": -12.4634, "lng": 130.8456, "code": "NT", "name": "Northern Territory (NT)" },
+  "Queensland": { "lat": -27.4698, "lng": 153.0251, "code": "QLD", "name": "Queensland (QLD)" },
+  "QLD": { "lat": -27.4698, "lng": 153.0251, "code": "QLD", "name": "Queensland (QLD)" },
+  "South Australia": { "lat": -34.9285, "lng": 138.6007, "code": "SA", "name": "South Australia (SA)" },
+  "SA": { "lat": -34.9285, "lng": 138.6007, "code": "SA", "name": "South Australia (SA)" },
+  "Tasmania": { "lat": -42.8821, "lng": 147.3272, "code": "TAS", "name": "Tasmania (TAS)" },
+  "TAS": { "lat": -42.8821, "lng": 147.3272, "code": "TAS", "name": "Tasmania (TAS)" },
+  "Victoria": { "lat": -37.8136, "lng": 144.9631, "code": "VIC", "name": "Victoria (VIC)" },
+  "VIC": { "lat": -37.8136, "lng": 144.9631, "code": "VIC", "name": "Victoria (VIC)" },
+  "Western Australia": { "lat": -31.9505, "lng": 115.8605, "code": "WA", "name": "Western Australia (WA)" },
+  "WA": { "lat": -31.9505, "lng": 115.8605, "code": "WA", "name": "Western Australia (WA)" }
+}

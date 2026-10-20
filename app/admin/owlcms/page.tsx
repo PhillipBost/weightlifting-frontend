@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Shield, UploadCloud, ShieldAlert, Users } from 'lucide-react';
+import { ArrowLeft, Shield, UploadCloud, ShieldAlert, Users, RefreshCw } from 'lucide-react';
 import { AuthGuard } from '../../components/AuthGuard';
 import { ROLES } from '../../../lib/roles';
 import { OwlcmsUploader } from '../../components/owlcms/OwlcmsUploader';
@@ -13,6 +13,33 @@ export default function OwlcmsAdminPage() {
   const [activeTab, setActiveTab] = useState<'importer' | 'meet_review' | 'athlete_review'>('importer');
   const [meetReviewCount, setMeetReviewCount] = useState<number>(0);
   const [athleteReviewCount, setAthleteReviewCount] = useState<number>(0);
+  const [isRevalidating, setIsRevalidating] = useState<boolean>(false);
+  const [revalidateNotice, setRevalidateNotice] = useState<string | null>(null);
+
+  const handleRevalidateArchive = async () => {
+    setIsRevalidating(true);
+    setRevalidateNotice(null);
+    try {
+      const res = await fetch('/api/revalidate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path: '/archive' })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setRevalidateNotice('Archive cache successfully refreshed! Fresh meets will now load immediately.');
+        setTimeout(() => setRevalidateNotice(null), 5000);
+      } else {
+        setRevalidateNotice(data.error || 'Failed to refresh cache');
+        setTimeout(() => setRevalidateNotice(null), 5000);
+      }
+    } catch {
+      setRevalidateNotice('Failed to refresh cache');
+      setTimeout(() => setRevalidateNotice(null), 5000);
+    } finally {
+      setIsRevalidating(false);
+    }
+  };
 
   const fetchCounts = async () => {
     try {
@@ -81,58 +108,83 @@ export default function OwlcmsAdminPage() {
               <span>Back to Admin Dashboard</span>
             </Link>
 
-            {/* Navigation Tabs (3 distinct workflows) */}
-            <div className="flex items-center gap-1.5 p-1 bg-slate-900/90 border border-slate-800 rounded-xl flex-wrap">
-              {/* Tab 1: Importer */}
-              <button
-                onClick={() => setActiveTab('importer')}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                  activeTab === 'importer'
-                    ? 'bg-sky-600 text-white shadow'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                <UploadCloud className="w-3.5 h-3.5" />
-                <span>Upload Meets</span>
-              </button>
+            {/* Navigation Tabs (3 distinct workflows) and Cache Action */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1.5 p-1 bg-slate-900/90 border border-slate-800 rounded-xl flex-wrap">
+                {/* Tab 1: Importer */}
+                <button
+                  onClick={() => setActiveTab('importer')}
+                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    activeTab === 'importer'
+                      ? 'bg-sky-600 text-white shadow'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  <UploadCloud className="w-3.5 h-3.5" />
+                  <span>Upload Meets</span>
+                </button>
 
-              {/* Tab 2: Meet Collisions Review Queue */}
-              <button
-                onClick={() => setActiveTab('meet_review')}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                  activeTab === 'meet_review'
-                    ? 'bg-amber-600 text-white shadow'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                <ShieldAlert className="w-3.5 h-3.5" />
-                <span>Meet Review</span>
-                {meetReviewCount > 0 && (
-                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-400 text-amber-950 animate-pulse">
-                    {meetReviewCount}
-                  </span>
-                )}
-              </button>
+                {/* Tab 2: Meet Collisions Review Queue */}
+                <button
+                  onClick={() => setActiveTab('meet_review')}
+                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    activeTab === 'meet_review'
+                      ? 'bg-amber-600 text-white shadow'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  <ShieldAlert className="w-3.5 h-3.5" />
+                  <span>Meet Review</span>
+                  {meetReviewCount > 0 && (
+                    <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-400 text-amber-950 animate-pulse">
+                      {meetReviewCount}
+                    </span>
+                  )}
+                </button>
 
-              {/* Tab 3: Athlete Matching Review Queue */}
+                {/* Tab 3: Athlete Matching Review Queue */}
+                <button
+                  onClick={() => setActiveTab('athlete_review')}
+                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    activeTab === 'athlete_review'
+                      ? 'bg-indigo-600 text-white shadow'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  <Users className="w-3.5 h-3.5" />
+                  <span>Athlete Review</span>
+                  {athleteReviewCount > 0 && (
+                    <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-indigo-300 text-indigo-950 animate-pulse">
+                      {athleteReviewCount}
+                    </span>
+                  )}
+                </button>
+              </div>
+
+              {/* Cache Purge / Revalidate Action Button */}
               <button
-                onClick={() => setActiveTab('athlete_review')}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                  activeTab === 'athlete_review'
-                    ? 'bg-indigo-600 text-white shadow'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
+                onClick={handleRevalidateArchive}
+                disabled={isRevalidating}
+                title="Purge Vercel Edge CDN cache for /archive to immediately reflect newly ingested competitions without re-deploying"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-slate-900/90 border border-slate-800 text-slate-300 hover:text-sky-300 hover:border-sky-500/40 transition disabled:opacity-50 cursor-pointer"
               >
-                <Users className="w-3.5 h-3.5" />
-                <span>Athlete Review</span>
-                {athleteReviewCount > 0 && (
-                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-indigo-300 text-indigo-950 animate-pulse">
-                    {athleteReviewCount}
-                  </span>
-                )}
+                <RefreshCw className={`w-3.5 h-3.5 text-sky-400 ${isRevalidating ? 'animate-spin' : ''}`} />
+                <span>{isRevalidating ? 'Refreshing Cache...' : 'Refresh Archive Cache'}</span>
               </button>
             </div>
           </div>
+
+          {revalidateNotice && (
+            <div className="p-3 rounded-xl bg-sky-950/60 border border-sky-500/40 text-xs text-sky-200 flex items-center justify-between shadow-lg">
+              <span>{revalidateNotice}</span>
+              <button
+                onClick={() => setRevalidateNotice(null)}
+                className="text-sky-400 hover:text-white text-xs font-bold px-2 py-0.5 rounded cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+          )}
 
           {/* Active Tab View - Preserved with CSS display to prevent unmounting and state loss */}
           <div className="w-full">

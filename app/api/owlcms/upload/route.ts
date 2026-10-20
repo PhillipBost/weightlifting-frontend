@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
 import zlib from 'zlib';
@@ -670,6 +671,15 @@ export async function POST(req: NextRequest) {
         }).catch((err: any) => {
           console.warn(`[Pipeline Trigger] Background runner notice failed: ${err?.message || err}`);
         });
+      }
+
+      // On-demand revalidation: Purge ISR cache so /archive immediately displays the new meet
+      if (!isQuarantined && !dryRun) {
+        try {
+          revalidatePath('/archive');
+        } catch (revalErr) {
+          console.warn('[OWLCMS_UPLOAD] Cache revalidation error:', revalErr);
+        }
       }
     }
 

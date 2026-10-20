@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
 import zlib from 'zlib';
@@ -378,6 +379,12 @@ export async function POST(req: NextRequest) {
         .upload(finalArchivePath, buffer, { contentType: 'application/gzip', upsert: true });
 
       await supabaseAdmin.storage.from('owlcms-archives').remove([quarantineFilePath]);
+
+      try {
+        revalidatePath('/archive');
+      } catch (revalErr) {
+        console.warn('[PENDING_ACTION] Cache revalidation error:', revalErr);
+      }
 
       return NextResponse.json({
         success: true,

@@ -20,7 +20,7 @@ import {
   ClipboardList,
   Building
 } from 'lucide-react';
-import { CANONICAL_COUNTRY_NAMES } from '../../../../types/federation';
+import { CANONICAL_COUNTRY_NAMES, formatDefinedTeam } from '../../../../types/federation';
 import { ThemeSwitcher } from '../../../components/ThemeSwitcher';
 
 const MeetHubSpokeMap = dynamic(() => import('../../../components/MeetHubSpokeMap'), { ssr: false });
@@ -211,9 +211,21 @@ const getCountryFlagComponent = (code: string | null | undefined): React.Compone
     'CA': Ca, 'US': Us, 'GB': Gb, 'FR': Fr, 'DE': De, 'IT': It, 'ES': Es, 'MX': Mx, 'CO': Co, 'BR': Br, 'AU': Au, 'NZ': Nz
   };
 
-  const normalized = code.toUpperCase().trim();
-  return iocMap[normalized] || null;
+  const raw = code.toUpperCase().trim();
+  const primaryCode = raw.includes(',') ? raw.split(',')[0].trim() : raw;
+  return iocMap[primaryCode] || iocMap[raw] || null;
 };
+
+function getDelegationLabel(clubName?: string | null, countryCode?: string | null): string {
+  let subCode: string | null = null;
+  if (countryCode && countryCode.includes(',')) {
+    const parts = countryCode.split(',').map(s => s.trim().toUpperCase());
+    if (parts.length >= 2) subCode = parts[1];
+  }
+  const candidate = (clubName || '').trim() || subCode || (countryCode || '').trim();
+  if (!candidate) return '-';
+  return formatDefinedTeam(candidate);
+}
 
 function getDivisionLabel(code: string): string {
   const p = code.toUpperCase();
@@ -512,33 +524,49 @@ export default function OwlcmsMeetPage({ params }: { params: Promise<{ id: strin
 
         // Detect if participants belong to multiple countries or a single domestic country
         const distinctCountries = Array.from(
-          new Set(results.map(r => r.country_code?.toUpperCase()).filter(c => c && c !== 'UNKNOWN'))
+          new Set(
+            results
+              .map(r => {
+                const raw = r.country_code?.toUpperCase()?.trim();
+                if (!raw || raw === 'UNKNOWN') return null;
+                return raw.includes(',') ? raw.split(',')[0].trim() : raw;
+              })
+              .filter(Boolean) as string[]
+          )
         );
 
-        // Domestic Single-Country Mode with Sub-national Delegations (e.g. Canadian Provinces)
-        if (distinctCountries.length <= 1 && (distinctCountries[0] === 'CAN' || !distinctCountries[0])) {
-          const provMap: Record<string, number> = {};
-          results.forEach(r => {
-            const club = r.club_name?.trim();
-            if (club) {
-              provMap[club] = (provMap[club] || 0) + 1;
-            }
-          });
+        const hostCountry = meet?.host_country_code?.toUpperCase() || distinctCountries[0];
+        const isDomesticSingleCountry = distinctCountries.length <= 1;
 
-          const provKeys = Object.keys(provMap);
-          if (provKeys.length > 0) {
-            const res = await fetch('/data/canadian-provinces.json');
-            if (res.ok) {
-              const provCoords: Record<string, { lat: number; lng: number; code: string }> = await res.json();
-              const spokes = provKeys
-                .map(pName => {
-                  const center = provCoords[pName];
+        // Domestic Single-Country Mode with Sub-national Delegations (e.g. Canadian Provinces or Australian States)
+        if (isDomesticSingleCountry && (hostCountry === 'CAN' || hostCountry === 'AUS')) {
+          const subGeoFile = hostCountry === 'AUS' ? '/data/australian-states.json' : '/data/canadian-provinces.json';
+          const res = await fetch(subGeoFile);
+          if (res.ok) {
+            const subCoords: Record<string, { lat: number; lng: number; code: string; name?: string }> = await res.json();
+            const subMap: Record<string, number> = {};
+            results.forEach(r => {
+              let token = r.club_name?.trim();
+              if ((!token || !subCoords[token]) && r.country_code?.includes(',')) {
+                token = r.country_code.split(',')[1].trim();
+              }
+              if (token && subCoords[token]) {
+                const canonicalCode = subCoords[token].code;
+                subMap[canonicalCode] = (subMap[canonicalCode] || 0) + 1;
+              }
+            });
+
+            const subKeys = Object.keys(subMap);
+            if (subKeys.length > 0) {
+              const spokes = subKeys
+                .map(code => {
+                  const center = subCoords[code];
                   if (!center) return null;
                   return {
-                    name: pName,
+                    name: center.name || formatDefinedTeam(code),
                     lat: center.lat,
                     lng: center.lng,
-                    count: provMap[pName],
+                    count: subMap[code],
                     code: center.code
                   };
                 })
@@ -546,7 +574,7 @@ export default function OwlcmsMeetPage({ params }: { params: Promise<{ id: strin
 
               if (spokes.length > 0) {
                 setMapType('club');
-                setMapSpokes(spokes);
+                setMapSpokes(spokes as any[]);
                 return;
               }
             }
@@ -1006,7 +1034,7 @@ export default function OwlcmsMeetPage({ params }: { params: Promise<{ id: strin
                         <td className="px-2 py-2 text-sm">
                           <div className="flex items-center gap-2">
                             {Flag && <Flag style={{ width: '18px', height: '18px' }} />}
-                            <span>{r.club_name || r.country_code || '-'}</span>
+                            <span>{getDelegationLabel(r.club_name, r.country_code)}</span>
                           </div>
                         </td>
                         <td className="px-2 py-2 text-sm">{r.body_weight_kg ? `${r.body_weight_kg}kg` : '-'}</td>
@@ -1349,7 +1377,7 @@ export default function OwlcmsMeetPage({ params }: { params: Promise<{ id: strin
                     <div className="flex items-center gap-2">
                       {Flag && <Flag style={{ width: '18px', height: '18px' }} />}
                       <span className="text-sm">
-                        {result.club_name || (result.country_code ? (CANONICAL_COUNTRY_NAMES[result.country_code.toUpperCase()] || result.country_code) : '-')}
+                        {getDelegationLabel(result.club_name, result.country_code)}
                       </span>
                     </div>
                   </td>
@@ -2241,7 +2269,7 @@ export default function OwlcmsMeetPage({ params }: { params: Promise<{ id: strin
                                   <td className="px-2 py-2 text-sm hidden sm:table-cell">
                                     <div className="flex items-center gap-2">
                                       {Flag && <Flag style={{ width: '18px', height: '18px' }} />}
-                                      <span>{r.club_name || r.country_code || '-'}</span>
+                                      <span>{getDelegationLabel(r.club_name, r.country_code)}</span>
                                     </div>
                                   </td>
                                   <td className="px-2 py-2 text-sm">{r.body_weight_kg ? `${r.body_weight_kg}kg` : '-'}</td>

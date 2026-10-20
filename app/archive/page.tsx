@@ -4,8 +4,8 @@ import { createClient } from '@supabase/supabase-js';
 import { supabaseIWF } from "../../lib/supabaseIWF"; // We can still use this for IWF or just use the admin client for both if they are same DB.
 import { CANONICAL_COUNTRY_NAMES } from "../../types/federation";
 
-// Enable ISR with 24-hour revalidation
-export const revalidate = 86400;
+// Enable ISR with 1-hour passive fallback revalidation (instant on-demand revalidation on upload)
+export const revalidate = 3600;
 
 // Initialize Supabase Admin client for server-side fetching
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;

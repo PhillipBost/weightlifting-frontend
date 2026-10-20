@@ -447,10 +447,39 @@ export const CANONICAL_COUNTRY_NAMES: Record<string, string> = {
   COM: 'Comoros', RWA: 'Rwanda', BDI: 'Burundi', MTN: 'Mauritania', MRT: 'Mauritania'
 };
 
+export const CANONICAL_SUB_NATIONAL_NAMES: Record<string, { name: string; countryCode: string }> = {
+  // Australian States & Territories
+  ACT: { name: 'Australian Capital Territory', countryCode: 'AUS' },
+  NSW: { name: 'New South Wales', countryCode: 'AUS' },
+  NT: { name: 'Northern Territory', countryCode: 'AUS' },
+  QLD: { name: 'Queensland', countryCode: 'AUS' },
+  SA: { name: 'South Australia', countryCode: 'AUS' },
+  TAS: { name: 'Tasmania', countryCode: 'AUS' },
+  VIC: { name: 'Victoria', countryCode: 'AUS' },
+  WA: { name: 'Western Australia', countryCode: 'AUS' },
+
+  // Canadian Provinces & Territories
+  AB: { name: 'Alberta', countryCode: 'CAN' },
+  BC: { name: 'British Columbia', countryCode: 'CAN' },
+  MB: { name: 'Manitoba', countryCode: 'CAN' },
+  NB: { name: 'New Brunswick', countryCode: 'CAN' },
+  NL: { name: 'Newfoundland and Labrador', countryCode: 'CAN' },
+  NS: { name: 'Nova Scotia', countryCode: 'CAN' },
+  NU: { name: 'Nunavut', countryCode: 'CAN' },
+  ON: { name: 'Ontario', countryCode: 'CAN' },
+  PE: { name: 'Prince Edward Island', countryCode: 'CAN' },
+  QC: { name: 'Québec', countryCode: 'CAN' },
+  SK: { name: 'Saskatchewan', countryCode: 'CAN' },
+  YT: { name: 'Yukon', countryCode: 'CAN' }
+};
+
 export function formatDefinedTeam(teamNameOrCode: string): string {
   const trimmed = (teamNameOrCode || '').trim();
   if (!trimmed) return '';
   const upper = trimmed.toUpperCase();
+  if (CANONICAL_SUB_NATIONAL_NAMES[upper]) {
+    return `${CANONICAL_SUB_NATIONAL_NAMES[upper].name} (${upper})`;
+  }
   if (CANONICAL_COUNTRY_NAMES[upper]) {
     return `${CANONICAL_COUNTRY_NAMES[upper]} (${upper})`;
   }
