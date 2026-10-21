@@ -1030,6 +1030,11 @@ export default function OwlcmsMeetPage({ params }: { params: Promise<{ id: strin
                             <span>{r.athlete_name}</span>
                             <ExternalLink className="h-3 w-3" />
                           </Link>
+                          {getSessionDescriptor(r.session_name) && (
+                            <div className="text-[11px] text-app-muted truncate" title={`Platform Competition Session: ${getSessionDescriptor(r.session_name)}`}>
+                              {getSessionDescriptor(r.session_name)}
+                            </div>
+                          )}
                         </td>
                         <td className="px-2 py-2 text-sm">
                           <div className="flex items-center gap-2">
@@ -1338,7 +1343,7 @@ export default function OwlcmsMeetPage({ params }: { params: Promise<{ id: strin
                       ) : result.birth_year ? (
                         <span>b. {result.birth_year}</span>
                       ) : null}
-                      {!groupBySession && getSessionDescriptor(result.session_name) && (
+                      {getSessionDescriptor(result.session_name) && (
                         <>
                           <span>•</span>
                           <span
@@ -1506,7 +1511,7 @@ export default function OwlcmsMeetPage({ params }: { params: Promise<{ id: strin
                               </>
                             )}
                             <span>•</span>
-                            <span>Session: {result.session_name || 'General'}</span>
+                            <span title="Official competition platform and session assignment">Session: {getSessionDescriptor(result.session_name) || result.session_name || 'General'}</span>
                           </div>
                           <div className="flex items-center gap-3">
                             <span title="Official bodyweight recorded at technical weigh-in">
@@ -1627,6 +1632,14 @@ export default function OwlcmsMeetPage({ params }: { params: Promise<{ id: strin
     };
 
     const sessionKeys = Object.keys(sessionMap).sort((a, b) => {
+      const metaA = sessionMetaMap[a];
+      const metaB = sessionMetaMap[b];
+      if (metaA && metaB && metaA.sessionNumber !== metaB.sessionNumber) {
+        return metaA.sessionNumber - metaB.sessionNumber;
+      }
+      if (metaA && !metaB) return -1;
+      if (!metaA && metaB) return 1;
+
       const intA = parseInt(a, 10);
       const intB = parseInt(b, 10);
       if (!isNaN(intA) && !isNaN(intB) && String(intA) === a.trim() && String(intB) === b.trim()) {
@@ -1745,7 +1758,7 @@ export default function OwlcmsMeetPage({ params }: { params: Promise<{ id: strin
                 <div className="flex items-center space-x-2">
                   {isCollapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
                   <h3 className="text-xl font-bold text-app-primary">
-                    Platform Session: {sessKey}
+                    {getSessionDescriptor(sessKey) || `Platform Session: ${sessKey}`}
                   </h3>
                 </div>
                 <span className="text-sm text-app-muted">({sessResults.length} athletes)</span>
@@ -2265,6 +2278,11 @@ export default function OwlcmsMeetPage({ params }: { params: Promise<{ id: strin
                                       <span className="font-medium text-sm">{r.athlete_name}</span>
                                       <ExternalLink className="h-3 w-3" />
                                     </Link>
+                                    {getSessionDescriptor(r.session_name) && (
+                                      <div className="text-[11px] text-app-muted truncate" title={`Platform Competition Session: ${getSessionDescriptor(r.session_name)}`}>
+                                        {getSessionDescriptor(r.session_name)}
+                                      </div>
+                                    )}
                                   </td>
                                   <td className="px-2 py-2 text-sm hidden sm:table-cell">
                                     <div className="flex items-center gap-2">

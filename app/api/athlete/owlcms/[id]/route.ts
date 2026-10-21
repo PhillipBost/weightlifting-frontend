@@ -133,8 +133,30 @@ export async function GET(
     // Sort results chronologically descending
     const formattedResults = (results || []).map((r: any) => {
       const meet = Array.isArray(r.meet) ? r.meet[0] : r.meet;
+      let sessionDescriptor: string | null = null;
+      if (r.session_name) {
+        const rawSessions: any[] = meet?.raw_payload?.sessions || [];
+        const sorted = [...rawSessions].sort((a, b) => {
+          const timeA = Array.isArray(a.competitionTime) ? new Date(Date.UTC(a.competitionTime[0], a.competitionTime[1] - 1, a.competitionTime[2], a.competitionTime[3] || 0, a.competitionTime[4] || 0)).getTime() : 0;
+          const timeB = Array.isArray(b.competitionTime) ? new Date(Date.UTC(b.competitionTime[0], b.competitionTime[1] - 1, b.competitionTime[2], b.competitionTime[3] || 0, b.competitionTime[4] || 0)).getTime() : 0;
+          return timeA - timeB;
+        });
+        const matchIdx = sorted.findIndex((s) => s.name === r.session_name);
+        if (matchIdx !== -1) {
+          const s = sorted[matchIdx];
+          const sNum = matchIdx + 1;
+          const platform = s.platformName ? `Platform ${s.platformName}` : null;
+          const isPureNumber = /^\d+$/.test(r.session_name.trim());
+          sessionDescriptor = platform
+            ? (isPureNumber ? `${platform} - Session ${r.session_name}` : `${platform} - Session ${sNum} (${r.session_name})`)
+            : (isPureNumber ? `Session ${r.session_name}` : `Session ${sNum} (${r.session_name})`);
+        } else {
+          sessionDescriptor = `Session ${r.session_name}`;
+        }
+      }
       return {
         ...r,
+        session_descriptor: sessionDescriptor,
         meet_name: meet?.meet_name || `Meet #${r.meet_id}`,
         start_date: meet?.start_date || null,
         end_date: meet?.end_date || null,

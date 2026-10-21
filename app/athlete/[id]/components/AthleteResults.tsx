@@ -531,6 +531,14 @@ export function AthleteResults({
                                 >
                                   {result.meet_name}
                                 </Link>
+                                {(result.session_descriptor || result.session_name) && (
+                                  <div
+                                    className="text-[10px] text-app-muted truncate"
+                                    title={`Platform Competition Session: ${result.session_descriptor || result.session_name}`}
+                                  >
+                                    {result.session_descriptor || `Session: ${result.session_name}`}
+                                  </div>
+                                )}
                               </div>
                             </td>
                             <td className="px-2 py-1 whitespace-nowrap text-xs">{result.meets?.Level || '-'}</td>
@@ -592,6 +600,14 @@ export function AthleteResults({
                                 >
                                   {result.meet_name}
                                 </Link>
+                                {(result.session_descriptor || result.session_name) && (
+                                  <div
+                                    className="text-[10px] text-app-muted truncate"
+                                    title={`Platform Competition Session: ${result.session_descriptor || result.session_name}`}
+                                  >
+                                    {result.session_descriptor || `Session: ${result.session_name}`}
+                                  </div>
+                                )}
                               </div>
                             </td>
                             <td className="px-2 py-1 whitespace-nowrap text-xs">{result.weight_class || '-'}</td>
