@@ -368,7 +368,7 @@ export default function OwlcmsMeetPage({ params }: { params: Promise<{ id: strin
       
       let descriptor = '';
       if (platform) {
-        descriptor = isPureNumber ? `${platform} - Session ${sName}` : `${platform} - Session ${sNum} (${sName})`;
+        descriptor = isPureNumber ? `Session ${sName} - ${platform}` : `Session ${sNum} - ${platform} (${sName})`;
       } else {
         descriptor = isPureNumber ? `Session ${sName}` : `Session ${sNum} (${sName})`;
       }
@@ -1343,7 +1343,7 @@ export default function OwlcmsMeetPage({ params }: { params: Promise<{ id: strin
                       ) : result.birth_year ? (
                         <span>b. {result.birth_year}</span>
                       ) : null}
-                      {getSessionDescriptor(result.session_name) && (
+                      {!groupBySession && getSessionDescriptor(result.session_name) && (
                         <>
                           <span>•</span>
                           <span

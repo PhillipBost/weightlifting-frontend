@@ -148,7 +148,7 @@ export async function GET(
           const platform = s.platformName ? `Platform ${s.platformName}` : null;
           const isPureNumber = /^\d+$/.test(r.session_name.trim());
           sessionDescriptor = platform
-            ? (isPureNumber ? `${platform} - Session ${r.session_name}` : `${platform} - Session ${sNum} (${r.session_name})`)
+            ? (isPureNumber ? `Session ${r.session_name} - ${platform}` : `Session ${sNum} - ${platform} (${r.session_name})`)
             : (isPureNumber ? `Session ${r.session_name}` : `Session ${sNum} (${r.session_name})`);
         } else {
           sessionDescriptor = `Session ${r.session_name}`;
