@@ -15,6 +15,7 @@ import {
   Medal,
   Loader2,
   Clock,
+  Scale,
   Layers,
   Sparkles,
   ClipboardList,
@@ -350,14 +351,62 @@ export default function OwlcmsMeetPage({ params }: { params: Promise<{ id: strin
 
   // Precompute Chronological Session Numbers and Metadata (Combination of Option B & C)
   const sessionMetaMap = useMemo(() => {
-    const map: Record<string, { sessionNumber: number; platform?: string | null; name: string; descriptor: string }> = {};
+    const map: Record<string, {
+      sessionNumber: number;
+      platform?: string | null;
+      name: string;
+      descriptor: string;
+      scheduledTimeStr?: string | null;
+      weighInTimeStr?: string | null;
+      actualWindowStr?: string | null;
+      durationStr?: string | null;
+    }> = {};
     const rawSessions: any[] = meet?.raw_payload?.sessions || [];
     
+    const parseDateComponents = (val: any) => {
+      if (!val) return null;
+      if (Array.isArray(val)) {
+        if (val.length < 3) return null;
+        const year = val[0];
+        const month = val[1] - 1;
+        const day = val[2];
+        const hours = val[3] || 0;
+        const minutes = val[4] || 0;
+        const seconds = val[5] || 0;
+        const date = new Date(Date.UTC(year, month, day, hours, minutes, seconds));
+        return { date, year, month, day, hours, minutes, seconds };
+      }
+      if (typeof val === 'string') {
+        const match = val.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?/);
+        if (match) {
+          const year = parseInt(match[1], 10);
+          const month = parseInt(match[2], 10) - 1;
+          const day = parseInt(match[3], 10);
+          const hours = parseInt(match[4], 10);
+          const minutes = parseInt(match[5], 10);
+          const seconds = match[6] ? parseInt(match[6], 10) : 0;
+          const date = new Date(Date.UTC(year, month, day, hours, minutes, seconds));
+          return { date, year, month, day, hours, minutes, seconds };
+        }
+        const d = new Date(val);
+        if (!isNaN(d.getTime())) {
+          return { date: d, year: d.getFullYear(), month: d.getMonth(), day: d.getDate(), hours: d.getHours(), minutes: d.getMinutes(), seconds: d.getSeconds() };
+        }
+      }
+      return null;
+    };
+
+    const formatClockTime = (hours: number, minutes: number) => {
+      const period = hours >= 12 ? 'PM' : 'AM';
+      const displayHours = hours % 12 === 0 ? 12 : hours % 12;
+      return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+    };
+
     // Sort sessions chronologically if competitionTime is available
     const sorted = [...rawSessions].sort((a, b) => {
-      const timeA = Array.isArray(a.competitionTime) ? new Date(Date.UTC(a.competitionTime[0], a.competitionTime[1] - 1, a.competitionTime[2], a.competitionTime[3] || 0, a.competitionTime[4] || 0)).getTime() : 0;
-      const timeB = Array.isArray(b.competitionTime) ? new Date(Date.UTC(b.competitionTime[0], b.competitionTime[1] - 1, b.competitionTime[2], b.competitionTime[3] || 0, b.competitionTime[4] || 0)).getTime() : 0;
-      return timeA - timeB;
+      const compA = parseDateComponents(a.competitionTime)?.date.getTime() || 0;
+      const compB = parseDateComponents(b.competitionTime)?.date.getTime() || 0;
+      return compA - compB;
     });
 
     sorted.forEach((s, idx) => {
@@ -373,11 +422,41 @@ export default function OwlcmsMeetPage({ params }: { params: Promise<{ id: strin
         descriptor = isPureNumber ? `Session ${sName}` : `Session ${sNum} (${sName})`;
       }
 
+      const compParsed = parseDateComponents(s.competitionTime);
+      const weighParsed = parseDateComponents(s.weighInTime) || (compParsed ? parseDateComponents(new Date(compParsed.date.getTime() - 2 * 3600 * 1000)) : null);
+      const startParsed = parseDateComponents(s.firstSnatchTime);
+      const endParsed = parseDateComponents(s.lastCJDecisionTime);
+
+      let scheduledTimeStr: string | null = null;
+      if (compParsed) {
+        const dateStr = compParsed.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
+        scheduledTimeStr = `${dateStr} • ${formatClockTime(compParsed.hours, compParsed.minutes)}`;
+      }
+
+      const weighInTimeStr = weighParsed ? formatClockTime(weighParsed.hours, weighParsed.minutes) : null;
+
+      let actualWindowStr: string | null = null;
+      let durationStr: string | null = null;
+      if (startParsed && endParsed) {
+        const diffMs = endParsed.date.getTime() - startParsed.date.getTime();
+        if (diffMs > 0 && diffMs < 24 * 3600 * 1000) {
+          const totalMinutes = Math.round(diffMs / 60000);
+          const hrs = Math.floor(totalMinutes / 60);
+          const mins = totalMinutes % 60;
+          durationStr = hrs > 0 ? `${hrs}h ${mins.toString().padStart(2, '0')}m` : `${mins}m`;
+          actualWindowStr = `${formatClockTime(startParsed.hours, startParsed.minutes)} – ${formatClockTime(endParsed.hours, endParsed.minutes)} (${durationStr})`;
+        }
+      }
+
       map[sName] = {
         sessionNumber: sNum,
         platform: s.platformName,
         name: sName,
-        descriptor
+        descriptor,
+        scheduledTimeStr,
+        weighInTimeStr,
+        actualWindowStr,
+        durationStr
       };
     });
 
@@ -1511,7 +1590,18 @@ export default function OwlcmsMeetPage({ params }: { params: Promise<{ id: strin
                               </>
                             )}
                             <span>•</span>
-                            <span title="Official competition platform and session assignment">Session: {getSessionDescriptor(result.session_name) || result.session_name || 'General'}</span>
+                            <span title="Official competition platform and session assignment">
+                              Session: {getSessionDescriptor(result.session_name) || result.session_name || 'General'}
+                              {sessionMetaMap[result.session_name || '']?.scheduledTimeStr && (
+                                <> • Scheduled: {sessionMetaMap[result.session_name || ''].scheduledTimeStr}</>
+                              )}
+                              {sessionMetaMap[result.session_name || '']?.weighInTimeStr && (
+                                <> (Weigh-in: {sessionMetaMap[result.session_name || ''].weighInTimeStr})</>
+                              )}
+                              {sessionMetaMap[result.session_name || '']?.actualWindowStr && (
+                                <> • Actual: {sessionMetaMap[result.session_name || ''].actualWindowStr}</>
+                              )}
+                            </span>
                           </div>
                           <div className="flex items-center gap-3">
                             <span title="Official bodyweight recorded at technical weigh-in">
@@ -1749,19 +1839,44 @@ export default function OwlcmsMeetPage({ params }: { params: Promise<{ id: strin
             };
           });
 
+          const meta = sessionMetaMap[sessKey];
+
           return (
             <div key={sessKey} className="card-primary p-0 mb-4">
               <div
                 onClick={(e) => toggleSection(`Session-${sessKey}`, e)}
-                className="cursor-pointer hover:bg-app-hover transition-colors p-4 rounded-t-lg flex items-center justify-between"
+                className="cursor-pointer hover:bg-app-hover transition-colors p-4 rounded-t-lg flex flex-col md:flex-row md:items-center justify-between gap-3"
               >
-                <div className="flex items-center space-x-2">
-                  {isCollapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-                  <h3 className="text-xl font-bold text-app-primary">
-                    {getSessionDescriptor(sessKey) || `Platform Session: ${sessKey}`}
-                  </h3>
+                <div className="flex items-start md:items-center space-x-2.5">
+                  {isCollapsed ? <ChevronRight className="h-5 w-5 mt-1 md:mt-0 text-app-muted shrink-0" /> : <ChevronDown className="h-5 w-5 mt-1 md:mt-0 text-app-muted shrink-0" />}
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="text-xl font-bold text-app-primary">
+                        {meta?.descriptor || getSessionDescriptor(sessKey) || `Platform Session: ${sessKey}`}
+                      </h3>
+                      {meta?.scheduledTimeStr && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-accent-primary/10 text-accent-primary border border-accent-primary/20" title="Official scheduled competition session start time">
+                          <Clock className="h-3 w-3" />
+                          Lifting: {meta.scheduledTimeStr}
+                        </span>
+                      )}
+                      {meta?.weighInTimeStr && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-500 dark:text-amber-400 border border-amber-500/20" title="Official published 2-hour technical weigh-in period">
+                          <Scale className="h-3 w-3" />
+                          Weigh-in: {meta.weighInTimeStr}
+                        </span>
+                      )}
+                    </div>
+                    {meta?.actualWindowStr && (
+                      <div className="text-xs text-app-muted mt-1 flex items-center gap-1.5 flex-wrap">
+                        <span title="Actual time elapsed from first snatch attempt to final clean & jerk adjudication">
+                          Actual Lifting Window: <strong className="text-app-secondary font-medium">{meta.actualWindowStr}</strong>
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <span className="text-sm text-app-muted">({sessResults.length} athletes)</span>
+                <span className="text-sm text-app-muted shrink-0">({sessResults.length} athletes)</span>
               </div>
               {!isCollapsed && sessionDivisions.length > 1 && (
                 <div className="px-4 py-2.5 bg-app-surface/60 border-t border-b border-app-primary/20 flex items-center gap-2 flex-wrap text-xs">
