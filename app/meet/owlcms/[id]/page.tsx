@@ -15,7 +15,6 @@ import {
   Medal,
   Loader2,
   Clock,
-  Scale,
   Layers,
   Sparkles,
   ClipboardList,
@@ -1589,19 +1588,23 @@ export default function OwlcmsMeetPage({ params }: { params: Promise<{ id: strin
                                 </span>
                               </>
                             )}
-                            <span>•</span>
-                            <span title="Official competition platform and session assignment">
-                              Session: {getSessionDescriptor(result.session_name) || result.session_name || 'General'}
-                              {sessionMetaMap[result.session_name || '']?.scheduledTimeStr && (
-                                <> • Scheduled: {sessionMetaMap[result.session_name || ''].scheduledTimeStr}</>
-                              )}
-                              {sessionMetaMap[result.session_name || '']?.weighInTimeStr && (
-                                <> (Weigh-in: {sessionMetaMap[result.session_name || ''].weighInTimeStr})</>
-                              )}
-                              {sessionMetaMap[result.session_name || '']?.actualWindowStr && (
-                                <> • Actual: {sessionMetaMap[result.session_name || ''].actualWindowStr}</>
-                              )}
-                            </span>
+                            {!groupBySession && (
+                              <>
+                                <span>•</span>
+                                <span title="Official competition platform and session assignment">
+                                  Session: {getSessionDescriptor(result.session_name) || result.session_name || 'General'}
+                                  {sessionMetaMap[result.session_name || '']?.weighInTimeStr && (
+                                    <> • Weigh-in: {sessionMetaMap[result.session_name || ''].weighInTimeStr}</>
+                                  )}
+                                  {sessionMetaMap[result.session_name || '']?.scheduledTimeStr && (
+                                    <> • Session Start Scheduled: {sessionMetaMap[result.session_name || ''].scheduledTimeStr}</>
+                                  )}
+                                  {sessionMetaMap[result.session_name || '']?.actualWindowStr && (
+                                    <> • Actual Session Time: {sessionMetaMap[result.session_name || ''].actualWindowStr}</>
+                                  )}
+                                </span>
+                              </>
+                            )}
                           </div>
                           <div className="flex items-center gap-3">
                             <span title="Official bodyweight recorded at technical weigh-in">
@@ -1849,32 +1852,32 @@ export default function OwlcmsMeetPage({ params }: { params: Promise<{ id: strin
               >
                 <div className="flex items-start md:items-center space-x-2.5">
                   {isCollapsed ? <ChevronRight className="h-5 w-5 mt-1 md:mt-0 text-app-muted shrink-0" /> : <ChevronDown className="h-5 w-5 mt-1 md:mt-0 text-app-muted shrink-0" />}
-                  <div>
-                    <div className="flex items-center gap-2 flex-wrap">
+                    <div>
                       <h3 className="text-xl font-bold text-app-primary">
                         {meta?.descriptor || getSessionDescriptor(sessKey) || `Platform Session: ${sessKey}`}
                       </h3>
-                      {meta?.scheduledTimeStr && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-accent-primary/10 text-accent-primary border border-accent-primary/20" title="Official scheduled competition session start time">
-                          <Clock className="h-3 w-3" />
-                          Lifting: {meta.scheduledTimeStr}
-                        </span>
-                      )}
-                      {meta?.weighInTimeStr && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-500 dark:text-amber-400 border border-amber-500/20" title="Official published 2-hour technical weigh-in period">
-                          <Scale className="h-3 w-3" />
-                          Weigh-in: {meta.weighInTimeStr}
-                        </span>
+                      {(meta?.weighInTimeStr || meta?.scheduledTimeStr || meta?.actualWindowStr) && (
+                        <div className="text-xs text-app-muted mt-1 flex items-center gap-1.5 flex-wrap">
+                          {meta?.weighInTimeStr && (
+                            <span title="Official published 2-hour technical weigh-in period">
+                              Weigh-in: <strong className="text-app-secondary font-medium">{meta.weighInTimeStr}</strong>
+                            </span>
+                          )}
+                          {meta?.weighInTimeStr && (meta?.scheduledTimeStr || meta?.actualWindowStr) && <span>•</span>}
+                          {meta?.scheduledTimeStr && (
+                            <span title="Official scheduled competition session start time">
+                              Session Start Scheduled: <strong className="text-app-secondary font-medium">{meta.scheduledTimeStr}</strong>
+                            </span>
+                          )}
+                          {meta?.scheduledTimeStr && meta?.actualWindowStr && <span>•</span>}
+                          {meta?.actualWindowStr && (
+                            <span title="Actual time elapsed from first snatch attempt to final clean & jerk adjudication">
+                              Actual Session Time: <strong className="text-app-secondary font-medium">{meta.actualWindowStr}</strong>
+                            </span>
+                          )}
+                        </div>
                       )}
                     </div>
-                    {meta?.actualWindowStr && (
-                      <div className="text-xs text-app-muted mt-1 flex items-center gap-1.5 flex-wrap">
-                        <span title="Actual time elapsed from first snatch attempt to final clean & jerk adjudication">
-                          Actual Lifting Window: <strong className="text-app-secondary font-medium">{meta.actualWindowStr}</strong>
-                        </span>
-                      </div>
-                    )}
-                  </div>
                 </div>
                 <span className="text-sm text-app-muted shrink-0">({sessResults.length} athletes)</span>
               </div>
