@@ -1,14 +1,14 @@
 {
-  "results": 411915,
-  "athletes": 89752,
-  "meets": 8038,
-  "lastUpdated": "2026-10-23T09:14:20.956Z",
+  "results": 411930,
+  "athletes": 89755,
+  "meets": 8039,
+  "lastUpdated": "2026-10-24T08:47:01.329Z",
   "breakdown": {
-    "usawResults": 340243,
+    "usawResults": 340258,
     "iwfResults": 71672,
-    "usawAthletes": 71534,
+    "usawAthletes": 71537,
     "iwfAthletes": 18218,
-    "usawMeets": 7500,
+    "usawMeets": 7501,
     "iwfMeets": 538
   }
 }
