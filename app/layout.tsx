@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { AuthProvider } from "./components/AuthProvider";
 import { GlobalHeader } from "./components/GlobalHeader";
+import { UmamiAnalytics } from "./components/UmamiAnalytics";
 
 export const metadata: Metadata = {
   title: {
@@ -27,6 +28,7 @@ export default function RootLayout({
             <GlobalHeader />
             {children}
             <Analytics />
+            <UmamiAnalytics />
           </ThemeProvider>
         </AuthProvider>
       </body>
