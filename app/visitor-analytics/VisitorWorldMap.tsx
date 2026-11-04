@@ -22,6 +22,26 @@ interface HoveredCountry {
   pct: number;
 }
 
+// Canonical geographic centroids [longitude, latitude] for microstates and compact territories
+// that are smaller than 1-2px on the 110m low-resolution Mercator projection.
+export const MICROSTATE_CENTROIDS: Record<string, [number, number]> = {
+  SGP: [103.8198, 1.3521], // Singapore
+  HKG: [114.1694, 22.3193], // Hong Kong
+  MAC: [113.5439, 22.1987], // Macau
+  BHR: [50.5577, 26.0667], // Bahrain
+  MLT: [14.3754, 35.9375], // Malta
+  BRB: [-59.5432, 13.1939], // Barbados
+  BMU: [-64.7574, 32.3078], // Bermuda
+  MDV: [73.2207, 3.2028], // Maldives
+  SYC: [55.492, -4.6796], // Seychelles
+  MCO: [7.4246, 43.7384], // Monaco
+  LIE: [9.5209, 47.166], // Liechtenstein
+  SMR: [12.4578, 43.9424], // San Marino
+  AND: [1.5218, 42.5063], // Andorra
+  VAT: [12.4534, 41.9029], // Vatican City
+  GIB: [-5.3536, 36.1408] // Gibraltar
+};
+
 export function VisitorWorldMap({ countries, highlightedCountry }: VisitorWorldMapProps) {
   const { theme } = useTheme();
   const isDark = theme === "dark";
@@ -56,14 +76,16 @@ export function VisitorWorldMap({ countries, highlightedCountry }: VisitorWorldM
     return map;
   }, [countries]);
 
-  const paths = useMemo(() => {
-    if (!geoData?.features) return [];
-
-    const projection = d3
+  const projection = useMemo(() => {
+    return d3
       .geoMercator()
       .scale(120)
       .center([0, 30])
       .translate([400, 220]);
+  }, []);
+
+  const paths = useMemo(() => {
+    if (!geoData?.features) return [];
 
     const pathGenerator = d3.geoPath().projection(projection);
 
@@ -78,7 +100,38 @@ export function VisitorWorldMap({ countries, highlightedCountry }: VisitorWorldM
         visits
       };
     });
-  }, [geoData, visitLookup]);
+  }, [geoData, visitLookup, projection]);
+
+  const microstateBeacons = useMemo(() => {
+    return Object.entries(MICROSTATE_CENTROIDS)
+      .map(([code, coords]) => {
+        const details = getCountryDetails(code);
+        const visits = visitLookup.get(details.iso3) || visitLookup.get(details.iso2) || 0;
+        const isHighlighted =
+          highlightedDetails &&
+          (code === highlightedDetails.iso3 ||
+            code === highlightedDetails.iso2 ||
+            details.iso3 === highlightedDetails.iso3 ||
+            details.iso2 === highlightedDetails.iso2);
+
+        // Only render beacon if visited or actively highlighted
+        if (visits === 0 && !isHighlighted) return null;
+
+        const projected = projection(coords);
+        if (!projected) return null;
+
+        return {
+          code,
+          name: details.name,
+          flagCode: details.iso2 || details.iso3,
+          visits,
+          isHighlighted: Boolean(isHighlighted),
+          cx: projected[0],
+          cy: projected[1]
+        };
+      })
+      .filter((b): b is NonNullable<typeof b> => b !== null);
+  }, [projection, visitLookup, highlightedDetails]);
 
   // Render highlighted country last in SVG hierarchy to prevent border clipping
   const sortedPaths = useMemo(() => {
@@ -226,6 +279,39 @@ export function VisitorWorldMap({ countries, highlightedCountry }: VisitorWorldM
                     : "hover:brightness-125 hover:stroke-teal-300"
                 }`}
                 onMouseEnter={(e) => handleMouseEnter(e, p)}
+              />
+            );
+          })}
+          {/* Microstate Beacon Dots */}
+          {microstateBeacons.map((beacon) => {
+            const intensity = beacon.visits > 0 ? Math.max(0.5, beacon.visits / maxVisits) : 0;
+            const fill = beacon.isHighlighted
+              ? "#2dd4bf"
+              : `rgba(20, 184, 166, ${intensity})`;
+            const stroke = beacon.isHighlighted ? "#ffffff" : "#0f766e";
+            const radius = beacon.isHighlighted ? 5.5 : 3.5;
+
+            return (
+              <circle
+                key={`microstate-${beacon.code}`}
+                cx={beacon.cx}
+                cy={beacon.cy}
+                r={radius}
+                fill={fill}
+                stroke={stroke}
+                strokeWidth={beacon.isHighlighted ? 2 : 1.2}
+                className={`transition-all duration-150 cursor-pointer ${
+                  beacon.isHighlighted
+                    ? "filter drop-shadow-[0_0_8px_rgba(45,212,191,0.9)]"
+                    : "hover:scale-125 hover:stroke-teal-200"
+                }`}
+                onMouseEnter={(e) =>
+                  handleMouseEnter(e, {
+                    id: beacon.code,
+                    name: beacon.name,
+                    visits: beacon.visits
+                  })
+                }
               />
             );
           })}
