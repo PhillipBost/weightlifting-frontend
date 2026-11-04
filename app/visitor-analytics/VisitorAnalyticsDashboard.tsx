@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { Activity, Users, Eye, Clock, ShieldCheck, Globe, FileText, ChevronDown, Search, ChevronLeft, ChevronRight, Loader2, MapPin, Building, Flag } from "lucide-react";
+import Link from "next/link";
+import { Activity, Users, Eye, Clock, ShieldCheck, Globe, FileText, ChevronDown, Search, ChevronLeft, ChevronRight, Loader2, MapPin, Building, Flag, Info } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { getCountryFlagComponent } from "@/app/utils/countryFlags";
 import { getCountryDetails, formatRegionName, formatCityName } from "@/lib/utils/countryNames";
@@ -31,6 +32,10 @@ export function VisitorAnalyticsDashboard({
   const [data, setData] = useState<AnalyticsData>(initialData);
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Interactive Hover Highlights & Tooltips
+  const [highlightedCountry, setHighlightedCountry] = useState<string | null>(null);
+  const [showPrivacyTooltip, setShowPrivacyTooltip] = useState(false);
 
   // Geographic Breakdown Tab (Mutually Exclusive: Countries / Regions / Cities)
   const [geoTab, setGeoTab] = useState<GeoBreakdownTab>("countries");
@@ -108,10 +113,50 @@ export function VisitorAnalyticsDashboard({
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-teal-500/10 text-teal-400 border border-teal-500/20">
-              <ShieldCheck className="h-3.5 w-3.5" />
-              Cookie-Free & Privacy-Preserving
-            </span>
+            {/* Cookie-Free & Privacy-Preserving Interactive Popover */}
+            <div className="relative">
+              <button
+                type="button"
+                onMouseEnter={() => setShowPrivacyTooltip(true)}
+                onMouseLeave={() => setShowPrivacyTooltip(false)}
+                onClick={() => setShowPrivacyTooltip((prev) => !prev)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-teal-500/10 text-teal-400 border border-teal-500/20 hover:bg-teal-500/20 transition-colors cursor-pointer"
+              >
+                <ShieldCheck className="h-3.5 w-3.5" />
+                <span>Cookie-Free & Privacy-Preserving</span>
+                <Info className="h-3 w-3 ml-0.5 opacity-70" />
+              </button>
+
+              {showPrivacyTooltip && (
+                <div className="absolute right-0 top-full mt-2 z-50 w-80 sm:w-96 p-4 rounded-xl bg-slate-900 border border-slate-700 shadow-2xl text-left text-xs text-slate-200 space-y-2.5 backdrop-blur-md">
+                  <div className="flex items-center gap-2 text-teal-400 font-semibold border-b border-slate-800 pb-2">
+                    <ShieldCheck className="h-4 w-4" />
+                    <span>Privacy Architecture & Data Integrity</span>
+                  </div>
+                  <p className="text-[11px] text-slate-300 leading-relaxed">
+                    Powered by the open-source <strong className="text-white">Umami Analytics</strong> platform hosted on <strong className="text-white">dedicated OWLanalytics infrastructure</strong>. Operates with zero third-party telemetry, trackers, or commercial data brokers.
+                  </p>
+                  <div className="bg-slate-800/70 p-2.5 rounded-lg border border-slate-700/50 space-y-1">
+                    <span className="font-semibold text-white block text-[11px]">Stateless Unique Visitor Identification</span>
+                    <p className="text-[11px] text-slate-300 leading-relaxed">
+                      Unique visitors are computed via a stateless 24-hour cryptographic hash:
+                    </p>
+                    <code className="block bg-slate-950 p-1.5 rounded text-[10px] text-teal-300 font-mono overflow-x-auto">
+                      SHA-256(IP Address + User-Agent + Daily Salt)
+                    </code>
+                    <p className="text-[10px] text-slate-400 leading-relaxed">
+                      The rotating salt is permanently purged every 24 hours at 00:00 UTC, rendering cross-day profiling mathematically impossible. No persistent cookies, LocalStorage tokens, or device fingerprinting.
+                    </p>
+                  </div>
+                  <div className="pt-1 border-t border-slate-800 text-[10px] text-slate-400 space-y-0.5">
+                    <span className="font-semibold text-slate-300 block">Compliant Jurisdictional Frameworks:</span>
+                    <p>• European Union General Data Protection Regulation (GDPR)</p>
+                    <p>• United States California Consumer Privacy Act (CCPA)</p>
+                    <p>• United Kingdom Privacy and Electronic Communications Regulations (PECR)</p>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Time Range Selector */}
             <div className="relative">
@@ -235,7 +280,10 @@ export function VisitorAnalyticsDashboard({
                 {(data?.countries || []).length} countries represented • Pan & Zoom available
               </div>
             </div>
-            <VisitorWorldMap countries={data?.countries || []} />
+            <VisitorWorldMap
+              countries={data?.countries || []}
+              highlightedCountry={highlightedCountry}
+            />
           </div>
 
           {/* Two-Column Grid: Pages Visited & Distinct Geographic Breakdown */}
@@ -276,9 +324,13 @@ export function VisitorAnalyticsDashboard({
                       return (
                         <div key={idx} className="py-2.5 flex items-center justify-between gap-4">
                           <div className="min-w-0 flex-1">
-                            <p className="text-xs font-mono text-app-primary truncate hover:text-teal-400 transition-colors" title={page.displayLabel || page.x}>
+                            <Link
+                              href={page.x}
+                              className="text-xs font-mono text-app-primary truncate hover:text-teal-400 transition-colors block hover:underline"
+                              title={page.displayLabel || page.x}
+                            >
                               {page.displayLabel || page.x}
-                            </p>
+                            </Link>
                             <div className="w-full bg-app-tertiary/20 rounded-full h-1 mt-1.5">
                               <div
                                 className="bg-teal-500/80 h-1 rounded-full transition-all duration-300"
@@ -385,7 +437,16 @@ export function VisitorAnalyticsDashboard({
                         const FlagComp = getCountryFlagComponent(details.iso2 || details.iso3);
                         const pct = Math.round((c.y / totalCountryViews) * 100);
                         return (
-                          <div key={idx} className="py-2.5 flex items-center justify-between gap-4">
+                          <div
+                            key={idx}
+                            onMouseEnter={() => setHighlightedCountry(c.x)}
+                            onMouseLeave={() => setHighlightedCountry(null)}
+                            className={`py-2 px-2.5 rounded-lg flex items-center justify-between gap-4 transition-colors cursor-pointer ${
+                              highlightedCountry === c.x
+                                ? "bg-teal-500/15 border border-teal-500/30"
+                                : "hover:bg-app-hover"
+                            }`}
+                          >
                             <div className="flex items-center gap-3 min-w-0">
                               {FlagComp ? (
                                 <FlagComp style={{ width: "18px", height: "auto" }} />
@@ -452,7 +513,7 @@ export function VisitorAnalyticsDashboard({
                       </p>
                     ) : (
                       (data?.cities || []).map((ci, idx) => {
-                        const label = formatCityName(ci.x, ci.country);
+                        const label = formatCityName(ci.x, ci.country, data?.regions);
                         const FlagComp = getCountryFlagComponent(ci.country || "");
                         const pct = Math.round((ci.y / totalCityViews) * 100);
                         return (

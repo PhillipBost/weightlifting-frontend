@@ -9,6 +9,7 @@ import { useTheme } from "@/app/components/ThemeProvider";
 
 interface VisitorWorldMapProps {
   countries: { x: string; y: number }[];
+  highlightedCountry?: string | null;
 }
 
 interface HoveredCountry {
@@ -21,7 +22,7 @@ interface HoveredCountry {
   pct: number;
 }
 
-export function VisitorWorldMap({ countries }: VisitorWorldMapProps) {
+export function VisitorWorldMap({ countries, highlightedCountry }: VisitorWorldMapProps) {
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const [geoData, setGeoData] = useState<any>(null);
@@ -40,6 +41,10 @@ export function VisitorWorldMap({ countries }: VisitorWorldMapProps) {
 
   const totalVisits = useMemo(() => countries.reduce((sum, c) => sum + c.y, 0) || 1, [countries]);
   const maxVisits = useMemo(() => Math.max(...countries.map((c) => c.y), 1), [countries]);
+
+  const highlightedDetails = useMemo(() => {
+    return highlightedCountry ? getCountryDetails(highlightedCountry) : null;
+  }, [highlightedCountry]);
 
   const visitLookup = useMemo(() => {
     const map = new Map<string, number>();
@@ -74,6 +79,18 @@ export function VisitorWorldMap({ countries }: VisitorWorldMapProps) {
       };
     });
   }, [geoData, visitLookup]);
+
+  // Render highlighted country last in SVG hierarchy to prevent border clipping
+  const sortedPaths = useMemo(() => {
+    if (!highlightedDetails) return paths;
+    return [...paths].sort((a, b) => {
+      const aMatch = a.id === highlightedDetails.iso3 || a.id === highlightedDetails.iso2;
+      const bMatch = b.id === highlightedDetails.iso3 || b.id === highlightedDetails.iso2;
+      if (aMatch && !bMatch) return 1;
+      if (!aMatch && bMatch) return -1;
+      return 0;
+    });
+  }, [paths, highlightedDetails]);
 
   // Setup D3 Zoom & Pan
   useEffect(() => {
@@ -178,15 +195,23 @@ export function VisitorWorldMap({ countries }: VisitorWorldMapProps) {
         onMouseLeave={() => setHovered(null)}
       >
         <g ref={gRef}>
-          {paths.map((p: any) => {
+          {sortedPaths.map((p: any) => {
             const hasVisits = p.visits > 0;
             const intensity = hasVisits ? Math.max(0.4, p.visits / maxVisits) : 0;
+            const isHighlighted =
+              highlightedDetails &&
+              (p.id === highlightedDetails.iso3 || p.id === highlightedDetails.iso2);
 
             // Theme-reactive fill & stroke
             const unvisitedFill = isDark ? "#1e293b" : "#e2e8f0";
             const unvisitedStroke = isDark ? "#475569" : "#94a3b8";
-            const fill = hasVisits ? `rgba(20, 184, 166, ${intensity})` : unvisitedFill;
-            const stroke = hasVisits ? "#14b8a6" : unvisitedStroke;
+            const fill = isHighlighted
+              ? "#2dd4bf"
+              : hasVisits
+              ? `rgba(20, 184, 166, ${intensity})`
+              : unvisitedFill;
+            const stroke = isHighlighted ? "#ffffff" : hasVisits ? "#14b8a6" : unvisitedStroke;
+            const strokeWidth = isHighlighted ? 2.5 : hasVisits ? 0.8 : 0.6;
 
             return (
               <path
@@ -194,8 +219,12 @@ export function VisitorWorldMap({ countries }: VisitorWorldMapProps) {
                 d={p.d}
                 fill={fill}
                 stroke={stroke}
-                strokeWidth={hasVisits ? 0.8 : 0.6}
-                className="transition-colors duration-150 hover:brightness-125 hover:stroke-teal-300 cursor-pointer"
+                strokeWidth={strokeWidth}
+                className={`transition-colors duration-150 cursor-pointer ${
+                  isHighlighted
+                    ? "filter drop-shadow-[0_0_8px_rgba(45,212,191,0.8)]"
+                    : "hover:brightness-125 hover:stroke-teal-300"
+                }`}
                 onMouseEnter={(e) => handleMouseEnter(e, p)}
               />
             );
