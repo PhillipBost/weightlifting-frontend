@@ -436,27 +436,24 @@ export function VisitorAnalyticsDashboard({
                         const details = getCountryDetails(c.x);
                         const FlagComp = getCountryFlagComponent(details.iso2 || details.iso3);
                         const pct = Math.round((c.y / totalCountryViews) * 100);
-                        const isHighlighted = highlightedCountry === c.x;
                         return (
                           <div
                             key={idx}
                             onMouseEnter={() => setHighlightedCountry(c.x)}
                             onMouseLeave={() => setHighlightedCountry(null)}
-                            className={`py-2.5 px-3 rounded-lg flex items-center justify-between gap-4 transition-colors cursor-pointer ${
-                              isHighlighted ? "bg-app-hover" : "hover:bg-app-hover"
-                            }`}
+                            className="py-2.5 flex items-center justify-between gap-4 cursor-pointer group"
                           >
                             <div className="flex items-center gap-3 min-w-0">
                               {FlagComp ? (
                                 <FlagComp style={{ width: "18px", height: "auto" }} />
                               ) : null}
-                              <span className="text-xs font-medium text-app-primary truncate">
+                              <span className="text-xs font-medium text-app-primary group-hover:text-teal-400 truncate transition-colors">
                                 {details.displayName}
                               </span>
                             </div>
                             <div className="flex items-center gap-3 shrink-0">
                               <span className="text-xs text-app-tertiary">{pct}%</span>
-                              <span className="text-xs font-semibold text-blue-400">
+                              <span className="text-xs font-semibold text-blue-400 group-hover:text-teal-400 shrink-0 transition-colors">
                                 {c.y.toLocaleString()} visits
                               </span>
                             </div>
@@ -480,27 +477,24 @@ export function VisitorAnalyticsDashboard({
                         const flagCode = r.country || (r.x.includes('-') ? r.x.split('-')[0] : r.x);
                         const FlagComp = getCountryFlagComponent(flagCode);
                         const pct = Math.round((r.y / totalRegionViews) * 100);
-                        const isHighlighted = highlightedCountry === flagCode;
                         return (
                           <div
                             key={idx}
                             onMouseEnter={() => setHighlightedCountry(flagCode)}
                             onMouseLeave={() => setHighlightedCountry(null)}
-                            className={`py-2.5 px-3 rounded-lg flex items-center justify-between gap-4 transition-colors cursor-pointer ${
-                              isHighlighted ? "bg-app-hover" : "hover:bg-app-hover"
-                            }`}
+                            className="py-2.5 flex items-center justify-between gap-4 cursor-pointer group"
                           >
                             <div className="flex items-center gap-3 min-w-0">
                               {FlagComp ? (
                                 <FlagComp style={{ width: "18px", height: "auto" }} />
                               ) : null}
-                              <span className="text-xs font-medium text-app-primary truncate">
+                              <span className="text-xs font-medium text-app-primary group-hover:text-teal-400 truncate transition-colors">
                                 {label}
                               </span>
                             </div>
                             <div className="flex items-center gap-3 shrink-0">
                               <span className="text-xs text-app-tertiary">{pct}%</span>
-                              <span className="text-xs font-semibold text-purple-400">
+                              <span className="text-xs font-semibold text-purple-400 group-hover:text-teal-400 shrink-0 transition-colors">
                                 {r.y.toLocaleString()} visits
                               </span>
                             </div>
@@ -524,27 +518,24 @@ export function VisitorAnalyticsDashboard({
                         const FlagComp = getCountryFlagComponent(ci.country || "");
                         const pct = Math.round((ci.y / totalCityViews) * 100);
                         const countryCode = ci.country || "";
-                        const isHighlighted = highlightedCountry === countryCode;
                         return (
                           <div
                             key={idx}
                             onMouseEnter={() => setHighlightedCountry(countryCode)}
                             onMouseLeave={() => setHighlightedCountry(null)}
-                            className={`py-2.5 px-3 rounded-lg flex items-center justify-between gap-4 transition-colors cursor-pointer ${
-                              isHighlighted ? "bg-app-hover" : "hover:bg-app-hover"
-                            }`}
+                            className="py-2.5 flex items-center justify-between gap-4 cursor-pointer group"
                           >
                             <div className="flex items-center gap-3 min-w-0">
                               {FlagComp ? (
                                 <FlagComp style={{ width: "18px", height: "auto" }} />
                               ) : null}
-                              <span className="text-xs font-medium text-app-primary truncate">
+                              <span className="text-xs font-medium text-app-primary group-hover:text-teal-400 truncate transition-colors">
                                 {label}
                               </span>
                             </div>
                             <div className="flex items-center gap-3 shrink-0">
                               <span className="text-xs text-app-tertiary">{pct}%</span>
-                              <span className="text-xs font-semibold text-emerald-400">
+                              <span className="text-xs font-semibold text-emerald-400 group-hover:text-teal-400 shrink-0 transition-colors">
                                 {ci.y.toLocaleString()} visits
                               </span>
                             </div>
