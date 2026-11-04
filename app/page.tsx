@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Search, TrendingUp, Trophy, Users, Calendar, CalendarDays, CalendarFold, MapPinned, Weight, Dumbbell, Database, Filter, ArrowRight, Github, Heart, X, User, MapPin, Loader2, Shield, Archive, UploadCloud } from 'lucide-react';
+import { Search, TrendingUp, Trophy, Users, Calendar, CalendarDays, CalendarFold, MapPinned, Weight, Dumbbell, Database, Filter, ArrowRight, Github, Heart, X, User, MapPin, Loader2, Shield, Archive, UploadCloud, Activity } from 'lucide-react';
 
 
 
@@ -352,6 +352,29 @@ export default function WeightliftingLandingPage() {
                 </div>
                 <div className="flex items-center mt-4 text-sm text-yellow-500 group-hover:text-yellow-400 transition-colors">
                   <span>Visit mirror</span>
+                  <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </div>
+            </Link>
+
+            {/* OWLanalytics Visitor Analytics Navigation Card - publicly visible */}
+            <Link href="/visitor-analytics" className="group h-full">
+              <div className="bg-app-secondary border border-app-primary rounded-xl p-6 hover:bg-app-hover transition-all duration-200 hover:shadow-lg hover:scale-105 h-full flex flex-col justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="bg-teal-500/10 rounded-full p-3 group-hover:bg-teal-500/20 transition-colors">
+                    <Activity className="h-6 w-6 text-teal-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-app-primary group-hover:text-teal-400 transition-colors">
+                      Visitor Analytics
+                    </h3>
+                    <p className="text-sm text-app-tertiary mt-1">
+                      Public website traffic, pageviews, and geographic metrics
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center mt-4 text-sm text-teal-400 group-hover:text-teal-300 transition-colors">
+                  <span>View visitor analytics</span>
                   <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>

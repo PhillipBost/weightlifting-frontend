@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { User, Session } from '@supabase/supabase-js'
 import { queryWithTimeout, queryWithRetry } from '@/lib/supabase-utils'
 import { checkSupabaseHealth } from '@/lib/supabase-health'
+import { ROLES } from '@/lib/roles'
 
 // Extended user interface that includes profile data
 export interface ExtendedUser extends User {
@@ -45,6 +46,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [session, setSession] = useState<Session | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isLoadingProfile, setIsLoadingProfile] = useState(false)
+
+  // Role-based tracking exclusion: suppress Umami telemetry for admin and national team coach
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const role = user?.role
+    if (role === ROLES.ADMIN || role === ROLES.USAW_NATIONAL_TEAM_COACH) {
+      localStorage.setItem('umami.disabled', '1')
+    } else {
+      localStorage.removeItem('umami.disabled')
+    }
+  }, [user?.role])
 
   // Use the singleton client
   const supabase = authClient

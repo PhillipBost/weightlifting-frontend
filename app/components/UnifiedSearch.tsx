@@ -13,7 +13,7 @@ import { iwfMeetSearch } from '@/lib/search/iwfMeetSearch';
 import { wsoClubSearch } from '@/lib/search/wsoClubSearch';
 import { generateAthleteSearchTerms, stripPunctuation } from '@/lib/search/searchUtils';
 import { FEDERATION_LEVEL_LABELS, FederationLevel, CANONICAL_COUNTRY_NAMES, formatDefinedTeam } from '@/types/federation';
-import { trackUmamiEvent } from '@/lib/analytics/umami';
+import { trackEvent } from '@/lib/analytics';
 
 // --- Types ---
 
@@ -614,7 +614,7 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
             if (data.type === 'athlete') {
                 const source = data.source || 'USAW';
                 const normalizedSource = source.toUpperCase() === 'OWLCMS' ? 'OWLCMS' : source.toUpperCase() === 'IWF' ? 'IWF' : 'USAW';
-                trackUmamiEvent('athlete_lookup', { source: normalizedSource, search_variant: variant });
+                trackEvent('Athlete Search', { source: normalizedSource, search_variant: variant, query_length: query.length });
                 // Logic borrowed from page.tsx handleResultSelect
                 let athleteId: string;
                 if (source === 'OWLCMS' || source === 'owlcms') {
@@ -637,19 +637,19 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
                 const source = data.source || 'USAW';
                 const linkId = (data.source === 'IWF' && data.iwfId) ? data.iwfId.toString() : data.id.toString();
                 const normalizedSource = source.toUpperCase() === 'OWLCMS' ? 'OWLCMS' : source.toUpperCase() === 'IWF' ? 'IWF' : 'USAW';
-                trackUmamiEvent('meet_lookup', { source: normalizedSource, search_variant: variant });
+                trackEvent('Meet Search', { source: normalizedSource, search_variant: variant, query_length: query.length });
                 router.push(buildMeetUrl(linkId, source));
 
             } else if (data.type === 'club') {
-                trackUmamiEvent('entity_lookup', { category: 'club', search_variant: variant });
+                trackEvent('Entity Search', { category: 'club', search_variant: variant });
                 router.push(`/club/${data.slug}`);
             } else if (data.type === 'university') {
-                trackUmamiEvent('entity_lookup', { category: 'university', search_variant: variant });
+                trackEvent('Entity Search', { category: 'university', search_variant: variant });
                 // Linked programs carry their canonical club slug; unlinked ones
                 // land on the University Programs section of the /club directory.
                 router.push(data.slug ? `/club/${data.slug}` : '/club#university-programs');
             } else if (data.type === 'wso') {
-                trackUmamiEvent('entity_lookup', { category: 'wso', search_variant: variant });
+                trackEvent('Entity Search', { category: 'wso', search_variant: variant });
                 router.push(`/WSO/${data.slug}`);
             }
 
