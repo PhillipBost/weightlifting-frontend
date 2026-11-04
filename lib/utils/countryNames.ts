@@ -83,129 +83,58 @@ export function getCountryDetails(code: string): CountryDetails {
   };
 }
 
-const US_CITIES_TO_STATE: Record<string, string> = {
-  // Ohio
-  Hilliard: 'Ohio', Columbus: 'Ohio', Cleveland: 'Ohio', Cincinnati: 'Ohio',
-  Akron: 'Ohio', Toledo: 'Ohio', Dayton: 'Ohio', Dublin: 'Ohio', Westerville: 'Ohio',
-  // Iowa
-  'Council Bluffs': 'Iowa', 'Des Moines': 'Iowa', 'Cedar Rapids': 'Iowa',
-  Davenport: 'Iowa', 'Sioux City': 'Iowa', 'Iowa City': 'Iowa', Ames: 'Iowa', Waterloo: 'Iowa',
-  // North Carolina
-  Morganton: 'North Carolina', Charlotte: 'North Carolina', Raleigh: 'North Carolina',
-  Greensboro: 'North Carolina', Durham: 'North Carolina', 'Winston-Salem': 'North Carolina',
-  Asheville: 'North Carolina', Wilmington: 'North Carolina', Cary: 'North Carolina',
-  // California
-  'San Jose': 'California', 'Los Angeles': 'California', 'San Francisco': 'California',
-  'San Diego': 'California', Sacramento: 'California', Fresno: 'California', 'Long Beach': 'California',
-  Oakland: 'California', Anaheim: 'California', Bakersfield: 'California', Riverside: 'California',
-  Stockton: 'California', Irvine: 'California',
-  // Utah
-  'American Fork': 'Utah', 'Salt Lake City': 'Utah', Provo: 'Utah',
-  'West Valley City': 'Utah', 'West Jordan': 'Utah', Orem: 'Utah', Sandy: 'Utah', Ogden: 'Utah',
-  // Texas
-  Austin: 'Texas', Houston: 'Texas', Dallas: 'Texas', 'San Antonio': 'Texas',
-  'Fort Worth': 'Texas', 'El Paso': 'Texas', Arlington: 'Texas', Plano: 'Texas',
-  // Florida
-  Miami: 'Florida', Orlando: 'Florida', Tampa: 'Florida', Jacksonville: 'Florida',
-  'St. Petersburg': 'Florida', Tallahassee: 'Florida', 'Fort Lauderdale': 'Florida',
-  // New York
-  'New York': 'New York', Buffalo: 'New York', Rochester: 'New York',
-  Yonkers: 'New York', Syracuse: 'New York', Albany: 'New York',
-  // Illinois
-  Chicago: 'Illinois', Aurora: 'Illinois', Naperville: 'Illinois',
-  Rockford: 'Illinois', Joliet: 'Illinois', Springfield: 'Illinois',
-  // Pennsylvania
-  Philadelphia: 'Pennsylvania', Pittsburgh: 'Pennsylvania', Allentown: 'Pennsylvania',
-  Reading: 'Pennsylvania', Erie: 'Pennsylvania',
-  // Georgia
-  Atlanta: 'Georgia', Augusta: 'Georgia', Savannah: 'Georgia', Columbus: 'Georgia',
-  // Washington
-  Seattle: 'Washington', Spokane: 'Washington', Tacoma: 'Washington',
-  Vancouver: 'Washington', Bellevue: 'Washington',
-  // Colorado
-  Denver: 'Colorado', 'Colorado Springs': 'Colorado', Aurora: 'Colorado',
-  'Fort Collins': 'Colorado', Boulder: 'Colorado',
-  // Massachusetts
-  Boston: 'Massachusetts', Worcester: 'Massachusetts', Springfield: 'Massachusetts', Cambridge: 'Massachusetts',
-  // Virginia
-  'Virginia Beach': 'Virginia', Norfolk: 'Virginia', Chesapeake: 'Virginia',
-  Richmond: 'Virginia', Arlington: 'Virginia', Alexandria: 'Virginia',
-  // Arizona
-  Phoenix: 'Arizona', Tucson: 'Arizona', Mesa: 'Arizona', Chandler: 'Arizona', Scottsdale: 'Arizona',
-  // Michigan
-  Detroit: 'Michigan', 'Grand Rapids': 'Michigan', Warren: 'Michigan',
-  'Sterling Heights': 'Michigan', 'Ann Arbor': 'Michigan', Lansing: 'Michigan',
-  // Minnesota
-  Minneapolis: 'Minnesota', 'Saint Paul': 'Minnesota', Rochester: 'Minnesota',
-  Duluth: 'Minnesota', Bloomington: 'Minnesota',
-  // Indiana
-  Indianapolis: 'Indiana', 'Fort Wayne': 'Indiana', Evansville: 'Indiana',
-  'South Bend': 'Indiana', Carmel: 'Indiana',
-  // Missouri
-  'Kansas City': 'Missouri', 'St. Louis': 'Missouri', Springfield: 'Missouri', Columbia: 'Missouri',
-  // Tennessee
-  Nashville: 'Tennessee', Memphis: 'Tennessee', Knoxville: 'Tennessee', Chattanooga: 'Tennessee',
-  // Maryland
-  Baltimore: 'Maryland', Frederick: 'Maryland', Rockville: 'Maryland', Gaithersburg: 'Maryland',
-  // Wisconsin
-  Milwaukee: 'Wisconsin', Madison: 'Wisconsin', 'Green Bay': 'Wisconsin',
-  // Oregon
-  Portland: 'Oregon', Salem: 'Oregon', Eugene: 'Oregon',
-  // Oklahoma
-  'Oklahoma City': 'Oklahoma', Tulsa: 'Oklahoma', Norman: 'Oklahoma',
-  // Kentucky
-  Louisville: 'Kentucky', Lexington: 'Kentucky', 'Bowling Green': 'Kentucky',
-  // Louisiana
-  'New Orleans': 'Louisiana', 'Baton Rouge': 'Louisiana', Shreveport: 'Louisiana', Lafayette: 'Louisiana',
-  // South Carolina
-  Charleston: 'South Carolina', Columbia: 'South Carolina', 'North Charleston': 'South Carolina',
-  'Mount Pleasant': 'South Carolina', Greenville: 'South Carolina',
-  // Alabama
-  Huntsville: 'Alabama', Birmingham: 'Alabama', Montgomery: 'Alabama', Mobile: 'Alabama',
-  // Nevada
-  'Las Vegas': 'Nevada', Henderson: 'Nevada', Reno: 'Nevada', 'North Las Vegas': 'Nevada',
-  // New Jersey
-  Newark: 'New Jersey', 'Jersey City': 'New Jersey', Paterson: 'New Jersey', Elizabeth: 'New Jersey',
-  // District of Columbia
-  Washington: 'District of Columbia',
-  // Kansas
-  Wichita: 'Kansas', 'Overland Park': 'Kansas',
-  // Arkansas
-  'Little Rock': 'Arkansas', Fayetteville: 'Arkansas',
-  // Mississippi
-  Jackson: 'Mississippi', Gulfport: 'Mississippi',
-  // Connecticut
-  Bridgeport: 'Connecticut', 'New Haven': 'Connecticut', Stamford: 'Connecticut', Hartford: 'Connecticut',
-  // Nebraska
-  Omaha: 'Nebraska', Lincoln: 'Nebraska',
-  // New Mexico
-  Albuquerque: 'New Mexico', 'Las Cruces': 'New Mexico',
-  // Idaho
-  Boise: 'Idaho', Meridian: 'Idaho',
-  // Hawaii
-  Honolulu: 'Hawaii',
-  // New Hampshire
-  Manchester: 'New Hampshire', Nashua: 'New Hampshire',
-  // Maine
-  Portland: 'Maine',
-  // Rhode Island
-  Providence: 'Rhode Island',
-  // Montana
-  Billings: 'Montana', Missoula: 'Montana',
-  // Delaware
-  Wilmington: 'Delaware',
-  // South Dakota
-  'Sioux Falls': 'South Dakota', 'Rapid City': 'South Dakota',
-  // North Dakota
-  Fargo: 'North Dakota', Bismarck: 'North Dakota',
-  // Alaska
-  Anchorage: 'Alaska', Fairbanks: 'Alaska',
-  // Vermont
-  Burlington: 'Vermont',
-  // Wyoming
-  Cheyenne: 'Wyoming', Casper: 'Wyoming',
-  // West Virginia
-  Charleston: 'West Virginia', Huntington: 'West Virginia'
+const US_STATE_CITIES: Record<string, string[]> = {
+  OH: ['Hilliard', 'Columbus', 'Cleveland', 'Cincinnati', 'Akron', 'Toledo', 'Dayton', 'Dublin', 'Westerville'],
+  IA: ['Council Bluffs', 'Des Moines', 'Cedar Rapids', 'Davenport', 'Sioux City', 'Iowa City', 'Ames', 'Waterloo'],
+  NC: ['Morganton', 'Charlotte', 'Raleigh', 'Greensboro', 'Durham', 'Winston-Salem', 'Asheville', 'Wilmington', 'Cary'],
+  CA: ['San Jose', 'Los Angeles', 'San Francisco', 'San Diego', 'Sacramento', 'Fresno', 'Long Beach', 'Oakland', 'Anaheim', 'Bakersfield', 'Riverside', 'Stockton', 'Irvine'],
+  UT: ['American Fork', 'Salt Lake City', 'Provo', 'West Valley City', 'West Jordan', 'Orem', 'Sandy', 'Ogden', 'St. George'],
+  TX: ['Austin', 'Houston', 'Dallas', 'San Antonio', 'Fort Worth', 'El Paso', 'Arlington', 'Plano'],
+  FL: ['Miami', 'Orlando', 'Tampa', 'Jacksonville', 'St. Petersburg', 'Tallahassee', 'Fort Lauderdale'],
+  NY: ['New York', 'Buffalo', 'Rochester', 'Yonkers', 'Syracuse', 'Albany'],
+  IL: ['Chicago', 'Aurora', 'Naperville', 'Rockford', 'Joliet', 'Springfield'],
+  PA: ['Philadelphia', 'Pittsburgh', 'Allentown', 'Reading', 'Erie'],
+  GA: ['Atlanta', 'Augusta', 'Savannah', 'Columbus'],
+  WA: ['Seattle', 'Spokane', 'Tacoma', 'Vancouver', 'Bellevue'],
+  CO: ['Denver', 'Colorado Springs', 'Aurora', 'Fort Collins', 'Boulder'],
+  MA: ['Boston', 'Worcester', 'Springfield', 'Cambridge'],
+  VA: ['Virginia Beach', 'Norfolk', 'Chesapeake', 'Richmond', 'Arlington', 'Alexandria'],
+  AZ: ['Phoenix', 'Tucson', 'Mesa', 'Chandler', 'Scottsdale'],
+  MI: ['Detroit', 'Grand Rapids', 'Warren', 'Sterling Heights', 'Ann Arbor', 'Lansing'],
+  MN: ['Minneapolis', 'Saint Paul', 'Rochester', 'Duluth', 'Bloomington'],
+  IN: ['Indianapolis', 'Fort Wayne', 'Evansville', 'South Bend', 'Carmel'],
+  MO: ['Kansas City', 'St. Louis', 'Springfield', 'Columbia'],
+  TN: ['Nashville', 'Memphis', 'Knoxville', 'Chattanooga'],
+  MD: ['Baltimore', 'Frederick', 'Rockville', 'Gaithersburg'],
+  WI: ['Milwaukee', 'Madison', 'Green Bay'],
+  OR: ['Portland', 'Salem', 'Eugene'],
+  OK: ['Oklahoma City', 'Tulsa', 'Norman'],
+  KY: ['Louisville', 'Lexington', 'Bowling Green'],
+  LA: ['New Orleans', 'Baton Rouge', 'Shreveport', 'Lafayette'],
+  SC: ['Charleston', 'Columbia', 'North Charleston', 'Mount Pleasant', 'Greenville'],
+  AL: ['Huntsville', 'Birmingham', 'Montgomery', 'Mobile'],
+  NV: ['Las Vegas', 'Henderson', 'Reno', 'North Las Vegas'],
+  NJ: ['Newark', 'Jersey City', 'Paterson', 'Elizabeth'],
+  DC: ['Washington'],
+  KS: ['Wichita', 'Overland Park', 'Kansas City'],
+  AR: ['Little Rock', 'Fayetteville'],
+  MS: ['Jackson', 'Gulfport'],
+  CT: ['Bridgeport', 'New Haven', 'Stamford', 'Hartford'],
+  NE: ['Omaha', 'Lincoln'],
+  NM: ['Albuquerque', 'Las Cruces'],
+  ID: ['Boise', 'Meridian'],
+  HI: ['Honolulu'],
+  NH: ['Manchester', 'Nashua'],
+  ME: ['Portland'],
+  RI: ['Providence'],
+  MT: ['Billings', 'Missoula'],
+  DE: ['Wilmington'],
+  SD: ['Sioux Falls', 'Rapid City'],
+  ND: ['Fargo', 'Bismarck'],
+  AK: ['Anchorage', 'Fairbanks'],
+  VT: ['Burlington'],
+  WY: ['Cheyenne', 'Casper'],
+  WV: ['Charleston', 'Huntington']
 };
 
 const INTL_CITIES_TO_REGION: Record<string, Record<string, string>> = {
@@ -312,15 +241,37 @@ export function formatCityName(
   const cleanCity = cityName.trim();
   const c = (countryCode || '').toUpperCase().trim();
 
-  // 1. Direct city-to-subdivision mapping
   let subdivision = '';
-  if (c === 'US' && US_CITIES_TO_STATE[cleanCity]) {
-    subdivision = US_CITIES_TO_STATE[cleanCity];
+
+  if (c === 'US') {
+    // 1. Cross-reference with active telemetry regions first (e.g. 'US-OH' -> 'OH')
+    if (activeRegions && activeRegions.length > 0) {
+      for (const reg of activeRegions) {
+        const regCode = (reg.x || '').toUpperCase().trim();
+        if (regCode.startsWith('US-')) {
+          const stateCode = regCode.split('-')[1];
+          if (US_STATE_CITIES[stateCode]?.includes(cleanCity)) {
+            subdivision = US_STATES[stateCode];
+            break;
+          }
+        }
+      }
+    }
+
+    // 2. Fallback to state registry
+    if (!subdivision) {
+      for (const [stateCode, cities] of Object.entries(US_STATE_CITIES)) {
+        if (cities.includes(cleanCity)) {
+          subdivision = US_STATES[stateCode];
+          break;
+        }
+      }
+    }
   } else if (INTL_CITIES_TO_REGION[c] && INTL_CITIES_TO_REGION[c][cleanCity]) {
     subdivision = INTL_CITIES_TO_REGION[c][cleanCity];
   }
 
-  // 2. Active regional correlation fallback
+  // 3. Active regional correlation fallback
   if (!subdivision && activeRegions && activeRegions.length > 0) {
     const matchingCountryRegions = activeRegions.filter(
       (r) => (r.country || '').toUpperCase() === c || (r.x.includes('-') && r.x.split('-')[0].toUpperCase() === c)
