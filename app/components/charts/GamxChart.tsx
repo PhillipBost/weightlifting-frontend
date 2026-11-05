@@ -6,6 +6,8 @@ import {
   ResponsiveContainer, Brush, ReferenceLine
 } from 'recharts';
 import { Activity } from 'lucide-react';
+import { MetricTooltip } from '../MetricTooltip';
+import { GAMX_DEFINITIONS } from '@/lib/utils/gamxDefinitions';
 
 interface GamxChartProps {
   chartData: any[];
@@ -29,7 +31,7 @@ export default function GamxChart({ chartData, athlete, legendFlags }: GamxChart
   const [showGamxJ, setShowGamxJ] = useState(true);
   const [showGamxU, setShowGamxU] = useState(true);
   const [showGamxA, setShowGamxA] = useState(true);
-  const [showGamxMasters, setShowGamxMasters] = useState(false);
+  const [showGamxMasters, setShowGamxMasters] = useState(true);
 
   return (
     <div className="chart-container">
@@ -46,52 +48,94 @@ export default function GamxChart({ chartData, athlete, legendFlags }: GamxChart
             {/* Toggles */}
             <div className="flex flex-wrap gap-1 border border-app-secondary rounded-lg p-1 w-fit justify-end">
               {legendFlags.hasGamxTotal && (
-                <button
-                  onClick={() => setShowGamxTotal(!showGamxTotal)}
-                  className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out ${showGamxTotal ? 'bg-accent-primary text-white' : 'bg-app-surface text-app-secondary hover:bg-app-hover'}`}
+                <MetricTooltip
+                  title={GAMX_DEFINITIONS.total.title}
+                  description={GAMX_DEFINITIONS.total.description}
+                  methodology={GAMX_DEFINITIONS.total.methodology}
+                  showIcon={false}
                 >
-                  GAMX-Total
-                </button>
+                  <button
+                    onClick={() => setShowGamxTotal(!showGamxTotal)}
+                    className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out ${showGamxTotal ? 'bg-accent-primary text-white' : 'bg-app-surface text-app-secondary hover:bg-app-hover'}`}
+                  >
+                    GAMX-Total
+                  </button>
+                </MetricTooltip>
               )}
               {legendFlags.hasGamxS && (
-                <button
-                  onClick={() => setShowGamxS(!showGamxS)}
-                  className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out ${showGamxS ? 'bg-accent-primary text-white' : 'bg-app-surface text-app-secondary hover:bg-app-hover'}`}
+                <MetricTooltip
+                  title={GAMX_DEFINITIONS.s.title}
+                  description={GAMX_DEFINITIONS.s.description}
+                  methodology={GAMX_DEFINITIONS.s.methodology}
+                  showIcon={false}
                 >
-                  GAMX-S
-                </button>
+                  <button
+                    onClick={() => setShowGamxS(!showGamxS)}
+                    className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out ${showGamxS ? 'bg-accent-primary text-white' : 'bg-app-surface text-app-secondary hover:bg-app-hover'}`}
+                  >
+                    GAMX-S
+                  </button>
+                </MetricTooltip>
               )}
               {legendFlags.hasGamxJ && (
-                <button
-                  onClick={() => setShowGamxJ(!showGamxJ)}
-                  className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out ${showGamxJ ? 'bg-accent-primary text-white' : 'bg-app-surface text-app-secondary hover:bg-app-hover'}`}
+                <MetricTooltip
+                  title={GAMX_DEFINITIONS.j.title}
+                  description={GAMX_DEFINITIONS.j.description}
+                  methodology={GAMX_DEFINITIONS.j.methodology}
+                  showIcon={false}
                 >
-                  GAMX-J
-                </button>
+                  <button
+                    onClick={() => setShowGamxJ(!showGamxJ)}
+                    className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out ${showGamxJ ? 'bg-accent-primary text-white' : 'bg-app-surface text-app-secondary hover:bg-app-hover'}`}
+                  >
+                    GAMX-J
+                  </button>
+                </MetricTooltip>
               )}
               {legendFlags.hasGamxU && (
-                <button
-                  onClick={() => setShowGamxU(!showGamxU)}
-                  className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out ${showGamxU ? 'bg-accent-primary text-white' : 'bg-app-surface text-app-secondary hover:bg-app-hover'}`}
+                <MetricTooltip
+                  title={GAMX_DEFINITIONS.u.title}
+                  description={GAMX_DEFINITIONS.u.description}
+                  methodology={GAMX_DEFINITIONS.u.methodology}
+                  showIcon={false}
                 >
-                  GAMX-U
-                </button>
+                  <button
+                    onClick={() => setShowGamxU(!showGamxU)}
+                    className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out ${showGamxU ? 'bg-accent-primary text-white' : 'bg-app-surface text-app-secondary hover:bg-app-hover'}`}
+                  >
+                    GAMX-U
+                  </button>
+                </MetricTooltip>
               )}
               {legendFlags.hasGamxA && (
-                <button
-                  onClick={() => setShowGamxA(!showGamxA)}
-                  className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out ${showGamxA ? 'bg-accent-primary text-white' : 'bg-app-surface text-app-secondary hover:bg-app-hover'}`}
+                <MetricTooltip
+                  title={GAMX_DEFINITIONS.a.title}
+                  description={GAMX_DEFINITIONS.a.description}
+                  methodology={GAMX_DEFINITIONS.a.methodology}
+                  showIcon={false}
                 >
-                  GAMX-A
-                </button>
+                  <button
+                    onClick={() => setShowGamxA(!showGamxA)}
+                    className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out ${showGamxA ? 'bg-accent-primary text-white' : 'bg-app-surface text-app-secondary hover:bg-app-hover'}`}
+                  >
+                    GAMX-A
+                  </button>
+                </MetricTooltip>
               )}
               {legendFlags.hasGamxMasters && (
-                <button
-                  onClick={() => setShowGamxMasters(!showGamxMasters)}
-                  className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out ${showGamxMasters ? 'bg-accent-primary text-white' : 'bg-app-surface text-app-secondary hover:bg-app-hover'}`}
+                <MetricTooltip
+                  title={GAMX_DEFINITIONS.masters.title}
+                  description={GAMX_DEFINITIONS.masters.description}
+                  methodology={GAMX_DEFINITIONS.masters.methodology}
+                  showIcon={false}
                 >
-                  GAMX-Masters
-                </button>
+                  <button
+                    onClick={() => setShowGamxMasters(!showGamxMasters)}
+                    className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out ${showGamxMasters ? 'bg-accent-primary text-white' : 'bg-app-surface text-app-secondary hover:bg-app-hover'}`}
+                  >
+                    GAMX-Masters
+                  </button>
+                </MetricTooltip>
               )}
             </div>
 
@@ -292,40 +336,82 @@ export default function GamxChart({ chartData, athlete, legendFlags }: GamxChart
 
       <div className="flex flex-wrap justify-center gap-6 mt-4 pt-4 border-t border-app-secondary">
         {legendFlags.hasGamxTotal && (
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-0.5 bg-[var(--chart-gamx-total)]"></div>
-            <span className="text-sm text-app-secondary">GAMX-Total</span>
-          </div>
+          <MetricTooltip
+            title={GAMX_DEFINITIONS.total.title}
+            description={GAMX_DEFINITIONS.total.description}
+            methodology={GAMX_DEFINITIONS.total.methodology}
+            showIcon={false}
+          >
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-0.5 bg-[var(--chart-gamx-total)]"></div>
+              <span className="text-sm text-app-secondary">GAMX-Total</span>
+            </div>
+          </MetricTooltip>
         )}
         {legendFlags.hasGamxS && (
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-0.5 bg-[var(--chart-gamx-s)]"></div>
-            <span className="text-sm text-app-secondary">GAMX-S</span>
-          </div>
+          <MetricTooltip
+            title={GAMX_DEFINITIONS.s.title}
+            description={GAMX_DEFINITIONS.s.description}
+            methodology={GAMX_DEFINITIONS.s.methodology}
+            showIcon={false}
+          >
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-0.5 bg-[var(--chart-gamx-s)]"></div>
+              <span className="text-sm text-app-secondary">GAMX-S</span>
+            </div>
+          </MetricTooltip>
         )}
         {legendFlags.hasGamxJ && (
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-0.5 bg-[var(--chart-gamx-j)]"></div>
-            <span className="text-sm text-app-secondary">GAMX-J</span>
-          </div>
+          <MetricTooltip
+            title={GAMX_DEFINITIONS.j.title}
+            description={GAMX_DEFINITIONS.j.description}
+            methodology={GAMX_DEFINITIONS.j.methodology}
+            showIcon={false}
+          >
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-0.5 bg-[var(--chart-gamx-j)]"></div>
+              <span className="text-sm text-app-secondary">GAMX-J</span>
+            </div>
+          </MetricTooltip>
         )}
         {legendFlags.hasGamxU && (
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-0.5 bg-[var(--chart-gamx-u)]"></div>
-            <span className="text-sm text-app-secondary">GAMX-U</span>
-          </div>
+          <MetricTooltip
+            title={GAMX_DEFINITIONS.u.title}
+            description={GAMX_DEFINITIONS.u.description}
+            methodology={GAMX_DEFINITIONS.u.methodology}
+            showIcon={false}
+          >
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-0.5 bg-[var(--chart-gamx-u)]"></div>
+              <span className="text-sm text-app-secondary">GAMX-U</span>
+            </div>
+          </MetricTooltip>
         )}
         {legendFlags.hasGamxA && (
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-0.5 bg-[var(--chart-gamx-a)]"></div>
-            <span className="text-sm text-app-secondary">GAMX-A</span>
-          </div>
+          <MetricTooltip
+            title={GAMX_DEFINITIONS.a.title}
+            description={GAMX_DEFINITIONS.a.description}
+            methodology={GAMX_DEFINITIONS.a.methodology}
+            showIcon={false}
+          >
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-0.5 bg-[var(--chart-gamx-a)]"></div>
+              <span className="text-sm text-app-secondary">GAMX-A</span>
+            </div>
+          </MetricTooltip>
         )}
         {legendFlags.hasGamxMasters && (
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-0.5 bg-[var(--chart-gamx-masters)]"></div>
-            <span className="text-sm text-app-secondary">GAMX-Masters</span>
-          </div>
+          <MetricTooltip
+            title={GAMX_DEFINITIONS.masters.title}
+            description={GAMX_DEFINITIONS.masters.description}
+            methodology={GAMX_DEFINITIONS.masters.methodology}
+            showIcon={false}
+          >
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-0.5 bg-[var(--chart-gamx-masters)]"></div>
+              <span className="text-sm text-app-secondary">GAMX-Masters</span>
+            </div>
+          </MetricTooltip>
         )}
       </div>
     </div>

@@ -4,6 +4,8 @@ import React, { useRef } from 'react';
 import Link from 'next/link';
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import Papa from 'papaparse';
+import { MetricTooltip } from '../../../components/MetricTooltip';
+import { GAMX_DEFINITIONS } from '@/lib/utils/gamxDefinitions';
 
 const getBestQScore = (result: any) => {
   const qYouth = result.q_youth || 0;
@@ -397,27 +399,69 @@ export function AthleteResults({
                           <SortIcon column="q_masters" sortConfig={sortConfig} />
                         </th>
                         <th scope="col" className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort('gamx_total')}>
-                          GAMX-T
+                          <MetricTooltip
+                            title={GAMX_DEFINITIONS.total.title}
+                            description={GAMX_DEFINITIONS.total.description}
+                            methodology={GAMX_DEFINITIONS.total.methodology}
+                            showIcon={false}
+                          >
+                            <span>GAMX-T</span>
+                          </MetricTooltip>
                           <SortIcon column="gamx_total" sortConfig={sortConfig} />
                         </th>
                         <th scope="col" className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort('gamx_s')}>
-                          GAMX-S
+                          <MetricTooltip
+                            title={GAMX_DEFINITIONS.s.title}
+                            description={GAMX_DEFINITIONS.s.description}
+                            methodology={GAMX_DEFINITIONS.s.methodology}
+                            showIcon={false}
+                          >
+                            <span>GAMX-S</span>
+                          </MetricTooltip>
                           <SortIcon column="gamx_s" sortConfig={sortConfig} />
                         </th>
                         <th scope="col" className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort('gamx_j')}>
-                          GAMX-J
+                          <MetricTooltip
+                            title={GAMX_DEFINITIONS.j.title}
+                            description={GAMX_DEFINITIONS.j.description}
+                            methodology={GAMX_DEFINITIONS.j.methodology}
+                            showIcon={false}
+                          >
+                            <span>GAMX-J</span>
+                          </MetricTooltip>
                           <SortIcon column="gamx_j" sortConfig={sortConfig} />
                         </th>
                         <th scope="col" className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort('gamx_u')}>
-                          GAMX-U
+                          <MetricTooltip
+                            title={GAMX_DEFINITIONS.u.title}
+                            description={GAMX_DEFINITIONS.u.description}
+                            methodology={GAMX_DEFINITIONS.u.methodology}
+                            showIcon={false}
+                          >
+                            <span>GAMX-U</span>
+                          </MetricTooltip>
                           <SortIcon column="gamx_u" sortConfig={sortConfig} />
                         </th>
                         <th scope="col" className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort('gamx_a')}>
-                          GAMX-A
+                          <MetricTooltip
+                            title={GAMX_DEFINITIONS.a.title}
+                            description={GAMX_DEFINITIONS.a.description}
+                            methodology={GAMX_DEFINITIONS.a.methodology}
+                            showIcon={false}
+                          >
+                            <span>GAMX-A</span>
+                          </MetricTooltip>
                           <SortIcon column="gamx_a" sortConfig={sortConfig} />
                         </th>
                         <th scope="col" className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort('gamx_masters')}>
-                          GAMX-M
+                          <MetricTooltip
+                            title={GAMX_DEFINITIONS.masters.title}
+                            description={GAMX_DEFINITIONS.masters.description}
+                            methodology={GAMX_DEFINITIONS.masters.methodology}
+                            showIcon={false}
+                          >
+                            <span>GAMX-M</span>
+                          </MetricTooltip>
                           <SortIcon column="gamx_masters" sortConfig={sortConfig} />
                         </th>
                       </>
