@@ -261,7 +261,7 @@ export async function GET() {
             ...cand,
             country: candCountry,
             affiliation: 'International',
-            internal_url: `/athlete/iwf/${cand.candidate_id}`,
+            internal_url: iwfLifter?.iwf_lifter_id ? `/athlete/iwf/${iwfLifter.iwf_lifter_id}` : null,
             external_url: externalUrl,
             recent_competition: iwfRes
               ? {

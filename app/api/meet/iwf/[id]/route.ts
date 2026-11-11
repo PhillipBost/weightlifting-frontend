@@ -11,17 +11,44 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+  const { searchParams } = new URL(request.url);
+  const isSummary = searchParams.get('summary') === 'true';
 
   try {
-    // 1. Fetch IWF Meet Metadata
-    const { data: meetData, error: meetError } = await supabaseAdmin
+    // 1. Fetch IWF Meet Metadata (Prioritizes canonical primary-source iwf_meet_id, falling back to legacy db_meet_id)
+    let { data: meetData, error: meetError } = await supabaseAdmin
       .from('iwf_meets')
-      .select('iwf_meet_id, db_meet_id, meet, date, level, url')
+      .select('iwf_meet_id, db_meet_id, meet, date, level, url, results')
       .eq('iwf_meet_id', id)
-      .single();
+      .limit(1)
+      .maybeSingle();
+
+    // Secondary fallback only if not found by official iwf_meet_id
+    if (!meetData && /^\d+$/.test(id)) {
+      const fallbackRes = await supabaseAdmin
+        .from('iwf_meets')
+        .select('iwf_meet_id, db_meet_id, meet, date, level, url, results')
+        .eq('db_meet_id', id)
+        .limit(1)
+        .maybeSingle();
+      meetData = fallbackRes.data;
+      meetError = fallbackRes.error;
+    }
 
     if (meetError || !meetData) {
       return NextResponse.json({ error: 'International Meet not found' }, { status: 404 });
+    }
+
+    if (isSummary) {
+      const { count } = await supabaseAdmin
+        .from('iwf_meet_results')
+        .select('db_result_id', { count: 'exact', head: true })
+        .eq('db_meet_id', meetData.db_meet_id);
+
+      return NextResponse.json({
+        meet: meetData,
+        resultsCount: count ?? meetData.results ?? 0
+      });
     }
 
     // 2. Fetch Location Data

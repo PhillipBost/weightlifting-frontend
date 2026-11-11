@@ -313,18 +313,23 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         });
 
         // Ensure type compatibility and merge meet data
-        const mergedResults = (rawIWFResults as any[]).map(result => ({
-          ...result,
-          db_result_id: result.db_result_id || 0,
-          db_lifter_id: result.db_lifter_id || 0,
-          db_meet_id: meetData.db_meet_id,
-          lifter_name: result.lifter_name || '',
-          meet_name: meetData?.meet || '',
-          date: meetData?.date || '',
-          level: meetData?.level || 'International',
-          birth_year: result.birth_year || 0,
-          manual_override: result.manual_override || false
-        })) as IWFMeetResult[];
+        const meetYear = meetData?.date ? new Date(meetData.date).getFullYear() : undefined;
+        const mergedResults = (rawIWFResults as any[]).map(result => {
+          const compAge = result.competition_age ?? (result.birth_year && meetYear ? meetYear - Number(result.birth_year) : null);
+          return {
+            ...result,
+            competition_age: compAge,
+            db_result_id: result.db_result_id || 0,
+            db_lifter_id: result.db_lifter_id || 0,
+            db_meet_id: meetData.db_meet_id,
+            lifter_name: result.lifter_name || '',
+            meet_name: meetData?.meet || '',
+            date: meetData?.date || '',
+            level: meetData?.level || 'International',
+            birth_year: result.birth_year || 0,
+            manual_override: result.manual_override || false
+          };
+        }) as IWFMeetResult[];
 
         // Apply adapter to transform IWF results to USAW-compatible structure
         const adaptedResults = adaptIWFResults(mergedResults);
@@ -958,12 +963,12 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
       } else if (sortConfig.key === 'club_name') {
         aValue = (a.club_name || '').toLowerCase();
         bValue = (b.club_name || '').toLowerCase();
-      } else if (sortConfig.key === 'best_snatch' || sortConfig.key === 'best_cj' || sortConfig.key === 'total' || sortConfig.key === 'body_weight_kg') {
-        aValue = parseFloat(a[sortConfig.key] || '0');
-        bValue = parseFloat(b[sortConfig.key] || '0');
+      } else if (sortConfig.key === 'best_snatch' || sortConfig.key === 'best_cj' || sortConfig.key === 'total' || sortConfig.key === 'body_weight_kg' || sortConfig.key === 'competition_age') {
+        aValue = parseFloat(String(a[sortConfig.key] || '').replace(/[^0-9.-]/g, '')) || 0;
+        bValue = parseFloat(String(b[sortConfig.key] || '').replace(/[^0-9.-]/g, '')) || 0;
       } else {
-        aValue = a[sortConfig.key];
-        bValue = b[sortConfig.key];
+        aValue = String(a[sortConfig.key] || '').toLowerCase();
+        bValue = String(b[sortConfig.key] || '').toLowerCase();
       }
 
       if (aValue < bValue) {
@@ -1022,14 +1027,24 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
     return 'qpoints'; // Default to open/standard Q-points
   };
 
-  // Filter unique athletes (best result per athlete)
-  const getUniqueResults = (list: MeetResult[]) => {
-    return Array.from(new Map(list.map(item => [item.lifter_name, item])).values());
-  };
-
+  // Split results by gender for overall rankings, deduplicating strictly by distinct scorecard ID (result_id)
   const splitByGender = () => {
-    const men = getUniqueResults(results.filter(r => r.gender === 'M' || r.gender === 'Men'));
-    const women = getUniqueResults(results.filter(r => r.gender === 'F' || r.gender === 'Women'));
+    const seenMen = new Set<number>();
+    const men = results.filter(r => {
+      if (r.gender !== 'M' && r.gender !== 'Men') return false;
+      if (seenMen.has(r.result_id)) return false;
+      seenMen.add(r.result_id);
+      return true;
+    });
+
+    const seenWomen = new Set<number>();
+    const women = results.filter(r => {
+      if (r.gender !== 'F' && r.gender !== 'Women') return false;
+      if (seenWomen.has(r.result_id)) return false;
+      seenWomen.add(r.result_id);
+      return true;
+    });
+
     return { men, women };
   };
 
@@ -1095,36 +1110,39 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
         }
       }
 
-      // Normal sort comparison
-      let cmpA: any = valA;
-      let cmpB: any = valB;
-
-      // String normalization
-      if (typeof valA === 'string' && !isNaN(parseFloat(valA)) && !['lifter_name', 'club_name', 'country_name', 'country_code', 'weight_class'].includes(key as string)) {
-        cmpA = parseFloat(valA);
-      }
-      if (typeof valB === 'string' && !isNaN(parseFloat(valB)) && !['lifter_name', 'club_name', 'country_name', 'country_code', 'weight_class'].includes(key as string)) {
-        cmpB = parseFloat(valB);
+      if (key === 'lifter_name' || key === 'club_name' || key === 'country_name' || key === 'country_code' || key === 'age_category') {
+        const strA = String(valA || '').trim().toLowerCase();
+        const strB = String(valB || '').trim().toLowerCase();
+        const cmp = strA.localeCompare(strB);
+        return sortConfig.direction === 'asc' ? cmp : -cmp;
       }
 
-      if (typeof cmpA === 'string') cmpA = cmpA.toLowerCase();
-      if (typeof cmpB === 'string') cmpB = cmpB.toLowerCase();
-
-      // Numeric force for known fields
-      if (['total', 'body_weight_kg', 'competition_age'].includes(key as string)) {
-        cmpA = parseFloat(String(valA) || '0');
-        cmpB = parseFloat(String(valB) || '0');
+      if (key === 'weight_class') {
+        const parseWc = (w: any) => {
+          const m = String(w || '').match(/(\d+(?:\.\d+)?)/);
+          const base = m ? parseFloat(m[1]) : 0;
+          return String(w || '').includes('+') ? base + 1000 : base;
+        };
+        const wcA = parseWc(valA);
+        const wcB = parseWc(valB);
+        if (wcA !== wcB) {
+          return sortConfig.direction === 'asc' ? wcA - wcB : wcB - wcA;
+        }
+        return a.lifter_name.localeCompare(b.lifter_name);
       }
 
-      if (key === 'country_name' || key === 'country_code') {
-        cmpA = (valA || '').toString().toLowerCase();
-        cmpB = (valB || '').toString().toLowerCase();
+      // Numeric fields: best_snatch, best_cj, total, body_weight_kg, competition_age, qpoints, q_youth, q_masters, rank
+      const numA = typeof valA === 'number' ? valA : parseFloat(String(valA || '').replace(/[^0-9.-]/g, '')) || 0;
+      const numB = typeof valB === 'number' ? valB : parseFloat(String(valB || '').replace(/[^0-9.-]/g, '')) || 0;
+
+      const isScoreOrRank = ['qpoints', 'q_youth', 'q_masters', 'total', 'best_snatch', 'best_cj'].includes(key as string);
+      if (isScoreOrRank) {
+        if (numA === 0 && numB !== 0) return 1;
+        if (numA !== 0 && numB === 0) return -1;
+        if (numA === 0 && numB === 0) return a.lifter_name.localeCompare(b.lifter_name);
       }
 
-      if (cmpA < cmpB) return sortConfig.direction === 'asc' ? -1 : 1;
-      if (cmpA > cmpB) return sortConfig.direction === 'asc' ? 1 : -1;
-
-      return 0;
+      return sortConfig.direction === 'asc' ? numA - numB : numB - numA;
     });
 
     // Assign ranks dynamically
@@ -1178,6 +1196,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                     <th className={headerClass} onClick={() => handleSummarySort(gender, 'rank')}>Rank <SortIndicator col="rank" /></th>
                     <th className={headerClass} onClick={() => handleSummarySort(gender, 'lifter_name')}>Name <SortIndicator col="lifter_name" /></th>
                     <th className={headerClass} onClick={() => handleSummarySort(gender, 'country_name')}>Country <SortIndicator col="country_name" /></th>
+                    <th className={headerClass} onClick={() => handleSummarySort(gender, 'competition_age')}>Age <SortIndicator col="competition_age" /></th>
                     <th className={headerClass} onClick={() => handleSummarySort(gender, 'body_weight_kg')}>Bwt <SortIndicator col="body_weight_kg" /></th>
                     <th className={headerClass} onClick={() => handleSummarySort(gender, 'weight_class')}>Wt. Class <SortIndicator col="weight_class" /></th>
                     <th className={headerClass} onClick={() => handleSummarySort(gender, 'age_category')}>Division <SortIndicator col="age_category" /></th>
@@ -1215,6 +1234,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                           <span className="text-sm">{r.country_name || r.club_name || r.country_code || '-'}</span>
                         </div>
                       </td>
+                      <td className="px-2 py-2 text-sm">{r.competition_age ?? '-'}</td>
                       <td className="px-2 py-2 text-sm">{r.body_weight_kg ? `${r.body_weight_kg}kg` : '-'}</td>
                       <td className="px-2 py-2 text-sm">{r.weight_class}</td>
                       <td className="px-2 py-2 text-sm max-w-[120px] leading-tight" style={{ fontSize: '0.75rem', whiteSpace: 'normal', wordBreak: 'break-word' }} title={r.age_category}>{r.age_category}</td>
@@ -1327,17 +1347,42 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
           };
 
           const sortedGamx = [...results].sort((a, b) => {
-            const aVal = (a as any)[gamxSortConfig.key] ?? 0;
-            const bVal = (b as any)[gamxSortConfig.key] ?? 0;
-            
-            // Handle sorting: 0/null values always go to bottom regardless of direction
-            if (aVal === 0 && bVal !== 0) return 1;
-            if (aVal !== 0 && bVal === 0) return -1;
-            if (aVal === 0 && bVal === 0) {
+            const key = gamxSortConfig.key;
+            const aRaw = (a as any)[key];
+            const bRaw = (b as any)[key];
+
+            if (key === 'lifter_name' || key === 'gender' || key === 'age_category') {
+              const strA = String(aRaw || '').trim().toLowerCase();
+              const strB = String(bRaw || '').trim().toLowerCase();
+              const cmp = strA.localeCompare(strB);
+              return gamxSortConfig.direction === 'asc' ? cmp : -cmp;
+            }
+
+            if (key === 'weight_class') {
+              const parseWc = (w: any) => {
+                const m = String(w || '').match(/(\d+(?:\.\d+)?)/);
+                const base = m ? parseFloat(m[1]) : 0;
+                return String(w || '').includes('+') ? base + 1000 : base;
+              };
+              const wcA = parseWc(aRaw);
+              const wcB = parseWc(bRaw);
+              if (wcA !== wcB) {
+                return gamxSortConfig.direction === 'asc' ? wcA - wcB : wcB - wcA;
+              }
               return a.lifter_name.localeCompare(b.lifter_name);
             }
-            
-            return gamxSortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
+
+            // Numeric fields: best_snatch, best_cj, total, body_weight_kg, competition_age, gamx_*, rank
+            const numA = typeof aRaw === 'number' ? aRaw : parseFloat(String(aRaw || '').replace(/[^0-9.-]/g, '')) || 0;
+            const numB = typeof bRaw === 'number' ? bRaw : parseFloat(String(bRaw || '').replace(/[^0-9.-]/g, '')) || 0;
+
+            if (numA === 0 && numB !== 0) return 1;
+            if (numA !== 0 && numB === 0) return -1;
+            if (numA === 0 && numB === 0) {
+              return a.lifter_name.localeCompare(b.lifter_name);
+            }
+
+            return gamxSortConfig.direction === 'asc' ? numA - numB : numB - numA;
           });
 
           const GamxSortIndicator = ({ col }: { col: string }) => {
@@ -1345,9 +1390,9 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
             return <span className="text-accent-primary ml-1">{gamxSortConfig.direction === 'asc' ? '↑' : '↓'}</span>;
           };
 
-          const hClass = "px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none";
+          const hClass = "px-1 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none";
           const qHClass = (col: string) =>
-            `px-2 py-1 text-left text-xs font-medium uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none ${gamxSortConfig.key === col ? 'text-accent-primary font-bold' : 'text-gray-900 dark:text-gray-200'
+            `px-1 py-1 text-left text-xs font-medium uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none ${gamxSortConfig.key === col ? 'text-accent-primary font-bold' : 'text-gray-900 dark:text-gray-200'
             }`;
 
           return (
@@ -1368,6 +1413,8 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                           <th className={hClass} onClick={() => handleGamxSort('rank')}>Rank <GamxSortIndicator col="rank" /></th>
                           <th className={hClass} onClick={() => handleGamxSort('lifter_name')}>Name <GamxSortIndicator col="lifter_name" /></th>
                           <th className={`${hClass} hidden sm:table-cell`}>Country</th>
+                          <th className={hClass} onClick={() => handleGamxSort('gender')}>Sex <GamxSortIndicator col="gender" /></th>
+                          <th className={hClass} onClick={() => handleGamxSort('competition_age')}>Age <GamxSortIndicator col="competition_age" /></th>
                           <th className={hClass} onClick={() => handleGamxSort('body_weight_kg')}>Bwt <GamxSortIndicator col="body_weight_kg" /></th>
                           <th className={hClass} onClick={() => handleGamxSort('weight_class')}>Wt. Class <GamxSortIndicator col="weight_class" /></th>
                           <th className={hClass} onClick={() => handleGamxSort('age_category')}>Division <GamxSortIndicator col="age_category" /></th>
@@ -1387,7 +1434,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                           const FlagComponent = getCountryFlagComponent((r as any).country_code || r.wso);
                           return (
                             <tr key={`gamx-${idx}`} className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors group" style={{ borderTopColor: 'var(--border-secondary)' }}>
-                              <td className="px-2 py-2 whitespace-nowrap text-sm font-medium text-app-primary">
+                              <td className="px-1 py-1.5 whitespace-nowrap text-sm font-medium text-app-primary">
                                 <div className="flex items-center gap-1">
                                   <span>{((r as any)[gamxSortConfig.key] || 0) > 0 ? (idx + 1) : '-'}</span>
                                   {idx === 0 && ((r as any)[gamxSortConfig.key] || 0) > 0 && <Medal className="h-4 w-4" style={{ color: '#FFD700' }} />}
@@ -1395,30 +1442,32 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                                   {idx === 2 && ((r as any)[gamxSortConfig.key] || 0) > 0 && <Medal className="h-4 w-4" style={{ color: '#CD7F32' }} />}
                                 </div>
                               </td>
-                              <td className="px-2 py-2 max-w-[200px] truncate" title={r.lifter_name}>
+                              <td className="px-1 py-1.5 max-w-[200px] truncate" title={r.lifter_name}>
                                 <Link href={getAthleteUrl(r)} className="text-accent-primary hover:text-accent-primary-hover hover:underline flex items-center space-x-1">
                                   <span className="font-medium text-sm">{r.lifter_name}</span>
                                   <ExternalLink className="h-3 w-3" />
                                 </Link>
                               </td>
-                              <td className="px-2 py-2 text-sm hidden sm:table-cell">
+                              <td className="px-1 py-1.5 text-sm hidden sm:table-cell">
                                 <div className="flex items-center gap-2">
                                   {FlagComponent && <FlagComponent style={{ width: '18px', height: '18px' }} />}
                                   <span>{(r as any).country_name || (r as any).country_code || '-'}</span>
                                 </div>
                               </td>
-                              <td className="px-2 py-2 text-sm">{(r as any).body_weight_kg ? `${(r as any).body_weight_kg}kg` : '-'}</td>
-                              <td className="px-2 py-2 text-sm">{r.weight_class}</td>
-                              <td className="px-2 py-2 text-sm max-w-[120px] leading-tight" style={{ fontSize: '0.75rem', whiteSpace: 'normal', wordBreak: 'break-word' }} title={r.age_category}>{r.age_category}</td>
-                              <td className="px-2 py-2 text-sm" style={{ color: 'var(--chart-snatch)' }}>{(r as any).best_snatch ? `${(r as any).best_snatch}kg` : '-'}</td>
-                              <td className="px-2 py-2 text-sm" style={{ color: 'var(--chart-cleanjerk)' }}>{(r as any).best_cj ? `${(r as any).best_cj}kg` : '-'}</td>
-                              <td className="px-2 py-2 text-sm font-bold" style={{ color: 'var(--chart-total)' }}>{(r as any).total ? `${(r as any).total}kg` : '-'}</td>
-                              <td className="px-2 py-2 text-sm font-medium" style={{ color: (r as any).gamx_total > 0 ? 'var(--chart-gamx-total)' : 'inherit' }}>{(r as any).gamx_total ? (r as any).gamx_total.toFixed(0) : '-'}</td>
-                              <td className="px-2 py-2 text-sm font-medium" style={{ color: (r as any).gamx_s > 0 ? 'var(--chart-qpoints)' : 'inherit' }}>{(r as any).gamx_s ? (r as any).gamx_s.toFixed(0) : '-'}</td>
-                              <td className="px-2 py-2 text-sm font-medium" style={{ color: (r as any).gamx_j > 0 ? 'var(--chart-qyouth)' : 'inherit' }}>{(r as any).gamx_j ? (r as any).gamx_j.toFixed(0) : '-'}</td>
-                              <td className="px-2 py-2 text-sm font-medium" style={{ color: (r as any).gamx_u > 0 ? 'var(--chart-qpoints)' : 'inherit' }}>{(r as any).gamx_u ? (r as any).gamx_u.toFixed(0) : '-'}</td>
-                              <td className="px-2 py-2 text-sm font-medium" style={{ color: (r as any).gamx_a > 0 ? 'var(--chart-qmasters)' : 'inherit' }}>{(r as any).gamx_a ? (r as any).gamx_a.toFixed(0) : '-'}</td>
-                              <td className="px-2 py-2 text-sm font-medium" style={{ color: (r as any).gamx_masters > 0 ? 'var(--chart-qmasters)' : 'inherit' }}>{(r as any).gamx_masters ? (r as any).gamx_masters.toFixed(0) : '-'}</td>
+                              <td className="px-1 py-1.5 text-sm whitespace-nowrap">{r.gender === 'F' || r.gender === 'Women' || r.age_category?.toLowerCase().includes("women's") ? 'Female' : 'Male'}</td>
+                              <td className="px-1 py-1.5 text-sm">{r.competition_age ?? '-'}</td>
+                              <td className="px-1 py-1.5 text-sm">{(r as any).body_weight_kg ? `${(r as any).body_weight_kg}kg` : '-'}</td>
+                              <td className="px-1 py-1.5 text-sm">{r.weight_class}</td>
+                              <td className="px-1 py-1.5 text-sm max-w-[120px] leading-tight" style={{ fontSize: '0.75rem', whiteSpace: 'normal', wordBreak: 'break-word' }} title={r.age_category}>{r.age_category}</td>
+                              <td className="px-1 py-1.5 text-sm" style={{ color: 'var(--chart-snatch)' }}>{(r as any).best_snatch ? `${(r as any).best_snatch}kg` : '-'}</td>
+                              <td className="px-1 py-1.5 text-sm" style={{ color: 'var(--chart-cleanjerk)' }}>{(r as any).best_cj ? `${(r as any).best_cj}kg` : '-'}</td>
+                              <td className="px-1 py-1.5 text-sm font-bold" style={{ color: 'var(--chart-total)' }}>{(r as any).total ? `${(r as any).total}kg` : '-'}</td>
+                              <td className="px-1 py-1.5 text-sm font-medium" style={{ color: (r as any).gamx_total > 0 ? 'var(--chart-gamx-total)' : 'inherit' }}>{(r as any).gamx_total ? (r as any).gamx_total.toFixed(0) : '-'}</td>
+                              <td className="px-1 py-1.5 text-sm font-medium" style={{ color: (r as any).gamx_s > 0 ? 'var(--chart-qpoints)' : 'inherit' }}>{(r as any).gamx_s ? (r as any).gamx_s.toFixed(0) : '-'}</td>
+                              <td className="px-1 py-1.5 text-sm font-medium" style={{ color: (r as any).gamx_j > 0 ? 'var(--chart-qyouth)' : 'inherit' }}>{(r as any).gamx_j ? (r as any).gamx_j.toFixed(0) : '-'}</td>
+                              <td className="px-1 py-1.5 text-sm font-medium" style={{ color: (r as any).gamx_u > 0 ? 'var(--chart-qpoints)' : 'inherit' }}>{(r as any).gamx_u ? (r as any).gamx_u.toFixed(0) : '-'}</td>
+                              <td className="px-1 py-1.5 text-sm font-medium" style={{ color: (r as any).gamx_a > 0 ? 'var(--chart-qmasters)' : 'inherit' }}>{(r as any).gamx_a ? (r as any).gamx_a.toFixed(0) : '-'}</td>
+                              <td className="px-1 py-1.5 text-sm font-medium" style={{ color: (r as any).gamx_masters > 0 ? 'var(--chart-qmasters)' : 'inherit' }}>{(r as any).gamx_masters ? (r as any).gamx_masters.toFixed(0) : '-'}</td>
                             </tr>
                           );
                         })}

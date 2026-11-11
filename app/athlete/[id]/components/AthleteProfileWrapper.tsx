@@ -269,7 +269,9 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false, f
       achievements: athleteData.achievements as AthleteAchievementsData || null,
       birthYear: athleteData.birthYear,
       population_percentiles: athleteData.population_percentiles,
-      historical_stats: athleteData.historical_stats
+      historical_stats: athleteData.historical_stats,
+      historical_names: athleteData.historical_names || [],
+      former_names: athleteData.former_names || []
     };
   }, [athleteData, forceIwfMode, isOwlcmsMode, id]);
 

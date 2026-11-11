@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { User, MapPin, Dumbbell, ExternalLink, Globe } from 'lucide-react';
+import { User, MapPin, Dumbbell, ExternalLink, Globe, History } from 'lucide-react';
 import { CANONICAL_COUNTRY_NAMES } from '@/types/federation';
 
 interface AthleteHeaderProps {
@@ -71,6 +71,47 @@ export function AthleteHeader({
           </div>
           <div className="flex flex-col">
             <h1 className="text-3xl font-bold text-app-primary mb-2">{athlete.displayName}</h1>
+            {athlete.historical_names && athlete.historical_names.length > 0 ? (
+              <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium mb-2">
+                <History className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                <span>
+                  Formerly competed as{' '}
+                  <span className="text-slate-200 font-semibold">
+                    {athlete.historical_names.map((hn: any, idx: number) => {
+                      const span = hn.start_year
+                        ? (hn.end_year && hn.end_year !== hn.start_year ? ` (${hn.start_year}–${hn.end_year})` : ` (${hn.start_year})`)
+                        : '';
+                      return (
+                        <span key={hn.name || idx}>
+                          {idx > 0 && ', '}
+                          {hn.name}{span}
+                        </span>
+                      );
+                    })}
+                  </span>
+                </span>
+              </div>
+            ) : athlete.former_names && athlete.former_names.length > 0 ? (
+              <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium mb-2">
+                <History className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                <span>
+                  Formerly competed as{' '}
+                  <span className="text-slate-200 font-semibold">
+                    {athlete.former_names.map((fn: any, idx: number) => {
+                      const yearSpan = fn.start_year
+                        ? (fn.end_year && fn.end_year !== fn.start_year ? ` (${fn.start_year}–${fn.end_year})` : ` (${fn.start_year})`)
+                        : (fn.updated_year ? ` (${fn.updated_year})` : '');
+                      return (
+                        <span key={fn.name || idx}>
+                          {idx > 0 && ', '}
+                          {fn.name}{yearSpan}
+                        </span>
+                      );
+                    })}
+                  </span>
+                </span>
+              </div>
+            ) : null}
             <div className="flex flex-wrap gap-4 text-sm text-app-secondary">
               {forceOwlcmsMode ? (
                 <>
@@ -209,9 +250,9 @@ export function AthleteHeader({
                 ))}
               
               {/* Fallback link if results exist but profile metadata is missing */}
-              {!forceIwfMode && !forceOwlcmsMode && !athlete.linked_iwf_id && iwfProfiles.length === 0 && iwfResults.length > 0 && (
+              {!forceIwfMode && !forceOwlcmsMode && !athlete.linked_iwf_id && iwfProfiles.length === 0 && iwfResults.length > 0 && iwfResults[0].iwf_lifter_id && (
                 <Link
-                  href={`/athlete/iwf/${iwfResults[0].iwf_lifter_id || iwfResults[0].db_lifter_id || iwfResults[0].id}`}
+                  href={`/athlete/iwf/${iwfResults[0].iwf_lifter_id}`}
                   className="inline-flex items-center space-x-2 px-3 py-1.5 bg-transparent hover:bg-app-tertiary border border-app-secondary rounded-md text-app-secondary hover:text-white transition-colors text-sm"
                 >
                   <User className="h-3.5 w-3.5" />

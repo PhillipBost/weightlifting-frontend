@@ -161,6 +161,72 @@ async function enrichWithOwlcms(
   return data;
 }
 
+async function enrichWithFormerNames(data: any, cleanId: string, usawId?: number | null) {
+  if (!data) return data;
+  try {
+    const supabaseAdmin = getSupabaseAdmin();
+    const orFilters: string[] = [];
+    if (cleanId) {
+      orFilters.push(`evidence->>membership_number.eq.${cleanId}`);
+      orFilters.push(`candidate_entity_id.eq.${cleanId}`);
+      orFilters.push(`title.ilike.%Member #${cleanId}%`);
+    }
+    if (usawId) {
+      orFilters.push(`candidate_entity_id.eq.${usawId}`);
+      orFilters.push(`title.ilike.%Member #${usawId}%`);
+    }
+    if (orFilters.length === 0) return data;
+
+    const { data: nameChangeItems, error: fnErr } = await supabaseAdmin
+      .from('admin_review_queue')
+      .select('evidence, resolved_at, title')
+      .eq('category', 'name_change_merge')
+      .eq('status', 'APPROVED')
+      .or(orFilters.join(','));
+
+    if (!fnErr && nameChangeItems && nameChangeItems.length > 0) {
+      // Filter out items explicitly disabled, or typo/email records
+      const activeFormerNames = nameChangeItems.filter((item: any) => {
+        const ev = item.evidence || {};
+        if (ev.display_former_name === false || ev.display_former_name === 'false') return false;
+        if (ev.display_former_name === true || ev.display_former_name === 'true') return true;
+        // Default for legacy records: include if genuine name (not an email or numbers)
+        const titleMatch = item.title?.match(/Name Change:\s*"([^"]+)"/);
+        const pName = ev.former_name || ev.primary_name || titleMatch?.[1] || '';
+        return !pName.includes('@') && !/\d/.test(pName);
+      });
+
+      if (activeFormerNames.length > 0) {
+        if (!data.historical_names || data.historical_names.length === 0) {
+          data.historical_names = activeFormerNames.map((item: any) => {
+            const titleMatch = item.title?.match(/Name Change:\s*"([^"]+)"/);
+            const name = item.evidence?.former_name || item.evidence?.primary_name || titleMatch?.[1];
+            const timeline = item.evidence?.timeline;
+            return {
+              name,
+              start_year: timeline?.start_year ?? (item.resolved_at ? new Date(item.resolved_at).getFullYear() : null),
+              end_year: timeline?.end_year ?? (item.resolved_at ? new Date(item.resolved_at).getFullYear() : null),
+              first_seen: timeline?.first_seen ?? null,
+              last_seen: timeline?.last_seen ?? null,
+              meet_count: timeline?.meet_count ?? 0
+            };
+          });
+        }
+        data.former_names = activeFormerNames.map((item: any) => {
+          const titleMatch = item.title?.match(/Name Change:\s*"([^"]+)"/);
+          return {
+            name: item.evidence?.former_name || item.evidence?.primary_name || titleMatch?.[1],
+            updated_year: item.resolved_at ? new Date(item.resolved_at).getFullYear() : null
+          };
+        });
+      }
+    }
+  } catch (err) {
+    console.warn('[Former Name Enrichment Error]:', err);
+  }
+  return data;
+}
+
 /**
  * Athlete Data Proxy (v4.0 - BACK TO BASICS)
  * -------------------------------------------
@@ -247,7 +313,7 @@ export async function GET(
 
             return {
               source: 'IWF',
-              lifter_id: c.db_lifter_id,
+              lifter_id: c.iwf_lifter_id,
               membership_number: c.iwf_lifter_id?.toString() || null,
               gender: results?.find(r => r.gender)?.gender || null,
               athlete_name: c.athlete_name,
@@ -276,9 +342,35 @@ export async function GET(
           const c = iwfCandidates[0];
           // IWF athletes are handled via a different data path but for now we need a resolved ID
           // Usually IWF pages go through a different shard or direct lookup
-          return NextResponse.redirect(`${request.nextUrl.origin}/athlete/iwf/${c.db_lifter_id}`);
+          return NextResponse.redirect(`${request.nextUrl.origin}/athlete/iwf/${c.iwf_lifter_id}`);
         }
       } else {
+        // Fallback: Check approved former names with public display enabled
+        const supabaseAdmin = getSupabaseAdmin();
+        const { data: approvedAliases } = await supabaseAdmin
+          .from('admin_review_queue')
+          .select('evidence, candidate_entity_id')
+          .eq('category', 'name_change_merge')
+          .eq('status', 'APPROVED')
+          .ilike('evidence->>primary_name', `%${normalizedName}%`)
+          .limit(5);
+
+        const matchedAlias = (approvedAliases || []).find((a: any) => {
+          const ev = a.evidence || {};
+          if (ev.display_former_name === false || ev.display_former_name === 'false') return false;
+          const pName = ev.primary_name || '';
+          if (ev.display_former_name !== true && ev.display_former_name !== 'true') {
+            if (pName.includes('@') || /\d/.test(pName)) return false;
+          }
+          return normalize(pName) === target;
+        });
+
+        if (matchedAlias) {
+          const targetId = matchedAlias.evidence?.membership_number || matchedAlias.candidate_entity_id;
+          if (targetId) {
+            return NextResponse.redirect(new URL(`/athlete/${targetId}`, request.url), 308);
+          }
+        }
         return NextResponse.json({ error: `Athlete "${normalizedName}" not found.` }, { status: 404 });
       }
     } catch (err) {
@@ -347,13 +439,14 @@ export async function GET(
       }
 
       if (payload) {
+        const usawId = federation === 'usaw' ? (payload.internal_id || payload.lifter_id) : null;
         // Zero runtime DB queries if shard was compiled with the owlcms_results schema
         if (payload.owlcms_results === undefined) {
-          const usawId = federation === 'usaw' ? (payload.internal_id || payload.lifter_id) : null;
           const iwfId = payload.id || (federation === 'iwf' ? payload.lifter_id : null);
           const membershipNum = federation === 'usaw' ? (payload.membership_number || cleanId) : null;
           payload = await enrichWithOwlcms(payload, usawId, iwfId, membershipNum);
         }
+        payload = await enrichWithFormerNames(payload, cleanId, usawId);
         return NextResponse.json(payload, {
           status: 200,
           headers: {
@@ -559,40 +652,37 @@ export async function GET(
         }
       }
     } else if (federation === 'iwf') {
-      let { data: lifter } = await supabaseAdmin
+      const iwfId = parseInt(cleanId, 10);
+      if (isNaN(iwfId)) {
+        return NextResponse.json({ error: `Invalid IWF athlete identifier: ${cleanId}` }, { status: 400 });
+      }
+
+      const { data: lifter } = await supabaseAdmin
         .from('iwf_lifters')
         .select('*')
-        .eq('db_lifter_id', cleanId)
-        .single();
-      
-      // Fallback: If not found by db_lifter_id, try official iwf_lifter_id
-      if (!lifter && /^\d+$/.test(cleanId)) {
-        const { data: lifterByIwfId } = await supabaseAdmin
-          .from('iwf_lifters')
-          .select('*')
-          .eq('iwf_lifter_id', parseInt(cleanId))
-          .single();
-        lifter = lifterByIwfId;
-      }
-      
-      if (lifter) {
-        const { data: results } = await supabaseAdmin
-          .from('iwf_meet_results')
-          .select('*, iwf_meets(meet, level, iwf_meet_id)')
-          .eq('db_lifter_id', cleanId)
-          .order('date', { ascending: false });
+        .eq('iwf_lifter_id', iwfId)
+        .maybeSingle();
 
-        let iwfPayload: any = {
-          lifter_id: lifter.db_lifter_id,
-          athlete_name: lifter.athlete_name,
-          iwf_results: results || [],
-          usaw_results: [],
-          source: 'IWF'
-        };
-        iwfPayload = await enrichWithOwlcms(iwfPayload, null, lifter.db_lifter_id);
-
-        return NextResponse.json(iwfPayload, { headers: { 'X-Response-Source': 'Direct-DB-Backup' } });
+      if (!lifter) {
+        return NextResponse.json({ error: `IWF Athlete ${cleanId} not found.` }, { status: 404 });
       }
+
+      const { data: results } = await supabaseAdmin
+        .from('iwf_meet_results')
+        .select('*, iwf_meets(meet, level, iwf_meet_id)')
+        .eq('db_lifter_id', lifter.db_lifter_id)
+        .order('date', { ascending: false });
+
+      let iwfPayload: any = {
+        lifter_id: lifter.db_lifter_id,
+        athlete_name: lifter.athlete_name,
+        iwf_results: results || [],
+        usaw_results: [],
+        source: 'IWF'
+      };
+      iwfPayload = await enrichWithOwlcms(iwfPayload, null, lifter.db_lifter_id);
+
+      return NextResponse.json(iwfPayload, { headers: { 'X-Response-Source': 'Direct-DB-Backup' } });
     } else {
       // USAW Database extraction if shard is missing
       const { data: lifter } = await supabaseAdmin

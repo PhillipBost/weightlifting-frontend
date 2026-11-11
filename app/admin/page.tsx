@@ -173,113 +173,64 @@ export default function AdminPage() {
 
           {/* Admin Quick Tools */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-            <Link href="/admin/owlcms" className="group">
-              <div
-                className={`p-5 rounded-xl transition-all flex items-center justify-between ${
-                  pendingMeetsCount > 0
-                    ? 'bg-gradient-to-br from-app-secondary via-app-secondary to-amber-950/30 border-2 border-amber-400 shadow-[0_0_25px_rgba(245,158,11,0.35)] hover:shadow-[0_0_35px_rgba(245,158,11,0.55)]'
-                    : 'card-primary hover:border-sky-500/50 hover:shadow-lg'
-                }`}
-              >
+            {/* Competition Importers & Pipelines */}
+            <Link href="/admin/importers" className="group">
+              <div className="p-5 rounded-xl transition-all flex items-center justify-between card-primary hover:border-sky-500/50 hover:shadow-lg">
                 <div className="flex items-center space-x-4">
-                  <div
-                    className={`rounded-xl p-3 transition-colors ${
-                      pendingMeetsCount > 0
-                        ? 'bg-amber-500/20 text-amber-400 animate-pulse'
-                        : 'bg-sky-500/10 text-sky-400 group-hover:bg-sky-500/20'
-                    }`}
-                  >
+                  <div className="rounded-xl p-3 transition-colors bg-sky-500/10 text-sky-400 group-hover:bg-sky-500/20">
                     <UploadCloud className="h-6 w-6" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h3
-                        className={`text-lg font-bold transition-colors ${
-                          pendingMeetsCount > 0
-                            ? 'text-amber-300 group-hover:text-amber-200'
-                            : 'text-app-primary group-hover:text-sky-400'
-                        }`}
-                      >
-                        owlcms Meet Importer
+                      <h3 className="text-lg font-bold transition-colors text-app-primary group-hover:text-sky-400">
+                        Competition Importers
                       </h3>
-                      {pendingMeetsCount > 0 && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/25 border border-amber-400/50 text-amber-300 animate-pulse">
-                          <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-                          {pendingMeetsCount} Pending
-                        </span>
-                      )}
                     </div>
                     <p className="text-xs text-app-secondary mt-0.5">
-                      {pendingMeetsCount > 0
-                        ? `${pendingMeetsCount} staged ${pendingMeetsCount === 1 ? 'revision requires' : 'revisions require'} review before database merge`
-                        : 'Ingest owlcms JSON competition files directly into the database'}
+                      Ingest OWLCMS competition JSON files and run targeted IWF Results Pipeline scrapers
                     </p>
                   </div>
                 </div>
-                <div
-                  className={`flex items-center text-sm font-medium ${
-                    pendingMeetsCount > 0 ? 'text-amber-400' : 'text-sky-400'
-                  }`}
-                >
+                <div className="flex items-center text-sm font-medium text-sky-400">
                   <span className="hidden sm:inline mr-1">
-                    {pendingMeetsCount > 0 ? 'Review Revisions' : 'Open Importer'}
+                    Open Importers
                   </span>
                   <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
             </Link>
 
-            {/* Identity & Data Quality Review Suite */}
-            <Link href="/admin/owlcms?tab=athlete_review" className="group">
-              <div
-                className={`p-5 rounded-xl transition-all flex items-center justify-between ${
-                  pendingReviewCount > 0
-                    ? 'bg-gradient-to-br from-app-secondary via-app-secondary to-indigo-950/30 border-2 border-indigo-400 shadow-[0_0_25px_rgba(99,102,241,0.35)] hover:shadow-[0_0_35px_rgba(99,102,241,0.55)]'
-                    : 'card-primary hover:border-indigo-500/50 hover:shadow-lg'
-                }`}
-              >
+            {/* Data Quality & Review Suite */}
+            <Link href="/admin/review" className="group">
+              <div className="p-5 rounded-xl transition-all flex items-center justify-between card-primary hover:border-indigo-500/50 hover:shadow-lg">
                 <div className="flex items-center space-x-4">
-                  <div
-                    className={`rounded-xl p-3 transition-colors ${
-                      pendingReviewCount > 0
-                        ? 'bg-indigo-500/20 text-indigo-400 animate-pulse'
-                        : 'bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/20'
-                    }`}
-                  >
+                  <div className="rounded-xl p-3 transition-colors bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500/20">
                     <Users className="h-6 w-6" />
                   </div>
                   <div>
-                    <div className="flex items-center gap-2">
-                      <h3
-                        className={`text-lg font-bold transition-colors ${
-                          pendingReviewCount > 0
-                            ? 'text-indigo-300 group-hover:text-indigo-200'
-                            : 'text-app-primary group-hover:text-indigo-400'
-                        }`}
-                      >
-                        Identity & Review Queue
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="text-lg font-bold transition-colors text-app-primary group-hover:text-indigo-400">
+                        Data Quality & Review Suite
                       </h3>
                       {pendingReviewCount > 0 && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-500/25 border border-indigo-400/50 text-indigo-300 animate-pulse">
-                          <span className="w-2 h-2 rounded-full bg-indigo-400 animate-ping" />
-                          {pendingReviewCount.toLocaleString()} Staged
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-500/15 border border-indigo-400/30 text-indigo-300">
+                          {pendingReviewCount.toLocaleString()} Pending
+                        </span>
+                      )}
+                      {pendingMeetsCount > 0 && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/15 border border-amber-400/30 text-amber-300">
+                          {pendingMeetsCount} Quarantined
                         </span>
                       )}
                     </div>
                     <p className="text-xs text-app-secondary mt-0.5">
-                      {pendingReviewCount > 0
-                        ? `${pendingReviewCount.toLocaleString()} identity review ${pendingReviewCount === 1 ? 'item requires' : 'items require'} administrative resolution`
-                        : 'Multi-stream identity resolution for homonyms, name changes, and duplicate entries'}
+                      Identity resolution (USAW homonyms, name changes, IWF duplicates) and quarantined meet collisions
                     </p>
                   </div>
                 </div>
-                <div
-                  className={`flex items-center text-sm font-medium ${
-                    pendingReviewCount > 0 ? 'text-indigo-400' : 'text-indigo-400'
-                  }`}
-                >
+                <div className="flex items-center text-sm font-medium text-indigo-400">
                   <span className="hidden sm:inline mr-1">
-                    {pendingReviewCount > 0 ? 'Open Review Suite' : 'View Queue'}
+                    Open Review Suite
                   </span>
                   <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </div>

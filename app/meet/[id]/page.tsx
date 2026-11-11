@@ -826,12 +826,12 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
       } else if (sortConfig.key === 'club_name') {
         aValue = (a.club_name || '').toLowerCase();
         bValue = (b.club_name || '').toLowerCase();
-      } else if (sortConfig.key === 'best_snatch' || sortConfig.key === 'best_cj' || sortConfig.key === 'total' || sortConfig.key === 'body_weight_kg') {
-        aValue = parseFloat(a[sortConfig.key] || '0');
-        bValue = parseFloat(b[sortConfig.key] || '0');
+      } else if (sortConfig.key === 'best_snatch' || sortConfig.key === 'best_cj' || sortConfig.key === 'total' || sortConfig.key === 'body_weight_kg' || sortConfig.key === 'competition_age') {
+        aValue = parseFloat(String(a[sortConfig.key] || '').replace(/[^0-9.-]/g, '')) || 0;
+        bValue = parseFloat(String(b[sortConfig.key] || '').replace(/[^0-9.-]/g, '')) || 0;
       } else {
-        aValue = a[sortConfig.key];
-        bValue = b[sortConfig.key];
+        aValue = String(a[sortConfig.key] || '').toLowerCase();
+        bValue = String(b[sortConfig.key] || '').toLowerCase();
       }
 
       if (aValue < bValue) {
@@ -1041,24 +1041,39 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                 }
               }
 
-              // Normal sort comparison
-              let cmpA: any = valA;
-              let cmpB: any = valB;
-
-              // String normalization
-              if (typeof valA === 'string') cmpA = valA.toLowerCase();
-              if (typeof valB === 'string') cmpB = valB.toLowerCase();
-
-              // Numeric force
-              if (['total', 'body_weight_kg', 'competition_age'].includes(key as string)) {
-                cmpA = parseFloat(String(valA) || '0');
-                cmpB = parseFloat(String(valB) || '0');
+              if (key === 'lifter_name' || key === 'club_name' || key === 'age_category') {
+                const strA = String(valA || '').trim().toLowerCase();
+                const strB = String(valB || '').trim().toLowerCase();
+                const cmp = strA.localeCompare(strB);
+                return sortConfig.direction === 'asc' ? cmp : -cmp;
               }
 
-              if (cmpA < cmpB) return sortConfig.direction === 'asc' ? -1 : 1;
-              if (cmpA > cmpB) return sortConfig.direction === 'asc' ? 1 : -1;
+              if (key === 'weight_class') {
+                const parseWc = (w: any) => {
+                  const m = String(w || '').match(/(\d+(?:\.\d+)?)/);
+                  const base = m ? parseFloat(m[1]) : 0;
+                  return String(w || '').includes('+') ? base + 1000 : base;
+                };
+                const wcA = parseWc(valA);
+                const wcB = parseWc(valB);
+                if (wcA !== wcB) {
+                  return sortConfig.direction === 'asc' ? wcA - wcB : wcB - wcA;
+                }
+                return a.lifter_name.localeCompare(b.lifter_name);
+              }
 
-              return 0;
+              // Numeric fields: best_snatch, best_cj, total, body_weight_kg, competition_age, qpoints, q_youth, q_masters, rank
+              const numA = typeof valA === 'number' ? valA : parseFloat(String(valA || '').replace(/[^0-9.-]/g, '')) || 0;
+              const numB = typeof valB === 'number' ? valB : parseFloat(String(valB || '').replace(/[^0-9.-]/g, '')) || 0;
+
+              const isScoreOrRank = ['qpoints', 'q_youth', 'q_masters', 'total', 'best_snatch', 'best_cj'].includes(key as string);
+              if (isScoreOrRank) {
+                if (numA === 0 && numB !== 0) return 1;
+                if (numA !== 0 && numB === 0) return -1;
+                if (numA === 0 && numB === 0) return a.lifter_name.localeCompare(b.lifter_name);
+              }
+
+              return sortConfig.direction === 'asc' ? numA - numB : numB - numA;
             });
 
             // Assign ranks if sorting by a Q-stat
@@ -1188,17 +1203,42 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
           const renderGamxTable = (title: string, data: MeetResult[], show: boolean, toggle: () => void) => {
             // Rule: No filter. We show all athletes, but non-scored ones go to bottom.
             const sortedData = [...data].sort((a, b) => {
-              const aVal = (a as any)[gamxSortConfig.key] ?? 0;
-              const bVal = (b as any)[gamxSortConfig.key] ?? 0;
-              
-              // Handle sorting: 0/null values always go to bottom regardless of direction
-              if (aVal === 0 && bVal !== 0) return 1;
-              if (aVal !== 0 && bVal === 0) return -1;
-              if (aVal === 0 && bVal === 0) {
+              const key = gamxSortConfig.key;
+              const aRaw = (a as any)[key];
+              const bRaw = (b as any)[key];
+
+              if (key === 'lifter_name' || key === 'club_name' || key === 'age_category') {
+                const strA = String(aRaw || '').trim().toLowerCase();
+                const strB = String(bRaw || '').trim().toLowerCase();
+                const cmp = strA.localeCompare(strB);
+                return gamxSortConfig.direction === 'asc' ? cmp : -cmp;
+              }
+
+              if (key === 'weight_class') {
+                const parseWc = (w: any) => {
+                  const m = String(w || '').match(/(\d+(?:\.\d+)?)/);
+                  const base = m ? parseFloat(m[1]) : 0;
+                  return String(w || '').includes('+') ? base + 1000 : base;
+                };
+                const wcA = parseWc(aRaw);
+                const wcB = parseWc(bRaw);
+                if (wcA !== wcB) {
+                  return gamxSortConfig.direction === 'asc' ? wcA - wcB : wcB - wcA;
+                }
                 return a.lifter_name.localeCompare(b.lifter_name);
               }
-              
-              return gamxSortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
+
+              // Numeric fields: best_snatch, best_cj, total, body_weight_kg, gamx_*, rank
+              const numA = typeof aRaw === 'number' ? aRaw : parseFloat(String(aRaw || '').replace(/[^0-9.-]/g, '')) || 0;
+              const numB = typeof bRaw === 'number' ? bRaw : parseFloat(String(bRaw || '').replace(/[^0-9.-]/g, '')) || 0;
+
+              if (numA === 0 && numB !== 0) return 1;
+              if (numA !== 0 && numB === 0) return -1;
+              if (numA === 0 && numB === 0) {
+                return a.lifter_name.localeCompare(b.lifter_name);
+              }
+
+              return gamxSortConfig.direction === 'asc' ? numA - numB : numB - numA;
             });
 
             const GamxSortIndicator = ({ col }: { col: string }) => {

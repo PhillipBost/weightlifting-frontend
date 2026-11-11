@@ -567,7 +567,7 @@ export function AthleteResults({
                                     result._source === 'owlcms' || result._source === 'OWLCMS'
                                       ? `/meet/owlcms/${result.meet_id}`
                                       : result._source === 'IWF'
-                                        ? `/meet/iwf/${result.meet_id || result.db_meet_id || result.iwf_meet_id}`
+                                        ? `/meet/iwf/${result.iwf_meet_id || result.meet_id}`
                                         : `/meet/${result.meet_id}`
                                   }
                                   className="text-accent-primary hover:text-accent-primary-hover transition-colors truncate block text-left hover:underline min-w-0"
@@ -636,7 +636,7 @@ export function AthleteResults({
                                     result._source === 'owlcms' || result._source === 'OWLCMS'
                                       ? `/meet/owlcms/${result.meet_id}`
                                       : result._source === 'IWF'
-                                        ? `/meet/iwf/${result.meet_id || result.db_meet_id || result.iwf_meet_id}`
+                                        ? `/meet/iwf/${result.iwf_meet_id || result.meet_id}`
                                         : `/meet/${result.meet_id}`
                                   }
                                   className="text-accent-primary hover:text-accent-primary-hover transition-colors truncate block text-left hover:underline min-w-0"

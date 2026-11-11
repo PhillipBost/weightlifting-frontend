@@ -945,18 +945,38 @@ export default function OwlcmsMeetPage({ params }: { params: Promise<{ id: strin
         valB = (b.result as any)[sortConfig.key];
       }
 
-      if (valA === null || valA === undefined) return 1;
-      if (valB === null || valB === undefined) return -1;
+      const isNullA = valA === null || valA === undefined || valA === '';
+      const isNullB = valB === null || valB === undefined || valB === '';
+      if (isNullA && !isNullB) return 1;
+      if (!isNullA && isNullB) return -1;
+      if (isNullA && isNullB) return 0;
 
-      if (typeof valA === 'string' && typeof valB === 'string') {
-        return sortConfig.direction === 'asc'
-          ? valA.localeCompare(valB)
-          : valB.localeCompare(valA);
+      const key = sortConfig.key as string;
+      if (key === 'weightClass') {
+        const parseWc = (w: any) => {
+          const m = String(w || '').match(/(\d+(?:\.\d+)?)/);
+          const base = m ? parseFloat(m[1]) : 0;
+          return String(w || '').includes('+') ? base + 1000 : base;
+        };
+        const wcA = parseWc(valA);
+        const wcB = parseWc(valB);
+        if (wcA !== wcB) {
+          return sortConfig.direction === 'asc' ? wcA - wcB : wcB - wcA;
+        }
+        return 0;
       }
 
-      const numA = Number(valA);
-      const numB = Number(valB);
-      return sortConfig.direction === 'asc' ? numA - numB : numB - numA;
+      const isNumericKey = ['best_snatch', 'best_cj', 'total', 'body_weight_kg', 'scale_weight_kg', 'birth_year', 'lot_number', 'start_number', 'snatch_1', 'snatch_2', 'snatch_3', 'cj_1', 'cj_2', 'cj_3', 'totalRank', 'snatchRank', 'cleanJerkRank', 'qpoints', 'gamx_total'].includes(key);
+      if (isNumericKey) {
+        const numA = typeof valA === 'number' ? valA : parseFloat(String(valA).replace(/[^0-9.-]/g, '')) || 0;
+        const numB = typeof valB === 'number' ? valB : parseFloat(String(valB).replace(/[^0-9.-]/g, '')) || 0;
+        return sortConfig.direction === 'asc' ? numA - numB : numB - numA;
+      }
+
+      const strA = String(valA).toLowerCase();
+      const strB = String(valB).toLowerCase();
+      const cmp = strA.localeCompare(strB);
+      return sortConfig.direction === 'asc' ? cmp : -cmp;
     });
   };
 
@@ -1005,8 +1025,29 @@ export default function OwlcmsMeetPage({ params }: { params: Promise<{ id: strin
       const valA = (a as any)[activeSortKey];
       const valB = (b as any)[activeSortKey];
 
-      const numA = typeof valA === 'number' ? valA : parseFloat(valA) || 0;
-      const numB = typeof valB === 'number' ? valB : parseFloat(valB) || 0;
+      if (activeSortKey === 'athlete_name' || activeSortKey === 'club_name' || activeSortKey === 'country_code') {
+        const strA = String(valA || '').trim().toLowerCase();
+        const strB = String(valB || '').trim().toLowerCase();
+        const cmp = strA.localeCompare(strB);
+        return activeDirection === 'asc' ? cmp : -cmp;
+      }
+
+      if (activeSortKey === 'category') {
+        const parseWc = (w: any) => {
+          const m = String(w || '').match(/(\d+(?:\.\d+)?)/);
+          const base = m ? parseFloat(m[1]) : 0;
+          return String(w || '').includes('+') ? base + 1000 : base;
+        };
+        const wcA = parseWc(valA);
+        const wcB = parseWc(valB);
+        if (wcA !== wcB) {
+          return activeDirection === 'asc' ? wcA - wcB : wcB - wcA;
+        }
+        return a.athlete_name.localeCompare(b.athlete_name);
+      }
+
+      const numA = typeof valA === 'number' ? valA : parseFloat(String(valA || '').replace(/[^0-9.-]/g, '')) || 0;
+      const numB = typeof valB === 'number' ? valB : parseFloat(String(valB || '').replace(/[^0-9.-]/g, '')) || 0;
 
       if (numA === 0 && numB !== 0) return 1;
       if (numA !== 0 && numB === 0) return -1;
@@ -2280,16 +2321,42 @@ export default function OwlcmsMeetPage({ params }: { params: Promise<{ id: strin
               };
 
               const sortedGamx = [...filteredUniqueResults].sort((a, b) => {
-                const aVal = (a as any)[gamxSortConfig.key] ?? 0;
-                const bVal = (b as any)[gamxSortConfig.key] ?? 0;
+                const key = gamxSortConfig.key;
+                const aRaw = (a as any)[key];
+                const bRaw = (b as any)[key];
 
-                if (aVal === 0 && bVal !== 0) return 1;
-                if (aVal !== 0 && bVal === 0) return -1;
-                if (aVal === 0 && bVal === 0) {
+                if (key === 'athlete_name') {
+                  const strA = String(aRaw || '').trim().toLowerCase();
+                  const strB = String(bRaw || '').trim().toLowerCase();
+                  const cmp = strA.localeCompare(strB);
+                  return gamxSortConfig.direction === 'asc' ? cmp : -cmp;
+                }
+
+                if (key === 'category') {
+                  const parseWc = (w: any) => {
+                    const m = String(w || '').match(/(\d+(?:\.\d+)?)/);
+                    const base = m ? parseFloat(m[1]) : 0;
+                    return String(w || '').includes('+') ? base + 1000 : base;
+                  };
+                  const wcA = parseWc(aRaw);
+                  const wcB = parseWc(bRaw);
+                  if (wcA !== wcB) {
+                    return gamxSortConfig.direction === 'asc' ? wcA - wcB : wcB - wcA;
+                  }
                   return a.athlete_name.localeCompare(b.athlete_name);
                 }
 
-                return gamxSortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
+                // Numeric fields: best_snatch, best_cj, total, body_weight_kg, gamx_*, rank
+                const numA = typeof aRaw === 'number' ? aRaw : parseFloat(String(aRaw || '').replace(/[^0-9.-]/g, '')) || 0;
+                const numB = typeof bRaw === 'number' ? bRaw : parseFloat(String(bRaw || '').replace(/[^0-9.-]/g, '')) || 0;
+
+                if (numA === 0 && numB !== 0) return 1;
+                if (numA !== 0 && numB === 0) return -1;
+                if (numA === 0 && numB === 0) {
+                  return a.athlete_name.localeCompare(b.athlete_name);
+                }
+
+                return gamxSortConfig.direction === 'asc' ? numA - numB : numB - numA;
               });
 
               const GamxSortIndicator = ({ col }: { col: string }) => {
