@@ -574,9 +574,9 @@ export async function GET(request: Request) {
       // Discover authentic meet and lifter IDs directly from iwf_meet_results by permuted athlete names
       if (athleteNames.size > 0) {
         const lifterNameFilters: string[] = [];
-        athleteNames.forEach(n => {
+        athleteNames.forEach((n: string) => {
           const clean = n.replace(/["'%]/g, '').trim();
-          const parts = clean.split(/\s+/).filter(p => p.length >= 2);
+          const parts = clean.split(/\s+/).filter((p: string) => p.length >= 2);
           if (parts.length >= 2) {
             lifterNameFilters.push(`lifter_name.ilike.%${parts[0]}%${parts[parts.length - 1]}%`);
             lifterNameFilters.push(`lifter_name.ilike.%${parts[parts.length - 1]}%${parts[0]}%`);
@@ -607,7 +607,7 @@ export async function GET(request: Request) {
           meetFilters.push(`db_meet_id.in.(${Array.from(dbMeetIds).join(',')})`);
         }
         if (titleMeetNames.size > 0) {
-          titleMeetNames.forEach(t => {
+          titleMeetNames.forEach((t: string) => {
             const cleanT = t.replace(/["'%]/g, '').trim();
             if (cleanT) meetFilters.push(`meet.ilike.%${cleanT}%`);
           });
@@ -630,9 +630,9 @@ export async function GET(request: Request) {
 
       // Resolve effective meet IDs combining staged IDs and title-discovered meets
       const effectiveMeetIds = new Set<number>(dbMeetIds);
-      titleMeetNames.forEach(t => {
+      titleMeetNames.forEach((t: string) => {
         const foundList = iwfMeetsByTitleMap.get(t.toLowerCase()) || [];
-        foundList.forEach(found => {
+        foundList.forEach((found: any) => {
           if (found?.db_meet_id) effectiveMeetIds.add(found.db_meet_id);
         });
       });
@@ -696,7 +696,7 @@ export async function GET(request: Request) {
           }
         });
 
-        const parts = cleanN.split(/\s+/).filter(p => p.length >= 2);
+        const parts = cleanN.split(/\s+/).filter((p: string) => p.length >= 2);
         if (parts.length >= 2) {
           const revName = `${parts[parts.length - 1]} ${parts[0]}`;
           const { data: revLifters } = await supabaseAdmin
@@ -721,12 +721,12 @@ export async function GET(request: Request) {
         if (item.category !== 'iwf_duplicate') return item;
         const ev = item.evidence || {};
         const titleMatch = item.title?.match(/IWF Same-Meet Duplicate:\s*(.+?)\s*\((.+?)\)/);
-        const athleteName = ev.athlete_name || titleMatch?.[1]?.trim() || '';
+        const athleteName: string = String(ev.athlete_name || titleMatch?.[1]?.trim() || '');
         const nameKey = athleteName.toLowerCase();
         const titleMeet = titleMatch?.[2]?.trim();
 
         // Token-based case-insensitive scorecard matching
-        const normalizeTokens = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, ' ').split(/\s+/).filter(Boolean);
+        const normalizeTokens = (s: string): string[] => s.toLowerCase().replace(/[^a-z0-9]/g, ' ').split(/\s+/).filter(Boolean);
         const targetTokens = normalizeTokens(athleteName);
         const getMatchScorecards = (mId: number | null) => {
           if (!mId) return [];
@@ -734,7 +734,7 @@ export async function GET(request: Request) {
           return meetResults.filter((sc: any) => {
             if (!sc.lifter_name) return false;
             const scTokens = normalizeTokens(sc.lifter_name);
-            return targetTokens.every(t => scTokens.includes(t)) || scTokens.every(t => targetTokens.includes(t));
+            return targetTokens.every((t: string) => scTokens.includes(t)) || scTokens.every((t: string) => targetTokens.includes(t));
           });
         };
 
@@ -1026,7 +1026,7 @@ export async function POST(request: Request) {
       if (resolution === 'CHECK_IWF_STATUS') {
         const currentEv = currentItem.evidence || {};
         const titleMatch = currentItem.title?.match(/IWF Same-Meet Duplicate:\s*(.+?)\s*\((.+?)\)/);
-        const athleteName = currentEv.athlete_name || titleMatch?.[1]?.trim() || '';
+        const athleteName: string = String(currentEv.athlete_name || titleMatch?.[1]?.trim() || '');
         const dbMeetId = currentEv.db_meet_id ? Number(currentEv.db_meet_id) : null;
         const iwfMeetId = currentEv.iwf_meet_id ? String(currentEv.iwf_meet_id) : null;
         const registeredCategories: string[] = currentEv.weight_classes || [];
@@ -1034,20 +1034,20 @@ export async function POST(request: Request) {
         let resolvedMeetId = dbMeetId;
 
         // 1. First query live meet results for athlete across all meets via tokenized matching
-        const tokens = athleteName.replace(/["'%]/g, '').trim().split(/\s+/).filter(t => t.length >= 2);
-        const lifterFilters = tokens.map(t => `lifter_name.ilike.%${t}%`);
+        const tokens: string[] = athleteName.replace(/["'%]/g, '').trim().split(/\s+/).filter((t: string) => t.length >= 2);
+        const lifterFilters = tokens.map((t: string) => `lifter_name.ilike.%${t}%`);
         const { data: lifterRows } = await supabaseAdmin
           .from('iwf_meet_results')
           .select('db_result_id, db_meet_id, db_lifter_id, lifter_name, weight_class, best_snatch, best_cj, total, body_weight_kg, rank, competition_age, gender, country_code, country_name, birth_year, date, manual_override')
           .or(lifterFilters.join(','));
 
-        const normalizeTokens = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, ' ').split(/\s+/).filter(Boolean);
-        const targetTokens = tokens.map(t => t.toLowerCase());
+        const normalizeTokens = (s: string): string[] => s.toLowerCase().replace(/[^a-z0-9]/g, ' ').split(/\s+/).filter(Boolean);
+        const targetTokens: string[] = tokens.map((t: string) => t.toLowerCase());
         const meetGroups = new Map<number, any[]>();
         (lifterRows || []).forEach((sc: any) => {
           if (!sc.lifter_name) return;
           const scTokens = normalizeTokens(sc.lifter_name);
-          if (targetTokens.every(t => scTokens.includes(t)) || scTokens.every(t => targetTokens.includes(t))) {
+          if (targetTokens.every((t: string) => scTokens.includes(t)) || scTokens.every((t: string) => targetTokens.includes(t))) {
             if (!meetGroups.has(sc.db_meet_id)) meetGroups.set(sc.db_meet_id, []);
             meetGroups.get(sc.db_meet_id)!.push(sc);
           }
@@ -1089,7 +1089,7 @@ export async function POST(request: Request) {
         const matchedScorecards = meetGroups.get(resolvedMeetId) || (liveResults || []).filter((sc: any) => {
           if (!sc.lifter_name) return false;
           const scTokens = normalizeTokens(sc.lifter_name);
-          return targetTokens.every(t => scTokens.includes(t)) || scTokens.every(t => targetTokens.includes(t));
+          return targetTokens.every((t: string) => scTokens.includes(t)) || scTokens.every((t: string) => targetTokens.includes(t));
         });
 
         const detectedCategories = Array.from(new Set(matchedScorecards.map((sc: any) => sc.weight_class).filter(Boolean)));
