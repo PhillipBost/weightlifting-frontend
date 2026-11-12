@@ -102,14 +102,14 @@ function runSpawnStream({
 }
 
 export async function POST(req: NextRequest) {
-  let recordRunCompletion: ((params: {
+  let recordRunCompletion: (params: {
     status: 'SUCCESS' | 'FAILED' | 'CANCELLED';
     exitCode?: number;
     combinedLogs?: string;
     linkerLogs?: string;
     errorMessage?: string;
     importStats?: any;
-  }) => Promise<void>) | null = null;
+  }) => Promise<void> = async () => {};
 
   try {
     // 1. Verify authenticated administrator session
@@ -645,14 +645,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ...finalResult, runId });
   } catch (err: any) {
     const logs = [err?.stdout, err?.stderr, err?.message].filter(Boolean).join('\n');
-    if (recordRunCompletion) {
-      await recordRunCompletion({
-        status: 'FAILED',
-        exitCode: 1,
-        combinedLogs: logs,
-        errorMessage: err?.message || 'IWF pipeline execution failed'
-      });
-    }
+    await recordRunCompletion({
+      status: 'FAILED',
+      exitCode: 1,
+      combinedLogs: logs,
+      errorMessage: err?.message || 'IWF pipeline execution failed'
+    });
     return NextResponse.json(
       {
         success: false,
