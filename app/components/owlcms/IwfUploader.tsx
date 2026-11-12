@@ -107,6 +107,7 @@ export interface IwfPipelineResponse {
     simulatedUpdates?: number;
     simulatedInserts?: number;
     simulatedLocked?: number;
+    simulatedScorecards?: number;
     targetAthlete?: MatchedScorecard | null;
     targetAthletes?: MatchedScorecard[];
     matchedScorecards?: MatchedScorecard[];
@@ -120,6 +121,12 @@ export interface IwfPipelineResponse {
     updated?: number;
     skipped?: number;
     errors?: number;
+    linkerStats?: {
+      usawAliasesLinked: number;
+      owlcmsAliasesLinked: number;
+      totalAliasesLinked: number;
+      shardsRefreshed: number;
+    };
   };
   logs: string;
   linkerLogs?: string;
