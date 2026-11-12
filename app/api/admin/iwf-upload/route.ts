@@ -4,6 +4,7 @@ import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
 import { spawn } from 'child_process';
 import path from 'path';
+import { detectYearFromIwfUrl, getOfficialIwfMeetUrl } from '@/lib/utils/iwf-urls';
 
 export const maxDuration = 300; // Allow up to 5 minutes for Cloudflare click + Puppeteer scrape + DB import
 export const dynamic = 'force-dynamic';
@@ -124,6 +125,7 @@ export async function POST(req: NextRequest) {
     const {
       year: rawYear,
       event_id,
+      url: inputUrl,
       athlete_name,
       force = false,
       dryRun = false,
@@ -132,10 +134,17 @@ export async function POST(req: NextRequest) {
 
     const wantsStream = stream || req.headers.get('accept')?.includes('text/event-stream');
     const eventIdClean = extractEventId(event_id);
-    const rawUrl = (typeof event_id === 'string' && event_id.trim().startsWith('http')) ? event_id.trim() : null;
+    const rawUrl = (typeof inputUrl === 'string' && inputUrl.trim().startsWith('http'))
+      ? inputUrl.trim()
+      : ((typeof event_id === 'string' && event_id.trim().startsWith('http')) ? event_id.trim() : null);
+    const canonicalUrl = rawUrl || (eventIdClean ? getOfficialIwfMeetUrl(eventIdClean, rawYear || new Date().getFullYear()) : null);
+
     let year = rawYear ? Number(rawYear) : new Date().getFullYear();
-    if (!rawYear && String(event_id || '').includes('results-by-events-upto2018')) {
-      year = 2018;
+    if (!rawYear && event_id) {
+      const detectedYear = detectYearFromIwfUrl(String(event_id));
+      if (detectedYear) {
+        year = detectedYear;
+      }
     }
 
     const repoRoot =
@@ -160,7 +169,7 @@ export async function POST(req: NextRequest) {
         .insert({
           mode,
           event_id: eventIdClean || null,
-          url: rawUrl,
+          url: canonicalUrl || rawUrl,
           year,
           athlete_name: athlete_name && String(athlete_name).trim().length > 0 ? String(athlete_name).trim() : null,
           dry_run: Boolean(dryRun),
@@ -463,8 +472,8 @@ export async function POST(req: NextRequest) {
               sendEvent('status', { stage: 'EVENT_SCRAPE', message: `Executing targeted importer for Event #${eventIdClean}...` });
               const importerScript = path.join(repoRoot, 'scripts', 'production', 'iwf-database-importer.js');
               const args: string[] = ['--event-id', eventIdClean, '--year', String(year)];
-              if (event_id && String(event_id).trim().startsWith('http')) {
-                args.push('--url', String(event_id).trim());
+              if (canonicalUrl) {
+                args.push('--url', canonicalUrl);
               }
               if (force) args.push('--force');
               if (dryRun) args.push('--dry-run');
@@ -573,6 +582,9 @@ export async function POST(req: NextRequest) {
     if (eventIdClean) {
       const importerScript = path.join(repoRoot, 'scripts', 'production', 'iwf-database-importer.js');
       const args: string[] = ['--event-id', eventIdClean, '--year', String(year)];
+      if (canonicalUrl) {
+        args.push('--url', canonicalUrl);
+      }
       if (force) args.push('--force');
       if (dryRun) args.push('--dry-run');
       if (athlete_name && String(athlete_name).trim().length > 0) {

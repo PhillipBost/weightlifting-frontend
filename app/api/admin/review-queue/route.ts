@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
+import { getOfficialIwfMeetUrl } from '@/lib/utils/iwf-urls';
 
 export const dynamic = 'force-dynamic';
 
@@ -119,7 +120,8 @@ export async function GET(request: Request) {
       duplicateProfileCountRes,
       dataHygieneCountRes,
       crossFedCountRes,
-      iwfDupCountRes
+      iwfDupCountRes,
+      evalReviewNeededCountRes
     ] = await Promise.all([
       supabaseAdmin
         .from('admin_review_queue')
@@ -166,8 +168,14 @@ export async function GET(request: Request) {
         .from('admin_review_queue')
         .select('id', { count: 'exact', head: true })
         .eq('category', 'iwf_duplicate')
-        .eq('status', 'PENDING')
+        .eq('status', 'PENDING'),
+      supabaseAdmin
+        .from('athlete_linking_evaluations')
+        .select('evaluation_id', { count: 'exact', head: true })
+        .eq('status', 'REVIEW_NEEDED')
     ]);
+
+    const combinedCrossFedCount = (crossFedCountRes.count ?? 0) + (evalReviewNeededCountRes.count ?? 0);
 
     const counts = {
       homonym_split: homonymCountRes.count ?? 0,
@@ -176,14 +184,14 @@ export async function GET(request: Request) {
       name_change_merge: nameChangeCountRes.count ?? 0,
       duplicate_profile: duplicateProfileCountRes.count ?? 0,
       data_hygiene_typo: dataHygieneCountRes.count ?? 0,
-      cross_federation: crossFedCountRes.count ?? 0,
+      cross_federation: combinedCrossFedCount,
       iwf_duplicate: iwfDupCountRes.count ?? 0,
       total:
         (homonymCountRes.count ?? 0) +
         (nameChangeCountRes.count ?? 0) +
         (duplicateProfileCountRes.count ?? 0) +
         (dataHygieneCountRes.count ?? 0) +
-        (crossFedCountRes.count ?? 0) +
+        combinedCrossFedCount +
         (iwfDupCountRes.count ?? 0)
     };
 
@@ -808,14 +816,8 @@ export async function GET(request: Request) {
           ? (/^m/i.test(resolvedGender) ? 'Men' : /^w|^f/i.test(resolvedGender) ? 'Women' : resolvedGender)
           : null;
 
-        // Pre-2018 historical IWF URL routing standard
-        const meetYear = meet?.date ? new Date(meet.date).getFullYear() : null;
-        const isPre2018 = meetYear ? meetYear <= 2018 : false;
-        const iwfMeetUrl = meet?.url || (iwfMeetId
-          ? (isPre2018
-            ? `https://iwf.sport/results/results-by-events/results-by-events-upto2018/?event_id=${iwfMeetId}`
-            : `https://iwf.sport/results/results-by-events/?event_id=${iwfMeetId}`)
-          : null);
+        // 4-tier chronological official IWF meet URL resolution standard
+        const iwfMeetUrl = getOfficialIwfMeetUrl(iwfMeetId, meet?.date) || meet?.url || null;
         const iwfAthleteUrl = primaryLifter?.iwf_athlete_url || (iwfLifterId
           ? `https://iwf.sport/weightlifting_/athletes-bios/?id=${iwfLifterId}`
           : null);

@@ -29,6 +29,7 @@ import {
   Clock,
   Trash2
 } from 'lucide-react';
+import { getOfficialIwfMeetUrl, detectYearFromIwfUrl } from '@/lib/utils/iwf-urls';
 
 export interface MatchedScorecard {
   name?: string;
@@ -80,6 +81,7 @@ export interface MatchedScorecard {
 export interface IwfPipelineRequest {
   year: number | string;
   event_id?: string;
+  url?: string;
   athlete_name?: string;
   force?: boolean;
   dryRun?: boolean;
@@ -170,6 +172,7 @@ export function IwfUploader() {
     date: string | null;
     level: string | null;
     resultsCount: number;
+    url?: string | null;
   } | null>(null);
   const [isCheckingMeet, setIsCheckingMeet] = useState<boolean>(false);
 
@@ -379,7 +382,8 @@ export function IwfUploader() {
               meet: data.meet.meet,
               date: data.meet.date,
               level: data.meet.level,
-              resultsCount: data.resultsCount ?? 0
+              resultsCount: data.resultsCount ?? 0,
+              url: data.meet.url || null
             });
             if (data.meet.date) {
               const yearMatch = String(data.meet.date).match(/\b(19|20)\d{2}\b/);
@@ -416,8 +420,13 @@ export function IwfUploader() {
     if (urlMatch) {
       const extractedId = urlMatch[1];
       setDetectedUrlId(extractedId);
-      if (trimmed.includes('results-by-events-upto2018') && Number(year) > 2018) {
-        setYear('2018');
+      const eraYear = detectYearFromIwfUrl(trimmed);
+      if (eraYear) {
+        if (trimmed.includes('results-by-events-upto2018') && Number(year) > 2018) {
+          setYear('2018');
+        } else if ((trimmed.includes('results-by-events-2018-2025') || trimmed.includes('results-by-events-2025-2026')) && !year) {
+          setYear(String(eraYear));
+        }
       }
     } else {
       setDetectedUrlId(null);
@@ -434,9 +443,17 @@ export function IwfUploader() {
 
     try {
       const cleanEventId = extractEventId(eventId);
+      const computedUrl = cleanEventId
+        ? getOfficialIwfMeetUrl(cleanEventId, existingDbMeet?.date || year)
+        : null;
+      const explicitUrl = (typeof eventId === 'string' && eventId.trim().startsWith('http'))
+        ? eventId.trim()
+        : (computedUrl || undefined);
+
       const payload: IwfPipelineRequest = {
         year: year.trim() || new Date().getFullYear(),
         ...(cleanEventId ? { event_id: cleanEventId } : {}),
+        ...(explicitUrl ? { url: explicitUrl } : {}),
         ...(athleteName.trim() ? { athlete_name: athleteName.trim() } : {}),
         force,
         dryRun
@@ -523,14 +540,11 @@ export function IwfUploader() {
     }
   };
 
-  const parsedYearNum = Number(year) || new Date().getFullYear();
-  const isPre2018 = parsedYearNum <= 2018;
-  const targetIwfId = response?.event_id || existingDbMeet?.iwf_meet_id || eventId.trim();
-  const officialIwfEventUrl = targetIwfId
-    ? (isPre2018
-      ? `https://iwf.sport/results/results-by-events/results-by-events-upto2018/?event_id=${targetIwfId}`
-      : `https://iwf.sport/results/results-by-events/?event_id=${targetIwfId}`)
-    : null;
+  const targetIwfId = response?.event_id || existingDbMeet?.iwf_meet_id || detectedUrlId || extractEventId(eventId);
+  const officialIwfEventUrl = getOfficialIwfMeetUrl(
+    targetIwfId,
+    existingDbMeet?.date || year
+  );
 
   return (
     <div className="space-y-6">

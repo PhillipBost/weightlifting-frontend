@@ -38,6 +38,9 @@ import {
   UserPlus,
   Trash2
 } from 'lucide-react';
+import { PipelineHealthOverview } from './PipelineHealthOverview';
+import { AmbiguousReviewQueue } from './AmbiguousReviewQueue';
+import { getOfficialIwfMeetUrl } from '@/lib/utils/iwf-urls';
 
 export type ReviewCategory = 'all' | 'homonym_split' | 'name_change_merge' | 'duplicate_profile' | 'data_hygiene_typo' | 'cross_federation' | 'iwf_duplicate';
 export type ReviewStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'ALL';
@@ -136,6 +139,7 @@ export function AthleteReviewQueue({ onCountChange }: AthleteReviewQueueProps) {
   const [auditFilterText, setAuditFilterText] = useState<string>('');
   const [auditActing, setAuditActing] = useState<boolean>(false);
   const [recentBatch, setRecentBatch] = useState<{ id: string; count: number; date: string; ids: string[] } | null>(null);
+  const [crossFedRefreshTick, setCrossFedRefreshTick] = useState<number>(0);
 
   const [items, setItems] = useState<AdminReviewItem[]>([]);
   const [totalItems, setTotalItems] = useState<number>(0);
@@ -1064,8 +1068,26 @@ export function AthleteReviewQueue({ onCountChange }: AthleteReviewQueueProps) {
         </div>
       )}
 
+      {/* Cross-Federation Athlete Linking Pipeline Suite (athlete_linking_evaluations) */}
+      {activeCategory === 'cross_federation' && (
+        <div className="space-y-5">
+          <PipelineHealthOverview
+            onQueueChanged={() => {
+              setCrossFedRefreshTick((t) => t + 1);
+              fetchData();
+            }}
+          />
+          <AmbiguousReviewQueue
+            searchQuery={searchQuery}
+            selectedStatus={selectedStatus}
+            refreshTrigger={crossFedRefreshTick}
+            onActionComplete={() => fetchData()}
+          />
+        </div>
+      )}
+
       {/* 5. Loading State */}
-      {loading && (
+      {loading && activeCategory !== 'cross_federation' && (
         <div className="p-12 text-center rounded-2xl card-primary text-app-secondary space-y-2 shadow-sm">
           <Loader2 className="w-6 h-6 animate-spin mx-auto text-indigo-400" />
           <p className="text-xs">Loading queue items...</p>
@@ -1073,7 +1095,7 @@ export function AthleteReviewQueue({ onCountChange }: AthleteReviewQueueProps) {
       )}
 
       {/* 6. Empty State */}
-      {!loading && items.length === 0 && (
+      {!loading && items.length === 0 && activeCategory !== 'cross_federation' && (
         <div className="p-12 text-center rounded-2xl card-primary text-app-secondary space-y-2 shadow-sm">
           <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto" />
           <h4 className="text-sm font-semibold text-app-primary">No Review Items Found</h4>
@@ -1086,7 +1108,7 @@ export function AthleteReviewQueue({ onCountChange }: AthleteReviewQueueProps) {
       )}
 
       {/* 7. Review Cards List */}
-      {!loading && items.length > 0 && (
+      {!loading && items.length > 0 && activeCategory !== 'cross_federation' && (
         <div className="space-y-6">
           {items.map((item) => {
             const isActing = actionInProgress === item.id;
@@ -2124,13 +2146,12 @@ export function AthleteReviewQueue({ onCountChange }: AthleteReviewQueueProps) {
                   const owlanalyticsAthleteUrl = iwfLifterId ? `/athlete/iwf/${iwfLifterId}` : null;
                   const iwfAthleteUrl = ev.iwf_athlete_url || (iwfLifterId ? `https://iwf.sport/weightlifting_/athletes-bios/?id=${iwfLifterId}` : null);
                   const owlanalyticsMeetUrl = ev.owlanalytics_meet_url || (iwfMeetId ? `/meet/iwf/${iwfMeetId}` : (dbMeetId ? `/meet/iwf/${dbMeetId}` : null));
-                  const iwfMeetUrl = ev.iwf_meet_url || (iwfMeetId ? `https://iwf.sport/results/results-by-events/?event_id=${iwfMeetId}` : null);
-
                   const scorecards: any[] = ev.duplicate_scorecards || [];
                   const allLifters: any[] = ev.all_lifters || [];
                   const registeredCategories: string[] = ev.weight_classes || [];
                   const meetYear = ev.meet_date ? String(new Date(ev.meet_date).getFullYear()) : '';
                   const meetDate = ev.meet_date || scorecards[0]?.date || null;
+                  const iwfMeetUrl = getOfficialIwfMeetUrl(iwfMeetId, meetDate) || ev.iwf_meet_url || null;
                   const formattedMeetDate = meetDate ? formatDisplayDate(meetDate) : (meetYear || 'Date Unspecified');
 
                   const countryCode = ev.country_code || scorecards[0]?.country_code || '';
@@ -3103,7 +3124,7 @@ export function AthleteReviewQueue({ onCountChange }: AthleteReviewQueueProps) {
       )}
 
       {/* 8. Pagination Controls */}
-      {!loading && totalItems > limit && (
+      {!loading && activeCategory !== 'cross_federation' && totalItems > limit && (
         <div className="p-3 bg-app-secondary border border-app-primary rounded-xl flex items-center justify-between text-xs text-app-secondary shadow-sm">
           <div>
             Showing {(page - 1) * limit + 1}–{Math.min(page * limit, totalItems)} of {totalItems.toLocaleString()} items
