@@ -321,15 +321,15 @@ export async function GET(request: Request) {
         }
       });
 
-      // 1. Batch query usaw_lifters for internal_id and lifter_id
-      const liftersMap = new Map<string, { internal_id: number | null; lifter_id: number; membership_number?: string; athlete_name?: string }>();
-      const lifterByIdMap = new Map<number, { internal_id: number | null; lifter_id: number; membership_number?: string; athlete_name?: string }>();
+      // 1. Batch query usaw_lifters for internal_id, lifter_id, club_name, and wso
+      const liftersMap = new Map<string, { internal_id: number | null; lifter_id: number; membership_number?: string; athlete_name?: string; club_name?: string | null; wso?: string | null }>();
+      const lifterByIdMap = new Map<number, { internal_id: number | null; lifter_id: number; membership_number?: string; athlete_name?: string; club_name?: string | null; wso?: string | null }>();
       const lifterIds: number[] = [];
 
       if (membershipNumbers.size > 0) {
         const { data: lifters } = await supabaseAdmin
           .from('usaw_lifters')
-          .select('membership_number, internal_id, lifter_id, athlete_name')
+          .select('membership_number, internal_id, lifter_id, athlete_name, club_name, wso')
           .in('membership_number', Array.from(membershipNumbers));
 
         (lifters || []).forEach((l: any) => {
