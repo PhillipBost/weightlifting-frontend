@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { CANONICAL_COUNTRY_NAMES, formatDefinedTeam } from '../../../../types/federation';
 import { ThemeSwitcher } from '../../../components/ThemeSwitcher';
+import { GamxMeetColumnTooltip, GamxMeetHeading } from '../../../components/GamxMeetTooltips';
 
 const MeetHubSpokeMap = dynamic(() => import('../../../components/MeetHubSpokeMap'), { ssr: false });
 import {
@@ -2383,7 +2384,7 @@ export default function OwlcmsMeetPage({ params }: { params: Promise<{ id: strin
                       className="flex items-center space-x-2 text-app-primary hover:text-accent-primary transition-colors mb-2 text-left"
                     >
                       {showGamxSummary ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
-                      <h2 className="text-2xl font-bold">Overall Rankings by GAMX</h2>
+                      <h2 className="text-2xl font-bold"><GamxMeetHeading /></h2>
                       <span className="text-sm text-app-muted ml-2">({sortedGamx.length} athletes ranked)</span>
                     </button>
                   </div>
@@ -2418,22 +2419,22 @@ export default function OwlcmsMeetPage({ params }: { params: Promise<{ id: strin
                                 Total <GamxSortIndicator col="total" />
                               </th>
                               <th className={qHClass('gamx_total')} onClick={() => handleGamxSort('gamx_total')}>
-                                GAMX-Total <GamxSortIndicator col="gamx_total" />
+                                <GamxMeetColumnTooltip metric="total">GAMX-Total</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_total" />
                               </th>
                               <th className={qHClass('gamx_s')} onClick={() => handleGamxSort('gamx_s')}>
-                                GAMX-S <GamxSortIndicator col="gamx_s" />
+                                <GamxMeetColumnTooltip metric="s">GAMX-S</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_s" />
                               </th>
                               <th className={qHClass('gamx_j')} onClick={() => handleGamxSort('gamx_j')}>
-                                GAMX-J <GamxSortIndicator col="gamx_j" />
+                                <GamxMeetColumnTooltip metric="j">GAMX-J</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_j" />
                               </th>
                               <th className={qHClass('gamx_u')} onClick={() => handleGamxSort('gamx_u')}>
-                                GAMX-U <GamxSortIndicator col="gamx_u" />
+                                <GamxMeetColumnTooltip metric="u">GAMX-U</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_u" />
                               </th>
                               <th className={qHClass('gamx_a')} onClick={() => handleGamxSort('gamx_a')}>
-                                GAMX-A <GamxSortIndicator col="gamx_a" />
+                                <GamxMeetColumnTooltip metric="a">GAMX-A</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_a" />
                               </th>
                               <th className={qHClass('gamx_masters')} onClick={() => handleGamxSort('gamx_masters')}>
-                                GAMX-M <GamxSortIndicator col="gamx_masters" />
+                                <GamxMeetColumnTooltip metric="masters">GAMX-M</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_masters" />
                               </th>
                             </tr>
                           </thead>

@@ -2,6 +2,8 @@
 
 import React from 'react';
 import { Weight, Trophy, TrendingUp } from 'lucide-react';
+import { MetricTooltip } from '../../../components/MetricTooltip';
+import { GAMX_METHODOLOGY } from '@/lib/utils/gamxDefinitions';
 
 interface AthleteBestsProps {
   personalBests: {
@@ -100,7 +102,14 @@ export function AthleteBests({ personalBests }: AthleteBestsProps) {
             </div>
             <div className="text-app-muted/30 px-2 text-[10px] flex items-center h-full">|</div>
             <div className="flex justify-center pr-4">
-              <h3 className="text-label">Best GAMX</h3>
+              <MetricTooltip
+                title="Best GAMX"
+                description="The highest available GAMX score across this athlete's results, including total, snatch, clean & jerk, youth, age-adjusted, and Masters scores."
+                methodology={GAMX_METHODOLOGY}
+                showIcon={false}
+              >
+                <h3 className="text-label">Best GAMX</h3>
+              </MetricTooltip>
             </div>
           </div>
 

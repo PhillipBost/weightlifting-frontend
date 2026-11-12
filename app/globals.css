@@ -3,6 +3,14 @@
 @tailwind components;
 @tailwind utilities;
 
+.gamx-tooltip {
+  scrollbar-width: none;
+}
+
+.gamx-tooltip::-webkit-scrollbar {
+  display: none;
+}
+
 /* ===========================================
    DARK THEME (Default) - Comfortable
    =========================================== */

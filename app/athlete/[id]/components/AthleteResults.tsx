@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import Papa from 'papaparse';
 import { MetricTooltip } from '../../../components/MetricTooltip';
-import { GAMX_DEFINITIONS } from '@/lib/utils/gamxDefinitions';
+import { GAMX_DEFINITIONS, GAMX_METHODOLOGY } from '@/lib/utils/gamxDefinitions';
 
 const getBestQScore = (result: any) => {
   const qYouth = result.q_youth || 0;
@@ -528,7 +528,14 @@ export function AthleteResults({
                           className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                           onClick={() => handleSort('best_gamx_score')}
                         >
-                          Best GAMX Score
+                          <MetricTooltip
+                            title="Best GAMX Score"
+                            description="The highest available total-based GAMX score for this result, selected from GAMX-Total, GAMX-U, GAMX-A, and GAMX-M."
+                            methodology={GAMX_METHODOLOGY}
+                            showIcon={false}
+                          >
+                            <span>Best GAMX Score</span>
+                          </MetricTooltip>
                           <SortIcon column="best_gamx_score" sortConfig={sortConfig} />
                         </th>
                       </>

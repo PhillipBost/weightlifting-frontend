@@ -8,6 +8,7 @@ import { supabaseIWF, IWFMeetResult } from '../../../../lib/supabaseIWF';
 import { adaptIWFResults } from '../../../../lib/adapters/iwfAdapter';
 import { ArrowLeft, Calendar, MapPin, Trophy, Users, ExternalLink, ChevronDown, ChevronRight, Mountain, Database, Medal } from 'lucide-react';
 import { ThemeSwitcher } from '../../../components/ThemeSwitcher';
+import { GamxMeetColumnTooltip, GamxMeetHeading } from '../../../components/GamxMeetTooltips';
 import { useMeetCountryLocations } from '../../../hooks/useMeetCountryLocations';
 import dynamic from 'next/dynamic';
 
@@ -1400,7 +1401,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
               <div className="mb-3">
                 <button onClick={() => setShowGamxSummary(!showGamxSummary)} className="flex items-center space-x-2 text-app-primary hover:text-accent-primary transition-colors mb-2 text-left">
                   {showGamxSummary ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
-                  <h2 className="text-2xl font-bold">Overall Rankings by GAMX</h2>
+                  <h2 className="text-2xl font-bold"><GamxMeetHeading /></h2>
                   <span className="text-sm text-app-muted ml-2">({sortedGamx.length} athletes ranked)</span>
                 </button>
               </div>
@@ -1421,12 +1422,12 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                           <th className={hClass} onClick={() => handleGamxSort('best_snatch')}>BEST<br />SNATCH <GamxSortIndicator col="best_snatch" /></th>
                           <th className={hClass} onClick={() => handleGamxSort('best_cj')}>BEST<br />C&J <GamxSortIndicator col="best_cj" /></th>
                           <th className={hClass} onClick={() => handleGamxSort('total')}>Total <GamxSortIndicator col="total" /></th>
-                          <th className={qHClass('gamx_total')} onClick={() => handleGamxSort('gamx_total')}>GAMX-Total <GamxSortIndicator col="gamx_total" /></th>
-                          <th className={qHClass('gamx_s')} onClick={() => handleGamxSort('gamx_s')}>GAMX-S <GamxSortIndicator col="gamx_s" /></th>
-                          <th className={qHClass('gamx_j')} onClick={() => handleGamxSort('gamx_j')}>GAMX-J <GamxSortIndicator col="gamx_j" /></th>
-                          <th className={qHClass('gamx_u')} onClick={() => handleGamxSort('gamx_u')}>GAMX-U <GamxSortIndicator col="gamx_u" /></th>
-                          <th className={qHClass('gamx_a')} onClick={() => handleGamxSort('gamx_a')}>GAMX-A <GamxSortIndicator col="gamx_a" /></th>
-                          <th className={qHClass('gamx_masters')} onClick={() => handleGamxSort('gamx_masters')}>GAMX-M <GamxSortIndicator col="gamx_masters" /></th>
+                          <th className={qHClass('gamx_total')} onClick={() => handleGamxSort('gamx_total')}><GamxMeetColumnTooltip metric="total">GAMX-Total</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_total" /></th>
+                          <th className={qHClass('gamx_s')} onClick={() => handleGamxSort('gamx_s')}><GamxMeetColumnTooltip metric="s">GAMX-S</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_s" /></th>
+                          <th className={qHClass('gamx_j')} onClick={() => handleGamxSort('gamx_j')}><GamxMeetColumnTooltip metric="j">GAMX-J</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_j" /></th>
+                          <th className={qHClass('gamx_u')} onClick={() => handleGamxSort('gamx_u')}><GamxMeetColumnTooltip metric="u">GAMX-U</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_u" /></th>
+                          <th className={qHClass('gamx_a')} onClick={() => handleGamxSort('gamx_a')}><GamxMeetColumnTooltip metric="a">GAMX-A</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_a" /></th>
+                          <th className={qHClass('gamx_masters')} onClick={() => handleGamxSort('gamx_masters')}><GamxMeetColumnTooltip metric="masters">GAMX-M</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_masters" /></th>
                         </tr>
                       </thead>
                       <tbody>

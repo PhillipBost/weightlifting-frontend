@@ -1,17 +1,18 @@
 'use client';
 
-import React, { useState, useRef, useLayoutEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Info } from 'lucide-react';
 
 interface MetricTooltipProps {
   title: string;
-  description: string;
+  description: React.ReactNode;
   methodology?: string;
   children: React.ReactNode;
   showIcon?: boolean;
   iconSize?: string;
   className?: string;
+  inline?: boolean;
 }
 
 export function MetricTooltip({ 
@@ -21,15 +22,21 @@ export function MetricTooltip({
   children, 
   showIcon = true,
   iconSize = "h-4 w-4",
-  className = ""
+  className = "",
+  inline = false
 }: MetricTooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [position, setPosition] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
   const [verticalPlacement, setVerticalPlacement] = useState<'top' | 'bottom'>('top');
   const [horizontalAlign, setHorizontalAlign] = useState<'left' | 'center' | 'right'>('center');
-  const triggerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement | HTMLSpanElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [mounted, setMounted] = useState(false);
+
+  useEffect(() => () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+  }, []);
 
   useLayoutEffect(() => {
     setMounted(true);
@@ -42,7 +49,7 @@ export function MetricTooltip({
       const viewportHeight = window.innerHeight;
       const viewportWidth = window.innerWidth;
 
-      const tooltipWidth = 320; // w-80 = 320px
+      const tooltipWidth = tooltipRect.width;
       const tooltipHeight = tooltipRect.height;
       const gap = 8; // spacing between trigger and tooltip
 
@@ -104,15 +111,16 @@ export function MetricTooltip({
 
     const triggerRect = triggerRef.current.getBoundingClientRect();
     const triggerCenter = triggerRect.left + triggerRect.width / 2;
+    const tooltipWidth = tooltipRef.current?.getBoundingClientRect().width || 320;
 
     // Calculate arrow position relative to tooltip
     let arrowLeft: number;
     if (horizontalAlign === 'center') {
-      arrowLeft = 160; // Center of 320px tooltip
+      arrowLeft = tooltipWidth / 2;
     } else if (horizontalAlign === 'left') {
-      arrowLeft = Math.min(triggerCenter - position.left, 300); // Max 300px to stay within tooltip
+      arrowLeft = Math.min(triggerCenter - position.left, tooltipWidth - 20);
     } else {
-      arrowLeft = 320 - (position.left + 320 - triggerCenter);
+      arrowLeft = triggerCenter - position.left;
     }
 
     const baseStyle = {
@@ -143,11 +151,17 @@ export function MetricTooltip({
   const tooltipContent = isVisible && mounted ? (
     <div
       ref={tooltipRef}
-      className="fixed z-[9999] w-80 max-w-sm"
+      className={`fixed z-[9999] ${inline ? 'overflow-y-auto gamx-tooltip' : 'w-80 max-w-sm'}`}
       style={{
         top: `${position.top}px`,
         left: `${position.left}px`,
+        ...(inline ? { width: 'min(36rem, calc(100vw - 16px))', maxHeight: 'calc(100vh - 16px)' } : {}),
       }}
+      onMouseEnter={inline ? () => {
+        if (closeTimer.current) clearTimeout(closeTimer.current);
+      } : undefined}
+      onMouseLeave={inline ? () => setIsVisible(false) : undefined}
+      onClick={inline ? event => event.stopPropagation() : undefined}
     >
       <div
         className="bg-app-secondary border border-app-primary rounded-lg p-3 shadow-lg"
@@ -175,18 +189,37 @@ export function MetricTooltip({
 
   return (
     <>
-      <div className={`relative inline-block ${className}`} ref={triggerRef}>
-        <div
-          className="flex items-center cursor-help"
-          onMouseEnter={() => setIsVisible(true)}
-          onMouseLeave={() => setIsVisible(false)}
+      {inline ? (
+        <span
+          className={`relative inline-block cursor-help ${className}`}
+          ref={element => { triggerRef.current = element; }}
+          onMouseEnter={() => {
+            if (closeTimer.current) clearTimeout(closeTimer.current);
+            setIsVisible(true);
+          }}
+          onMouseLeave={() => {
+            closeTimer.current = setTimeout(() => setIsVisible(false), 200);
+          }}
         >
           {children}
           {showIcon && (
-            <Info className={`${iconSize} ml-1 text-app-muted opacity-60 hover:opacity-100 transition-opacity flex-shrink-0`} />
+            <Info className={`${iconSize} ml-1 inline-block text-app-muted opacity-60 hover:opacity-100 transition-opacity`} />
           )}
+        </span>
+      ) : (
+        <div className={`relative inline-block ${className}`} ref={element => { triggerRef.current = element; }}>
+          <div
+            className="flex items-center cursor-help"
+            onMouseEnter={() => setIsVisible(true)}
+            onMouseLeave={() => setIsVisible(false)}
+          >
+            {children}
+            {showIcon && (
+              <Info className={`${iconSize} ml-1 text-app-muted opacity-60 hover:opacity-100 transition-opacity flex-shrink-0`} />
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {mounted && createPortal(tooltipContent, document.body)}
     </>
