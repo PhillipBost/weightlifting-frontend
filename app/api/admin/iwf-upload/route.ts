@@ -102,6 +102,15 @@ function runSpawnStream({
 }
 
 export async function POST(req: NextRequest) {
+  let recordRunCompletion: ((params: {
+    status: 'SUCCESS' | 'FAILED' | 'CANCELLED';
+    exitCode?: number;
+    combinedLogs?: string;
+    linkerLogs?: string;
+    errorMessage?: string;
+    importStats?: any;
+  }) => Promise<void>) | null = null;
+
   try {
     // 1. Verify authenticated administrator session
     const serverSupabase = await createServerClient();
@@ -189,7 +198,7 @@ export async function POST(req: NextRequest) {
       console.warn('[IWF_PIPELINE] Failed to initialize iwf_pipeline_runs record:', insertErr);
     }
 
-    const recordRunCompletion = async ({
+    recordRunCompletion = async ({
       status,
       exitCode,
       combinedLogs,
@@ -636,12 +645,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ...finalResult, runId });
   } catch (err: any) {
     const logs = [err?.stdout, err?.stderr, err?.message].filter(Boolean).join('\n');
-    await recordRunCompletion({
-      status: 'FAILED',
-      exitCode: 1,
-      combinedLogs: logs,
-      errorMessage: err?.message || 'IWF pipeline execution failed'
-    });
+    if (recordRunCompletion) {
+      await recordRunCompletion({
+        status: 'FAILED',
+        exitCode: 1,
+        combinedLogs: logs,
+        errorMessage: err?.message || 'IWF pipeline execution failed'
+      });
+    }
     return NextResponse.json(
       {
         success: false,
