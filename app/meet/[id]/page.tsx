@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { createClient } from '../../../lib/supabase/client';
 import { ArrowLeft, Calendar, MapPin, Trophy, Users, ExternalLink, ChevronDown, ChevronRight, Mountain, Database, Medal } from 'lucide-react';
 import { ThemeSwitcher } from '../../components/ThemeSwitcher';
+import { navigateBackOrHome } from '../../lib/navigation';
 import { GamxMeetColumnTooltip, GamxMeetHeading } from '../../components/GamxMeetTooltips';
 import { useMeetClubLocations } from '../../hooks/useMeetClubLocations';
 import dynamic from 'next/dynamic';
@@ -864,7 +865,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
           <h1 className="text-2xl font-bold text-app-primary mb-4">Error Loading Meet</h1>
           <p className="text-app-secondary mb-4">{error || 'Meet not found'}</p>
           <button
-            onClick={() => router.back()}
+            onClick={() => navigateBackOrHome(router)}
             className="bg-accent-primary hover:bg-accent-primary-hover text-app-primary px-6 py-2 rounded-lg transition-colors"
           >
             Go Back

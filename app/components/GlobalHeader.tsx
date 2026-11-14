@@ -9,6 +9,7 @@ import { ThemeSwitcher } from "./ThemeSwitcher";
 import { UserMenu } from "./UserMenu";
 import { UnifiedSearch } from "./UnifiedSearch";
 import { LoginModal } from "./LoginModal";
+import { recordInAppRoute, navigateBackOrHome } from "../lib/navigation";
 
 interface GlobalHeaderProps {
   /**
@@ -40,6 +41,12 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
     setMounted(true);
   }, []);
 
+  useEffect(() => {
+    if (pathname) {
+      recordInAppRoute(pathname);
+    }
+  }, [pathname]);
+
   // Do NOT render on Home. Home has its own dedicated header.
   if (pathname === "/") {
     return null;
@@ -49,7 +56,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
     if (backHref) {
       router.push(backHref);
     } else {
-      router.back();
+      navigateBackOrHome(router);
     }
   };
 

@@ -33,6 +33,7 @@ import Activity from 'lucide-react/dist/esm/icons/activity';
 
 import Papa from 'papaparse';
 import { ThemeSwitcher } from '../../components/ThemeSwitcher';
+import { navigateBackOrHome } from '../../lib/navigation';
 import { AthleteCard } from '../../components/AthleteCard';
 import { AuthGuard } from '../../components/AuthGuard';
 import { ROLES } from '../../../lib/roles';
@@ -920,7 +921,7 @@ export function AthletePageUI({ params, initialData = null }: { params: { id: st
               Try Again
             </button>
             <button
-              onClick={() => window.history.back()}
+              onClick={() => navigateBackOrHome(router)}
               className="bg-app-tertiary hover:bg-app-surface text-app-secondary px-6 py-2 rounded-lg transition-colors border border-app-secondary"
             >
               Go Back
