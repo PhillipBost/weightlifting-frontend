@@ -8,6 +8,7 @@ import { CANONICAL_COUNTRY_NAMES } from '@/types/federation';
 interface AthleteHeaderProps {
   athlete: any;
   recentInfo: { wso: string | null; club: string | null };
+  results?: any[];
   iwfProfiles: { id: string; url: string | null }[];
   iwfResults: any[];
   showIwfResults: boolean;
@@ -27,6 +28,7 @@ interface AthleteHeaderProps {
 export function AthleteHeader({
   athlete,
   recentInfo,
+  results = [],
   iwfProfiles,
   iwfResults,
   showIwfResults,
@@ -58,6 +60,62 @@ export function AthleteHeader({
       return name ? `${name} (${code})` : code;
     });
   }, [athlete, owlcmsResults, iwfResults]);
+
+  const { birthYear, currentCompetitionAge } = React.useMemo(() => {
+    const extractYear = (dateVal: unknown): number | null => {
+      if (!dateVal) return null;
+      const str = String(dateVal);
+      const match = str.match(/^(\d{4})/);
+      if (match) {
+        const y = Number(match[1]);
+        return Number.isFinite(y) ? y : null;
+      }
+      const parsed = new Date(str);
+      return Number.isNaN(parsed.getTime()) ? null : parsed.getUTCFullYear();
+    };
+
+    const parseYear = (val: unknown): number | null => {
+      const n = Number(val);
+      return Number.isInteger(n) && n > 1900 && n <= 2100 ? n : null;
+    };
+
+    let resolvedBirthYear = parseYear(athlete?.birth_year ?? athlete?.birthYear);
+
+    if (!resolvedBirthYear) {
+      for (const r of results) {
+        const y = parseYear(r?.birth_year);
+        if (y) {
+          resolvedBirthYear = y;
+          break;
+        }
+      }
+    }
+
+    if (!resolvedBirthYear) {
+      for (const r of results) {
+        const age = Number(r?.competition_age);
+        const meetYear = extractYear(r?.date);
+        if (Number.isInteger(age) && age > 0 && age < 120 && meetYear) {
+          resolvedBirthYear = meetYear - age;
+          break;
+        }
+      }
+    }
+
+    const currentYear = new Date().getFullYear();
+    const hasRecentCompetition = results.some((r) => {
+      const meetYear = extractYear(r?.date);
+      return meetYear !== null && meetYear >= currentYear - 2 && meetYear <= currentYear;
+    });
+
+    const computedAge =
+      resolvedBirthYear && hasRecentCompetition ? currentYear - resolvedBirthYear : null;
+
+    return {
+      birthYear: resolvedBirthYear,
+      currentCompetitionAge: computedAge,
+    };
+  }, [athlete, results]);
 
   if (!athlete) return null;
 
@@ -112,94 +170,124 @@ export function AthleteHeader({
                 </span>
               </div>
             ) : null}
-            <div className="flex flex-wrap gap-4 text-sm text-app-secondary">
-              {forceOwlcmsMode ? (
-                <>
-                  <div className="flex items-center space-x-1">
-                    <span>owlcms Competitor #{currentOwlcmsId?.replace('owlcms-', '') || athlete.linked_owlcms_id || athlete.lifter_id}</span>
-                  </div>
-                  {athlete.gender && (
-                    <div className="flex items-center space-x-1">
-                      <span>{athlete.gender === 'M' ? 'Male' : 'Female'}</span>
-                    </div>
+            <div className="flex flex-col gap-1 text-sm text-app-secondary">
+              {(forceOwlcmsMode || forceIwfMode || athlete.membership_number || athlete.gender) && (
+                <div className="flex flex-wrap gap-x-4 gap-y-1">
+                  {forceOwlcmsMode ? (
+                    <>
+                      <div className="flex items-center space-x-1">
+                        <span>owlcms Competitor #{currentOwlcmsId?.replace('owlcms-', '') || athlete.linked_owlcms_id || athlete.lifter_id}</span>
+                      </div>
+                      {athlete.gender && (
+                        <div className="flex items-center space-x-1">
+                          <span>{athlete.gender === 'M' ? 'Male' : 'Female'}</span>
+                        </div>
+                      )}
+                    </>
+                  ) : forceIwfMode ? (
+                    <>
+                      <div className="flex items-center space-x-1">
+                        <span>IWF Athlete ID: {currentIwfId?.replace('iwf-', '')}</span>
+                      </div>
+                      {athlete.gender && (
+                        <div className="flex items-center space-x-1">
+                          <span>{athlete.gender === 'M' ? 'Male' : 'Female'}</span>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      {athlete.membership_number && (
+                        <div className="flex items-center space-x-1">
+                          <span>USAW Membership #{athlete.membership_number}</span>
+                        </div>
+                      )}
+                      {athlete.gender && (
+                        <div className="flex items-center space-x-1">
+                          <span>{athlete.gender === 'M' ? 'Male' : 'Female'}</span>
+                        </div>
+                      )}
+                    </>
                   )}
-                </>
-              ) : forceIwfMode ? (
-                <>
-                  <div className="flex items-center space-x-1">
-                    <span>IWF Athlete ID: {currentIwfId?.replace('iwf-', '')}</span>
-                  </div>
-                  {athlete.gender && (
-                    <div className="flex items-center space-x-1">
-                      <span>{athlete.gender === 'M' ? 'Male' : 'Female'}</span>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <>
-                  {athlete.membership_number && (
-                    <div className="flex items-center space-x-1">
-                      <span>USAW Membership #{athlete.membership_number}</span>
-                    </div>
-                  )}
-                  {athlete.gender && (
-                    <div className="flex items-center space-x-1">
-                      <span>{athlete.gender === 'M' ? 'Male' : 'Female'}</span>
-                    </div>
-                  )}
-                </>
+                </div>
               )}
-            </div>
-            <div className="flex flex-wrap gap-4 text-sm text-app-secondary mt-2">
-              {forceOwlcmsMode ? (
-                <>
-                  {athlete.club_name && (
+
+              {(birthYear || currentCompetitionAge !== null) && (
+                <div className="flex flex-wrap gap-x-4 gap-y-1">
+                  {birthYear && (
                     <div className="flex items-center space-x-1">
-                      <Dumbbell className="h-4 w-4" />
-                      <span>Club: {athlete.club_name}</span>
+                      <span>Birth Year: {birthYear}</span>
                     </div>
                   )}
-                  {representedCountries.length > 0 && (
+                  {currentCompetitionAge !== null && (
                     <div className="flex items-center space-x-1">
-                      <MapPin className="h-4 w-4" />
-                      <span>
-                        {representedCountries.length > 1 ? 'Countries:' : 'Country:'}{' '}
-                        {representedCountries.join(' • ')}
-                      </span>
+                      <span>Current Competition Age: {currentCompetitionAge}</span>
                     </div>
                   )}
-                </>
-              ) : forceIwfMode ? (
-                <>
-                  {athlete.nation_code && (
-                    <div className="flex items-center space-x-1">
-                      <MapPin className="h-4 w-4" />
-                      <span>Country Code: {athlete.nation_code}</span>
-                    </div>
-                  )}
-                  {athlete.nation && (
-                    <div className="flex items-center space-x-1">
-                      <Dumbbell className="h-4 w-4" />
-                      <span>Country: {athlete.nation}</span>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <>
-                  {recentInfo.wso && (
-                    <div className="flex items-center space-x-1">
-                      <MapPin className="h-4 w-4" />
-                      <span>WSO: {recentInfo.wso}</span>
-                    </div>
-                  )}
-                  {recentInfo.club && (
-                    <div className="flex items-center space-x-1">
-                      <Dumbbell className="h-4 w-4" />
-                      <span>Barbell Club: {recentInfo.club}</span>
-                    </div>
-                  )}
-                </>
+                </div>
               )}
+
+              {((forceOwlcmsMode && (athlete.club_name || representedCountries.length > 0)) ||
+                (forceIwfMode && (athlete.nation_code || athlete.nation)) ||
+                (!forceOwlcmsMode && !forceIwfMode && (recentInfo.wso || recentInfo.club))) && (
+                <div className="flex flex-wrap gap-x-4 gap-y-1">
+                  {forceOwlcmsMode ? (
+                    <>
+                      {athlete.club_name && (
+                        <div className="flex items-center space-x-1">
+                          <Dumbbell className="h-4 w-4" />
+                          <span>Club: {athlete.club_name}</span>
+                        </div>
+                      )}
+                      {representedCountries.length > 0 && (
+                        <div className="flex items-center space-x-1">
+                          <MapPin className="h-4 w-4" />
+                          <span>
+                            {representedCountries.length > 1 ? 'Countries:' : 'Country:'}{' '}
+                            {representedCountries.join(' • ')}
+                          </span>
+                        </div>
+                      )}
+                    </>
+                  ) : forceIwfMode ? (
+                    <>
+                      {athlete.nation_code && (
+                        <div className="flex items-center space-x-1">
+                          <MapPin className="h-4 w-4" />
+                          <span>Country Code: {athlete.nation_code}</span>
+                        </div>
+                      )}
+                      {athlete.nation && (
+                        <div className="flex items-center space-x-1">
+                          <Dumbbell className="h-4 w-4" />
+                          <span>Country: {athlete.nation}</span>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      {recentInfo.wso && (
+                        <div className="flex items-center space-x-1">
+                          <MapPin className="h-4 w-4" />
+                          <span>WSO: {recentInfo.wso}</span>
+                        </div>
+                      )}
+                      {recentInfo.club && (
+                        <div className="flex items-center space-x-1">
+                          <Dumbbell className="h-4 w-4" />
+                          <span>Barbell Club: {recentInfo.club}</span>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+
+              <div className="flex flex-wrap gap-x-4 gap-y-1">
+                <div className="flex items-center space-x-1">
+                  <span>Total Participations: {results.length}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

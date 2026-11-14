@@ -424,6 +424,7 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false, f
               <AthleteHeader 
                 athlete={athlete} 
                 recentInfo={recentInfo} 
+                results={results}
                 iwfProfiles={athlete.iwf_profiles || []}
                 iwfResults={results.filter((r: any) => r._source === 'IWF')} 
                 showIwfResults={showIwfResults} 
