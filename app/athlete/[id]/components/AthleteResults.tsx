@@ -6,6 +6,7 @@ import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import Papa from 'papaparse';
 import { MetricTooltip } from '../../../components/MetricTooltip';
 import { GAMX_DEFINITIONS, GAMX_METHODOLOGY } from '@/lib/utils/gamxDefinitions';
+import { Q_SCORE_DEFINITIONS } from '@/lib/utils/qScoreDefinitions';
 
 const getBestQScore = (result: any) => {
   const qYouth = result.q_youth || 0;
@@ -28,9 +29,13 @@ const getBestQScore = (result: any) => {
 const getBestGamx = (result: any) => {
   const scores = [
     { value: result.gamx_total, color: 'var(--chart-gamx-total)' },
+    { value: result.gamx_s, color: 'var(--chart-gamx-s)' },
+    { value: result.gamx_j, color: 'var(--chart-gamx-j)' },
     { value: result.gamx_u, color: 'var(--chart-gamx-u)' },
     { value: result.gamx_a, color: 'var(--chart-gamx-a)' },
-    { value: result.gamx_masters, color: 'var(--chart-gamx-masters)' }
+    { value: result.gamx_masters, color: 'var(--chart-gamx-masters)' },
+    { value: result.gamx_sm, color: 'var(--chart-gamx-sm)' },
+    { value: result.gamx_jm, color: 'var(--chart-gamx-jm)' }
   ].filter(s => s.value !== null && s.value !== undefined && s.value > 0);
 
   if (scores.length === 0) return { value: '-', style: {} };
@@ -381,7 +386,14 @@ export function AthleteResults({
                           className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                           onClick={() => handleSort('q_youth')}
                         >
-                          Q-Youth
+                          <MetricTooltip
+                            title={Q_SCORE_DEFINITIONS.qyouth.title}
+                            description={Q_SCORE_DEFINITIONS.qyouth.description}
+                            methodology={Q_SCORE_DEFINITIONS.qyouth.methodology}
+                            showIcon={false}
+                          >
+                            <span>Q-Youth</span>
+                          </MetricTooltip>
                           <SortIcon column="q_youth" sortConfig={sortConfig} />
                         </th>
                         <th
@@ -389,7 +401,14 @@ export function AthleteResults({
                           className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                           onClick={() => handleSort('qpoints')}
                         >
-                          Q-Points
+                          <MetricTooltip
+                            title={Q_SCORE_DEFINITIONS.qpoints.title}
+                            description={Q_SCORE_DEFINITIONS.qpoints.description}
+                            methodology={Q_SCORE_DEFINITIONS.qpoints.methodology}
+                            showIcon={false}
+                          >
+                            <span>Q-Points</span>
+                          </MetricTooltip>
                           <SortIcon column="qpoints" sortConfig={sortConfig} />
                         </th>
                         <th
@@ -397,7 +416,14 @@ export function AthleteResults({
                           className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                           onClick={() => handleSort('q_masters')}
                         >
-                          Q-Masters
+                          <MetricTooltip
+                            title={Q_SCORE_DEFINITIONS.qmasters.title}
+                            description={Q_SCORE_DEFINITIONS.qmasters.description}
+                            methodology={Q_SCORE_DEFINITIONS.qmasters.methodology}
+                            showIcon={false}
+                          >
+                            <span>Q-Masters</span>
+                          </MetricTooltip>
                           <SortIcon column="q_masters" sortConfig={sortConfig} />
                         </th>
                         <th scope="col" className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort('gamx_total')}>
@@ -544,7 +570,14 @@ export function AthleteResults({
                           className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none"
                           onClick={() => handleSort('best_q_score')}
                         >
-                          Best Q-Score
+                          <MetricTooltip
+                            title={Q_SCORE_DEFINITIONS.best.title}
+                            description={Q_SCORE_DEFINITIONS.best.description}
+                            methodology={Q_SCORE_DEFINITIONS.best.methodology}
+                            showIcon={false}
+                          >
+                            <span>Best Q-Score</span>
+                          </MetricTooltip>
                           <SortIcon column="best_q_score" sortConfig={sortConfig} />
                         </th>
                         <th
@@ -554,7 +587,7 @@ export function AthleteResults({
                         >
                           <MetricTooltip
                             title="Best GAMX Score"
-                            description="The highest available total-based GAMX score for this result, selected from GAMX-Total, GAMX-U, GAMX-A, and GAMX-M."
+                            description="The highest available GAMX score for this result, selected from GAMX-Total, GAMX-S, GAMX-J, GAMX-U, GAMX-A, GAMX-M, GAMX-MS, and GAMX-MJ."
                             methodology={GAMX_METHODOLOGY}
                             showIcon={false}
                           >

@@ -10,7 +10,9 @@ const columnDescriptions: Record<keyof typeof GAMX_DEFINITIONS, string> = {
   j: 'Age Range: 15–40. Evaluates the best Clean & Jerk, adjusted for body mass and sex. Based on IWF Senior World Championships.',
   u: 'Age Range: 7–17. Evaluates competition Total, adjusted for body mass (minimum 25 kg), sex, and age. Based on USAW national championships.',
   a: 'Age Range: 13–40. Evaluates competition Total, adjusted for body mass (minimum 30 kg), sex, and age. Based on IWF Youth, Junior, and Senior World Championships.',
-  masters: 'Age Range: 30+. Evaluates competition Total, adjusted for body mass, sex, and age. Based on IMWA World Masters Championships.'
+  masters: 'Age Range: 30+. Evaluates competition Total, adjusted for body mass, sex, and age. Based on IMWA World Masters Championships.',
+  sm: 'Age Range: 30+. Evaluates the best Snatch, adjusted for body mass, sex, and age. Based on IMWA World Masters Championships.',
+  jm: 'Age Range: 30+. Evaluates the best Clean & Jerk, adjusted for body mass, sex, and age. Based on IMWA World Masters Championships.'
 };
 
 export function GamxMeetColumnTooltip({ metric, children }: { metric: keyof typeof GAMX_DEFINITIONS; children: React.ReactNode }) {

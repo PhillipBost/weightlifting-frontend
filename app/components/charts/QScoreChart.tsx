@@ -6,6 +6,8 @@ import {
   ResponsiveContainer, Brush, ReferenceLine
 } from 'recharts';
 import { BarChart3 } from 'lucide-react';
+import { MetricTooltip } from '../MetricTooltip';
+import { Q_SCORE_DEFINITIONS } from '@/lib/utils/qScoreDefinitions';
 
 interface QScoreChartProps {
   chartData: any[];
@@ -34,27 +36,48 @@ export default function QScoreChart({ chartData, athlete, legendFlags }: QScoreC
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
           {/* Q-score toggles */}
           <div className="flex gap-1 border border-app-secondary rounded-lg p-1 w-fit">
-            <button
-              onClick={() => setShowQPoints(!showQPoints)}
-              className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out ${showQPoints ? 'bg-accent-primary text-white' : 'bg-app-surface text-app-secondary hover:bg-app-hover'}`}
+            <MetricTooltip
+              title={Q_SCORE_DEFINITIONS.qpoints.title}
+              description={Q_SCORE_DEFINITIONS.qpoints.description}
+              methodology={Q_SCORE_DEFINITIONS.qpoints.methodology}
+              showIcon={false}
             >
-              Q-Points
-            </button>
-            {legendFlags.hasQYouth && (
               <button
-                onClick={() => setShowQYouth(!showQYouth)}
-                className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out ${showQYouth ? 'bg-accent-primary text-white' : 'bg-app-surface text-app-secondary hover:bg-app-hover'}`}
+                onClick={() => setShowQPoints(!showQPoints)}
+                className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap transition-all duration-300 ease-in-out ${showQPoints ? 'bg-accent-primary text-white' : 'bg-app-surface text-app-secondary hover:bg-app-hover'}`}
               >
-                Q-Youth
+                Q-Points
               </button>
+            </MetricTooltip>
+            {legendFlags.hasQYouth && (
+              <MetricTooltip
+                title={Q_SCORE_DEFINITIONS.qyouth.title}
+                description={Q_SCORE_DEFINITIONS.qyouth.description}
+                methodology={Q_SCORE_DEFINITIONS.qyouth.methodology}
+                showIcon={false}
+              >
+                <button
+                  onClick={() => setShowQYouth(!showQYouth)}
+                  className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap transition-all duration-300 ease-in-out ${showQYouth ? 'bg-accent-primary text-white' : 'bg-app-surface text-app-secondary hover:bg-app-hover'}`}
+                >
+                  Q-Youth
+                </button>
+              </MetricTooltip>
             )}
             {legendFlags.hasQMasters && (
-              <button
-                onClick={() => setShowQMasters(!showQMasters)}
-                className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out ${showQMasters ? 'bg-accent-primary text-white' : 'bg-app-surface text-app-secondary hover:bg-app-hover'}`}
+              <MetricTooltip
+                title={Q_SCORE_DEFINITIONS.qmasters.title}
+                description={Q_SCORE_DEFINITIONS.qmasters.description}
+                methodology={Q_SCORE_DEFINITIONS.qmasters.methodology}
+                showIcon={false}
               >
-                Q-Masters
-              </button>
+                <button
+                  onClick={() => setShowQMasters(!showQMasters)}
+                  className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap transition-all duration-300 ease-in-out ${showQMasters ? 'bg-accent-primary text-white' : 'bg-app-surface text-app-secondary hover:bg-app-hover'}`}
+                >
+                  Q-Masters
+                </button>
+              </MetricTooltip>
             )}
           </div>
           {/* Chart controls */}
@@ -254,21 +277,42 @@ export default function QScoreChart({ chartData, athlete, legendFlags }: QScoreC
       </ResponsiveContainer>
 
       <div className="flex flex-wrap justify-center gap-6 mt-4 pt-4 border-t border-app-secondary">
-        <div className="flex items-center space-x-2">
-          <div className="w-4 h-0.5 bg-[var(--chart-qpoints)]"></div>
-          <span className="text-sm text-app-secondary">Q-Points</span>
-        </div>
-        {legendFlags.hasQYouth && (
+        <MetricTooltip
+          title={Q_SCORE_DEFINITIONS.qpoints.title}
+          description={Q_SCORE_DEFINITIONS.qpoints.description}
+          methodology={Q_SCORE_DEFINITIONS.qpoints.methodology}
+          showIcon={false}
+        >
           <div className="flex items-center space-x-2">
-            <div className="w-4 h-0.5 bg-[var(--chart-qyouth)]"></div>
-            <span className="text-sm text-app-secondary">Q-Youth</span>
+            <div className="w-4 h-0.5 bg-[var(--chart-qpoints)]"></div>
+            <span className="text-sm text-app-secondary">Q-Points</span>
           </div>
+        </MetricTooltip>
+        {legendFlags.hasQYouth && (
+          <MetricTooltip
+            title={Q_SCORE_DEFINITIONS.qyouth.title}
+            description={Q_SCORE_DEFINITIONS.qyouth.description}
+            methodology={Q_SCORE_DEFINITIONS.qyouth.methodology}
+            showIcon={false}
+          >
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-0.5 bg-[var(--chart-qyouth)]"></div>
+              <span className="text-sm text-app-secondary">Q-Youth</span>
+            </div>
+          </MetricTooltip>
         )}
         {legendFlags.hasQMasters && (
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-0.5 bg-[var(--chart-qmasters)]"></div>
-            <span className="text-sm text-app-secondary">Q-Masters</span>
-          </div>
+          <MetricTooltip
+            title={Q_SCORE_DEFINITIONS.qmasters.title}
+            description={Q_SCORE_DEFINITIONS.qmasters.description}
+            methodology={Q_SCORE_DEFINITIONS.qmasters.methodology}
+            showIcon={false}
+          >
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-0.5 bg-[var(--chart-qmasters)]"></div>
+              <span className="text-sm text-app-secondary">Q-Masters</span>
+            </div>
+          </MetricTooltip>
         )}
       </div>
     </div>

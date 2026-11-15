@@ -18,13 +18,13 @@ export const GAMX_DEFINITIONS: Record<'total' | 's' | 'j' | 'u' | 'a' | 'masters
   s: {
     title: "GAMX-S (Snatch)",
     ageRange: "15–40",
-    description: "Compares the best snatch of three attempts, adjusted for body mass and sex. Based on International Weightlifting Federation Senior World Championships for ages 15–40. The separate GAMX-S-M model adjusts for age as well for Masters ages 30 and older, using International Masters Weightlifting Association World Masters Championships.",
+    description: "Compares the best snatch of three attempts, adjusted for body mass and sex. Based on International Weightlifting Federation Senior World Championships for ages 15–40.",
     methodology: GAMX_METHODOLOGY
   },
   j: {
     title: "GAMX-J (Clean & Jerk)",
     ageRange: "15–40",
-    description: "Compares the best clean & jerk of three attempts, adjusted for body mass and sex. Based on International Weightlifting Federation Senior World Championships for ages 15–40. The separate GAMX-J-M model adjusts for age as well for Masters ages 30 and older, using International Masters Weightlifting Association World Masters Championships.",
+    description: "Compares the best clean & jerk of three attempts, adjusted for body mass and sex. Based on International Weightlifting Federation Senior World Championships for ages 15–40.",
     methodology: GAMX_METHODOLOGY
   },
   u: {

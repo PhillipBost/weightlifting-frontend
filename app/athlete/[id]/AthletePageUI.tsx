@@ -59,9 +59,13 @@ const getBestQScore = (result: any) => {
 const getBestGamx = (result: any) => {
   const scores = [
     { value: result.gamx_total, color: 'var(--chart-gamx-total)' },
+    { value: result.gamx_s, color: 'var(--chart-gamx-s)' },
+    { value: result.gamx_j, color: 'var(--chart-gamx-j)' },
     { value: result.gamx_u, color: 'var(--chart-gamx-u)' },
     { value: result.gamx_a, color: 'var(--chart-gamx-a)' },
-    { value: result.gamx_masters, color: 'var(--chart-gamx-masters)' }
+    { value: result.gamx_masters, color: 'var(--chart-gamx-masters)' },
+    { value: result.gamx_sm, color: 'var(--chart-gamx-sm)' },
+    { value: result.gamx_jm, color: 'var(--chart-gamx-jm)' }
   ].filter(s => s.value !== null && s.value !== undefined && s.value > 0);
 
   if (scores.length === 0) return { value: '-', style: {} };
@@ -398,6 +402,33 @@ export function AthletePageUI({ params, initialData = null }: { params: { id: st
         return parseFloat(result.qpoints) || 0;
       case 'q_masters':
         return parseFloat(result.q_masters) || 0;
+      case 'gamx_total':
+        return parseFloat(result.gamx_total) || 0;
+      case 'gamx_s':
+        return parseFloat(result.gamx_s) || 0;
+      case 'gamx_j':
+        return parseFloat(result.gamx_j) || 0;
+      case 'gamx_u':
+        return parseFloat(result.gamx_u) || 0;
+      case 'gamx_a':
+        return parseFloat(result.gamx_a) || 0;
+      case 'gamx_masters':
+        return parseFloat(result.gamx_masters) || 0;
+      case 'gamx_sm':
+        return parseFloat(result.gamx_sm) || 0;
+      case 'gamx_jm':
+        return parseFloat(result.gamx_jm) || 0;
+      case 'best_gamx_score':
+        return Math.max(
+          parseFloat(result.gamx_total) || 0,
+          parseFloat(result.gamx_s) || 0,
+          parseFloat(result.gamx_j) || 0,
+          parseFloat(result.gamx_u) || 0,
+          parseFloat(result.gamx_a) || 0,
+          parseFloat(result.gamx_masters) || 0,
+          parseFloat(result.gamx_sm) || 0,
+          parseFloat(result.gamx_jm) || 0
+        );
       default:
         return '';
     }

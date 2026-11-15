@@ -312,14 +312,16 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false, f
     ]);
     const bestQ = qScores.reduce((prev: any, curr: any) => (curr.value > prev.value) ? curr : prev, { value: 0, label: 'N/A', color: 'var(--chart-qpoints)', date: null });
 
-    // GAMX Logic (Total, S, J, U, A, Masters)
+    // GAMX Logic (Total, S, J, U, A, Masters, MS, MJ)
     const gamxScores = dataset.flatMap((r: any) => [
       { value: parseFloat(r.gamx_total) || 0, label: 'GAMX-Total', color: 'var(--chart-gamx-total)', date: r.date },
       { value: parseFloat(r.gamx_s) || 0, label: 'GAMX-S', color: 'var(--chart-gamx-s)', date: r.date },
       { value: parseFloat(r.gamx_j) || 0, label: 'GAMX-J', color: 'var(--chart-gamx-j)', date: r.date },
       { value: parseFloat(r.gamx_u) || 0, label: 'GAMX-U', color: 'var(--chart-gamx-u)', date: r.date },
       { value: parseFloat(r.gamx_a) || 0, label: 'GAMX-A', color: 'var(--chart-gamx-a)', date: r.date },
-      { value: parseFloat(r.gamx_masters) || 0, label: 'GAMX-Masters', color: 'var(--chart-gamx-masters)', date: r.date }
+      { value: parseFloat(r.gamx_masters) || 0, label: 'GAMX-Masters', color: 'var(--chart-gamx-masters)', date: r.date },
+      { value: parseFloat(r.gamx_sm) || 0, label: 'GAMX-MS', color: 'var(--chart-gamx-sm)', date: r.date },
+      { value: parseFloat(r.gamx_jm) || 0, label: 'GAMX-MJ', color: 'var(--chart-gamx-jm)', date: r.date }
     ]);
     const bestGamx = gamxScores.reduce((prev: any, curr: any) => (curr.value > prev.value) ? curr : prev, { value: 0, label: 'N/A', color: 'var(--chart-gamx-total)', date: null });
 
@@ -368,6 +370,29 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false, f
       case 'best_snatch': return parseInt(result.best_snatch) || 0;
       case 'best_cj': return parseInt(result.best_cj) || 0;
       case 'total': return parseInt(result.total) || 0;
+      case 'q_youth': return parseFloat(result.q_youth) || 0;
+      case 'qpoints': return parseFloat(result.qpoints) || 0;
+      case 'q_masters': return parseFloat(result.q_masters) || 0;
+      case 'best_q_score': return Math.max(parseFloat(result.qpoints) || 0, parseFloat(result.q_youth) || 0, parseFloat(result.q_masters) || 0);
+      case 'gamx_total': return parseFloat(result.gamx_total) || 0;
+      case 'gamx_s': return parseFloat(result.gamx_s) || 0;
+      case 'gamx_j': return parseFloat(result.gamx_j) || 0;
+      case 'gamx_u': return parseFloat(result.gamx_u) || 0;
+      case 'gamx_a': return parseFloat(result.gamx_a) || 0;
+      case 'gamx_masters': return parseFloat(result.gamx_masters) || 0;
+      case 'gamx_sm': return parseFloat(result.gamx_sm) || 0;
+      case 'gamx_jm': return parseFloat(result.gamx_jm) || 0;
+      case 'best_gamx_score':
+        return Math.max(
+          parseFloat(result.gamx_total) || 0,
+          parseFloat(result.gamx_s) || 0,
+          parseFloat(result.gamx_j) || 0,
+          parseFloat(result.gamx_u) || 0,
+          parseFloat(result.gamx_a) || 0,
+          parseFloat(result.gamx_masters) || 0,
+          parseFloat(result.gamx_sm) || 0,
+          parseFloat(result.gamx_jm) || 0
+        );
       default: return '';
     }
   };
