@@ -31,7 +31,7 @@ interface AthleteRanking {
   lifter_id: string;
   lifter_name: string;
   gender: string;
-  federation: "usaw" | "iwf";
+  federation: "usaw" | "iwf" | "owlcms";
   year: number;
   weight_class?: string;
   age_category?: string;
@@ -63,6 +63,8 @@ interface AthleteRanking {
   gamx_total?: number;
   gamx_s?: number;
   gamx_j?: number;
+  gamx_sm?: number;
+  gamx_jm?: number;
 }
 
 interface USAWRankingResult {
@@ -92,6 +94,8 @@ interface USAWRankingResult {
   gamx_total?: number | null;
   gamx_s?: number | null;
   gamx_j?: number | null;
+  gamx_sm?: number | null;
+  gamx_jm?: number | null;
 }
 
 interface IWFRankingResult {
@@ -121,6 +125,39 @@ interface IWFRankingResult {
   gamx_total?: number | null;
   gamx_s?: number | null;
   gamx_j?: number | null;
+  gamx_sm?: number | null;
+  gamx_jm?: number | null;
+}
+
+interface OWLCMSRankingResult {
+  result_id: number;
+  meet_id: number;
+  lifter_id: number;
+  membership_number?: string | null;
+  lifter_name: string;
+  gender: string;
+  weight_class: string;
+  age_category?: string;
+  date: string;
+  meet_name: string;
+  body_weight_kg: string;
+  competition_age: number | null;
+  best_snatch: number;
+  best_cj: number;
+  total: number;
+  qpoints: number;
+  q_youth: number | null;
+  q_masters: number | null;
+  country_code?: string | null;
+  club_name?: string | null;
+  gamx_u?: number | null;
+  gamx_a?: number | null;
+  gamx_masters?: number | null;
+  gamx_total?: number | null;
+  gamx_s?: number | null;
+  gamx_j?: number | null;
+  gamx_sm?: number | null;
+  gamx_jm?: number | null;
 }
 
 interface IWFSanction {
@@ -195,7 +232,7 @@ const HISTORICAL_1998_2018_WEIGHT_CLASSES = {
 
 // Performance metrics that should be ranked when sorted by
 // Note: use raw qpoints (open) so youth/masters scores do not affect open ranking
-const PERFORMANCE_METRICS = ['best_total', 'best_snatch', 'best_cj', 'qpoints', 'q_youth', 'q_masters', 'gamx_u', 'gamx_a', 'gamx_masters', 'gamx_total', 'gamx_s', 'gamx_j'];
+const PERFORMANCE_METRICS = ['best_total', 'best_snatch', 'best_cj', 'qpoints', 'q_youth', 'q_masters', 'gamx_u', 'gamx_a', 'gamx_masters', 'gamx_total', 'gamx_s', 'gamx_j', 'gamx_sm', 'gamx_jm'];
 
 // Helper function to format selected years for display
 function formatSelectedYears(years: number[]): string {
@@ -218,6 +255,7 @@ function RankingsContent() {
   const supabase = createClient();
   const [usawRankings, setUsawRankings] = useState<AthleteRanking[]>([]);
   const [iwfRankings, setIwfRankings] = useState<AthleteRanking[]>([]);
+  const [owlcmsRankings, setOwlcmsRankings] = useState<AthleteRanking[]>([]);
   const [rankings, setRankings] = useState<AthleteRanking[]>([]);
   const [filteredRankings, setFilteredRankings] = useState<AthleteRanking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -289,6 +327,8 @@ function RankingsContent() {
     gamxTotal: true,
     gamxS: true,
     gamxJ: true,
+    gamxSm: false,
+    gamxJm: false,
   });
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -492,6 +532,32 @@ function RankingsContent() {
     return data;
   }
 
+  async function loadOWLCMSRankingsFile(year: number): Promise<OWLCMSRankingResult[]> {
+    const response = await fetch(`/data/owlcms-rankings-${year}.json.gz`);
+    if (!response.ok) {
+      return [];
+    }
+
+    let json;
+    const contentEncoding = response.headers.get('Content-Encoding');
+    if (contentEncoding === 'gzip') {
+      json = await response.text();
+    } else {
+      try {
+        const ds = new DecompressionStream('gzip');
+        const decompressedStream = response.body?.pipeThrough(ds);
+        json = decompressedStream ? await new Response(decompressedStream).text() : await response.text();
+      } catch (e) {
+        console.warn('OWLCMS decompression failed', e);
+        json = await response.text();
+      }
+    }
+
+    const data: OWLCMSRankingResult[] = JSON.parse(json);
+    console.log(`Loaded ${data.length} OWLCMS results for ${year}`);
+    return data;
+  }
+
   // Helper function to fetch all results with pagination
   async function fetchAllInBatches(baseQuery: any, label: string) {
     const BATCH_SIZE = 1000;
@@ -554,6 +620,7 @@ function RankingsContent() {
         setRankings([]);
         setUsawRankings([]);
         setIwfRankings([]);
+        setOwlcmsRankings([]);
         setLoading(false);
         return;
       }
@@ -616,7 +683,9 @@ function RankingsContent() {
             gamx_masters,
             gamx_total,
             gamx_s,
-            gamx_j
+            gamx_j,
+            gamx_sm,
+            gamx_jm
           `
           );
 
@@ -699,6 +768,8 @@ function RankingsContent() {
           gamx_total: result.gamx_total || undefined,
           gamx_s: result.gamx_s || undefined,
           gamx_j: result.gamx_j || undefined,
+          gamx_sm: (result.gamx_sm ?? null) ?? undefined,
+          gamx_jm: (result.gamx_jm ?? null) ?? undefined,
         };
       });
 
@@ -860,6 +931,8 @@ function RankingsContent() {
             gamx_total,
             gamx_s,
             gamx_j,
+            gamx_sm,
+            gamx_jm,
             iwf_lifters (
               iwf_lifter_id
             )
@@ -926,10 +999,68 @@ function RankingsContent() {
           gamx_total: result.gamx_total || undefined,
           gamx_s: result.gamx_s || undefined,
           gamx_j: result.gamx_j || undefined,
+          gamx_sm: (result.gamx_sm ?? null) ?? undefined,
+          gamx_jm: (result.gamx_jm ?? null) ?? undefined,
         };
       });
 
       setIwfRankings(iwfRankingsLocal);
+
+      // --- OWLCMS DATA LOADING ---
+      let owlcmsResults: OWLCMSRankingResult[] = [];
+      try {
+        const owlcmsPromises = yearsToFetch.map(year => loadOWLCMSRankingsFile(year));
+        if (owlcmsPromises.length > 0) {
+          const owlcmsYearData = await Promise.all(owlcmsPromises);
+          owlcmsResults = owlcmsYearData.flat();
+          console.log(`OWLCMS: Loaded ${owlcmsResults.length} total results from files`);
+        }
+      } catch (err) {
+        console.warn('OWLCMS file load failed:', err);
+      }
+
+      const owlcmsRankingsLocal: AthleteRanking[] = owlcmsResults.map((result, index) => {
+        const resultDate = new Date(result.date);
+        const year = resultDate.getFullYear();
+
+        return {
+          lifter_id: String(result.lifter_id),
+          lifter_name: result.lifter_name || "Unknown",
+          gender: result.gender || "",
+          federation: "owlcms" as const,
+          year: isNaN(year) ? 0 : year,
+          weight_class: result.weight_class || "",
+          age_category: result.age_category || "",
+          best_snatch: result.best_snatch || 0,
+          best_cj: result.best_cj || 0,
+          best_total: result.total || 0,
+          best_qpoints: Math.max(result.qpoints || 0, result.q_youth || 0, result.q_masters || 0),
+          q_youth: result.q_youth || undefined,
+          q_masters: result.q_masters || undefined,
+          qpoints: result.qpoints || undefined,
+          competition_count: 1,
+          last_competition: result.date || "",
+          last_meet_name: result.meet_name || "",
+          last_body_weight: result.body_weight_kg || "",
+          competition_age: result.competition_age || undefined,
+          membership_number: result.membership_number || undefined,
+          meet_id: result.meet_id || 0,
+          result_id: result.result_id || 0,
+          unique_id: result.result_id ? `owlcms-${result.result_id}-${index}` : `owlcms-gen-${year}-${index}`,
+          country_code: result.country_code || "",
+          club_name: result.club_name || "",
+          gamx_u: result.gamx_u || undefined,
+          gamx_a: result.gamx_a || undefined,
+          gamx_masters: result.gamx_masters || undefined,
+          gamx_total: result.gamx_total || undefined,
+          gamx_s: result.gamx_s || undefined,
+          gamx_j: result.gamx_j || undefined,
+          gamx_sm: (result.gamx_sm ?? null) ?? undefined,
+          gamx_jm: (result.gamx_jm ?? null) ?? undefined,
+        };
+      });
+
+      setOwlcmsRankings(owlcmsRankingsLocal);
 
       // Populate countries for the filter dropdown
       const uniqueCountries = new Map<string, string>();
@@ -951,6 +1082,7 @@ function RankingsContent() {
       setRankings([
         ...usawRankingsLocal.map((a) => ({ ...a, federation: "usaw" as const })),
         ...iwfRankingsLocal.map((a) => ({ ...a, federation: "iwf" as const })),
+        ...owlcmsRankingsLocal.map((a) => ({ ...a, federation: "owlcms" as const })),
       ]);
 
       // Keep default sort as Total; no override to sortBy here
@@ -1009,10 +1141,12 @@ function RankingsContent() {
       base = usawRankings;
     } else if (filters.federation === "iwf" || filters.federation === "iwf_one_per_country") {
       base = iwfRankings;
+    } else if (filters.federation === "owlcms") {
+      base = owlcmsRankings;
     } else {
       base = rankings.length
         ? rankings
-        : [...usawRankings, ...iwfRankings];
+        : [...usawRankings, ...iwfRankings, ...owlcmsRankings];
     }
 
     let filtered = [...base];
@@ -1495,7 +1629,7 @@ function RankingsContent() {
     const columnConfig = [
       { key: 'rank', header: 'Rank', getValue: (a: AthleteRanking) => a.trueRank || "N/A" },
       { key: 'athlete', header: 'Athlete Name', getValue: (a: AthleteRanking) => a.lifter_name },
-      { key: 'resource', header: 'Resource', getValue: (a: AthleteRanking) => a.federation === "iwf" ? "IWF" : "USAW" },
+      { key: 'resource', header: 'Resource', getValue: (a: AthleteRanking) => a.federation === "iwf" ? "IWF" : a.federation === "owlcms" ? "OWLCMS" : "USAW" },
       { key: 'country', header: 'Country', getValue: (a: AthleteRanking) => a.country_code || "" },
       { key: 'gender', header: 'Gender', getValue: (a: AthleteRanking) => a.gender },
       { key: 'weightClass', header: 'Weight Class', getValue: (a: AthleteRanking) => a.weight_class || "" },
@@ -1512,6 +1646,8 @@ function RankingsContent() {
       { key: 'gamxTotal', header: 'GAMX Total', getValue: (a: AthleteRanking) => a.gamx_total ? a.gamx_total.toFixed(0) : "" },
       { key: 'gamxS', header: 'GAMX Snatch', getValue: (a: AthleteRanking) => a.gamx_s ? a.gamx_s.toFixed(0) : "" },
       { key: 'gamxJ', header: 'GAMX C&J', getValue: (a: AthleteRanking) => a.gamx_j ? a.gamx_j.toFixed(0) : "" },
+      { key: 'gamxSm', header: 'GAMX-MS', getValue: (a: AthleteRanking) => (a.gamx_sm ?? null) !== null ? a.gamx_sm!.toFixed(0) : "" },
+      { key: 'gamxJm', header: 'GAMX-MJ', getValue: (a: AthleteRanking) => (a.gamx_jm ?? null) !== null ? a.gamx_jm!.toFixed(0) : "" },
       { key: 'compAge', header: 'Competition Age', getValue: (a: AthleteRanking) => a.competition_age || "" },
       { key: 'ageCategory', header: 'Age Category', getValue: (a: AthleteRanking) => a.age_category || "" },
       { key: 'date', header: 'Last Competition', getValue: (a: AthleteRanking) => a.last_competition || "" },
@@ -1556,7 +1692,7 @@ function RankingsContent() {
     const columnConfig = [
       { key: 'rank', header: 'Rank', getValue: (a: AthleteRanking) => a.trueRank || "N/A", className: 'rank' },
       { key: 'athlete', header: 'Athlete', getValue: (a: AthleteRanking) => a.lifter_name },
-      { key: 'resource', header: 'Resource', getValue: (a: AthleteRanking) => a.federation === "iwf" ? "IWF" : "USAW" },
+      { key: 'resource', header: 'Resource', getValue: (a: AthleteRanking) => a.federation === "iwf" ? "IWF" : a.federation === "owlcms" ? "OWLCMS" : "USAW" },
       { key: 'country', header: 'Country', getValue: (a: AthleteRanking) => a.country_code || "" },
       { key: 'gender', header: 'Gender', getValue: (a: AthleteRanking) => a.gender },
       { key: 'weightClass', header: 'Weight Class', getValue: (a: AthleteRanking) => a.weight_class || "" },
@@ -1573,6 +1709,8 @@ function RankingsContent() {
       { key: 'gamxTotal', header: 'GAMX Total', getValue: (a: AthleteRanking) => a.gamx_total && a.gamx_total > 0 ? a.gamx_total.toFixed(0) : "-" },
       { key: 'gamxS', header: 'GAMX Snatch', getValue: (a: AthleteRanking) => a.gamx_s && a.gamx_s > 0 ? a.gamx_s.toFixed(0) : "-" },
       { key: 'gamxJ', header: 'GAMX C&J', getValue: (a: AthleteRanking) => a.gamx_j && a.gamx_j > 0 ? a.gamx_j.toFixed(0) : "-" },
+      { key: 'gamxSm', header: 'GAMX-MS', getValue: (a: AthleteRanking) => (a.gamx_sm ?? null) !== null && a.gamx_sm! > 0 ? a.gamx_sm!.toFixed(0) : "-" },
+      { key: 'gamxJm', header: 'GAMX-MJ', getValue: (a: AthleteRanking) => (a.gamx_jm ?? null) !== null && a.gamx_jm! > 0 ? a.gamx_jm!.toFixed(0) : "-" },
       { key: 'compAge', header: 'Comp Age', getValue: (a: AthleteRanking) => a.competition_age || "-" },
       { key: 'ageCategory', header: 'Age Category', getValue: (a: AthleteRanking) => a.age_category || "" },
       { key: 'date', header: 'Date', getValue: (a: AthleteRanking) => a.last_competition ? new Date(a.last_competition).toLocaleDateString() : "-" },
@@ -1780,6 +1918,8 @@ function RankingsContent() {
                                 gamxTotal: true,
                                 gamxS: true,
                                 gamxJ: true,
+                                gamxSm: true,
+                                gamxJm: true,
                               })}
                               className="text-xs text-blue-400 hover:text-blue-300"
                             >
@@ -1806,6 +1946,8 @@ function RankingsContent() {
                             { key: 'gamxTotal', label: 'GAMX Total' },
                             { key: 'gamxS', label: 'GAMX Snatch' },
                             { key: 'gamxJ', label: 'GAMX C&J' },
+                            { key: 'gamxSm', label: 'GAMX-MS' },
+                            { key: 'gamxJm', label: 'GAMX-MJ' },
                             { key: 'compAge', label: 'Comp Age' },
                             { key: 'ageCategory', label: 'Age Category' },
                             { key: 'date', label: 'Date' },
@@ -1988,6 +2130,7 @@ function RankingsContent() {
                           {filters.federation === "usaw" && "USAW"}
                           {filters.federation === "iwf" && "IWF"}
                           {filters.federation === "iwf_one_per_country" && "IWF 1/MF"}
+                          {filters.federation === "owlcms" && "OWLCMS"}
                         </span>
                         <ChevronDown className={`h-4 w-4 transition-transform ${showFederationDropdown ? 'rotate-180' : ''}`} />
                       </button>
@@ -2037,7 +2180,7 @@ function RankingsContent() {
                                 setFilters(prev => ({ ...prev, selectedWSO: [], selectedClubs: [] }));
                                 setShowFederationDropdown(false);
                               }}
-                              className={`w-full px-3 py-2 text-left hover:bg-app-hover last:rounded-b-lg flex items-center justify-between ${filters.federation === "iwf_one_per_country" ? "bg-app-tertiary" : ""
+                              className={`w-full px-3 py-2 text-left hover:bg-app-hover flex items-center justify-between ${filters.federation === "iwf_one_per_country" ? "bg-app-tertiary" : ""
                                 }`}
                             >
                               <span>IWF 1/MF</span>
@@ -2047,6 +2190,18 @@ function RankingsContent() {
                               >
                                 <span></span>
                               </MetricTooltip>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleFilterChange("federation", "owlcms");
+                                setFilters(prev => ({ ...prev, selectedWSO: [], selectedClubs: [] }));
+                                setShowFederationDropdown(false);
+                              }}
+                              className={`w-full px-3 py-2 text-left hover:bg-app-hover last:rounded-b-lg ${filters.federation === "owlcms" ? "bg-app-tertiary" : ""
+                                }`}
+                            >
+                              OWLCMS
                             </button>
                           </div>
                         </>
@@ -2885,6 +3040,16 @@ function RankingsContent() {
                         GAMX J {getSortIcon("gamx_j")}
                       </th>
                     )}
+                    {visibleColumns.gamxSm && (
+                      <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("gamx_sm")}>
+                        GAMX-MS {getSortIcon("gamx_sm")}
+                      </th>
+                    )}
+                    {visibleColumns.gamxJm && (
+                      <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("gamx_jm")}>
+                        GAMX-MJ {getSortIcon("gamx_jm")}
+                      </th>
+                    )}
                     {visibleColumns.compAge && (
                       <th className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort("competition_age")}>
                         Comp Age {getSortIcon("competition_age")}
@@ -2937,7 +3102,9 @@ function RankingsContent() {
                                 href={
                                   athlete.federation === "iwf"
                                     ? `/athlete/iwf/${athlete.iwf_lifter_id}`
-                                    : `/athlete/${(athlete.membership_number && athlete.membership_number !== 'null') ? athlete.membership_number : (athlete.lifter_id ? `u-${athlete.lifter_id}` : athlete.lifter_name.toLowerCase().replace(/\s+/g, '-'))}`
+                                    : athlete.federation === "owlcms"
+                                      ? `/athlete/owlcms/${athlete.lifter_id}`
+                                      : `/athlete/${(athlete.membership_number && athlete.membership_number !== 'null') ? athlete.membership_number : (athlete.lifter_id ? `u-${athlete.lifter_id}` : athlete.lifter_name.toLowerCase().replace(/\s+/g, '-'))}`
                                 }
                                 prefetch={false}
                                 className="text-blue-400 hover:text-blue-300 hover:underline"
@@ -2951,9 +3118,11 @@ function RankingsContent() {
                           <td className="px-2 py-1 whitespace-nowrap text-xs">
                             <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium ${athlete.federation === 'iwf'
                               ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                              : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                              : athlete.federation === 'owlcms'
+                                ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200'
+                                : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
                               }`}>
-                              {athlete.federation === 'iwf' ? 'IWF' : 'USAW'}
+                              {athlete.federation === 'iwf' ? 'IWF' : athlete.federation === 'owlcms' ? 'OWLCMS' : 'USAW'}
                             </span>
                           </td>
                         )}
@@ -3052,6 +3221,16 @@ function RankingsContent() {
                             {(athlete.gamx_j && athlete.gamx_j > 0) ? athlete.gamx_j.toFixed(0) : '-'}
                           </td>
                         )}
+                        {visibleColumns.gamxSm && (
+                          <td className="px-2 py-1 whitespace-nowrap text-xs font-medium" style={{ color: (athlete.gamx_sm ?? 0) > 0 ? 'var(--chart-gamx-sm)' : 'inherit' }}>
+                            {((athlete.gamx_sm ?? null) !== null && athlete.gamx_sm! > 0) ? athlete.gamx_sm!.toFixed(0) : '-'}
+                          </td>
+                        )}
+                        {visibleColumns.gamxJm && (
+                          <td className="px-2 py-1 whitespace-nowrap text-xs font-medium" style={{ color: (athlete.gamx_jm ?? 0) > 0 ? 'var(--chart-gamx-jm)' : 'inherit' }}>
+                            {((athlete.gamx_jm ?? null) !== null && athlete.gamx_jm! > 0) ? athlete.gamx_jm!.toFixed(0) : '-'}
+                          </td>
+                        )}
                         {visibleColumns.compAge && (
                           <td className="px-2 py-1 whitespace-nowrap text-xs">
                             {athlete.competition_age || "-"}
@@ -3073,7 +3252,9 @@ function RankingsContent() {
                               href={
                                 athlete.federation === "iwf"
                                   ? `/meet/iwf/${athlete.meet_id}`
-                                  : `/meet/${athlete.meet_id}`
+                                  : athlete.federation === "owlcms"
+                                    ? `/meet/owlcms/${athlete.meet_id}`
+                                    : `/meet/${athlete.meet_id}`
                               }
                               prefetch={false}
                               className="text-blue-400 hover:text-blue-300 hover:underline"

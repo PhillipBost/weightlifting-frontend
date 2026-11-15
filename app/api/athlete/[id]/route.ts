@@ -91,6 +91,8 @@ async function enrichWithOwlcms(
         gamx_u,
         gamx_a,
         gamx_masters,
+        gamx_sm,
+        gamx_jm,
         meet:owlcms_meets (
           meet_name,
           start_date,
@@ -151,6 +153,8 @@ async function enrichWithOwlcms(
             gamx_u: r.gamx_u,
             gamx_a: r.gamx_a,
             gamx_masters: r.gamx_masters,
+            gamx_sm: r.gamx_sm ?? null,
+            gamx_jm: r.gamx_jm ?? null,
             _source: 'OWLCMS'
           };
         });
@@ -534,6 +538,8 @@ export async function GET(
               gamx_u,
               gamx_a,
               gamx_masters,
+              gamx_sm,
+              gamx_jm,
               meet:owlcms_meets (
                 meet_name,
                 start_date
@@ -570,6 +576,8 @@ export async function GET(
               gamx_u: r.gamx_u,
               gamx_a: r.gamx_a,
               gamx_masters: r.gamx_masters,
+              gamx_sm: r.gamx_sm ?? null,
+              gamx_jm: r.gamx_jm ?? null,
               _source: 'owlcms'
             };
           });

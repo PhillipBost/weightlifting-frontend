@@ -78,6 +78,8 @@ export interface AdaptedResult {
   gamx_u?: number | null;
   gamx_a?: number | null;
   gamx_masters?: number | null;
+  gamx_sm?: number | null;
+  gamx_jm?: number | null;
 
   // Year-to-date bests
   best_snatch_ytd?: number | null;
@@ -197,6 +199,8 @@ export function adaptIWFResult(iwfResult: IWFMeetResult): AdaptedResult {
     gamx_u: iwfResult.gamx_u ?? undefined,
     gamx_a: iwfResult.gamx_a ?? undefined,
     gamx_masters: iwfResult.gamx_masters ?? undefined,
+    gamx_sm: iwfResult.gamx_sm ?? undefined,
+    gamx_jm: iwfResult.gamx_jm ?? undefined,
 
     // Year-to-date bests
     best_snatch_ytd: iwfResult.best_snatch_ytd ?? undefined,

@@ -113,6 +113,8 @@ export async function GET(
         gamx_u,
         gamx_a,
         gamx_masters,
+        gamx_sm,
+        gamx_jm,
         meet:owlcms_meets (
           meet_id,
           meet_name,

@@ -8,7 +8,7 @@ export interface GamxMetricDefinition {
 // Reference: https://osf.io/wy5mr/wiki?wiki=45jnm
 export const GAMX_METHODOLOGY = "GAMX stands for Generalized Additive Model adjusted for seX. The published model standardizes points to a median of 1000 for sex, body mass, and age where applicable.";
 
-export const GAMX_DEFINITIONS: Record<'total' | 's' | 'j' | 'u' | 'a' | 'masters', GamxMetricDefinition> = {
+export const GAMX_DEFINITIONS: Record<'total' | 's' | 'j' | 'u' | 'a' | 'masters' | 'sm' | 'jm', GamxMetricDefinition> = {
   total: {
     title: "GAMX-Total",
     ageRange: "15–40",
@@ -43,6 +43,18 @@ export const GAMX_DEFINITIONS: Record<'total' | 's' | 'j' | 'u' | 'a' | 'masters
     title: "GAMX-Masters",
     ageRange: "30+",
     description: "Compares two-lift totals for Masters athletes ages 30 and older, adjusted for body mass, sex, and age. Based on International Masters Weightlifting Association World Masters Championships.",
+    methodology: GAMX_METHODOLOGY
+  },
+  sm: {
+    title: "GAMX-MS (Masters Snatch)",
+    ageRange: "30+",
+    description: "Compares the best snatch of three attempts for Masters athletes ages 30 and older, adjusted for body mass, sex, and age. Based on International Masters Weightlifting Association World Masters Championships.",
+    methodology: GAMX_METHODOLOGY
+  },
+  jm: {
+    title: "GAMX-MJ (Masters Clean & Jerk)",
+    ageRange: "30+",
+    description: "Compares the best clean & jerk of three attempts for Masters athletes ages 30 and older, adjusted for body mass, sex, and age. Based on International Masters Weightlifting Association World Masters Championships.",
     methodology: GAMX_METHODOLOGY
   }
 };

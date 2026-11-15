@@ -19,6 +19,8 @@ interface GamxChartProps {
     hasGamxU: boolean;
     hasGamxA: boolean;
     hasGamxMasters: boolean;
+    hasGamxSm?: boolean;
+    hasGamxJm?: boolean;
   };
 }
 
@@ -32,21 +34,23 @@ export default function GamxChart({ chartData, athlete, legendFlags }: GamxChart
   const [showGamxU, setShowGamxU] = useState(true);
   const [showGamxA, setShowGamxA] = useState(true);
   const [showGamxMasters, setShowGamxMasters] = useState(true);
+  const [showGamxSm, setShowGamxSm] = useState(true);
+  const [showGamxJm, setShowGamxJm] = useState(true);
 
   return (
     <div className="chart-container">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-4">
-        <h3 className="text-lg font-semibold text-app-primary flex items-center">
-          <Activity className="h-5 w-5 mr-2" />
-          {athlete.displayName} GAMX Scores
+        <h3 className="text-lg font-semibold text-app-primary flex items-center min-w-0 flex-1">
+          <Activity className="h-5 w-5 mr-2 shrink-0" />
+          <span>{athlete.displayName} GAMX Scores</span>
         </h3>
 
         {/* Controls Container */}
-        <div className="flex flex-col sm:items-end gap-2 w-full sm:w-auto">
+        <div className="flex flex-col sm:items-end gap-2 w-full sm:w-auto sm:shrink-0">
           {/* Chart Controls & Toggles Row */}
-          <div className="flex flex-col sm:flex-row sm:justify-end sm:items-center mb-4 gap-4">
+          <div className="flex flex-col sm:flex-row sm:flex-nowrap sm:justify-end sm:items-center gap-4">
             {/* Toggles */}
-            <div className="flex flex-wrap gap-1 border border-app-secondary rounded-lg p-1 w-fit justify-end">
+            <div className="flex flex-wrap sm:flex-nowrap gap-1 border border-app-secondary rounded-lg p-1 w-fit justify-end">
               {legendFlags.hasGamxTotal && (
                 <MetricTooltip
                   title={GAMX_DEFINITIONS.total.title}
@@ -56,7 +60,7 @@ export default function GamxChart({ chartData, athlete, legendFlags }: GamxChart
                 >
                   <button
                     onClick={() => setShowGamxTotal(!showGamxTotal)}
-                    className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out ${showGamxTotal ? 'bg-accent-primary text-white' : 'bg-app-surface text-app-secondary hover:bg-app-hover'}`}
+                    className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap transition-all duration-300 ease-in-out ${showGamxTotal ? 'bg-accent-primary text-white' : 'bg-app-surface text-app-secondary hover:bg-app-hover'}`}
                   >
                     GAMX-Total
                   </button>
@@ -71,7 +75,7 @@ export default function GamxChart({ chartData, athlete, legendFlags }: GamxChart
                 >
                   <button
                     onClick={() => setShowGamxS(!showGamxS)}
-                    className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out ${showGamxS ? 'bg-accent-primary text-white' : 'bg-app-surface text-app-secondary hover:bg-app-hover'}`}
+                    className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap transition-all duration-300 ease-in-out ${showGamxS ? 'bg-accent-primary text-white' : 'bg-app-surface text-app-secondary hover:bg-app-hover'}`}
                   >
                     GAMX-S
                   </button>
@@ -86,7 +90,7 @@ export default function GamxChart({ chartData, athlete, legendFlags }: GamxChart
                 >
                   <button
                     onClick={() => setShowGamxJ(!showGamxJ)}
-                    className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out ${showGamxJ ? 'bg-accent-primary text-white' : 'bg-app-surface text-app-secondary hover:bg-app-hover'}`}
+                    className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap transition-all duration-300 ease-in-out ${showGamxJ ? 'bg-accent-primary text-white' : 'bg-app-surface text-app-secondary hover:bg-app-hover'}`}
                   >
                     GAMX-J
                   </button>
@@ -101,7 +105,7 @@ export default function GamxChart({ chartData, athlete, legendFlags }: GamxChart
                 >
                   <button
                     onClick={() => setShowGamxU(!showGamxU)}
-                    className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out ${showGamxU ? 'bg-accent-primary text-white' : 'bg-app-surface text-app-secondary hover:bg-app-hover'}`}
+                    className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap transition-all duration-300 ease-in-out ${showGamxU ? 'bg-accent-primary text-white' : 'bg-app-surface text-app-secondary hover:bg-app-hover'}`}
                   >
                     GAMX-U
                   </button>
@@ -116,7 +120,7 @@ export default function GamxChart({ chartData, athlete, legendFlags }: GamxChart
                 >
                   <button
                     onClick={() => setShowGamxA(!showGamxA)}
-                    className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out ${showGamxA ? 'bg-accent-primary text-white' : 'bg-app-surface text-app-secondary hover:bg-app-hover'}`}
+                    className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap transition-all duration-300 ease-in-out ${showGamxA ? 'bg-accent-primary text-white' : 'bg-app-surface text-app-secondary hover:bg-app-hover'}`}
                   >
                     GAMX-A
                   </button>
@@ -131,9 +135,39 @@ export default function GamxChart({ chartData, athlete, legendFlags }: GamxChart
                 >
                   <button
                     onClick={() => setShowGamxMasters(!showGamxMasters)}
-                    className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300 ease-in-out ${showGamxMasters ? 'bg-accent-primary text-white' : 'bg-app-surface text-app-secondary hover:bg-app-hover'}`}
+                    className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap transition-all duration-300 ease-in-out ${showGamxMasters ? 'bg-accent-primary text-white' : 'bg-app-surface text-app-secondary hover:bg-app-hover'}`}
                   >
                     GAMX-Masters
+                  </button>
+                </MetricTooltip>
+              )}
+              {legendFlags.hasGamxSm && (
+                <MetricTooltip
+                  title={GAMX_DEFINITIONS.sm.title}
+                  description={GAMX_DEFINITIONS.sm.description}
+                  methodology={GAMX_DEFINITIONS.sm.methodology}
+                  showIcon={false}
+                >
+                  <button
+                    onClick={() => setShowGamxSm(!showGamxSm)}
+                    className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap transition-all duration-300 ease-in-out ${showGamxSm ? 'bg-accent-primary text-white' : 'bg-app-surface text-app-secondary hover:bg-app-hover'}`}
+                  >
+                    GAMX-MS
+                  </button>
+                </MetricTooltip>
+              )}
+              {legendFlags.hasGamxJm && (
+                <MetricTooltip
+                  title={GAMX_DEFINITIONS.jm.title}
+                  description={GAMX_DEFINITIONS.jm.description}
+                  methodology={GAMX_DEFINITIONS.jm.methodology}
+                  showIcon={false}
+                >
+                  <button
+                    onClick={() => setShowGamxJm(!showGamxJm)}
+                    className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap transition-all duration-300 ease-in-out ${showGamxJm ? 'bg-accent-primary text-white' : 'bg-app-surface text-app-secondary hover:bg-app-hover'}`}
+                  >
+                    GAMX-MJ
                   </button>
                 </MetricTooltip>
               )}
@@ -325,6 +359,28 @@ export default function GamxChart({ chartData, athlete, legendFlags }: GamxChart
               />
             </>
           )}
+          {showGamxSm && chartData.some(d => (d.gamxSm ?? null) !== null && d.gamxSm > 0) && (
+            <>
+              <Line dataKey="gamxSmBackground" stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} legendType="none" hide={true} />
+              <Line dataKey="gamxSm" stroke="var(--chart-gamx-sm)" strokeWidth={2.5}
+                dot={{ fill: 'var(--chart-gamx-sm)', stroke: 'var(--chart-stroke)', strokeWidth: 0.5, r: 5, style: { cursor: 'pointer' } }}
+                activeDot={{ r: 8, stroke: 'var(--chart-stroke)', strokeWidth: 2, fill: 'var(--chart-gamx-sm)', style: { cursor: 'pointer' } }}
+                name="GAMX-MS" connectNulls={false}
+                isAnimationActive={false}
+              />
+            </>
+          )}
+          {showGamxJm && chartData.some(d => (d.gamxJm ?? null) !== null && d.gamxJm > 0) && (
+            <>
+              <Line dataKey="gamxJmBackground" stroke="var(--chart-stroke)" strokeWidth={3} dot={false} activeDot={false} legendType="none" hide={true} />
+              <Line dataKey="gamxJm" stroke="var(--chart-gamx-jm)" strokeWidth={2.5}
+                dot={{ fill: 'var(--chart-gamx-jm)', stroke: 'var(--chart-stroke)', strokeWidth: 0.5, r: 5, style: { cursor: 'pointer' } }}
+                activeDot={{ r: 8, stroke: 'var(--chart-stroke)', strokeWidth: 2, fill: 'var(--chart-gamx-jm)', style: { cursor: 'pointer' } }}
+                name="GAMX-MJ" connectNulls={false}
+                isAnimationActive={false}
+              />
+            </>
+          )}
 
           {showGamxBrush && (
             <Brush key="gamx-brush" dataKey="timestamp" height={20} y={500 - 20} stroke="var(--text-disabled)" fill="var(--chart-grid)" fillOpacity={0.6}
@@ -410,6 +466,32 @@ export default function GamxChart({ chartData, athlete, legendFlags }: GamxChart
             <div className="flex items-center space-x-2">
               <div className="w-4 h-0.5 bg-[var(--chart-gamx-masters)]"></div>
               <span className="text-sm text-app-secondary">GAMX-Masters</span>
+            </div>
+          </MetricTooltip>
+        )}
+        {legendFlags.hasGamxSm && (
+          <MetricTooltip
+            title={GAMX_DEFINITIONS.sm.title}
+            description={GAMX_DEFINITIONS.sm.description}
+            methodology={GAMX_DEFINITIONS.sm.methodology}
+            showIcon={false}
+          >
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-0.5 bg-[var(--chart-gamx-sm)]"></div>
+              <span className="text-sm text-app-secondary">GAMX-MS</span>
+            </div>
+          </MetricTooltip>
+        )}
+        {legendFlags.hasGamxJm && (
+          <MetricTooltip
+            title={GAMX_DEFINITIONS.jm.title}
+            description={GAMX_DEFINITIONS.jm.description}
+            methodology={GAMX_DEFINITIONS.jm.methodology}
+            showIcon={false}
+          >
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-0.5 bg-[var(--chart-gamx-jm)]"></div>
+              <span className="text-sm text-app-secondary">GAMX-MJ</span>
             </div>
           </MetricTooltip>
         )}

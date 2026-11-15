@@ -67,7 +67,9 @@ const exportTableToCSV = (results: any[], athleteName: string, showAllColumns: b
           'Total (kg)': result.total || '',
           'Q-Youth': result.q_youth || '',
           'Q-Points': result.qpoints || '',
-          'Q-Masters': result.q_masters || ''
+          'Q-Masters': result.q_masters || '',
+          'GAMX-MS': result.gamx_sm ?? '',
+          'GAMX-MJ': result.gamx_jm ?? ''
         };
       } else {
         const bestQScore = getBestQScore(result);
@@ -464,6 +466,28 @@ export function AthleteResults({
                           </MetricTooltip>
                           <SortIcon column="gamx_masters" sortConfig={sortConfig} />
                         </th>
+                        <th scope="col" className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort('gamx_sm')}>
+                          <MetricTooltip
+                            title={GAMX_DEFINITIONS.sm.title}
+                            description={GAMX_DEFINITIONS.sm.description}
+                            methodology={GAMX_DEFINITIONS.sm.methodology}
+                            showIcon={false}
+                          >
+                            <span>GAMX-MS</span>
+                          </MetricTooltip>
+                          <SortIcon column="gamx_sm" sortConfig={sortConfig} />
+                        </th>
+                        <th scope="col" className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort('gamx_jm')}>
+                          <MetricTooltip
+                            title={GAMX_DEFINITIONS.jm.title}
+                            description={GAMX_DEFINITIONS.jm.description}
+                            methodology={GAMX_DEFINITIONS.jm.methodology}
+                            showIcon={false}
+                          >
+                            <span>GAMX-MJ</span>
+                          </MetricTooltip>
+                          <SortIcon column="gamx_jm" sortConfig={sortConfig} />
+                        </th>
                       </>
                     ) : (
                       <>
@@ -617,6 +641,8 @@ export function AthleteResults({
                             <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-gamx-u)' }}>{result.gamx_u ? result.gamx_u.toFixed(0) : '-'}</td>
                             <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-gamx-a)' }}>{result.gamx_a ? result.gamx_a.toFixed(0) : '-'}</td>
                             <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-gamx-masters)' }}>{result.gamx_masters ? result.gamx_masters.toFixed(0) : '-'}</td>
+                            <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-gamx-sm)' }}>{(result.gamx_sm ?? null) !== null ? result.gamx_sm.toFixed(0) : '-'}</td>
+                            <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-gamx-jm)' }}>{(result.gamx_jm ?? null) !== null ? result.gamx_jm.toFixed(0) : '-'}</td>
                           </>
                         ) : (
                           <>

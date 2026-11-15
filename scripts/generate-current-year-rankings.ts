@@ -3,6 +3,7 @@ import { gzipSync } from 'zlib';
 import fs from 'fs/promises';
 import path from 'path';
 import dotenv from 'dotenv';
+import { generateOWLCMSRankingsForYear } from './generate-owlcms-rankings';
 
 // Load environment variables from .env.local if it exists
 dotenv.config({ path: '.env.local' });
@@ -67,6 +68,8 @@ interface USAWRankingResult {
     gamx_total: number | null;
     gamx_s: number | null;
     gamx_j: number | null;
+    gamx_sm: number | null;
+    gamx_jm: number | null;
 }
 
 interface IWFRankingResult {
@@ -203,7 +206,9 @@ async function generateUSAWCurrentYear() {
                     gamx_masters,
                     gamx_total,
                     gamx_s,
-                    gamx_j
+                    gamx_j,
+                    gamx_sm,
+                    gamx_jm
                 `)
                 .gte('date', `${TARGET_YEAR}-01-01`)
                 .lte('date', `${TARGET_YEAR}-12-31`)
@@ -311,7 +316,9 @@ async function generateUSAWCurrentYear() {
                 gamx_masters: result.gamx_masters ? parseFloat(result.gamx_masters) : null,
                 gamx_total: result.gamx_total ? parseFloat(result.gamx_total) : null,
                 gamx_s: result.gamx_s ? parseFloat(result.gamx_s) : null,
-                gamx_j: result.gamx_j ? parseFloat(result.gamx_j) : null
+                gamx_j: result.gamx_j ? parseFloat(result.gamx_j) : null,
+                gamx_sm: (result.gamx_sm ?? null) !== null ? parseFloat(result.gamx_sm) : null,
+                gamx_jm: (result.gamx_jm ?? null) !== null ? parseFloat(result.gamx_jm) : null
             };
         });
 
@@ -388,6 +395,8 @@ async function generateIWFCurrentYear() {
                     gamx_total,
                     gamx_s,
                     gamx_j,
+                    gamx_sm,
+                    gamx_jm,
                     snatch_lift_1,
                     snatch_lift_2,
                     snatch_lift_3,
@@ -478,6 +487,8 @@ async function generateIWFCurrentYear() {
                 gamx_total: result.gamx_total ? parseFloat(result.gamx_total) : null,
                 gamx_s: result.gamx_s ? parseFloat(result.gamx_s) : null,
                 gamx_j: result.gamx_j ? parseFloat(result.gamx_j) : null,
+                gamx_sm: (result.gamx_sm ?? null) !== null ? parseFloat(result.gamx_sm) : null,
+                gamx_jm: (result.gamx_jm ?? null) !== null ? parseFloat(result.gamx_jm) : null,
                 snatch_1: result.snatch_lift_1 || null,
                 snatch_2: result.snatch_lift_2 || null,
                 snatch_3: result.snatch_lift_3 || null,
@@ -700,6 +711,7 @@ async function main() {
     try {
         await generateUSAWCurrentYear();
         await generateIWFCurrentYear();
+        await generateOWLCMSRankingsForYear(TARGET_YEAR);
         await generateWSOCurrentYear();
         await generateClubsCurrentYear();
 
@@ -708,6 +720,7 @@ async function main() {
         console.log(`  Files created:`);
         console.log(`    - public/data/usaw-rankings-${TARGET_YEAR}.json.gz`);
         console.log(`    - public/data/iwf-rankings-${TARGET_YEAR}.json.gz`);
+        console.log(`    - public/data/owlcms-rankings-${TARGET_YEAR}.json.gz`);
         console.log(`    - public/data/wso-data-${TARGET_YEAR}.json.gz`);
         console.log(`    - public/data/barbell-clubs-${TARGET_YEAR}.json.gz`);
         console.log(`    - public/data/active-barbell-clubs-${TARGET_YEAR}.json.gz`);

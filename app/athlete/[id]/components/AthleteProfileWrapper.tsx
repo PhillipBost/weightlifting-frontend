@@ -182,6 +182,8 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false, f
           gamxU: r.gamx_u || null,
           gamxA: r.gamx_a || null,
           gamxMasters: r.gamx_masters || null,
+          gamxSm: r.gamx_sm ?? null,
+          gamxJm: r.gamx_jm ?? null,
           shortDate: new Date(r.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
           // Fidelity: Restore the competition age string for tooltips
           dateWithAge: r.competition_age
@@ -348,6 +350,8 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false, f
     hasGamxU: chartData?.some((d: any) => d.gamxU !== null) || false,
     hasGamxA: chartData?.some((d: any) => d.gamxA !== null) || false,
     hasGamxMasters: chartData?.some((d: any) => d.gamxMasters !== null) || false,
+    hasGamxSm: chartData?.some((d: any) => d.gamxSm !== null) || false,
+    hasGamxJm: chartData?.some((d: any) => d.gamxJm !== null) || false,
   }), [chartData]);
 
   // 3. Sorting & Pagination Logic

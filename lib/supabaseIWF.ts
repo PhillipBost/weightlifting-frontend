@@ -156,6 +156,8 @@ export interface IWFMeetResult {
   gamx_u: number | null
   gamx_a: number | null
   gamx_masters: number | null
+  gamx_sm?: number | null
+  gamx_jm?: number | null
 
   // Year-to-Date Bests (Note: IWF data doesn't currently populate these)
   best_snatch_ytd: number | null

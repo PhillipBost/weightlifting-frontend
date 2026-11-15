@@ -769,6 +769,8 @@ export function AthletePageUI({ params, initialData = null }: { params: { id: st
         gamxU: r.gamx_u || null,
         gamxA: r.gamx_a || null,
         gamxMasters: r.gamx_masters || null,
+        gamxSm: r.gamx_sm ?? null,
+        gamxJm: r.gamx_jm ?? null,
 
         // GAMX Backgrounds
         gamxTotalBackground: r.gamx_total || null,
@@ -777,6 +779,8 @@ export function AthletePageUI({ params, initialData = null }: { params: { id: st
         gamxUBackground: r.gamx_u || null,
         gamxABackground: r.gamx_a || null,
         gamxMastersBackground: r.gamx_masters || null,
+        gamxSmBackground: r.gamx_sm ?? null,
+        gamxJmBackground: r.gamx_jm ?? null,
 
         shortDate: new Date(r.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
         competitionAge: r.competition_age || null,
@@ -827,6 +831,8 @@ export function AthletePageUI({ params, initialData = null }: { params: { id: st
     hasGamxU: chartData?.some(d => d.gamxU !== null) || false,
     hasGamxA: chartData?.some(d => d.gamxA !== null) || false,
     hasGamxMasters: chartData?.some(d => d.gamxMasters !== null) || false,
+    hasGamxSm: chartData?.some(d => d.gamxSm !== null) || false,
+    hasGamxJm: chartData?.some(d => d.gamxJm !== null) || false,
   }), [chartData]);
 
 
@@ -1336,6 +1342,14 @@ export function AthletePageUI({ params, initialData = null }: { params: { id: st
                               GAMX-M
                               <SortIcon column="gamx_masters" sortConfig={sortConfig} />
                             </th>
+                            <th scope="col" className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort('gamx_sm')}>
+                              GAMX-MS
+                              <SortIcon column="gamx_sm" sortConfig={sortConfig} />
+                            </th>
+                            <th scope="col" className="px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none" onClick={() => handleSort('gamx_jm')}>
+                              GAMX-MJ
+                              <SortIcon column="gamx_jm" sortConfig={sortConfig} />
+                            </th>
                           </>
                         ) : (
                           <>
@@ -1456,6 +1470,8 @@ export function AthletePageUI({ params, initialData = null }: { params: { id: st
                                 <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-gamx-u)' }}>{result.gamx_u ? result.gamx_u.toFixed(0) : '-'}</td>
                                 <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-gamx-a)' }}>{result.gamx_a ? result.gamx_a.toFixed(0) : '-'}</td>
                                 <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-gamx-masters)' }}>{result.gamx_masters ? result.gamx_masters.toFixed(0) : '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-gamx-sm)' }}>{(result.gamx_sm ?? null) !== null ? result.gamx_sm.toFixed(0) : '-'}</td>
+                                <td className="px-2 py-1 whitespace-nowrap text-xs" style={{ color: 'var(--chart-gamx-jm)' }}>{(result.gamx_jm ?? null) !== null ? result.gamx_jm.toFixed(0) : '-'}</td>
                               </>
                             ) : (
                               <>

@@ -126,6 +126,10 @@
   /* rose-400 */
   --chart-gamx-masters: #fb923c;
   /* orange-400 */
+  --chart-gamx-sm: #fbbf24;
+  /* amber-400 */
+  --chart-gamx-jm: #2dd4bf;
+  /* teal-400 */
 }
 
 /* ===========================================
@@ -242,6 +246,10 @@
   /* rose-600 */
   --chart-gamx-masters: #ea580c;
   /* orange-600 */
+  --chart-gamx-sm: #d97706;
+  /* amber-600 */
+  --chart-gamx-jm: #0d9488;
+  /* teal-600 */
 }
 
 /* ===========================================
@@ -372,6 +380,14 @@ body {
 
   .gamx-masters-color {
     color: var(--chart-gamx-masters);
+  }
+
+  .gamx-sm-color {
+    color: var(--chart-gamx-sm);
+  }
+
+  .gamx-jm-color {
+    color: var(--chart-gamx-jm);
   }
 
   .card-secondary {

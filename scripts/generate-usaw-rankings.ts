@@ -48,6 +48,8 @@ interface USAWRankingResult {
     gamx_total: number | null;
     gamx_s: number | null;
     gamx_j: number | null;
+    gamx_sm: number | null;
+    gamx_jm: number | null;
     wso: string | null;
     club_name: string | null;
     snatch_1?: string | number;
@@ -95,6 +97,8 @@ async function generateUSAWRankingsForYear(year: number) {
                     gamx_total,
                     gamx_s,
                     gamx_j,
+                    gamx_sm,
+                    gamx_jm,
                     snatch_lift_1,
                     snatch_lift_2,
                     snatch_lift_3,
@@ -189,6 +193,8 @@ async function generateUSAWRankingsForYear(year: number) {
                 gamx_total: result.gamx_total ? parseFloat(result.gamx_total) : null,
                 gamx_s: result.gamx_s ? parseFloat(result.gamx_s) : null,
                 gamx_j: result.gamx_j ? parseFloat(result.gamx_j) : null,
+                gamx_sm: (result.gamx_sm ?? null) !== null ? parseFloat(result.gamx_sm) : null,
+                gamx_jm: (result.gamx_jm ?? null) !== null ? parseFloat(result.gamx_jm) : null,
                 wso: result.wso || fallbackWso || null,
                 club_name: result.club_name || fallbackClub || null,
                 snatch_1: result.snatch_lift_1,
@@ -221,10 +227,9 @@ async function generateUSAWRankingsForYear(year: number) {
 }
 
 async function generateAllUSAWRankings() {
-    console.log('Starting USAW rankings generation (2012-2025)...');
-
     const startYear = 2012;
-    const endYear = 2025;
+    const endYear = new Date().getFullYear();
+    console.log(`Starting USAW rankings generation (${startYear}-${endYear})...`);
 
     try {
         for (let year = startYear; year <= endYear; year++) {
