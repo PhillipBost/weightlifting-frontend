@@ -138,6 +138,8 @@ interface LifterResult {
   gamx_u?: number | null;
   gamx_a?: number | null;
   gamx_masters?: number | null;
+  gamx_sm?: number | null;
+  gamx_jm?: number | null;
   profile_url: string;
   linked_federation: 'USAW' | 'IWF' | null;
   participations?: Participation[];
@@ -561,7 +563,9 @@ export default function OwlcmsMeetPage({ params }: { params: Promise<{ id: strin
             gamx_j: 0,
             gamx_u: 0,
             gamx_a: 0,
-            gamx_masters: 0
+            gamx_masters: 0,
+            gamx_sm: 0,
+            gamx_jm: 0
           };
           enrichedResults.forEach((r) => {
             if ((r.gamx_total || 0) > 0) counts.gamx_total++;
@@ -570,6 +574,8 @@ export default function OwlcmsMeetPage({ params }: { params: Promise<{ id: strin
             if ((r.gamx_u || 0) > 0) counts.gamx_u++;
             if ((r.gamx_a || 0) > 0) counts.gamx_a++;
             if ((r.gamx_masters || 0) > 0) counts.gamx_masters++;
+            if ((r.gamx_sm || 0) > 0) counts.gamx_sm++;
+            if ((r.gamx_jm || 0) > 0) counts.gamx_jm++;
           });
           const dominant = Object.entries(counts).reduce((a, b) => (b[1] > a[1] ? b : a))[0];
           setGamxSortConfig({ key: dominant, direction: 'desc' });
@@ -2370,9 +2376,9 @@ export default function OwlcmsMeetPage({ params }: { params: Promise<{ id: strin
               };
 
               const hClass =
-                'px-2 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none';
+                'px-1 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none';
               const qHClass = (col: string) =>
-                `px-2 py-1 text-left text-xs font-medium uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none ${
+                `px-1 py-1 text-left text-xs font-medium uppercase cursor-pointer hover:bg-app-surface transition-colors select-none whitespace-nowrap ${
                   gamxSortConfig.key === col ? 'text-accent-primary font-bold' : 'text-gray-900 dark:text-gray-200'
                 }`;
 
@@ -2394,47 +2400,58 @@ export default function OwlcmsMeetPage({ params }: { params: Promise<{ id: strin
                       <div className="overflow-x-auto">
                         <table className="border-separate" style={{ borderSpacing: 0, width: '100%' }}>
                           <thead className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200">
-                            <tr className="border-b-2 border-gray-400 dark:border-gray-500">
-                              <th className={hClass} onClick={() => handleGamxSort('rank')}>
+                            <tr>
+                              <th rowSpan={2} className={hClass} onClick={() => handleGamxSort('rank')}>
                                 Rank <GamxSortIndicator col="rank" />
                               </th>
-                              <th className={hClass} onClick={() => handleGamxSort('athlete_name')}>
+                              <th rowSpan={2} className={hClass} onClick={() => handleGamxSort('athlete_name')}>
                                 Name <GamxSortIndicator col="athlete_name" />
                               </th>
-                              <th className={`${hClass} hidden sm:table-cell`}>Club / Country</th>
-                              <th className={hClass} onClick={() => handleGamxSort('body_weight_kg')}>
+                              <th rowSpan={2} className={`${hClass} hidden sm:table-cell`}>Club / Country</th>
+                              <th rowSpan={2} className={hClass} onClick={() => handleGamxSort('body_weight_kg')}>
                                 Bwt <GamxSortIndicator col="body_weight_kg" />
                               </th>
-                              <th className={hClass} onClick={() => handleGamxSort('category')}>
+                              <th rowSpan={2} className={hClass} onClick={() => handleGamxSort('category')}>
                                 Wt. Class <GamxSortIndicator col="category" />
                               </th>
-                              <th className={hClass}>Division</th>
-                              <th className={hClass} onClick={() => handleGamxSort('best_snatch')}>
+                              <th rowSpan={2} className={hClass}>Division</th>
+                              <th rowSpan={2} className={hClass} onClick={() => handleGamxSort('best_snatch')}>
                                 BEST<br />SNATCH <GamxSortIndicator col="best_snatch" />
                               </th>
-                              <th className={hClass} onClick={() => handleGamxSort('best_cj')}>
+                              <th rowSpan={2} className={hClass} onClick={() => handleGamxSort('best_cj')}>
                                 BEST<br />C&J <GamxSortIndicator col="best_cj" />
                               </th>
-                              <th className={hClass} onClick={() => handleGamxSort('total')}>
+                              <th rowSpan={2} className={hClass} onClick={() => handleGamxSort('total')}>
                                 Total <GamxSortIndicator col="total" />
                               </th>
+                              <th colSpan={8} className="px-1 py-1 text-center text-xs font-semibold uppercase tracking-wider border-b border-gray-400/60 dark:border-gray-500/60 text-gray-900 dark:text-gray-200">
+                                GAMX
+                              </th>
+                            </tr>
+                            <tr className="border-b-2 border-gray-400 dark:border-gray-500">
                               <th className={qHClass('gamx_total')} onClick={() => handleGamxSort('gamx_total')}>
-                                <GamxMeetColumnTooltip metric="total">GAMX-Total</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_total" />
+                                <GamxMeetColumnTooltip metric="total">Total</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_total" />
                               </th>
                               <th className={qHClass('gamx_s')} onClick={() => handleGamxSort('gamx_s')}>
-                                <GamxMeetColumnTooltip metric="s">GAMX-S</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_s" />
+                                <GamxMeetColumnTooltip metric="s">S</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_s" />
                               </th>
                               <th className={qHClass('gamx_j')} onClick={() => handleGamxSort('gamx_j')}>
-                                <GamxMeetColumnTooltip metric="j">GAMX-J</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_j" />
+                                <GamxMeetColumnTooltip metric="j">J</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_j" />
                               </th>
                               <th className={qHClass('gamx_u')} onClick={() => handleGamxSort('gamx_u')}>
-                                <GamxMeetColumnTooltip metric="u">GAMX-U</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_u" />
+                                <GamxMeetColumnTooltip metric="u">U</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_u" />
                               </th>
                               <th className={qHClass('gamx_a')} onClick={() => handleGamxSort('gamx_a')}>
-                                <GamxMeetColumnTooltip metric="a">GAMX-A</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_a" />
+                                <GamxMeetColumnTooltip metric="a">A</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_a" />
                               </th>
                               <th className={qHClass('gamx_masters')} onClick={() => handleGamxSort('gamx_masters')}>
-                                <GamxMeetColumnTooltip metric="masters">GAMX-M</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_masters" />
+                                <GamxMeetColumnTooltip metric="masters">M</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_masters" />
+                              </th>
+                              <th className={qHClass('gamx_sm')} onClick={() => handleGamxSort('gamx_sm')}>
+                                <GamxMeetColumnTooltip metric="sm">MS</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_sm" />
+                              </th>
+                              <th className={qHClass('gamx_jm')} onClick={() => handleGamxSort('gamx_jm')}>
+                                <GamxMeetColumnTooltip metric="jm">MJ</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_jm" />
                               </th>
                             </tr>
                           </thead>
@@ -2448,7 +2465,7 @@ export default function OwlcmsMeetPage({ params }: { params: Promise<{ id: strin
                                   className="border-t first:border-t-0 dark:even:bg-gray-600/15 even:bg-gray-400/10 hover:bg-app-hover transition-colors group"
                                   style={{ borderTopColor: 'var(--border-secondary)' }}
                                 >
-                                  <td className="px-2 py-2 whitespace-nowrap text-sm font-medium text-app-primary">
+                                  <td className="px-1 py-1.5 whitespace-nowrap text-sm font-medium text-app-primary">
                                     <div className="flex items-center gap-1">
                                       <span>{hasScore ? idx + 1 : '-'}</span>
                                       {idx === 0 && hasScore && <Medal className="h-4 w-4" style={{ color: '#FFD700' }} />}
@@ -2456,13 +2473,13 @@ export default function OwlcmsMeetPage({ params }: { params: Promise<{ id: strin
                                       {idx === 2 && hasScore && <Medal className="h-4 w-4" style={{ color: '#CD7F32' }} />}
                                     </div>
                                   </td>
-                                  <td className="px-2 py-2 max-w-[200px] truncate" title={r.athlete_name}>
+                                  <td className="px-1 py-1.5 max-w-[160px] truncate" title={r.athlete_name}>
                                     <Link
                                       href={getAthleteUrl(r)}
                                       className="text-accent-primary hover:text-accent-primary-hover hover:underline flex items-center space-x-1"
                                     >
-                                      <span className="font-medium text-sm">{r.athlete_name}</span>
-                                      <ExternalLink className="h-3 w-3" />
+                                      <span className="font-medium text-sm truncate">{r.athlete_name}</span>
+                                      <ExternalLink className="h-3 w-3 shrink-0" />
                                     </Link>
                                     {getSessionDescriptor(r.session_name) && (
                                       <div className="text-[11px] text-app-muted truncate" title={`Platform Competition Session: ${getSessionDescriptor(r.session_name)}`}>
@@ -2470,64 +2487,76 @@ export default function OwlcmsMeetPage({ params }: { params: Promise<{ id: strin
                                       </div>
                                     )}
                                   </td>
-                                  <td className="px-2 py-2 text-sm hidden sm:table-cell">
-                                    <div className="flex items-center gap-2">
-                                      {Flag && <Flag style={{ width: '18px', height: '18px' }} />}
-                                      <span>{getDelegationLabel(r.club_name, r.country_code)}</span>
+                                  <td className="px-1 py-1.5 text-sm hidden sm:table-cell max-w-[140px]">
+                                    <div className="flex items-center gap-1.5 min-w-0">
+                                      {Flag && <Flag className="shrink-0" style={{ width: '18px', height: '18px' }} />}
+                                      <span className="truncate">{getDelegationLabel(r.club_name, r.country_code)}</span>
                                     </div>
                                   </td>
-                                  <td className="px-2 py-2 text-sm">{r.body_weight_kg ? `${r.body_weight_kg}kg` : '-'}</td>
-                                  <td className="px-2 py-2 text-sm">{r.parsedWeightClass || r.category}</td>
+                                  <td className="px-1 py-1.5 text-sm">{r.body_weight_kg ? `${r.body_weight_kg}kg` : '-'}</td>
+                                  <td className="px-1 py-1.5 text-sm">{r.parsedWeightClass || r.category}</td>
                                   <td
-                                    className="px-2 py-2 text-sm max-w-[120px] leading-tight"
+                                    className="px-1 py-1.5 text-sm max-w-[110px] leading-tight"
                                     style={{ fontSize: '0.75rem', whiteSpace: 'normal', wordBreak: 'break-word' }}
                                   >
                                     {r.parsedDivision || 'Open'}
                                   </td>
-                                  <td className="px-2 py-2 text-sm" style={{ color: 'var(--chart-snatch)' }}>
+                                  <td className="px-1 py-1.5 text-sm" style={{ color: 'var(--chart-snatch)' }}>
                                     {r.best_snatch ? `${r.best_snatch}kg` : '-'}
                                   </td>
-                                  <td className="px-2 py-2 text-sm" style={{ color: 'var(--chart-cleanjerk)' }}>
+                                  <td className="px-1 py-1.5 text-sm" style={{ color: 'var(--chart-cleanjerk)' }}>
                                     {r.best_cj ? `${r.best_cj}kg` : '-'}
                                   </td>
-                                  <td className="px-2 py-2 text-sm font-bold" style={{ color: 'var(--chart-total)' }}>
+                                  <td className="px-1 py-1.5 text-sm font-bold" style={{ color: 'var(--chart-total)' }}>
                                     {r.total ? `${r.total}kg` : '-'}
                                   </td>
                                   <td
-                                    className="px-2 py-2 text-sm font-medium"
+                                    className="px-1 py-1.5 text-sm font-medium"
                                     style={{ color: (r.gamx_total || 0) > 0 ? 'var(--chart-gamx-total)' : 'inherit' }}
                                   >
                                     {r.gamx_total ? r.gamx_total.toFixed(0) : '-'}
                                   </td>
                                   <td
-                                    className="px-2 py-2 text-sm font-medium"
+                                    className="px-1 py-1.5 text-sm font-medium"
                                     style={{ color: (r.gamx_s || 0) > 0 ? 'var(--chart-qpoints)' : 'inherit' }}
                                   >
                                     {r.gamx_s ? r.gamx_s.toFixed(0) : '-'}
                                   </td>
                                   <td
-                                    className="px-2 py-2 text-sm font-medium"
+                                    className="px-1 py-1.5 text-sm font-medium"
                                     style={{ color: (r.gamx_j || 0) > 0 ? 'var(--chart-qyouth)' : 'inherit' }}
                                   >
                                     {r.gamx_j ? r.gamx_j.toFixed(0) : '-'}
                                   </td>
                                   <td
-                                    className="px-2 py-2 text-sm font-medium"
+                                    className="px-1 py-1.5 text-sm font-medium"
                                     style={{ color: (r.gamx_u || 0) > 0 ? 'var(--chart-qpoints)' : 'inherit' }}
                                   >
                                     {r.gamx_u ? r.gamx_u.toFixed(0) : '-'}
                                   </td>
                                   <td
-                                    className="px-2 py-2 text-sm font-medium"
+                                    className="px-1 py-1.5 text-sm font-medium"
                                     style={{ color: (r.gamx_a || 0) > 0 ? 'var(--chart-qmasters)' : 'inherit' }}
                                   >
                                     {r.gamx_a ? r.gamx_a.toFixed(0) : '-'}
                                   </td>
                                   <td
-                                    className="px-2 py-2 text-sm font-medium"
+                                    className="px-1 py-1.5 text-sm font-medium"
                                     style={{ color: (r.gamx_masters || 0) > 0 ? 'var(--chart-qmasters)' : 'inherit' }}
                                   >
                                     {r.gamx_masters ? r.gamx_masters.toFixed(0) : '-'}
+                                  </td>
+                                  <td
+                                    className="px-1 py-1.5 text-sm font-medium"
+                                    style={{ color: (r.gamx_sm || 0) > 0 ? 'var(--chart-gamx-sm)' : 'inherit' }}
+                                  >
+                                    {r.gamx_sm ? r.gamx_sm.toFixed(0) : '-'}
+                                  </td>
+                                  <td
+                                    className="px-1 py-1.5 text-sm font-medium"
+                                    style={{ color: (r.gamx_jm || 0) > 0 ? 'var(--chart-gamx-jm)' : 'inherit' }}
+                                  >
+                                    {r.gamx_jm ? r.gamx_jm.toFixed(0) : '-'}
                                   </td>
                                 </tr>
                               );

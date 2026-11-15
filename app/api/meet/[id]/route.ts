@@ -82,6 +82,8 @@ export async function GET(
         gamx_u,
         gamx_a,
         gamx_masters,
+        gamx_sm,
+        gamx_jm,
         lifters:usaw_lifters!inner(membership_number)
       `)
       .eq('meet_id', meetId);

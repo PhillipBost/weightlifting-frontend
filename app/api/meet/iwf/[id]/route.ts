@@ -93,6 +93,8 @@ export async function GET(
         gamx_u,
         gamx_a,
         gamx_masters,
+        gamx_sm,
+        gamx_jm,
         best_snatch_ytd,
         best_cj_ytd,
         best_total_ytd,

@@ -345,7 +345,9 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
             gamx_j: 0,
             gamx_u: 0,
             gamx_a: 0,
-            gamx_masters: 0
+            gamx_masters: 0,
+            gamx_sm: 0,
+            gamx_jm: 0
           };
 
           adaptedResults.forEach((r: any) => {
@@ -355,6 +357,8 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
             if ((r.gamx_u || 0) > 0) counts.gamx_u++;
             if ((r.gamx_a || 0) > 0) counts.gamx_a++;
             if ((r.gamx_masters || 0) > 0) counts.gamx_masters++;
+            if ((r.gamx_sm || 0) > 0) counts.gamx_sm++;
+            if ((r.gamx_jm || 0) > 0) counts.gamx_jm++;
           });
 
           const dominant = Object.entries(counts).reduce((a, b) => (b[1] > a[1] ? b : a))[0];
@@ -1394,7 +1398,7 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
 
           const hClass = "px-1 py-1 text-left text-xs font-medium text-gray-900 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none";
           const qHClass = (col: string) =>
-            `px-1 py-1 text-left text-xs font-medium uppercase tracking-wider cursor-pointer hover:bg-app-surface transition-colors select-none ${gamxSortConfig.key === col ? 'text-accent-primary font-bold' : 'text-gray-900 dark:text-gray-200'
+            `px-1 py-1 text-left text-xs font-medium uppercase cursor-pointer hover:bg-app-surface transition-colors select-none whitespace-nowrap ${gamxSortConfig.key === col ? 'text-accent-primary font-bold' : 'text-gray-900 dark:text-gray-200'
             }`;
 
           return (
@@ -1411,24 +1415,29 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                   <div className="overflow-x-auto">
                     <table className="border-separate" style={{ borderSpacing: 0, width: '100%' }}>
                       <thead className="bg-gray-300 dark:!bg-gray-700 dark:!text-gray-200">
+                        <tr>
+                          <th rowSpan={2} className={hClass} onClick={() => handleGamxSort('rank')}>Rank <GamxSortIndicator col="rank" /></th>
+                          <th rowSpan={2} className={hClass} onClick={() => handleGamxSort('lifter_name')}>Name <GamxSortIndicator col="lifter_name" /></th>
+                          <th rowSpan={2} className={`${hClass} hidden sm:table-cell`}>Country</th>
+                          <th rowSpan={2} className={hClass} onClick={() => handleGamxSort('gender')}>Sex <GamxSortIndicator col="gender" /></th>
+                          <th rowSpan={2} className={hClass} onClick={() => handleGamxSort('competition_age')}>Age <GamxSortIndicator col="competition_age" /></th>
+                          <th rowSpan={2} className={hClass} onClick={() => handleGamxSort('body_weight_kg')}>Bwt <GamxSortIndicator col="body_weight_kg" /></th>
+                          <th rowSpan={2} className={hClass} onClick={() => handleGamxSort('weight_class')}>Wt. Class <GamxSortIndicator col="weight_class" /></th>
+                          <th rowSpan={2} className={hClass} onClick={() => handleGamxSort('age_category')}>Division <GamxSortIndicator col="age_category" /></th>
+                          <th rowSpan={2} className={hClass} onClick={() => handleGamxSort('best_snatch')}>BEST<br />SNATCH <GamxSortIndicator col="best_snatch" /></th>
+                          <th rowSpan={2} className={hClass} onClick={() => handleGamxSort('best_cj')}>BEST<br />C&J <GamxSortIndicator col="best_cj" /></th>
+                          <th rowSpan={2} className={hClass} onClick={() => handleGamxSort('total')}>Total <GamxSortIndicator col="total" /></th>
+                          <th colSpan={8} className="px-1 py-1 text-center text-xs font-semibold uppercase tracking-wider border-b border-gray-400/60 dark:border-gray-500/60 text-gray-900 dark:text-gray-200">GAMX</th>
+                        </tr>
                         <tr className="border-b-2 border-gray-400 dark:border-gray-500">
-                          <th className={hClass} onClick={() => handleGamxSort('rank')}>Rank <GamxSortIndicator col="rank" /></th>
-                          <th className={hClass} onClick={() => handleGamxSort('lifter_name')}>Name <GamxSortIndicator col="lifter_name" /></th>
-                          <th className={`${hClass} hidden sm:table-cell`}>Country</th>
-                          <th className={hClass} onClick={() => handleGamxSort('gender')}>Sex <GamxSortIndicator col="gender" /></th>
-                          <th className={hClass} onClick={() => handleGamxSort('competition_age')}>Age <GamxSortIndicator col="competition_age" /></th>
-                          <th className={hClass} onClick={() => handleGamxSort('body_weight_kg')}>Bwt <GamxSortIndicator col="body_weight_kg" /></th>
-                          <th className={hClass} onClick={() => handleGamxSort('weight_class')}>Wt. Class <GamxSortIndicator col="weight_class" /></th>
-                          <th className={hClass} onClick={() => handleGamxSort('age_category')}>Division <GamxSortIndicator col="age_category" /></th>
-                          <th className={hClass} onClick={() => handleGamxSort('best_snatch')}>BEST<br />SNATCH <GamxSortIndicator col="best_snatch" /></th>
-                          <th className={hClass} onClick={() => handleGamxSort('best_cj')}>BEST<br />C&J <GamxSortIndicator col="best_cj" /></th>
-                          <th className={hClass} onClick={() => handleGamxSort('total')}>Total <GamxSortIndicator col="total" /></th>
-                          <th className={qHClass('gamx_total')} onClick={() => handleGamxSort('gamx_total')}><GamxMeetColumnTooltip metric="total">GAMX-Total</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_total" /></th>
-                          <th className={qHClass('gamx_s')} onClick={() => handleGamxSort('gamx_s')}><GamxMeetColumnTooltip metric="s">GAMX-S</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_s" /></th>
-                          <th className={qHClass('gamx_j')} onClick={() => handleGamxSort('gamx_j')}><GamxMeetColumnTooltip metric="j">GAMX-J</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_j" /></th>
-                          <th className={qHClass('gamx_u')} onClick={() => handleGamxSort('gamx_u')}><GamxMeetColumnTooltip metric="u">GAMX-U</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_u" /></th>
-                          <th className={qHClass('gamx_a')} onClick={() => handleGamxSort('gamx_a')}><GamxMeetColumnTooltip metric="a">GAMX-A</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_a" /></th>
-                          <th className={qHClass('gamx_masters')} onClick={() => handleGamxSort('gamx_masters')}><GamxMeetColumnTooltip metric="masters">GAMX-M</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_masters" /></th>
+                          <th className={qHClass('gamx_total')} onClick={() => handleGamxSort('gamx_total')}><GamxMeetColumnTooltip metric="total">Total</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_total" /></th>
+                          <th className={qHClass('gamx_s')} onClick={() => handleGamxSort('gamx_s')}><GamxMeetColumnTooltip metric="s">S</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_s" /></th>
+                          <th className={qHClass('gamx_j')} onClick={() => handleGamxSort('gamx_j')}><GamxMeetColumnTooltip metric="j">J</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_j" /></th>
+                          <th className={qHClass('gamx_u')} onClick={() => handleGamxSort('gamx_u')}><GamxMeetColumnTooltip metric="u">U</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_u" /></th>
+                          <th className={qHClass('gamx_a')} onClick={() => handleGamxSort('gamx_a')}><GamxMeetColumnTooltip metric="a">A</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_a" /></th>
+                          <th className={qHClass('gamx_masters')} onClick={() => handleGamxSort('gamx_masters')}><GamxMeetColumnTooltip metric="masters">M</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_masters" /></th>
+                          <th className={qHClass('gamx_sm')} onClick={() => handleGamxSort('gamx_sm')}><GamxMeetColumnTooltip metric="sm">MS</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_sm" /></th>
+                          <th className={qHClass('gamx_jm')} onClick={() => handleGamxSort('gamx_jm')}><GamxMeetColumnTooltip metric="jm">MJ</GamxMeetColumnTooltip> <GamxSortIndicator col="gamx_jm" /></th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1444,16 +1453,16 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                                   {idx === 2 && ((r as any)[gamxSortConfig.key] || 0) > 0 && <Medal className="h-4 w-4" style={{ color: '#CD7F32' }} />}
                                 </div>
                               </td>
-                              <td className="px-1 py-1.5 max-w-[200px] truncate" title={r.lifter_name}>
+                              <td className="px-1 py-1.5 max-w-[160px] truncate" title={r.lifter_name}>
                                 <Link href={getAthleteUrl(r)} className="text-accent-primary hover:text-accent-primary-hover hover:underline flex items-center space-x-1">
-                                  <span className="font-medium text-sm">{r.lifter_name}</span>
-                                  <ExternalLink className="h-3 w-3" />
+                                  <span className="font-medium text-sm truncate">{r.lifter_name}</span>
+                                  <ExternalLink className="h-3 w-3 shrink-0" />
                                 </Link>
                               </td>
-                              <td className="px-1 py-1.5 text-sm hidden sm:table-cell">
-                                <div className="flex items-center gap-2">
-                                  {FlagComponent && <FlagComponent style={{ width: '18px', height: '18px' }} />}
-                                  <span>{(r as any).country_name || (r as any).country_code || '-'}</span>
+                              <td className="px-1 py-1.5 text-sm hidden sm:table-cell max-w-[140px]">
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                  {FlagComponent && <FlagComponent className="shrink-0" style={{ width: '18px', height: '18px' }} />}
+                                  <span className="truncate">{(r as any).country_name || (r as any).country_code || '-'}</span>
                                 </div>
                               </td>
                               <td className="px-1 py-1.5 text-sm whitespace-nowrap">{r.gender === 'F' || r.gender === 'Women' || r.age_category?.toLowerCase().includes("women's") ? 'Female' : 'Male'}</td>
@@ -1470,6 +1479,8 @@ export default function MeetPage({ params }: { params: Promise<{ id: string }> }
                               <td className="px-1 py-1.5 text-sm font-medium" style={{ color: (r as any).gamx_u > 0 ? 'var(--chart-qpoints)' : 'inherit' }}>{(r as any).gamx_u ? (r as any).gamx_u.toFixed(0) : '-'}</td>
                               <td className="px-1 py-1.5 text-sm font-medium" style={{ color: (r as any).gamx_a > 0 ? 'var(--chart-qmasters)' : 'inherit' }}>{(r as any).gamx_a ? (r as any).gamx_a.toFixed(0) : '-'}</td>
                               <td className="px-1 py-1.5 text-sm font-medium" style={{ color: (r as any).gamx_masters > 0 ? 'var(--chart-qmasters)' : 'inherit' }}>{(r as any).gamx_masters ? (r as any).gamx_masters.toFixed(0) : '-'}</td>
+                              <td className="px-1 py-1.5 text-sm font-medium" style={{ color: (r as any).gamx_sm > 0 ? 'var(--chart-gamx-sm)' : 'inherit' }}>{(r as any).gamx_sm ? (r as any).gamx_sm.toFixed(0) : '-'}</td>
+                              <td className="px-1 py-1.5 text-sm font-medium" style={{ color: (r as any).gamx_jm > 0 ? 'var(--chart-gamx-jm)' : 'inherit' }}>{(r as any).gamx_jm ? (r as any).gamx_jm.toFixed(0) : '-'}</td>
                             </tr>
                           );
                         })}
