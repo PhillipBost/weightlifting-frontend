@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { fetchMeetShard } from '@/lib/utils/meetShard';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,11 +24,26 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const startTime = Date.now();
   try {
     const { id } = await params;
     const meetId = parseInt(id, 10);
     if (isNaN(meetId)) {
       return NextResponse.json({ success: false, error: 'Invalid meet ID' }, { status: 400 });
+    }
+
+    // 0. Static Meet Shard Lookup
+    const shard = await fetchMeetShard('owlcms', meetId);
+    if (shard?.data) {
+      return NextResponse.json(shard.data, {
+        status: 200,
+        headers: {
+          'X-Data-Source': 'shard',
+          'X-Shard-ID': shard.shardId,
+          'X-Federation': 'owlcms',
+          'X-Response-Time': `${Date.now() - startTime}ms`
+        }
+      });
     }
 
     const supabase = getSupabaseAdmin();
@@ -216,36 +232,45 @@ export async function GET(
       }
     }
 
-    return NextResponse.json({
-      success: true,
-      meet: {
-        meet_id: meet.meet_id,
-        meet_name: meet.meet_name,
-        start_date: meet.start_date,
-        end_date: meet.end_date,
-        city: meet.city || rawComp.competitionCity || null,
-        country: meet.country || null,
-        organizer: meet.organizer || rawComp.competitionOrganizer || null,
-        federation: federationDetails?.canonical_name || rawComp.federation || null,
-        federation_details: federationDetails,
-        venue: rawComp.competitionSite || null,
-        latitude: meet.latitude ?? null,
-        longitude: meet.longitude ?? null,
-        host_country_code: meet.host_country_code ?? null,
-        format_version: meet.format_version,
-        raw_payload: meet.raw_payload || null,
-        summary: {
-          total_athletes: enrichedResults.length,
-          total_clubs: clubsSet.size,
-          total_attempts: totalAttempts,
-          successful_attempts: successfulAttempts,
-          success_rate: successRate,
-          sessions: Array.from(sessionsSet).sort(),
-          categories: Array.from(categoriesSet).sort()
-        }
+    return NextResponse.json(
+      {
+        success: true,
+        meet: {
+          meet_id: meet.meet_id,
+          meet_name: meet.meet_name,
+          start_date: meet.start_date,
+          end_date: meet.end_date,
+          city: meet.city || rawComp.competitionCity || null,
+          country: meet.country || null,
+          organizer: meet.organizer || rawComp.competitionOrganizer || null,
+          federation: federationDetails?.canonical_name || rawComp.federation || null,
+          federation_details: federationDetails,
+          venue: rawComp.competitionSite || null,
+          latitude: meet.latitude ?? null,
+          longitude: meet.longitude ?? null,
+          host_country_code: meet.host_country_code ?? null,
+          format_version: meet.format_version,
+          raw_payload: meet.raw_payload || null,
+          summary: {
+            total_athletes: enrichedResults.length,
+            total_clubs: clubsSet.size,
+            total_attempts: totalAttempts,
+            successful_attempts: successfulAttempts,
+            success_rate: successRate,
+            sessions: Array.from(sessionsSet).sort(),
+            categories: Array.from(categoriesSet).sort()
+          }
+        },
+        results: enrichedResults
       },
-      results: enrichedResults
-    });
+      {
+        headers: {
+          'X-Data-Source': 'supabase',
+          'X-Federation': 'owlcms',
+          'X-Response-Time': `${Date.now() - startTime}ms`
+        }
+      }
+    );
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { fetchMeetShard } from '@/lib/utils/meetShard';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -10,11 +11,35 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const startTime = Date.now();
   const { id } = await params;
   const { searchParams } = new URL(request.url);
   const isSummary = searchParams.get('summary') === 'true';
 
   try {
+    // 0. Static Meet Shard Lookup (keyed by canonical iwf_meet_id)
+    const shard = await fetchMeetShard<{ meet?: any; locations?: any[]; results?: any[] }>('iwf', id);
+    if (shard?.data) {
+      const shardHeaders = {
+        'X-Data-Source': 'shard',
+        'X-Shard-ID': shard.shardId,
+        'X-Federation': 'iwf',
+        'X-Response-Time': `${Date.now() - startTime}ms`
+      };
+
+      if (isSummary) {
+        return NextResponse.json(
+          {
+            meet: shard.data.meet,
+            resultsCount: shard.data.results?.length ?? shard.data.meet?.results ?? 0
+          },
+          { status: 200, headers: shardHeaders }
+        );
+      }
+
+      return NextResponse.json(shard.data, { status: 200, headers: shardHeaders });
+    }
+
     // 1. Fetch IWF Meet Metadata (Prioritizes canonical primary-source iwf_meet_id, falling back to legacy db_meet_id)
     let { data: meetData, error: meetError } = await supabaseAdmin
       .from('iwf_meets')
@@ -116,12 +141,21 @@ export async function GET(
       return NextResponse.json({ error: `International results error: ${resultsError.message}` }, { status: 500 });
     }
 
-    // 4. Return Unified Response
-    return NextResponse.json({
-      meet: meetData,
-      locations: locationData || [],
-      results: results || []
-    });
+    // 4. Return Unified Response (Supabase fallback)
+    return NextResponse.json(
+      {
+        meet: meetData,
+        locations: locationData || [],
+        results: results || []
+      },
+      {
+        headers: {
+          'X-Data-Source': 'supabase',
+          'X-Federation': 'iwf',
+          'X-Response-Time': `${Date.now() - startTime}ms`
+        }
+      }
+    );
 
   } catch (err) {
     console.error(`[IWF MEET API ERROR for ${id}]:`, err);

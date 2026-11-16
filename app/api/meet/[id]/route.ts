@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { fetchMeetShard } from '@/lib/utils/meetShard';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -10,6 +11,7 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const startTime = Date.now();
   const { id } = await params;
   const meetId = parseInt(id);
 
@@ -18,6 +20,20 @@ export async function GET(
   }
 
   try {
+    // 0. Static Meet Shard Lookup
+    const shard = await fetchMeetShard('usaw', meetId);
+    if (shard?.data) {
+      return NextResponse.json(shard.data, {
+        status: 200,
+        headers: {
+          'X-Data-Source': 'shard',
+          'X-Shard-ID': shard.shardId,
+          'X-Federation': 'usaw',
+          'X-Response-Time': `${Date.now() - startTime}ms`
+        }
+      });
+    }
+
     // 1. Fetch Meet Metadata with joined listing data for enriched location info
     const { data: meet, error: meetError } = await supabaseAdmin
       .from('usaw_meets')
@@ -92,11 +108,20 @@ export async function GET(
       return NextResponse.json({ error: `Results error: ${resultsError.message}` }, { status: 500 });
     }
 
-    // 3. Return Unified Response
-    return NextResponse.json({
-      meet,
-      results: results || []
-    });
+    // 3. Return Unified Response (Supabase fallback)
+    return NextResponse.json(
+      {
+        meet,
+        results: results || []
+      },
+      {
+        headers: {
+          'X-Data-Source': 'supabase',
+          'X-Federation': 'usaw',
+          'X-Response-Time': `${Date.now() - startTime}ms`
+        }
+      }
+    );
 
   } catch (err) {
     console.error(`[MEET API ERROR for ${meetId}]:`, err);
