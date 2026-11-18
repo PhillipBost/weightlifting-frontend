@@ -40,7 +40,7 @@ async function getArchiveData(): Promise<Meet[]> {
                     country
                 )
             `)
-            .order('date', { ascending: false });
+            .order('date_iso', { ascending: false, nullsFirst: false });
 
         if (iwfError) throw iwfError;
 

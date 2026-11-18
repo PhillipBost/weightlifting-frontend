@@ -266,7 +266,7 @@ export function AthleteProfileWrapper({ id, initialData, forceIwfMode = false, f
       external_links: athleteData.external_links || [],
       iwf_profiles: (athleteData.iwf_profiles || []).map((p: any) => ({
         ...p,
-        url: p.url || `https://iwf.sport/weightlifting_/athletes-bios/?athlete_id=${p.id}`
+        url: p.url || null
       })),
       achievements: athleteData.achievements as AthleteAchievementsData || null,
       birthYear: athleteData.birthYear,

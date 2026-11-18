@@ -98,13 +98,28 @@ export async function GET(req: NextRequest) {
         const shardMatch = run.linker_logs.match(/Triggering static shard generation for\s+(\d+)\s+linked athlete/i);
         const shards = shardMatch ? Number(shardMatch[1]) : 0;
 
+        const stagedMatch =
+          run.linker_logs.match(/Staging\s+(\d+)\s+ambiguous\s+cross-federation/i) ||
+          run.linker_logs.match(/Would stage\s+(\d+)\s+new\s+ambiguous/i);
+        const ambiguousStagedToReview =
+          run.import_stats?.linkerStats?.ambiguousStagedToReview ??
+          run.import_stats?.ambiguousStagedToReview ??
+          (stagedMatch ? Number(stagedMatch[1]) : 0);
+
         run.import_stats = {
           ...(run.import_stats || {}),
           linkerStats: {
-            usawAliasesLinked: usaw,
-            owlcmsAliasesLinked: owlcms,
-            totalAliasesLinked: usaw + owlcms,
+            usawAliasesLinked: run.import_stats?.standaloneLinker
+              ? (run.import_stats?.linkerStats?.usawAliasesLinked ?? usaw)
+              : usaw,
+            owlcmsAliasesLinked: run.import_stats?.standaloneLinker
+              ? (run.import_stats?.linkerStats?.owlcmsAliasesLinked ?? owlcms)
+              : owlcms,
+            totalAliasesLinked: run.import_stats?.standaloneLinker
+              ? (run.import_stats?.linkerStats?.totalAliasesLinked ?? (usaw + owlcms))
+              : (usaw + owlcms),
             shardsRefreshed: shards,
+            ambiguousStagedToReview,
           },
         };
       }

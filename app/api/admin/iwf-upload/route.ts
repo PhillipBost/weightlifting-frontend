@@ -62,27 +62,55 @@ function extractEventId(input?: string | number | null): string {
   return str;
 }
 
+function killChildProcessTree(child: ReturnType<typeof spawn>) {
+  try {
+    if (process.platform === 'win32' && child.pid) {
+      spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], { windowsHide: true });
+    } else {
+      child.kill('SIGTERM');
+    }
+  } catch {
+    // ignore process cleanup errors
+  }
+}
+
 function runSpawnStream({
   scriptPath,
   args,
   cwd,
   env,
   onChunk,
+  signal,
 }: {
   scriptPath: string;
   args: string[];
   cwd: string;
   env: NodeJS.ProcessEnv;
   onChunk: (text: string) => void;
-}): Promise<{ code: number; stdout: string; stderr: string }> {
+  signal?: AbortSignal;
+}): Promise<{ code: number; stdout: string; stderr: string; aborted: boolean }> {
   return new Promise((resolve, reject) => {
     let stdout = '';
     let stderr = '';
+    let aborted = Boolean(signal?.aborted);
     const child = spawn(process.execPath, [scriptPath, ...args], {
       cwd,
       env,
       windowsHide: false,
     });
+
+    const onAbort = () => {
+      aborted = true;
+      killChildProcessTree(child);
+    };
+
+    if (signal) {
+      if (signal.aborted) {
+        onAbort();
+      } else {
+        signal.addEventListener('abort', onAbort, { once: true });
+      }
+    }
 
     child.stdout.on('data', (data: Buffer) => {
       const text = data.toString('utf-8');
@@ -96,8 +124,14 @@ function runSpawnStream({
       onChunk(text);
     });
 
-    child.on('error', (err) => reject(err));
-    child.on('close', (code) => resolve({ code: code ?? 0, stdout, stderr }));
+    child.on('error', (err) => {
+      signal?.removeEventListener('abort', onAbort);
+      reject(err);
+    });
+    child.on('close', (code) => {
+      signal?.removeEventListener('abort', onAbort);
+      resolve({ code: code ?? 0, stdout, stderr, aborted });
+    });
   });
 }
 
@@ -138,15 +172,26 @@ export async function POST(req: NextRequest) {
       athlete_name,
       force = false,
       dryRun = false,
+      syncNames = false,
       stream = false,
     } = body;
 
     const wantsStream = stream || req.headers.get('accept')?.includes('text/event-stream');
-    const eventIdClean = extractEventId(event_id);
-    const rawUrl = (typeof inputUrl === 'string' && inputUrl.trim().startsWith('http'))
+    const rawEventInput = typeof event_id === 'string' ? event_id.trim() : (event_id ? String(event_id).trim() : '');
+    const batchEventIdList = rawEventInput.includes(',')
+      ? rawEventInput
+          .split(',')
+          .map((part) => extractEventId(part))
+          .filter((id) => /^\d+$/.test(id))
+      : [];
+    const eventIdsBatch = batchEventIdList.length > 1 ? batchEventIdList.join(',') : null;
+    const eventIdClean = eventIdsBatch ? '' : (batchEventIdList.length === 1 ? batchEventIdList[0] : extractEventId(event_id));
+    const rawUrl = !eventIdsBatch && typeof inputUrl === 'string' && inputUrl.trim().startsWith('http')
       ? inputUrl.trim()
-      : ((typeof event_id === 'string' && event_id.trim().startsWith('http')) ? event_id.trim() : null);
-    const canonicalUrl = rawUrl || (eventIdClean ? getOfficialIwfMeetUrl(eventIdClean, rawYear || new Date().getFullYear()) : null);
+      : (!eventIdsBatch && typeof event_id === 'string' && event_id.trim().startsWith('http') ? event_id.trim() : null);
+    const canonicalUrl = eventIdsBatch
+      ? null
+      : (rawUrl || (eventIdClean ? getOfficialIwfMeetUrl(eventIdClean, rawYear || new Date().getFullYear()) : null));
 
     let year = rawYear ? Number(rawYear) : new Date().getFullYear();
     if (!rawYear && event_id) {
@@ -168,6 +213,7 @@ export async function POST(req: NextRequest) {
     };
 
     const mode: 'single_event' | 'full_year' = eventIdClean ? 'single_event' : 'full_year';
+    const recordedEventId = eventIdsBatch || eventIdClean || null;
     const startTime = Date.now();
 
     // 2. Initialize RUNNING audit record in public.iwf_pipeline_runs
@@ -177,7 +223,7 @@ export async function POST(req: NextRequest) {
         .from('iwf_pipeline_runs')
         .insert({
           mode,
-          event_id: eventIdClean || null,
+          event_id: recordedEventId,
           url: canonicalUrl || rawUrl,
           year,
           athlete_name: athlete_name && String(athlete_name).trim().length > 0 ? String(athlete_name).trim() : null,
@@ -257,7 +303,7 @@ export async function POST(req: NextRequest) {
           .from('iwf_pipeline_runs')
           .insert({
             mode,
-            event_id: eventIdClean || null,
+            event_id: recordedEventId,
             url: rawUrl,
             year,
             athlete_name: athlete_name && String(athlete_name).trim().length > 0 ? String(athlete_name).trim() : null,
@@ -295,17 +341,90 @@ export async function POST(req: NextRequest) {
       const menCount = menMatch ? Number(menMatch[2] || menMatch[1]) : undefined;
       const womenCount = womenMatch ? Number(womenMatch[2] || womenMatch[1]) : undefined;
 
-      const summaryLine = combinedLogs
+      const summaryLines = combinedLogs
         .split('\n')
-        .find((line) => line.startsWith('__IWF_SUMMARY_JSON__:'));
+        .filter((line) => line.startsWith('__IWF_SUMMARY_JSON__:'));
 
-      let parsedSummary: any = null;
-      if (summaryLine) {
+      const parsedSummaries: any[] = [];
+      for (const line of summaryLines) {
         try {
-          parsedSummary = JSON.parse(summaryLine.replace('__IWF_SUMMARY_JSON__:', '').trim());
+          parsedSummaries.push(JSON.parse(line.replace('__IWF_SUMMARY_JSON__:', '').trim()));
         } catch (parseErr) {
           console.warn('[IWF_PIPELINE] Failed to parse __IWF_SUMMARY_JSON__:', parseErr);
         }
+      }
+
+      let parsedSummary: any = null;
+      if (parsedSummaries.length === 1) {
+        parsedSummary = parsedSummaries[0];
+      } else if (parsedSummaries.length > 1) {
+        const sumNum = (getter: (s: any) => number | undefined): number | undefined => {
+          let total = 0;
+          let found = false;
+          for (const s of parsedSummaries) {
+            const val = getter(s);
+            if (typeof val === 'number' && !Number.isNaN(val)) {
+              total += val;
+              found = true;
+            }
+          }
+          return found ? total : undefined;
+        };
+
+        const aggregatedScorecards = parsedSummaries.flatMap(
+          (s) => s?.importStats?.matchedScorecards || s?.importStats?.targetAthletes || []
+        );
+        const aggregatedUpdatedAthletes = parsedSummaries.flatMap(
+          (s) => s?.importStats?.updatedAthletes || []
+        );
+        const aggregatedUnmatchedAthletes = parsedSummaries.flatMap(
+          (s) => s?.importStats?.unmatchedAthletes || []
+        );
+        const aggregatedFlaggedForReview = parsedSummaries.flatMap(
+          (s) => s?.importStats?.flaggedForReview || []
+        );
+        const aggregatedAlreadyInQueue = parsedSummaries.flatMap(
+          (s) => s?.importStats?.alreadyInQueue || []
+        );
+        const aggregatedLockedAthletes = parsedSummaries.flatMap(
+          (s) => s?.importStats?.lockedAthletes || []
+        );
+
+        parsedSummary = {
+          iwf_meet_id: null,
+          importStats: {
+            wouldSkip: parsedSummaries.every((s) => Boolean(s?.importStats?.wouldSkip)),
+            syncNames: parsedSummaries.some((s) => Boolean(s?.importStats?.syncNames)),
+            nameUpdatesCount: sumNum((s) => s?.importStats?.nameUpdatesCount),
+            unchangedCount: sumNum((s) => s?.importStats?.unchangedCount),
+            unmatchedCount: sumNum((s) => s?.importStats?.unmatchedCount),
+            lockedSkipped: sumNum((s) => s?.importStats?.lockedSkipped),
+            directNameUpdates: sumNum((s) => s?.importStats?.directNameUpdates),
+            confirmedSameLinks: sumNum((s) => s?.importStats?.confirmedSameLinks),
+            flaggedForReviewCount: sumNum((s) => s?.importStats?.flaggedForReviewCount),
+            alreadyInQueueCount: sumNum((s) => s?.importStats?.alreadyInQueueCount),
+            distinctMismatches: sumNum((s) => s?.importStats?.distinctMismatches),
+            failedUpdates: sumNum((s) => s?.importStats?.failedUpdates),
+            updatedAthletes: aggregatedUpdatedAthletes.length > 0 ? aggregatedUpdatedAthletes : undefined,
+            unmatchedAthletes: aggregatedUnmatchedAthletes.length > 0 ? aggregatedUnmatchedAthletes : undefined,
+            flaggedForReview: aggregatedFlaggedForReview.length > 0 ? aggregatedFlaggedForReview : undefined,
+            alreadyInQueue: aggregatedAlreadyInQueue.length > 0 ? aggregatedAlreadyInQueue : undefined,
+            lockedAthletes: aggregatedLockedAthletes.length > 0 ? aggregatedLockedAthletes : undefined,
+            existingResults: sumNum((s) => s?.importStats?.existingResults),
+            simulatedUpdates: sumNum((s) => s?.importStats?.simulatedUpdates),
+            simulatedInserts: sumNum((s) => s?.importStats?.simulatedInserts),
+            simulatedLocked: sumNum((s) => s?.importStats?.simulatedLocked),
+            menCount: sumNum((s) => s?.importStats?.menCount),
+            womenCount: sumNum((s) => s?.importStats?.womenCount),
+            meetTotalAthletes: sumNum((s) => s?.importStats?.meetTotalAthletes),
+            totalAthletes: sumNum((s) => s?.importStats?.totalAthletes ?? s?.importStats?.total?.totalAthletes),
+            imported: sumNum((s) => s?.importStats?.total?.successful ?? s?.importStats?.imported),
+            updated: sumNum((s) => s?.importStats?.updated),
+            skipped: sumNum((s) => s?.importStats?.total?.duplicates ?? s?.importStats?.skipped),
+            errors: sumNum((s) => s?.importStats?.total?.errors ?? s?.importStats?.errors),
+            matchedScorecards: aggregatedScorecards.length > 0 ? aggregatedScorecards : undefined,
+          },
+        };
       }
 
       let taggedTargetAthlete: any = null;
@@ -324,6 +443,70 @@ export async function POST(req: NextRequest) {
         .join('\n')
         .replace(/###TARGET_ATHLETE_JSON###[\s\S]*?###END_TARGET_ATHLETE_JSON###\r?\n?/, '')
         .trim();
+
+      const sumRegexMatches = (regex: RegExp): number => {
+        let total = 0;
+        let m: RegExpExecArray | null;
+        while ((m = regex.exec(cleanLogs)) !== null) {
+          total += Number(m[1]);
+        }
+        return total;
+      };
+
+      const syncUnmatchedCount = syncNames ? sumRegexMatches(/Unmatched in meet database records:\s*(\d+)/gi) : undefined;
+      const syncConflictsStagedCount = syncNames ? sumRegexMatches(/Newly staged for review:\s*(\d+)/gi) : undefined;
+      const syncFailedCount = syncNames ? sumRegexMatches(/Failed updates:\s*(\d+)/gi) : undefined;
+      const syncUnmatchedAthletes: string[] = [];
+      const syncFlaggedConflicts: string[] = [];
+      if (syncNames) {
+        const unmatchedSectionRegex = /Unmatched in Meet Database Records\s*\(\d+\):([\s\S]*?)(?:\r?\n\s*\r?\n|={10,}|$)/gi;
+        let secMatch: RegExpExecArray | null;
+        while ((secMatch = unmatchedSectionRegex.exec(cleanLogs)) !== null) {
+          const block = secMatch[1];
+          const itemRegex = /^\s*\d+\.\s+(.+)$/gm;
+          let itemMatch: RegExpExecArray | null;
+          while ((itemMatch = itemRegex.exec(block)) !== null) {
+            const entry = itemMatch[1].trim();
+            if (entry) syncUnmatchedAthletes.push(entry);
+          }
+        }
+
+        const newConflictRegex = /⚠️\s*IWF ID Conflict[^:]*:\s*(.+)$/gm;
+        let confMatch: RegExpExecArray | null;
+        while ((confMatch = newConflictRegex.exec(cleanLogs)) !== null) {
+          const entry = confMatch[1].trim();
+          if (entry) syncFlaggedConflicts.push(entry);
+        }
+
+        const pendingSkipRegex = /^\s*\d+\.\s+(.+?\[PENDING\].*)$/gm;
+        let pendMatch: RegExpExecArray | null;
+        while ((pendMatch = pendingSkipRegex.exec(cleanLogs)) !== null) {
+          const entry = pendMatch[1].trim();
+          if (entry && !syncFlaggedConflicts.includes(entry)) {
+            syncFlaggedConflicts.push(entry);
+          }
+        }
+      }
+      const syncUnmatchedCountFinal =
+        syncUnmatchedAthletes.length > 0 ? syncUnmatchedAthletes.length : syncUnmatchedCount;
+
+      const simulatedInsertAthletes: Array<{
+        name: string;
+        nation?: string;
+        category?: string;
+        division?: string;
+      }> = [];
+      const insertBlockRegex =
+        /\[Insert #\d+\]\s+(.+?)\s*(?:\(([^)]+)\))?\r?\n\s*Category:\s*([^|\r\n]+?)(?:\s*\|\s*Division:\s*([^|\r\n]+))?(?:\s*\||$)/gm;
+      let insertMatch: RegExpExecArray | null;
+      while ((insertMatch = insertBlockRegex.exec(cleanLogs)) !== null) {
+        simulatedInsertAthletes.push({
+          name: insertMatch[1].trim(),
+          nation: insertMatch[2]?.trim(),
+          category: insertMatch[3]?.trim(),
+          division: insertMatch[4]?.trim(),
+        });
+      }
 
       const matchedScorecards =
         parsedSummary?.importStats?.matchedScorecards ||
@@ -374,8 +557,32 @@ export async function POST(req: NextRequest) {
       let usawAliases: number | undefined;
       let owlcmsAliases: number | undefined;
       let shardsRefreshed: number | undefined;
+      let ambiguousStagedToReview: number | undefined;
 
       if (linkerLogs) {
+        const linkerSummaryLine = linkerLogs
+          .split('\n')
+          .find((line) => line.startsWith('__IWF_LINKER_SUMMARY_JSON__:'));
+        if (linkerSummaryLine) {
+          try {
+            const parsedLinkerSummary = JSON.parse(
+              linkerSummaryLine.replace('__IWF_LINKER_SUMMARY_JSON__:', '').trim()
+            );
+            if (typeof parsedLinkerSummary?.ambiguousStagedToReview === 'number') {
+              ambiguousStagedToReview = parsedLinkerSummary.ambiguousStagedToReview;
+            }
+          } catch {
+            // fallback to regex below
+          }
+        }
+
+        if (ambiguousStagedToReview === undefined) {
+          const stagedMatch =
+            linkerLogs.match(/Staging\s+(\d+)\s+ambiguous\s+cross-federation/i) ||
+            linkerLogs.match(/Would stage\s+(\d+)\s+new\s+ambiguous/i);
+          if (stagedMatch) ambiguousStagedToReview = Number(stagedMatch[1]);
+        }
+
         const isExplicitlyUnchanged =
           /No new links found across federations/i.test(linkerLogs) ||
           /athlete_aliases unchanged/i.test(linkerLogs);
@@ -409,12 +616,17 @@ export async function POST(req: NextRequest) {
 
       const totalAliases = (usawAliases || 0) + (owlcmsAliases || 0);
       const linkerStats =
-        linkerLogs && (usawAliases !== undefined || owlcmsAliases !== undefined || shardsRefreshed !== undefined)
+        linkerLogs &&
+        (usawAliases !== undefined ||
+          owlcmsAliases !== undefined ||
+          shardsRefreshed !== undefined ||
+          ambiguousStagedToReview !== undefined)
           ? {
               usawAliasesLinked: usawAliases ?? 0,
               owlcmsAliasesLinked: owlcmsAliases ?? 0,
               totalAliasesLinked: totalAliases,
               shardsRefreshed: shardsRefreshed ?? 0,
+              ambiguousStagedToReview: ambiguousStagedToReview ?? 0,
             }
           : undefined;
 
@@ -422,10 +634,33 @@ export async function POST(req: NextRequest) {
         ...(parsedSummary?.importStats || {}),
         wouldSkip,
         skipReason,
+        syncNames: Boolean(parsedSummary?.importStats?.syncNames ?? syncNames),
+        nameUpdatesCount: parsedSummary?.importStats?.nameUpdatesCount,
+        lockedSkipped: parsedSummary?.importStats?.lockedSkipped,
+        lockedAthletes: parsedSummary?.importStats?.lockedAthletes,
+        updatedAthletes: parsedSummary?.importStats?.updatedAthletes,
+        alreadyInQueueCount: parsedSummary?.importStats?.alreadyInQueueCount,
+        alreadyInQueue: parsedSummary?.importStats?.alreadyInQueue,
+        syncUnmatchedCount: parsedSummary?.importStats?.unmatchedCount ?? syncUnmatchedCountFinal,
+        syncUnmatchedAthletes:
+          (parsedSummary?.importStats?.unmatchedAthletes?.length ?? 0) > 0
+            ? parsedSummary.importStats.unmatchedAthletes
+            : (syncUnmatchedAthletes.length > 0 ? syncUnmatchedAthletes : undefined),
+        syncConflictsStagedCount: parsedSummary?.importStats?.flaggedForReviewCount ?? syncConflictsStagedCount,
+        syncFlaggedConflicts:
+          (parsedSummary?.importStats?.flaggedForReview?.length ?? 0) > 0
+            ? parsedSummary.importStats.flaggedForReview
+            : (syncFlaggedConflicts.length > 0 ? syncFlaggedConflicts : undefined),
+        syncFailedCount: parsedSummary?.importStats?.failedUpdates ?? syncFailedCount,
         existingResults: parsedSummary?.importStats?.existingResults,
         simulatedUpdates: parsedSummary?.importStats?.simulatedUpdates,
-        simulatedInserts: parsedSummary?.importStats?.simulatedInserts,
+        simulatedInserts:
+          parsedSummary?.importStats?.simulatedInserts ??
+          (simulatedInsertAthletes.length > 0 ? simulatedInsertAthletes.length : undefined),
         simulatedLocked: parsedSummary?.importStats?.simulatedLocked,
+        simulatedInsertAthletes:
+          parsedSummary?.importStats?.simulatedInsertAthletes ||
+          (simulatedInsertAthletes.length > 0 ? simulatedInsertAthletes : undefined),
         targetAthlete: parsedSummary?.importStats?.targetAthlete || taggedTargetAthlete || undefined,
         matchedScorecards,
         simulatedScorecards,
@@ -457,8 +692,24 @@ export async function POST(req: NextRequest) {
       const encoder = new TextEncoder();
       const streamInstance = new ReadableStream({
         async start(controller) {
+          let streamClosed = false;
+          const safeClose = () => {
+            if (!streamClosed) {
+              streamClosed = true;
+              try {
+                controller.close();
+              } catch {
+                // ignore already closed
+              }
+            }
+          };
           const sendEvent = (event: string, data: any) => {
-            controller.enqueue(encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`));
+            if (streamClosed || req.signal.aborted) return;
+            try {
+              controller.enqueue(encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`));
+            } catch {
+              streamClosed = true;
+            }
           };
 
           let combinedLogs = '';
@@ -474,69 +725,87 @@ export async function POST(req: NextRequest) {
             }
           };
 
-          try {
-            sendEvent('status', { stage: 'START', message: 'Starting IWF ingestion process...' });
-
-            if (eventIdClean) {
-              sendEvent('status', { stage: 'EVENT_SCRAPE', message: `Executing targeted importer for Event #${eventIdClean}...` });
-              const importerScript = path.join(repoRoot, 'scripts', 'production', 'iwf-database-importer.js');
-              const args: string[] = ['--event-id', eventIdClean, '--year', String(year)];
+          const importerScript = path.join(repoRoot, 'scripts', 'production', 'iwf-database-importer.js');
+          const buildImporterArgs = () => {
+            const args: string[] = ['--year', String(year)];
+            if (eventIdsBatch) {
+              args.push('--event-ids', eventIdsBatch);
+            } else if (eventIdClean) {
+              args.push('--event-id', eventIdClean);
               if (canonicalUrl) {
                 args.push('--url', canonicalUrl);
               }
-              if (force) args.push('--force');
-              if (dryRun) args.push('--dry-run');
-              if (athlete_name && String(athlete_name).trim().length > 0) {
-                args.push('--athlete-name', String(athlete_name).trim());
-              }
+            }
+            if (syncNames) {
+              args.push('--sync-names');
+            } else if (force) {
+              args.push('--force');
+            }
+            if (dryRun) args.push('--dry-run');
+            if (athlete_name && String(athlete_name).trim().length > 0) {
+              args.push('--athlete-name', String(athlete_name).trim());
+            }
+            return args;
+          };
 
-              const res = await runSpawnStream({ scriptPath: importerScript, args, cwd: repoRoot, env: childEnv, onChunk });
-              if (res.code !== 0) {
-                await recordRunCompletion({ status: 'FAILED', exitCode: res.code, combinedLogs, linkerLogs, errorMessage: `Importer script exited with code ${res.code}` });
-                sendEvent('error', { error: `Importer script exited with code ${res.code}`, logs: combinedLogs });
-                controller.close();
-                return;
-              }
-            } else {
-              sendEvent('status', { stage: 'DISCOVERY', message: `Discovering ${year} IWF competitions...` });
-              const discoveryScript = path.join(repoRoot, 'scripts', 'production', 'iwf-event-discovery.js');
-              const discRes = await runSpawnStream({ scriptPath: discoveryScript, args: ['--year', String(year)], cwd: repoRoot, env: childEnv, onChunk });
-              if (discRes.code !== 0) {
-                await recordRunCompletion({ status: 'FAILED', exitCode: discRes.code, combinedLogs, linkerLogs, errorMessage: `Discovery script exited with code ${discRes.code}` });
-                sendEvent('error', { error: `Discovery script exited with code ${discRes.code}`, logs: combinedLogs });
-                controller.close();
-                return;
-              }
+          try {
+            sendEvent('status', { stage: 'START', message: 'Starting IWF ingestion process...' });
+            sendEvent('status', {
+              stage: eventIdClean ? 'EVENT_SCRAPE' : 'YEAR_BATCH_IMPORT',
+              message: eventIdsBatch
+                ? `Executing batch importer for Events #${eventIdsBatch} (shared browser session)...`
+                : eventIdClean
+                  ? `Executing targeted importer for Event #${eventIdClean}...`
+                  : `Executing ${year} IWF batch importer (shared browser session)...`,
+            });
 
-              sendEvent('status', { stage: 'MAIN_IMPORT', message: `Processing ${year} competition results...` });
-              const mainScript = path.join(repoRoot, 'scripts', 'production', 'iwf-main.js');
-              const mainRes = await runSpawnStream({ scriptPath: mainScript, args: ['--year', String(year)], cwd: repoRoot, env: childEnv, onChunk });
-              if (mainRes.code !== 0) {
-                await recordRunCompletion({ status: 'FAILED', exitCode: mainRes.code, combinedLogs, linkerLogs, errorMessage: `Main orchestrator script exited with code ${mainRes.code}` });
-                sendEvent('error', { error: `Main orchestrator script exited with code ${mainRes.code}`, logs: combinedLogs });
-                controller.close();
+            const res = await runSpawnStream({
+              scriptPath: importerScript,
+              args: buildImporterArgs(),
+              cwd: repoRoot,
+              env: childEnv,
+              onChunk,
+              signal: req.signal,
+            });
+            if (res.aborted || req.signal.aborted) {
+              await recordRunCompletion({ status: 'CANCELLED', exitCode: res.code, combinedLogs, linkerLogs, errorMessage: 'Aborted by admin' });
+              safeClose();
+              return;
+            }
+            if (res.code !== 0) {
+              await recordRunCompletion({ status: 'FAILED', exitCode: res.code, combinedLogs, linkerLogs, errorMessage: `Importer script exited with code ${res.code}` });
+              sendEvent('error', { error: `Importer script exited with code ${res.code}`, logs: combinedLogs });
+              safeClose();
+              return;
+            }
+
+            if (!syncNames) {
+              const linkerScript = path.join(repoRoot, 'scripts', 'production', 'link-new-iwf-athletes.js');
+              const linkerArgs = dryRun ? ['--days', '3', '--dry-run'] : ['--days', '3'];
+              sendEvent('status', {
+                stage: 'LINKING',
+                message: dryRun
+                  ? 'Simulating cross-federation athlete alias linker (--dry-run)...'
+                  : 'Running cross-federation athlete alias linker...'
+              });
+              const linkerRes = await runSpawnStream({
+                scriptPath: linkerScript,
+                args: linkerArgs,
+                cwd: repoRoot,
+                env: childEnv,
+                signal: req.signal,
+                onChunk: (text) => {
+                  linkerLogs += text;
+                  onChunk(text);
+                },
+              });
+
+              if (linkerRes.aborted || req.signal.aborted) {
+                await recordRunCompletion({ status: 'CANCELLED', exitCode: linkerRes.code, combinedLogs, linkerLogs, errorMessage: 'Aborted by admin' });
+                safeClose();
                 return;
               }
             }
-
-            const linkerScript = path.join(repoRoot, 'scripts', 'production', 'link-new-iwf-athletes.js');
-            const linkerArgs = dryRun ? ['--days', '3', '--dry-run'] : ['--days', '3'];
-            sendEvent('status', {
-              stage: 'LINKING',
-              message: dryRun
-                ? 'Simulating cross-federation athlete alias linker (--dry-run)...'
-                : 'Running cross-federation athlete alias linker...'
-            });
-            await runSpawnStream({
-              scriptPath: linkerScript,
-              args: linkerArgs,
-              cwd: repoRoot,
-              env: childEnv,
-              onChunk: (text) => {
-                linkerLogs += text;
-                onChunk(text);
-              },
-            });
 
             if (!dryRun) {
               try {
@@ -555,21 +824,21 @@ export async function POST(req: NextRequest) {
               importStats: finalResult.importStats
             });
             sendEvent('done', { ...finalResult, runId });
-            controller.close();
+            safeClose();
           } catch (err: any) {
             await recordRunCompletion({
-              status: 'FAILED',
+              status: req.signal.aborted ? 'CANCELLED' : 'FAILED',
               exitCode: 1,
               combinedLogs,
               linkerLogs,
-              errorMessage: err?.message || 'IWF pipeline execution failed'
+              errorMessage: req.signal.aborted ? 'Aborted by admin' : (err?.message || 'IWF pipeline execution failed')
             });
             sendEvent('error', {
               success: false,
               error: err?.message || 'IWF pipeline execution failed',
               logs: combinedLogs,
             });
-            controller.close();
+            safeClose();
           }
         },
       });
@@ -588,46 +857,42 @@ export async function POST(req: NextRequest) {
     let linkerLogs = '';
     const onChunk = (text: string) => { combinedLogs += text; };
 
-    if (eventIdClean) {
-      const importerScript = path.join(repoRoot, 'scripts', 'production', 'iwf-database-importer.js');
-      const args: string[] = ['--event-id', eventIdClean, '--year', String(year)];
+    const importerScript = path.join(repoRoot, 'scripts', 'production', 'iwf-database-importer.js');
+    const args: string[] = ['--year', String(year)];
+    if (eventIdsBatch) {
+      args.push('--event-ids', eventIdsBatch);
+    } else if (eventIdClean) {
+      args.push('--event-id', eventIdClean);
       if (canonicalUrl) {
         args.push('--url', canonicalUrl);
       }
-      if (force) args.push('--force');
-      if (dryRun) args.push('--dry-run');
-      if (athlete_name && String(athlete_name).trim().length > 0) {
-        args.push('--athlete-name', String(athlete_name).trim());
-      }
-      const res = await runSpawnStream({ scriptPath: importerScript, args, cwd: repoRoot, env: childEnv, onChunk });
-      if (res.code !== 0) {
-        await recordRunCompletion({ status: 'FAILED', exitCode: res.code, combinedLogs, linkerLogs, errorMessage: `Importer script exited with code ${res.code}` });
-        throw new Error(`Importer script exited with code ${res.code}`);
-      }
-    } else {
-      const discoveryScript = path.join(repoRoot, 'scripts', 'production', 'iwf-event-discovery.js');
-      const mainScript = path.join(repoRoot, 'scripts', 'production', 'iwf-main.js');
-      const discRes = await runSpawnStream({ scriptPath: discoveryScript, args: ['--year', String(year)], cwd: repoRoot, env: childEnv, onChunk });
-      if (discRes.code !== 0) {
-        await recordRunCompletion({ status: 'FAILED', exitCode: discRes.code, combinedLogs, linkerLogs, errorMessage: `Discovery script exited with code ${discRes.code}` });
-        throw new Error(`Discovery script exited with code ${discRes.code}`);
-      }
-      const mainRes = await runSpawnStream({ scriptPath: mainScript, args: ['--year', String(year)], cwd: repoRoot, env: childEnv, onChunk });
-      if (mainRes.code !== 0) {
-        await recordRunCompletion({ status: 'FAILED', exitCode: mainRes.code, combinedLogs, linkerLogs, errorMessage: `Main orchestrator script exited with code ${mainRes.code}` });
-        throw new Error(`Main orchestrator script exited with code ${mainRes.code}`);
-      }
+    }
+    if (syncNames) {
+      args.push('--sync-names');
+    } else if (force) {
+      args.push('--force');
+    }
+    if (dryRun) args.push('--dry-run');
+    if (athlete_name && String(athlete_name).trim().length > 0) {
+      args.push('--athlete-name', String(athlete_name).trim());
+    }
+    const res = await runSpawnStream({ scriptPath: importerScript, args, cwd: repoRoot, env: childEnv, onChunk });
+    if (res.code !== 0) {
+      await recordRunCompletion({ status: 'FAILED', exitCode: res.code, combinedLogs, linkerLogs, errorMessage: `Importer script exited with code ${res.code}` });
+      throw new Error(`Importer script exited with code ${res.code}`);
     }
 
-    const linkerScript = path.join(repoRoot, 'scripts', 'production', 'link-new-iwf-athletes.js');
-    const linkerArgs = dryRun ? ['--days', '3', '--dry-run'] : ['--days', '3'];
-    await runSpawnStream({
-      scriptPath: linkerScript,
-      args: linkerArgs,
-      cwd: repoRoot,
-      env: childEnv,
-      onChunk: (text) => { linkerLogs += text; onChunk(text); },
-    });
+    if (!syncNames) {
+      const linkerScript = path.join(repoRoot, 'scripts', 'production', 'link-new-iwf-athletes.js');
+      const linkerArgs = dryRun ? ['--days', '3', '--dry-run'] : ['--days', '3'];
+      await runSpawnStream({
+        scriptPath: linkerScript,
+        args: linkerArgs,
+        cwd: repoRoot,
+        env: childEnv,
+        onChunk: (text) => { linkerLogs += text; onChunk(text); },
+      });
+    }
     if (!dryRun) {
       try {
         revalidatePath('/archive');

@@ -12,6 +12,7 @@ import {
   CheckCircle,
   Hash,
   Play,
+  Square,
   Terminal,
   ChevronDown,
   ChevronRight,
@@ -30,6 +31,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { getOfficialIwfMeetUrl, detectYearFromIwfUrl } from '@/lib/utils/iwf-urls';
+import { IwfLinkerPanel } from './IwfLinkerPanel';
 
 export interface MatchedScorecard {
   name?: string;
@@ -85,6 +87,7 @@ export interface IwfPipelineRequest {
   athlete_name?: string;
   force?: boolean;
   dryRun?: boolean;
+  syncNames?: boolean;
 }
 
 export interface IwfPipelineResponse {
@@ -108,6 +111,12 @@ export interface IwfPipelineResponse {
     simulatedInserts?: number;
     simulatedLocked?: number;
     simulatedScorecards?: number;
+    simulatedInsertAthletes?: Array<{
+      name: string;
+      nation?: string;
+      category?: string;
+      division?: string;
+    }>;
     targetAthlete?: MatchedScorecard | null;
     targetAthletes?: MatchedScorecard[];
     matchedScorecards?: MatchedScorecard[];
@@ -121,11 +130,30 @@ export interface IwfPipelineResponse {
     updated?: number;
     skipped?: number;
     errors?: number;
+    syncNames?: boolean;
+    nameUpdatesCount?: number;
+    lockedSkipped?: number;
+    lockedAthletes?: Array<any>;
+    alreadyInQueueCount?: number;
+    alreadyInQueue?: Array<any>;
+    syncUnmatchedCount?: number;
+    syncUnmatchedAthletes?: Array<any>;
+    syncConflictsStagedCount?: number;
+    syncFlaggedConflicts?: Array<any>;
+    syncFailedCount?: number;
+    updatedAthletes?: Array<{
+      db_lifter_id?: number;
+      db_result_id?: number;
+      weight_class?: string;
+      old_name: string;
+      new_name: string;
+    }>;
     linkerStats?: {
       usawAliasesLinked: number;
       owlcmsAliasesLinked: number;
       totalAliasesLinked: number;
       shardsRefreshed: number;
+      ambiguousStagedToReview?: number;
     };
   };
   logs: string;
@@ -152,6 +180,26 @@ export interface PipelineRunItem {
   db_meet_id?: number;
 }
 
+function formatSyncEntry(entry: any): string {
+  if (typeof entry === 'string') return entry;
+  if (!entry || typeof entry !== 'object') return String(entry ?? '');
+  const name = entry.lifter_name || entry.athlete_name || entry.scraped_name || entry.name || entry.db_name || '';
+  const parts: string[] = [];
+  if (entry.weight_class) parts.push(String(entry.weight_class));
+  if (entry.country_code || entry.country) parts.push(String(entry.country_code || entry.country));
+  if (entry.birth_year) parts.push(`b.${entry.birth_year}`);
+  if (entry.iwf_meet_id) parts.push(`Event #${entry.iwf_meet_id}`);
+  if (entry.iwf_lifter_id || entry.scraped_iwf_id) parts.push(`IWF #${entry.iwf_lifter_id || entry.scraped_iwf_id}`);
+  if (entry.db_result_id) parts.push(`Result #${entry.db_result_id}`);
+  const meta = parts.length > 0 ? ` (${parts.join(', ')})` : '';
+  const suffix = entry.scraped_name && entry.lifter_name && entry.scraped_name !== entry.lifter_name
+    ? ` → scraped "${entry.scraped_name}"`
+    : entry.reason
+      ? ` — ${entry.reason}`
+      : '';
+  return `${name}${meta}${suffix}`.trim() || JSON.stringify(entry);
+}
+
 function extractEventId(input?: string | number | null): string {
   if (!input) return '';
   const str = String(input).trim();
@@ -171,6 +219,7 @@ export function IwfUploader() {
   const [athleteName, setAthleteName] = useState<string>('');
   const [force, setForce] = useState<boolean>(false);
   const [dryRun, setDryRun] = useState<boolean>(false);
+  const [syncNames, setSyncNames] = useState<boolean>(false);
 
   const [existingDbMeet, setExistingDbMeet] = useState<{
     db_meet_id: number;
@@ -190,7 +239,11 @@ export function IwfUploader() {
   const [showLinkerLogs, setShowLinkerLogs] = useState<boolean>(false);
   const [liveLogs, setLiveLogs] = useState<string>('');
   const [streamStatus, setStreamStatus] = useState<string | null>(null);
+  const [autoScrollLogs, setAutoScrollLogs] = useState<boolean>(true);
   const logContainerRef = React.useRef<HTMLPreElement | null>(null);
+  const isProgrammaticScrollRef = React.useRef<boolean>(false);
+  const lastScrollTopRef = React.useRef<number>(0);
+  const abortControllerRef = React.useRef<AbortController | null>(null);
   const [copiedScraperLogs, setCopiedScraperLogs] = useState<boolean>(false);
   const [copiedLinkerLogs, setCopiedLinkerLogs] = useState<boolean>(false);
 
@@ -243,6 +296,7 @@ export function IwfUploader() {
   const [activeModalTab, setActiveModalTab] = useState<'scraper' | 'linker'>('scraper');
   const [copiedModalLogs, setCopiedModalLogs] = useState<boolean>(false);
   const [selectedRunIds, setSelectedRunIds] = useState<Set<number>>(new Set());
+  const [expandedSyncRunIds, setExpandedSyncRunIds] = useState<Set<number>>(new Set());
   const [isDeletingRuns, setIsDeletingRuns] = useState<boolean>(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
 
@@ -415,10 +469,40 @@ export function IwfUploader() {
   }, [eventId]);
 
   useEffect(() => {
-    if (isRunning && logContainerRef.current) {
-      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
+    const el = logContainerRef.current;
+    if (isRunning && autoScrollLogs && el) {
+      isProgrammaticScrollRef.current = true;
+      el.scrollTop = el.scrollHeight;
+      lastScrollTopRef.current = el.scrollTop;
     }
-  }, [liveLogs, isRunning]);
+  }, [liveLogs, isRunning, autoScrollLogs]);
+
+  const handleScraperLogScroll = () => {
+    const el = logContainerRef.current;
+    if (!el) return;
+    if (isProgrammaticScrollRef.current) {
+      isProgrammaticScrollRef.current = false;
+      lastScrollTopRef.current = el.scrollTop;
+      return;
+    }
+    const isAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight <= 24;
+    if (isAtBottom) {
+      setAutoScrollLogs(true);
+    } else if (el.scrollTop < lastScrollTopRef.current - 2) {
+      setAutoScrollLogs(false);
+    }
+    lastScrollTopRef.current = el.scrollTop;
+  };
+
+  const jumpScraperLogsToBottom = () => {
+    setAutoScrollLogs(true);
+    const el = logContainerRef.current;
+    if (el) {
+      isProgrammaticScrollRef.current = true;
+      el.scrollTop = el.scrollHeight;
+      lastScrollTopRef.current = el.scrollTop;
+    }
+  };
 
   const handleEventInputChange = (val: string) => {
     setEventId(val);
@@ -440,21 +524,31 @@ export function IwfUploader() {
     }
   };
 
+  const handleAbortPipeline = () => {
+    abortControllerRef.current?.abort();
+  };
+
   const handleRunPipeline = async () => {
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setIsRunning(true);
     setErrorMessage(null);
     setResponse(null);
     setLiveLogs('');
+    setAutoScrollLogs(true);
     setStreamStatus('Initializing pipeline process...');
     setShowScraperLogs(true);
 
     try {
-      const cleanEventId = extractEventId(eventId);
-      const computedUrl = cleanEventId
+      const trimmedEventInput = eventId.trim();
+      const isBatchIds = trimmedEventInput.includes(',');
+      const cleanEventId = isBatchIds ? trimmedEventInput : extractEventId(eventId);
+      const computedUrl = !isBatchIds && cleanEventId
         ? getOfficialIwfMeetUrl(cleanEventId, existingDbMeet?.date || year)
         : null;
-      const explicitUrl = (typeof eventId === 'string' && eventId.trim().startsWith('http'))
-        ? eventId.trim()
+      const explicitUrl = (!isBatchIds && typeof eventId === 'string' && trimmedEventInput.startsWith('http'))
+        ? trimmedEventInput
         : (computedUrl || undefined);
 
       const payload: IwfPipelineRequest = {
@@ -462,8 +556,9 @@ export function IwfUploader() {
         ...(cleanEventId ? { event_id: cleanEventId } : {}),
         ...(explicitUrl ? { url: explicitUrl } : {}),
         ...(athleteName.trim() ? { athlete_name: athleteName.trim() } : {}),
-        force,
-        dryRun
+        force: syncNames ? false : force,
+        dryRun,
+        syncNames,
       };
 
       const res = await fetch('/api/admin/iwf-upload', {
@@ -472,6 +567,7 @@ export function IwfUploader() {
           'Content-Type': 'application/json',
           'Accept': 'text/event-stream',
         },
+        signal: controller.signal,
         body: JSON.stringify({ ...payload, stream: true }),
       });
 
@@ -539,8 +635,13 @@ export function IwfUploader() {
         }
       }
     } catch (err: any) {
-      setErrorMessage(err?.message || 'Failed to execute IWF pipeline.');
+      if (err?.name === 'AbortError') {
+        setErrorMessage('Pipeline run aborted by admin.');
+      } else {
+        setErrorMessage(err?.message || 'Failed to execute IWF pipeline.');
+      }
     } finally {
+      abortControllerRef.current = null;
       setIsRunning(false);
       setStreamStatus(null);
       fetchRunsHistory();
@@ -552,11 +653,16 @@ export function IwfUploader() {
     targetIwfId,
     existingDbMeet?.date || year
   );
+  const lastSuccessfulRun = runsHistory.find(
+    (r) => r.status === 'SUCCESS' && !r.dry_run
+  );
 
   return (
     <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* IWF Results Pipeline & Scraper Card */}
+      <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl space-y-5">
+        {/* Header Banner */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2.5">
             <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
@@ -575,13 +681,48 @@ export function IwfUploader() {
             </div>
           </div>
         </div>
+
+        <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row items-start sm:items-center md:items-end lg:items-center gap-2.5 shrink-0">
+          <div
+            className="px-3 py-1.5 rounded-xl bg-slate-950/80 border border-slate-800 text-[11px] text-slate-300 flex items-center gap-1.5"
+            title="Most recent non-dry-run IWF pipeline import recorded in Supabase"
+          >
+            <Clock className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            {loadingHistory ? (
+              <span className="text-slate-400">Checking last import...</span>
+            ) : lastSuccessfulRun ? (
+              <span>
+                <span className="text-slate-400">Last live import:</span>{' '}
+                <strong className="text-white">
+                  {formatEasternTime(lastSuccessfulRun.completed_at || lastSuccessfulRun.created_at)}
+                </strong>
+                <span className="text-slate-400 ml-1">
+                  ({lastSuccessfulRun.event_id ? `Event #${lastSuccessfulRun.event_id}` : `Year ${lastSuccessfulRun.year ?? '—'}`})
+                </span>
+              </span>
+            ) : (
+              <span className="text-slate-400">No live imports recorded yet</span>
+            )}
+          </div>
+
+          <a
+            href="https://iwf.sport/downloads/?category=5&sortby=date"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 hover:text-emerald-200 border border-emerald-500/40 hover:border-emerald-400/60 transition flex items-center gap-1.5 whitespace-nowrap"
+            title="Open IWF Downloads (Results & Start Lists) in your browser session"
+          >
+            <span>Check IWF Downloads</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        </div>
       </div>
 
       {/* Main Grid: Left (Parameters & Run Control) + Right (Status & Execution Telemetry) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Workflow Parameters */}
         <div className="lg:col-span-5 space-y-4">
-          <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4">
+          <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-4">
             <div className="flex items-center justify-between">
               <div className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
                 <Hash className="w-3.5 h-3.5 text-emerald-400" />
@@ -667,14 +808,14 @@ export function IwfUploader() {
 
               <div>
                 <label className="block text-xs font-medium text-slate-300 mb-1 flex items-center justify-between">
-                  <span>Target IWF Event URL or ID</span>
-                  <span className="text-[10px] text-slate-500 font-normal">(Single Event)</span>
+                  <span>Target IWF Event URL or ID(s)</span>
+                  <span className="text-[10px] text-slate-500 font-normal">(Single or Comma-Separated)</span>
                 </label>
                 <input
                   type="text"
                   value={eventId}
                   onChange={(e) => handleEventInputChange(e.target.value)}
-                  placeholder="e.g. 154 or https://iwf.sport/results/.../?event_id=154"
+                  placeholder="e.g. 676, 676,700, or https://iwf.sport/results/.../?event_id=676"
                   disabled={isRunning}
                   className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
                 />
@@ -683,9 +824,14 @@ export function IwfUploader() {
                     <CheckCircle className="w-3 h-3 text-emerald-400" />
                     <span>Target Event #{detectedUrlId} detected from URL (Single Event Mode)</span>
                   </span>
+                ) : eventId.includes(',') ? (
+                  <span className="text-[10px] text-sky-400 font-medium mt-1 flex items-center gap-1">
+                    <CheckCircle className="w-3 h-3 text-sky-400" />
+                    <span>Multi-event batch detected (--event-ids shared browser session)</span>
+                  </span>
                 ) : (
                   <span className="text-[10px] text-slate-500 mt-1 block">
-                    Paste event results URL or ID to scrape 1 meet, or leave blank for full-year
+                    Paste 1 event URL/ID, comma-separated IDs (676,700), or leave blank for full-year
                   </span>
                 )}
               </div>
@@ -709,14 +855,30 @@ export function IwfUploader() {
               </span>
             </div>
 
-            {/* Checkboxes: Force & Dry Run */}
+            {/* Checkboxes: Sync Names, Force & Dry Run */}
             <div className="pt-2 border-t border-slate-800/80 space-y-2.5">
               <label className="flex items-start gap-2.5 cursor-pointer select-none">
                 <input
                   type="checkbox"
-                  checked={force}
-                  onChange={(e) => setForce(e.target.checked)}
+                  checked={syncNames}
+                  onChange={(e) => setSyncNames(e.target.checked)}
                   disabled={isRunning}
+                  className="mt-0.5 rounded border-slate-700 bg-slate-950 text-sky-500 focus:ring-0"
+                />
+                <div className="text-xs">
+                  <span className="font-semibold text-slate-200">Sync Athlete Names Only (--sync-names)</span>
+                  <p className="text-[11px] text-slate-400">
+                    Matches live IWF names against existing database athletes and updates <code className="text-slate-300">iwf_lifters.athlete_name</code> &amp; <code className="text-slate-300">iwf_meet_results.lifter_name</code> (skipping <code className="text-slate-300">manual_override = true</code>) without touching scores.
+                  </p>
+                </div>
+              </label>
+
+              <label className={`flex items-start gap-2.5 select-none ${syncNames ? 'opacity-45 cursor-not-allowed' : 'cursor-pointer'}`}>
+                <input
+                  type="checkbox"
+                  checked={syncNames ? false : force}
+                  onChange={(e) => setForce(e.target.checked)}
+                  disabled={isRunning || syncNames}
                   className="mt-0.5 rounded border-slate-700 bg-slate-950 text-emerald-500 focus:ring-0"
                 />
                 <div className="text-xs">
@@ -745,12 +907,12 @@ export function IwfUploader() {
             </div>
 
             {/* Run Button */}
-            <div className="pt-2">
+            <div className="pt-2 flex items-center gap-2">
               <button
                 type="button"
                 disabled={isRunning}
                 onClick={handleRunPipeline}
-                className={`w-full py-3 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 cursor-pointer ${dryRun
+                className={`flex-1 py-3 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 cursor-pointer ${dryRun
                   ? 'bg-amber-600 hover:bg-amber-500 text-white'
                   : 'bg-emerald-600 hover:bg-emerald-500 text-white'
                   }`}
@@ -764,13 +926,29 @@ export function IwfUploader() {
                   <>
                     <Play className="w-4 h-4 fill-current" />
                     <span>
-                      {dryRun
-                        ? `Run Dry-Run Scrape (${eventId.trim() ? `Event #${eventId.trim()}` : `Year ${year}`})`
-                        : `Run IWF Pipeline (${eventId.trim() ? `Event #${eventId.trim()}` : `Year ${year}`})`}
+                      {syncNames
+                        ? dryRun
+                          ? `Sync Names Dry-Run (${eventId.trim() ? `Event #${eventId.trim()}` : `Year ${year}`})`
+                          : `Sync Athlete Names (${eventId.trim() ? `Event #${eventId.trim()}` : `Year ${year}`})`
+                        : dryRun
+                          ? `Run Dry-Run Scrape (${eventId.trim() ? `Event #${eventId.trim()}` : `Year ${year}`})`
+                          : `Run IWF Pipeline (${eventId.trim() ? `Event #${eventId.trim()}` : `Year ${year}`})`}
                     </span>
                   </>
                 )}
               </button>
+
+              {isRunning && (
+                <button
+                  type="button"
+                  onClick={handleAbortPipeline}
+                  className="py-3 px-4 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white transition flex items-center gap-1.5 shadow-lg cursor-pointer shrink-0"
+                  title="Abort running IWF pipeline"
+                >
+                  <Square className="w-3.5 h-3.5 fill-current" />
+                  <span>Abort</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -821,7 +999,7 @@ export function IwfUploader() {
             const closeMatches = response.importStats?.closeMatches || [];
 
             return (
-              <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4 shadow-xl">
+              <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-4">
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
@@ -1177,7 +1355,92 @@ export function IwfUploader() {
                       <div className="text-[11px] text-rose-300/80">Athletes parsed</div>
                     </div>
 
-                    {response.dryRun ? (
+                    {response.importStats.syncNames ? (
+                      <div className="p-3 rounded-xl bg-sky-950/30 border border-sky-800/50 space-y-2">
+                        <span className="text-[10px] text-sky-300 uppercase font-semibold flex items-center justify-between">
+                          <span>{response.dryRun ? 'Simulated Name Sync' : 'Athlete Name Sync'}</span>
+                          {response.dryRun && (
+                            <span className="px-1.5 py-0.5 rounded bg-sky-900/60 text-sky-200 text-[9px] font-bold">DRY RUN</span>
+                          )}
+                        </span>
+                        {((response.importStats.syncFailedCount ?? 0) > 0 ||
+                          (response.importStats.syncUnmatchedCount ?? 0) > 0 ||
+                          (response.importStats.syncConflictsStagedCount ?? 0) > 0 ||
+                          (response.importStats.syncFlaggedConflicts?.length ?? 0) > 0 ||
+                          (response.importStats.lockedSkipped ?? 0) > 0) && (
+                          <div className="p-2 rounded-lg bg-amber-950/40 border border-amber-700/50 space-y-1 text-[11px]">
+                            {(response.importStats.syncFailedCount ?? 0) > 0 && (
+                              <div className="text-rose-300 font-semibold">
+                                {response.importStats.syncFailedCount} failed update(s)
+                              </div>
+                            )}
+                            {((response.importStats.syncConflictsStagedCount ?? 0) > 0 ||
+                              (response.importStats.syncFlaggedConflicts?.length ?? 0) > 0) && (
+                              <div className="text-amber-200 space-y-0.5">
+                                <div className="flex items-center justify-between gap-2 font-semibold">
+                                  <span>
+                                    {(response.importStats.syncConflictsStagedCount ?? 0) > 0
+                                      ? `${response.importStats.syncConflictsStagedCount} IWF ID conflict(s) newly staged for review:`
+                                      : `${response.importStats.syncFlaggedConflicts?.length} IWF ID conflict(s) pending review:`}
+                                  </span>
+                                  <Link href="/admin/review" className="text-sky-300 hover:text-sky-200 underline text-[10px]">
+                                    Open Review
+                                  </Link>
+                                </div>
+                                {Array.isArray(response.importStats.syncFlaggedConflicts) &&
+                                  response.importStats.syncFlaggedConflicts.map((entry, idx) => (
+                                    <div key={idx} className="text-[10px] text-amber-100/90 pl-2">
+                                      • {formatSyncEntry(entry)}
+                                    </div>
+                                  ))}
+                              </div>
+                            )}
+                            {(response.importStats.syncUnmatchedCount ?? 0) > 0 && (
+                              <div className="text-amber-300 space-y-0.5">
+                                <div className="font-semibold">
+                                  {response.importStats.syncUnmatchedCount} unmatched in meet DB records:
+                                </div>
+                                {Array.isArray(response.importStats.syncUnmatchedAthletes) &&
+                                  response.importStats.syncUnmatchedAthletes.map((entry, idx) => (
+                                    <div key={idx} className="text-[10px] text-amber-200/90 pl-2">
+                                      • {formatSyncEntry(entry)}
+                                    </div>
+                                  ))}
+                              </div>
+                            )}
+                            {(response.importStats.lockedSkipped ?? 0) > 0 && (
+                              <div className="text-slate-300 space-y-0.5">
+                                <div className="font-semibold">
+                                  {response.importStats.lockedSkipped} locked override(s) skipped:
+                                </div>
+                                {Array.isArray(response.importStats.lockedAthletes) &&
+                                  response.importStats.lockedAthletes.map((entry, idx) => (
+                                    <div key={idx} className="text-[10px] text-slate-300/90 pl-2">
+                                      • {formatSyncEntry(entry)}
+                                    </div>
+                                  ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        <div className="text-base font-bold text-sky-200">
+                          {response.importStats.nameUpdatesCount ?? 0} Name Update{(response.importStats.nameUpdatesCount ?? 0) === 1 ? '' : 's'}
+                        </div>
+                        <div className="text-[11px] text-sky-300/80">
+                          {response.importStats.lockedSkipped ?? 0} locked override(s) skipped
+                        </div>
+                        {Array.isArray(response.importStats.updatedAthletes) && response.importStats.updatedAthletes.length > 0 && (
+                          <div className="pt-1.5 mt-1.5 border-t border-sky-800/40 space-y-0.5 text-[10px] text-sky-200/90 max-h-44 overflow-y-auto">
+                            {response.importStats.updatedAthletes.map((item, idx) => (
+                              <div key={`${item.db_result_id ?? idx}`} className="truncate">
+                                {item.old_name} → <strong className="text-white">{item.new_name}</strong>
+                                {item.weight_class ? ` (${item.weight_class})` : ''}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ) : response.dryRun ? (
                       response.importStats.wouldSkip ? (
                         <div className="p-3 rounded-xl bg-amber-950/30 border border-amber-800/50 space-y-1">
                           <span className="text-[10px] text-amber-300 uppercase font-semibold flex items-center justify-between">
@@ -1204,6 +1467,17 @@ export function IwfUploader() {
                             {response.importStats.simulatedUpdates ?? 0} to update • {response.importStats.simulatedInserts ?? 0} to insert
                             {response.importStats.simulatedLocked ? ` • ${response.importStats.simulatedLocked} locked` : ''}
                           </div>
+                          {response.importStats.simulatedInsertAthletes && response.importStats.simulatedInsertAthletes.length > 0 && (
+                            <div className="pt-1.5 mt-1.5 border-t border-amber-800/40 space-y-0.5 text-[10px] text-amber-200/90">
+                              {response.importStats.simulatedInsertAthletes.map((ath, idx) => (
+                                <div key={`${ath.name}-${idx}`} className="truncate">
+                                  + {ath.name}
+                                  {ath.nation ? ` (${ath.nation})` : ''}
+                                  {ath.category ? ` · ${ath.category}` : ''}
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       )
                     ) : (
@@ -1218,19 +1492,35 @@ export function IwfUploader() {
                       </div>
                     )}
 
-                    {response.importStats?.linkerStats && (response.importStats.linkerStats.totalAliasesLinked > 0 || response.importStats.linkerStats.shardsRefreshed > 0) && (
+                    {response.importStats?.linkerStats &&
+                      (response.importStats.linkerStats.totalAliasesLinked > 0 ||
+                        response.importStats.linkerStats.shardsRefreshed > 0 ||
+                        (response.importStats.linkerStats.ambiguousStagedToReview ?? 0) > 0) && (
                       <div className="p-3 rounded-xl bg-sky-950/30 border border-sky-800/50 space-y-1 sm:col-span-2">
-                        <span className="text-[10px] text-sky-300 uppercase font-semibold flex items-center justify-between">
+                        <span className="text-[10px] text-sky-300 uppercase font-semibold flex items-center justify-between gap-2">
                           <span>{response.dryRun ? 'Simulated Cross-Federation Links' : 'Cross-Federation Athlete Links'}</span>
-                          {response.dryRun && (
-                            <span className="px-1.5 py-0.5 rounded bg-sky-900/60 text-sky-200 text-[9px] font-bold">DRY RUN</span>
-                          )}
+                          <span className="flex items-center gap-2">
+                            {(response.importStats.linkerStats.ambiguousStagedToReview ?? 0) > 0 && (
+                              <Link
+                                href="/admin/review"
+                                className="text-[10px] text-amber-300 hover:text-amber-200 underline"
+                              >
+                                {response.importStats.linkerStats.ambiguousStagedToReview} staged for review
+                              </Link>
+                            )}
+                            {response.dryRun && (
+                              <span className="px-1.5 py-0.5 rounded bg-sky-900/60 text-sky-200 text-[9px] font-bold">DRY RUN</span>
+                            )}
+                          </span>
                         </span>
                         <div className="text-base font-bold text-sky-200">
-                          +{response.importStats.linkerStats.totalAliasesLinked} Alias{response.importStats.linkerStats.totalAliasesLinked === 1 ? '' : 'es'} {response.dryRun ? 'Identified (0 Written)' : 'Linked'}
+                          +{response.importStats.linkerStats.totalAliasesLinked} Cross-Federation Athlete Pair{response.importStats.linkerStats.totalAliasesLinked === 1 ? '' : 's'} {response.dryRun ? 'Identified (0 Written)' : 'Linked'}
                         </div>
                         <div className="text-[11px] text-sky-300/80">
-                          {response.importStats.linkerStats.usawAliasesLinked} USAW ↔ IWF • {response.importStats.linkerStats.owlcmsAliasesLinked} IWF ↔ OWLCMS
+                          {response.importStats.linkerStats.usawAliasesLinked} IWF ↔ USAW • {response.importStats.linkerStats.owlcmsAliasesLinked} IWF ↔ OWLCMS
+                          {(response.importStats.linkerStats.ambiguousStagedToReview ?? 0) > 0
+                            ? ` • ${response.importStats.linkerStats.ambiguousStagedToReview} ambiguous athlete pair${response.importStats.linkerStats.ambiguousStagedToReview === 1 ? '' : 's'} staged for review`
+                            : ''}
                           {response.importStats.linkerStats.shardsRefreshed > 0 ? ` • ${response.importStats.linkerStats.shardsRefreshed} shard(s) regenerated` : ''}
                         </div>
                       </div>
@@ -1242,7 +1532,7 @@ export function IwfUploader() {
           })()}
 
           {/* Collapsible Scraper Execution Log Block */}
-          <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2">
+          <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-2">
             <div className="w-full flex items-center justify-between gap-2 text-xs font-semibold text-slate-300">
               <button
                 type="button"
@@ -1265,6 +1555,16 @@ export function IwfUploader() {
               </button>
 
               <div className="flex items-center gap-2 shrink-0">
+                {!autoScrollLogs && (liveLogs || response?.logs) && (
+                  <button
+                    type="button"
+                    onClick={jumpScraperLogsToBottom}
+                    className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-emerald-950/80 hover:bg-emerald-900/80 text-emerald-300 border border-emerald-700/70 transition shadow-sm cursor-pointer"
+                    title="Scroll to latest output and resume auto-scroll"
+                  >
+                    Jump to bottom
+                  </button>
+                )}
                 {(liveLogs || response?.logs) && (
                   <button
                     type="button"
@@ -1306,6 +1606,7 @@ export function IwfUploader() {
                 )}
                 <pre
                   ref={logContainerRef}
+                  onScroll={handleScraperLogScroll}
                   className="p-3 rounded-xl bg-slate-950 border border-slate-800/80 text-[11px] font-mono text-slate-300 max-h-72 overflow-y-auto whitespace-pre-wrap break-all leading-relaxed select-text cursor-text"
                 >
                   {liveLogs || response?.logs || (isRunning ? 'Initializing scraper process...' : 'Waiting for pipeline execution...')}
@@ -1366,6 +1667,10 @@ export function IwfUploader() {
           )}
         </div>
       </div>
+      </div>
+
+      {/* Standalone Cross-Federation Athlete Linker */}
+      <IwfLinkerPanel onRunComplete={fetchRunsHistory} />
 
       {/* Execution History Section */}
       <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4 shadow-xl">
@@ -1477,7 +1782,7 @@ export function IwfUploader() {
                 <table className="w-full text-xs text-left">
                   <thead>
                     <tr className="border-b border-slate-800 text-[10px] uppercase font-semibold text-slate-400 bg-slate-900/60">
-                      <th className="px-3 py-2.5 w-10 text-center">
+                      <th className="px-2 py-2.5 w-8 text-center">
                         <input
                           type="checkbox"
                           checked={runsHistory.length > 0 && selectedRunIds.size === runsHistory.length}
@@ -1486,13 +1791,13 @@ export function IwfUploader() {
                           title="Select / deselect all runs"
                         />
                       </th>
-                      <th className="px-3.5 py-2.5">Status</th>
-                      <th className="px-3.5 py-2.5">Target &amp; Scope</th>
-                      <th className="px-3.5 py-2.5">Mode</th>
-                      <th className="px-3.5 py-2.5">Executed (EST)</th>
-                      <th className="px-3.5 py-2.5">Runtime</th>
-                      <th className="px-3.5 py-2.5">Ingestion Telemetry</th>
-                      <th className="px-3.5 py-2.5 text-right">Actions</th>
+                      <th className="px-2.5 py-2.5">Status</th>
+                      <th className="px-2.5 py-2.5">Target &amp; Scope</th>
+                      <th className="px-2.5 py-2.5">Mode</th>
+                      <th className="px-2.5 py-2.5">Executed (EST)</th>
+                      <th className="px-2.5 py-2.5">Time</th>
+                      <th className="px-2.5 py-2.5">Ingestion Telemetry</th>
+                      <th className="px-2.5 py-2.5 text-right">Logs</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60">
@@ -1508,7 +1813,7 @@ export function IwfUploader() {
 
                       return (
                         <tr key={run.id} className={`hover:bg-slate-900/40 transition ${isSelected ? 'bg-sky-950/20' : ''}`}>
-                          <td className="px-3 py-3 text-center" onClick={(e) => e.stopPropagation()}>
+                          <td className="px-2 py-2.5 text-center" onClick={(e) => e.stopPropagation()}>
                             <input
                               type="checkbox"
                               checked={isSelected}
@@ -1516,7 +1821,7 @@ export function IwfUploader() {
                               className="rounded border-slate-700 bg-slate-900 text-sky-500 focus:ring-sky-500 cursor-pointer"
                             />
                           </td>
-                          <td className="px-3.5 py-3 whitespace-nowrap">
+                          <td className="px-2.5 py-2.5">
                             {isSuccess && (
                               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-800/80 flex items-center gap-1 w-fit">
                                 <CheckCircle className="w-3 h-3 text-emerald-400" />
@@ -1543,10 +1848,31 @@ export function IwfUploader() {
                             )}
                           </td>
 
-                          <td className="px-3.5 py-3">
-                            <div className="space-y-0.5">
+                          <td className="px-2.5 py-2.5 max-w-[200px]">
+                            <div className="space-y-0.5 break-words">
                               <div className="font-semibold text-white flex items-center gap-1.5 flex-wrap">
-                                <span>{run.mode === 'single_event' ? `Event #${run.event_id || '—'}` : `Year ${run.year || '—'} Discovery`}</span>
+                                {run.import_stats?.standaloneLinker ? (
+                                  <span>
+                                    Cross-Federation Linker (
+                                    {run.import_stats.targetScope?.type
+                                      ? `${run.import_stats.targetScope.type}: ${run.import_stats.targetScope.value ?? 'all'}`
+                                      : run.event_id
+                                        ? `Event #${run.event_id}`
+                                        : run.year
+                                          ? `Year ${run.year}`
+                                          : 'Custom'}
+                                    {run.import_stats.targetFederation ? ` · ${run.import_stats.targetFederation}` : ''}
+                                    )
+                                  </span>
+                                ) : run.event_id ? (
+                                  <span>
+                                    {run.event_id.includes(',')
+                                      ? `Events #${run.event_id.split(',').map((s) => s.trim()).join(', ')}`
+                                      : `Event #${run.event_id}`}
+                                  </span>
+                                ) : (
+                                  <span>Year {run.year || '—'} Batch</span>
+                                )}
                                 {run.db_meet_id && (
                                   <Link
                                     href={`/meet/iwf/${run.db_meet_id}`}
@@ -1564,15 +1890,32 @@ export function IwfUploader() {
                                 </div>
                               )}
                               {run.url && (
-                                <div className="text-[10px] text-slate-500 truncate max-w-xs" title={run.url}>
-                                  {run.url}
-                                </div>
+                                <a
+                                  href={run.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[10px] text-slate-500 hover:text-sky-400 inline-flex items-center gap-1 truncate max-w-full"
+                                  title={run.url}
+                                >
+                                  <span>iwf.sport</span>
+                                  <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                                </a>
                               )}
                             </div>
                           </td>
 
-                          <td className="px-3.5 py-3 whitespace-nowrap">
+                          <td className="px-2.5 py-2.5">
                             <div className="flex items-center gap-1 flex-wrap">
+                              {run.import_stats?.standaloneLinker && (
+                                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-sky-950/60 text-sky-300 border border-sky-800/60">
+                                  Linker
+                                </span>
+                              )}
+                              {run.import_stats?.syncNames && (
+                                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-sky-950/60 text-sky-300 border border-sky-800/60">
+                                  Sync Names
+                                </span>
+                              )}
                               {run.dry_run ? (
                                 <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-950/60 text-amber-300 border border-amber-800/60">
                                   Dry Run
@@ -1590,11 +1933,11 @@ export function IwfUploader() {
                             </div>
                           </td>
 
-                          <td className="px-3.5 py-3 whitespace-nowrap text-slate-300 font-mono text-[11px]">
+                          <td className="px-2.5 py-2.5 text-slate-300 font-mono text-[11px] max-w-[130px]">
                             {formatEasternTime(run.created_at)}
                           </td>
 
-                          <td className="px-3.5 py-3 whitespace-nowrap text-slate-300 font-mono text-[11px]">
+                          <td className="px-2.5 py-2.5 whitespace-nowrap text-slate-300 font-mono text-[11px]">
                             {run.duration_seconds !== undefined && run.duration_seconds !== null
                               ? `${run.duration_seconds}s`
                               : run.status === 'RUNNING'
@@ -1602,10 +1945,123 @@ export function IwfUploader() {
                                 : '—'}
                           </td>
 
-                          <td className="px-3.5 py-3">
+                          <td className="px-2.5 py-2.5 max-w-[260px] break-words">
                             {run.error_message ? (
                               <div className="text-[11px] text-rose-300 font-medium truncate max-w-xs" title={run.error_message}>
                                 {run.error_message}
+                              </div>
+                            ) : run.import_stats?.standaloneLinker ? (
+                              <div className="text-[11px] text-slate-300 space-y-0.5">
+                                <div>
+                                  <span className="text-white font-medium">{run.import_stats.meetsEvaluated ?? 0}</span> meet(s) •{' '}
+                                  <span className="text-white font-medium">{run.import_stats.athletesEvaluated ?? 0}</span> athlete(s)
+                                </div>
+                                <div className="text-[10px] text-sky-300 font-medium">
+                                  +{run.import_stats.linkerStats?.usawAliasesLinked ?? 0} IWF ↔ USAW •{' '}
+                                  +{run.import_stats.linkerStats?.owlcmsAliasesLinked ?? 0} IWF ↔ OWLCMS •{' '}
+                                  <span className="text-amber-300">
+                                    {run.import_stats.ambiguousStagedToReview ?? 0} ambiguous athlete pair{(run.import_stats.ambiguousStagedToReview ?? 0) === 1 ? '' : 's'} staged
+                                  </span>
+                                </div>
+                              </div>
+                            ) : run.import_stats?.syncNames ? (
+                              <div className="text-[11px] text-sky-300 space-y-1">
+                                {((run.import_stats.syncFailedCount ?? 0) > 0 ||
+                                  (run.import_stats.syncUnmatchedCount ?? 0) > 0 ||
+                                  (run.import_stats.syncConflictsStagedCount ?? 0) > 0 ||
+                                  (run.import_stats.syncFlaggedConflicts?.length ?? 0) > 0 ||
+                                  (run.import_stats.lockedSkipped ?? 0) > 0) && (
+                                  <div className="space-y-0.5 pb-1 border-b border-slate-800/80">
+                                    {(run.import_stats.syncFailedCount ?? 0) > 0 && (
+                                      <div className="text-[10px] text-rose-300 font-semibold">
+                                        {run.import_stats.syncFailedCount} failed update(s)
+                                      </div>
+                                    )}
+                                    {((run.import_stats.syncConflictsStagedCount ?? 0) > 0 ||
+                                      (run.import_stats.syncFlaggedConflicts?.length ?? 0) > 0) && (
+                                      <div className="text-[10px] text-amber-200 space-y-0.5">
+                                        <div className="font-semibold">
+                                          {(run.import_stats.syncConflictsStagedCount ?? 0) > 0
+                                            ? `${run.import_stats.syncConflictsStagedCount} conflict(s) newly staged:`
+                                            : `${run.import_stats.syncFlaggedConflicts?.length} conflict(s) pending review:`}
+                                        </div>
+                                        {Array.isArray(run.import_stats.syncFlaggedConflicts) &&
+                                          run.import_stats.syncFlaggedConflicts.map((entry: any, idx: number) => (
+                                            <div key={idx} className="text-[10px] text-amber-100/90 pl-1.5 break-words">
+                                              • {formatSyncEntry(entry)}
+                                            </div>
+                                          ))}
+                                      </div>
+                                    )}
+                                    {(run.import_stats.syncUnmatchedCount ?? 0) > 0 && (
+                                      <div className="text-[10px] text-amber-300 space-y-0.5">
+                                        <div className="font-semibold">
+                                          {run.import_stats.syncUnmatchedCount} unmatched in DB:
+                                        </div>
+                                        {Array.isArray(run.import_stats.syncUnmatchedAthletes) &&
+                                          run.import_stats.syncUnmatchedAthletes.map((entry: any, idx: number) => (
+                                            <div key={idx} className="text-[10px] text-amber-200/90 pl-1.5 break-words">
+                                              • {formatSyncEntry(entry)}
+                                            </div>
+                                          ))}
+                                      </div>
+                                    )}
+                                    {(run.import_stats.lockedSkipped ?? 0) > 0 && (
+                                      <div className="text-[10px] text-slate-300 space-y-0.5">
+                                        <div className="font-semibold">
+                                          {run.import_stats.lockedSkipped} locked skipped:
+                                        </div>
+                                        {Array.isArray(run.import_stats.lockedAthletes) &&
+                                          run.import_stats.lockedAthletes.map((entry: any, idx: number) => (
+                                            <div key={idx} className="text-[10px] text-slate-300/90 pl-1.5 break-words">
+                                              • {formatSyncEntry(entry)}
+                                            </div>
+                                          ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                                <div>
+                                  <strong className="text-white">{run.import_stats.nameUpdatesCount ?? 0}</strong>{' '}
+                                  {run.dry_run ? 'simulated name update(s)' : 'name update(s)'}
+                                  {(run.import_stats.lockedSkipped ?? 0) > 0
+                                    ? ` • ${run.import_stats.lockedSkipped} locked skipped`
+                                    : ''}
+                                </div>
+                                {Array.isArray(run.import_stats.updatedAthletes) &&
+                                  run.import_stats.updatedAthletes.length > 0 && (() => {
+                                    const isExpanded = expandedSyncRunIds.has(run.id);
+                                    const visibleUpdates = isExpanded
+                                      ? run.import_stats.updatedAthletes
+                                      : run.import_stats.updatedAthletes.slice(0, 4);
+                                    return (
+                                      <div className="text-[10px] text-slate-300 font-normal space-y-0.5 pt-0.5">
+                                        {visibleUpdates.map((item: any, idx: number) => (
+                                          <div key={`${item.db_result_id ?? idx}`} className="break-words" title={`${item.old_name} → ${item.new_name}`}>
+                                            {item.old_name} → <span className="text-white">{item.new_name}</span>
+                                          </div>
+                                        ))}
+                                        {run.import_stats.updatedAthletes.length > 4 && (
+                                          <button
+                                            type="button"
+                                            onClick={() =>
+                                              setExpandedSyncRunIds((prev) => {
+                                                const next = new Set(prev);
+                                                if (next.has(run.id)) next.delete(run.id);
+                                                else next.add(run.id);
+                                                return next;
+                                              })
+                                            }
+                                            className="text-[10px] text-sky-400 hover:text-sky-300 underline cursor-pointer pt-0.5"
+                                          >
+                                            {isExpanded
+                                              ? 'Show fewer'
+                                              : `Show all ${run.import_stats.updatedAthletes.length} name updates`}
+                                          </button>
+                                        )}
+                                      </div>
+                                    );
+                                  })()}
                               </div>
                             ) : run.dry_run ? (
                               <div className="text-[11px] text-amber-300/90 font-medium space-y-0.5">
@@ -1614,10 +2070,58 @@ export function IwfUploader() {
                                     ? 'Would Skip (0 writes)'
                                     : `${run.import_stats?.simulatedScorecards ?? 0} simulated scorecard(s)`}
                                 </div>
-                                {run.import_stats?.linkerStats && run.import_stats.linkerStats.totalAliasesLinked > 0 && (
-                                  <div className="text-[10px] text-sky-300 font-medium pt-0.5 flex items-center gap-1.5 flex-wrap">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-sky-400 shrink-0" />
-                                    <span>+{run.import_stats.linkerStats.totalAliasesLinked} simulated alias{run.import_stats.linkerStats.totalAliasesLinked === 1 ? '' : 'es'}</span>
+                                {!run.import_stats?.wouldSkip &&
+                                  (run.import_stats?.simulatedUpdates !== undefined ||
+                                    run.import_stats?.simulatedInserts !== undefined) && (
+                                    <div className="text-[10px] text-slate-300 font-normal">
+                                      {run.import_stats?.simulatedUpdates ?? 0} update(s) •{' '}
+                                      <span
+                                        className={
+                                          (run.import_stats?.simulatedInserts ?? 0) > 0
+                                            ? 'text-emerald-300 font-semibold'
+                                            : 'text-slate-400'
+                                        }
+                                      >
+                                        +{run.import_stats?.simulatedInserts ?? 0} new insert(s)
+                                      </span>
+                                      {run.import_stats?.simulatedLocked
+                                        ? ` • ${run.import_stats.simulatedLocked} locked`
+                                        : ''}
+                                    </div>
+                                  )}
+                                {!run.import_stats?.wouldSkip &&
+                                  Array.isArray(run.import_stats?.simulatedInsertAthletes) &&
+                                  run.import_stats.simulatedInsertAthletes.length > 0 && (
+                                    <div className="text-[10px] text-emerald-300/90 font-normal space-y-0.5 pt-0.5">
+                                      {run.import_stats.simulatedInsertAthletes.map((ath: any, idx: number) => (
+                                        <div key={`${ath.name}-${idx}`} className="truncate max-w-xs" title={`${ath.name}${ath.nation ? ` (${ath.nation})` : ''}${ath.category ? ` · ${ath.category}` : ''}`}>
+                                          + {ath.name}
+                                          {ath.nation ? ` (${ath.nation})` : ''}
+                                          {ath.category ? ` · ${ath.category}` : ''}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                {run.import_stats?.linkerStats &&
+                                  (run.import_stats.linkerStats.totalAliasesLinked > 0 ||
+                                    (run.import_stats.linkerStats.ambiguousStagedToReview ?? 0) > 0) && (
+                                  <div className="text-[10px] text-sky-300 font-medium pt-0.5 space-y-0.5">
+                                    {run.import_stats.linkerStats.totalAliasesLinked > 0 && (
+                                      <div className="flex items-center gap-1.5 flex-wrap">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-sky-400 shrink-0" />
+                                        <span>
+                                          +{run.import_stats.linkerStats.totalAliasesLinked} simulated athlete pair{run.import_stats.linkerStats.totalAliasesLinked === 1 ? '' : 's'}
+                                        </span>
+                                        <span className="text-slate-400 font-normal">
+                                          (+{run.import_stats.linkerStats.usawAliasesLinked} IWF ↔ USAW, +{run.import_stats.linkerStats.owlcmsAliasesLinked} IWF ↔ OWLCMS)
+                                        </span>
+                                      </div>
+                                    )}
+                                    {(run.import_stats.linkerStats.ambiguousStagedToReview ?? 0) > 0 && (
+                                      <div className="text-[10px] text-amber-300/90 pl-3">
+                                        {run.import_stats.linkerStats.ambiguousStagedToReview} ambiguous athlete pair{run.import_stats.linkerStats.ambiguousStagedToReview === 1 ? '' : 's'} staged for review
+                                      </div>
+                                    )}
                                   </div>
                                 )}
                               </div>
@@ -1639,15 +2143,25 @@ export function IwfUploader() {
                                     {parsedCount} athletes parsed
                                   </div>
                                 )}
-                                {run.import_stats?.linkerStats && (run.import_stats.linkerStats.totalAliasesLinked > 0 || run.import_stats.linkerStats.shardsRefreshed > 0) && (
+                                {run.import_stats?.linkerStats &&
+                                  (run.import_stats.linkerStats.totalAliasesLinked > 0 ||
+                                    run.import_stats.linkerStats.shardsRefreshed > 0 ||
+                                    (run.import_stats.linkerStats.ambiguousStagedToReview ?? 0) > 0) && (
                                   <div className="text-[10px] text-sky-300 font-medium pt-0.5 space-y-0.5">
-                                    <div className="flex items-center gap-1.5 flex-wrap">
-                                      <span className="w-1.5 h-1.5 rounded-full bg-sky-400 shrink-0" />
-                                      <span>+{run.import_stats.linkerStats.totalAliasesLinked} alias{run.import_stats.linkerStats.totalAliasesLinked === 1 ? '' : 'es'} linked</span>
-                                      {run.import_stats.linkerStats.usawAliasesLinked > 0 && run.import_stats.linkerStats.owlcmsAliasesLinked > 0 && (
-                                        <span className="text-slate-400 font-normal">({run.import_stats.linkerStats.usawAliasesLinked} USAW, {run.import_stats.linkerStats.owlcmsAliasesLinked} OWLCMS)</span>
-                                      )}
-                                    </div>
+                                    {run.import_stats.linkerStats.totalAliasesLinked > 0 && (
+                                      <div className="flex items-center gap-1.5 flex-wrap">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-sky-400 shrink-0" />
+                                        <span>+{run.import_stats.linkerStats.totalAliasesLinked} athlete pair{run.import_stats.linkerStats.totalAliasesLinked === 1 ? '' : 's'} linked</span>
+                                        <span className="text-slate-400 font-normal">
+                                          (+{run.import_stats.linkerStats.usawAliasesLinked} IWF ↔ USAW, +{run.import_stats.linkerStats.owlcmsAliasesLinked} IWF ↔ OWLCMS)
+                                        </span>
+                                      </div>
+                                    )}
+                                    {(run.import_stats.linkerStats.ambiguousStagedToReview ?? 0) > 0 && (
+                                      <div className="text-[10px] text-amber-300/90 pl-3">
+                                        {run.import_stats.linkerStats.ambiguousStagedToReview} ambiguous athlete pair{run.import_stats.linkerStats.ambiguousStagedToReview === 1 ? '' : 's'} staged for review
+                                      </div>
+                                    )}
                                     {run.import_stats.linkerStats.shardsRefreshed > 0 && (
                                       <div className="text-[10px] text-emerald-400/90 pl-3">
                                         {run.import_stats.linkerStats.shardsRefreshed} shard{run.import_stats.linkerStats.shardsRefreshed === 1 ? '' : 's'} refreshed
@@ -1659,14 +2173,14 @@ export function IwfUploader() {
                             )}
                           </td>
 
-                          <td className="px-3.5 py-3 whitespace-nowrap text-right">
+                          <td className="px-2.5 py-2.5 whitespace-nowrap text-right">
                             <button
                               type="button"
                               onClick={() => handleOpenRunLogs(run.id)}
-                              className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 transition inline-flex items-center gap-1.5 shadow-sm"
+                              className="px-2 py-1 rounded-lg text-[11px] font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 transition inline-flex items-center gap-1 shadow-sm"
                             >
-                              <Terminal className="w-3.5 h-3.5 text-sky-400" />
-                              <span>View Logs</span>
+                              <Terminal className="w-3 h-3 text-sky-400" />
+                              <span>Logs</span>
                             </button>
                           </td>
                         </tr>

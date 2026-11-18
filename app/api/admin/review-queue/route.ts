@@ -217,10 +217,16 @@ export async function GET(request: Request) {
       query = query.ilike('title', `%${search}%`);
     }
 
-    query = query
-      .order('confidence_score', { ascending: false, nullsFirst: false })
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
+    if (status === 'APPROVED' || status === 'REJECTED' || status === 'RESOLVED') {
+      query = query
+        .order('resolved_at', { ascending: false, nullsFirst: false })
+        .order('created_at', { ascending: false });
+    } else {
+      query = query
+        .order('confidence_score', { ascending: false, nullsFirst: false })
+        .order('created_at', { ascending: false });
+    }
+    query = query.range(offset, offset + limit - 1);
 
     const { data: rawItems, error, count } = await query;
 
@@ -541,9 +547,15 @@ export async function GET(request: Request) {
       const titleMeetNames = new Set<string>();
       const athleteNames = new Set<string>();
       const dbLifterIds = new Set<number>();
+      const scrapedIwfIds = new Set<number>();
+      const bioConflictPrimaryIds = new Set<number>();
 
       iwfDupItems.forEach((item: any) => {
         const ev = item.evidence || {};
+        const isBioConflict = Boolean(
+          ev.scraped_bio || ev.db_bio || ev.scraped_iwf_id ||
+          (Array.isArray(ev.federations) && ev.federations[0] === 'IWF' && ev.federations[1] === 'IWF')
+        );
         if (ev.db_meet_id && !isNaN(Number(ev.db_meet_id))) {
           dbMeetIds.add(Number(ev.db_meet_id));
         }
@@ -552,8 +564,19 @@ export async function GET(request: Request) {
         }
         if (item.primary_entity_id && !isNaN(Number(item.primary_entity_id))) {
           dbLifterIds.add(Number(item.primary_entity_id));
+          if (isBioConflict) bioConflictPrimaryIds.add(Number(item.primary_entity_id));
         }
-        if (item.candidate_entity_id && !isNaN(Number(item.candidate_entity_id))) {
+        if (isBioConflict) {
+          const sIwfId = Number(ev.scraped_iwf_id || item.candidate_entity_id);
+          if (!isNaN(sIwfId) && sIwfId > 0) scrapedIwfIds.add(sIwfId);
+          if (ev.other_db_lifter_id && !isNaN(Number(ev.other_db_lifter_id))) {
+            dbLifterIds.add(Number(ev.other_db_lifter_id));
+            bioConflictPrimaryIds.add(Number(ev.other_db_lifter_id));
+          }
+          if (ev.db_lifter_id && !isNaN(Number(ev.db_lifter_id))) {
+            bioConflictPrimaryIds.add(Number(ev.db_lifter_id));
+          }
+        } else if (item.candidate_entity_id && !isNaN(Number(item.candidate_entity_id))) {
           dbLifterIds.add(Number(item.candidate_entity_id));
         }
         if (ev.db_lifter_id && !isNaN(Number(ev.db_lifter_id))) {
@@ -570,6 +593,32 @@ export async function GET(request: Request) {
           if (parsedMeet) titleMeetNames.add(parsedMeet);
         }
       });
+
+      const liftersByIwfIdMap = new Map<number, any>();
+      if (scrapedIwfIds.size > 0) {
+        const { data: existingScrapedLifters } = await supabaseAdmin
+          .from('iwf_lifters')
+          .select('db_lifter_id, iwf_lifter_id, athlete_name, country_code, birth_year, gender')
+          .in('iwf_lifter_id', Array.from(scrapedIwfIds));
+        (existingScrapedLifters || []).forEach((l: any) => {
+          if (l.iwf_lifter_id) liftersByIwfIdMap.set(Number(l.iwf_lifter_id), l);
+        });
+      }
+
+      const primaryResultsByLifterMap = new Map<number, any[]>();
+      if (bioConflictPrimaryIds.size > 0) {
+        const { data: bioResults } = await supabaseAdmin
+          .from('iwf_meet_results')
+          .select('db_result_id, db_meet_id, db_lifter_id, lifter_name, weight_class, total, best_snatch, best_cj, date, birth_year, competition_age, iwf_meets(meet, date, date_iso, iwf_meet_id)')
+          .in('db_lifter_id', Array.from(bioConflictPrimaryIds))
+          .order('date', { ascending: false });
+
+        (bioResults || []).forEach((r: any) => {
+          const lid = Number(r.db_lifter_id);
+          if (!primaryResultsByLifterMap.has(lid)) primaryResultsByLifterMap.set(lid, []);
+          primaryResultsByLifterMap.get(lid)!.push(r);
+        });
+      }
 
       // Discover authentic meet and lifter IDs directly from iwf_meet_results by permuted athlete names
       if (athleteNames.size > 0) {
@@ -794,8 +843,10 @@ export async function GET(request: Request) {
           }
         }
 
-        // Fallback: Check if scorecards hold a verified db_lifter_id
-        let dbLifterId = ev.db_lifter_id ? Number(ev.db_lifter_id) : null;
+        // Fallback: Check if scorecards or primary_entity_id hold a verified db_lifter_id
+        let dbLifterId = ev.db_lifter_id
+          ? Number(ev.db_lifter_id)
+          : (item.primary_entity_id && !isNaN(Number(item.primary_entity_id)) ? Number(item.primary_entity_id) : null);
         if (!dbLifterId && scorecards.length > 0 && scorecards[0].db_lifter_id) {
           dbLifterId = Number(scorecards[0].db_lifter_id);
         }
@@ -803,6 +854,11 @@ export async function GET(request: Request) {
           const l = iwfLiftersMap.get(dbLifterId);
           if (l) liftersFound.unshift(l);
         }
+
+        const otherLifter =
+          (ev.other_db_lifter_id ? iwfLiftersMap.get(Number(ev.other_db_lifter_id)) : null) ||
+          (ev.scraped_iwf_id ? liftersByIwfIdMap.get(Number(ev.scraped_iwf_id)) : null) ||
+          null;
 
         // Prioritize lifter record holding verified iwf_lifter_id
         const primaryLifter = liftersFound.find((l: any) => l.iwf_lifter_id) || liftersFound[0] || (dbLifterId ? iwfLiftersMap.get(dbLifterId) : null);
@@ -818,16 +874,14 @@ export async function GET(request: Request) {
 
         // 4-tier chronological official IWF meet URL resolution standard
         const iwfMeetUrl = getOfficialIwfMeetUrl(iwfMeetId, meet?.date) || meet?.url || null;
-        const iwfAthleteUrl = primaryLifter?.iwf_athlete_url || (iwfLifterId
-          ? `https://iwf.sport/weightlifting_/athletes-bios/?id=${iwfLifterId}`
-          : null);
+        const iwfAthleteUrl = primaryLifter?.iwf_athlete_url || null;
         const iwfAthleteBios = liftersFound
-          .filter((l: any) => l.iwf_lifter_id || l.iwf_athlete_url)
+          .filter((l: any) => l.iwf_athlete_url)
           .map((l: any) => ({
             db_lifter_id: l.db_lifter_id,
             iwf_lifter_id: l.iwf_lifter_id,
             athlete_name: l.athlete_name,
-            url: l.iwf_athlete_url || (l.iwf_lifter_id ? `https://iwf.sport/weightlifting_/athletes-bios/?id=${l.iwf_lifter_id}` : null)
+            url: l.iwf_athlete_url
           }));
 
         // Self-heal weight classes if empty or missing in staged evidence
@@ -850,6 +904,7 @@ export async function GET(request: Request) {
             iwf_meet_url: iwfMeetUrl,
             db_lifter_id: dbLifterId,
             iwf_lifter_id: iwfLifterId,
+            db_athlete_url: ev.db_athlete_url || primaryLifter?.iwf_athlete_url || null,
             gender: normalizedGender,
             raw_gender: resolvedGender,
             country_code: primaryLifter?.country_code || null,
@@ -858,6 +913,18 @@ export async function GET(request: Request) {
             owlanalytics_athlete_url: iwfLifterId ? `/athlete/iwf/${iwfLifterId}` : null,
             iwf_athlete_url: iwfAthleteUrl,
             iwf_athlete_bios: iwfAthleteBios,
+            other_lifter: otherLifter
+              ? {
+                  db_lifter_id: otherLifter.db_lifter_id,
+                  iwf_lifter_id: otherLifter.iwf_lifter_id,
+                  athlete_name: otherLifter.athlete_name,
+                  country_code: otherLifter.country_code,
+                  country_name: otherLifter.country_name,
+                  birth_year: otherLifter.birth_year,
+                  gender: otherLifter.gender,
+                  iwf_athlete_url: otherLifter.iwf_athlete_url || null,
+                }
+              : null,
             all_lifters: liftersFound.map((l: any) => ({
               db_lifter_id: l.db_lifter_id,
               iwf_lifter_id: l.iwf_lifter_id,
@@ -868,9 +935,13 @@ export async function GET(request: Request) {
               gender: l.gender,
               owlanalytics_url: l.iwf_lifter_id ? `/athlete/iwf/${l.iwf_lifter_id}` : null,
               iwf_athlete_url: l.iwf_athlete_url || null,
-              iwf_url: l.iwf_athlete_url || (l.iwf_lifter_id ? `https://iwf.sport/weightlifting_/athletes-bios/?id=${l.iwf_lifter_id}` : null)
+              iwf_url: l.iwf_athlete_url || null
             })),
-            duplicate_scorecards: scorecards
+            duplicate_scorecards: scorecards,
+            primary_results: dbLifterId ? (primaryResultsByLifterMap.get(dbLifterId) || []) : [],
+            other_results: ev.other_db_lifter_id
+              ? (primaryResultsByLifterMap.get(Number(ev.other_db_lifter_id)) || [])
+              : (otherLifter?.db_lifter_id ? (primaryResultsByLifterMap.get(Number(otherLifter.db_lifter_id)) || []) : [])
           }
         };
       });
@@ -1210,6 +1281,346 @@ export async function POST(request: Request) {
 
       if (resolution === 'APPROVED' || resolution === 'RESOLVED') {
         const currentEv = currentItem.evidence || {};
+        const isBioConflict = Boolean(
+          currentEv.scraped_bio ||
+          currentEv.db_bio ||
+          currentEv.scraped_iwf_id ||
+          (Array.isArray(currentEv.federations) && currentEv.federations[0] === 'IWF' && currentEv.federations[1] === 'IWF')
+        );
+
+        if (isBioConflict) {
+          const primaryDbLifterId = Number(currentItem.primary_entity_id || currentEv.db_lifter_id);
+          const scrapedIwfId = Number(currentEv.scraped_iwf_id || currentItem.candidate_entity_id);
+
+          if (!primaryDbLifterId || isNaN(primaryDbLifterId) || !scrapedIwfId || isNaN(scrapedIwfId)) {
+            return NextResponse.json(
+              { success: false, error: 'Missing primary_entity_id (db_lifter_id) or scraped_iwf_id for IWF ↔ IWF linking.' },
+              { status: 400 }
+            );
+          }
+
+          let secondDbLifterId: number | null =
+            currentEv.other_db_lifter_id && !isNaN(Number(currentEv.other_db_lifter_id))
+              ? Number(currentEv.other_db_lifter_id)
+              : null;
+
+          const authoritativeScrapedUrl =
+            currentEv.scraped_athlete_url || currentEv.scraped_bio?.url || null;
+
+          if (secondDbLifterId) {
+            if (authoritativeScrapedUrl) {
+              const { data: existingByDbId } = await supabaseAdmin
+                .from('iwf_lifters')
+                .select('iwf_athlete_url')
+                .eq('db_lifter_id', secondDbLifterId)
+                .maybeSingle();
+
+              if (
+                existingByDbId &&
+                (!existingByDbId.iwf_athlete_url || !existingByDbId.iwf_athlete_url.includes('athlete='))
+              ) {
+                await supabaseAdmin
+                  .from('iwf_lifters')
+                  .update({ iwf_athlete_url: authoritativeScrapedUrl })
+                  .eq('db_lifter_id', secondDbLifterId);
+              }
+            }
+          } else {
+            const { data: existingSecond } = await supabaseAdmin
+              .from('iwf_lifters')
+              .select('db_lifter_id, iwf_lifter_id, athlete_name, iwf_athlete_url')
+              .eq('iwf_lifter_id', scrapedIwfId)
+              .limit(1)
+              .maybeSingle();
+
+            if (existingSecond?.db_lifter_id) {
+              secondDbLifterId = Number(existingSecond.db_lifter_id);
+              if (
+                authoritativeScrapedUrl &&
+                (!existingSecond.iwf_athlete_url || !existingSecond.iwf_athlete_url.includes('athlete='))
+              ) {
+                await supabaseAdmin
+                  .from('iwf_lifters')
+                  .update({ iwf_athlete_url: authoritativeScrapedUrl })
+                  .eq('db_lifter_id', secondDbLifterId);
+              }
+            } else {
+              const scrapedBio = currentEv.scraped_bio || {};
+              const scrapedName = String(currentEv.scraped_name || scrapedBio.name || '').trim();
+              if (!scrapedName) {
+                return NextResponse.json(
+                  { success: false, error: 'Cannot create secondary iwf_lifters profile without scraped_name.' },
+                  { status: 400 }
+                );
+              }
+              const parsedBirthYear =
+                scrapedBio.birth_year ? Number(scrapedBio.birth_year)
+                  : (typeof scrapedBio.dob === 'string' && /^\d{4}/.test(scrapedBio.dob) ? Number(scrapedBio.dob.slice(0, 4)) : null);
+
+              const { data: createdSecond, error: createSecondErr } = await supabaseAdmin
+                .from('iwf_lifters')
+                .insert({
+                  iwf_lifter_id: scrapedIwfId,
+                  athlete_name: scrapedName,
+                  gender: scrapedBio.gender || null,
+                  birth_year: parsedBirthYear && !isNaN(parsedBirthYear) ? parsedBirthYear : null,
+                  country_code: scrapedBio.country_code || scrapedBio.country || null,
+                  iwf_athlete_url: authoritativeScrapedUrl,
+                })
+                .select('db_lifter_id')
+                .single();
+
+              if (createSecondErr || !createdSecond?.db_lifter_id) {
+                return NextResponse.json(
+                  { success: false, error: `Failed to create secondary iwf_lifters profile: ${createSecondErr?.message || 'Unknown error'}` },
+                  { status: 500 }
+                );
+              }
+              secondDbLifterId = Number(createdSecond.db_lifter_id);
+            }
+          }
+
+          if (secondDbLifterId === primaryDbLifterId) {
+            return NextResponse.json(
+              { success: false, error: 'Primary and secondary db_lifter_id are identical.' },
+              { status: 400 }
+            );
+          }
+
+          const isMigrateProfile = updatedEvidence?.repair_action === 'MIGRATE_IWF_PROFILE';
+          const isSplitProfile = updatedEvidence?.repair_action === 'SPLIT_IWF_PROFILE';
+          let migratedBackup: Record<string, any> | null = null;
+          let splitBackup: Record<string, any> | null = null;
+          const nowIso = new Date().toISOString();
+
+          if (isSplitProfile) {
+            const selectedIds: number[] = Array.isArray(updatedEvidence?.selected_result_ids)
+              ? updatedEvidence.selected_result_ids.map(Number).filter((n: number) => !isNaN(n) && n > 0)
+              : [];
+
+            if (selectedIds.length === 0) {
+              return NextResponse.json(
+                { success: false, error: 'Select at least one meet result to reassign.' },
+                { status: 400 }
+              );
+            }
+
+            const isOtherToPrimary = updatedEvidence?.split_direction === 'OTHER_TO_PRIMARY';
+            const sourceDbLifterId = isOtherToPrimary ? secondDbLifterId : primaryDbLifterId;
+            const targetDbLifterId = isOtherToPrimary ? primaryDbLifterId : secondDbLifterId;
+            const targetIwfId = isOtherToPrimary ? currentEv.db_iwf_id : scrapedIwfId;
+
+            const targetBio = isOtherToPrimary ? (currentEv.db_bio || {}) : (currentEv.scraped_bio || {});
+            const parsedBirthYear =
+              targetBio.birth_year ? Number(targetBio.birth_year)
+                : (typeof targetBio.dob === 'string' && /^\d{4}/.test(targetBio.dob) ? Number(targetBio.dob.slice(0, 4)) : null);
+
+            const { data: resultsToSplit, error: fetchSplitErr } = await supabaseAdmin
+              .from('iwf_meet_results')
+              .select('db_result_id, db_lifter_id, birth_year, competition_age, date, manual_override')
+              .in('db_result_id', selectedIds)
+              .eq('db_lifter_id', sourceDbLifterId);
+
+            if (fetchSplitErr || !resultsToSplit || resultsToSplit.length === 0) {
+              return NextResponse.json(
+                { success: false, error: 'No matching meet results found on the source profile to move.' },
+                { status: 400 }
+              );
+            }
+
+            for (const row of resultsToSplit) {
+              const resYear = row.date ? new Date(row.date).getFullYear() : null;
+              const computedAge =
+                parsedBirthYear && resYear && !isNaN(resYear)
+                  ? resYear - parsedBirthYear
+                  : row.competition_age;
+
+              const { error: splitErr } = await supabaseAdmin
+                .from('iwf_meet_results')
+                .update({
+                  db_lifter_id: targetDbLifterId,
+                  birth_year: parsedBirthYear && !isNaN(parsedBirthYear) ? parsedBirthYear : row.birth_year,
+                  competition_age: computedAge,
+                  manual_override: true,
+                  updated_at: nowIso,
+                })
+                .eq('db_result_id', row.db_result_id);
+
+              if (splitErr) {
+                return NextResponse.json(
+                  { success: false, error: `Failed to reassign iwf_meet_results #${row.db_result_id}: ${splitErr.message}` },
+                  { status: 500 }
+                );
+              }
+            }
+
+            const shouldLinkProfiles = Boolean(updatedEvidence?.link_profiles);
+            if (shouldLinkProfiles) {
+              const { data: existingAlias } = await supabaseAdmin
+                .from('athlete_aliases')
+                .select('id')
+                .or(
+                  `and(iwf_db_lifter_id.eq.${primaryDbLifterId},iwf_db_lifter_id_2.eq.${secondDbLifterId}),and(iwf_db_lifter_id.eq.${secondDbLifterId},iwf_db_lifter_id_2.eq.${primaryDbLifterId})`
+                )
+                .limit(1)
+                .maybeSingle();
+
+              if (!existingAlias) {
+                const { error: aliasErr } = await supabaseAdmin
+                  .from('athlete_aliases')
+                  .insert({
+                    iwf_db_lifter_id: primaryDbLifterId,
+                    iwf_db_lifter_id_2: secondDbLifterId,
+                    match_confidence: currentItem.confidence_score || 100,
+                    manual_override: true,
+                    updated_at: nowIso,
+                  });
+
+                if (aliasErr) {
+                  return NextResponse.json(
+                    { success: false, error: `Moved results, but failed to link IWF ↔ IWF alias: ${aliasErr.message}` },
+                    { status: 500 }
+                  );
+                }
+              }
+            }
+
+            splitBackup = {
+              moved_results: resultsToSplit,
+              from_db_lifter_id: sourceDbLifterId,
+              to_db_lifter_id: targetDbLifterId,
+              target_iwf_id: targetIwfId,
+            };
+
+            await triggerIwfShardRefresh([currentEv.db_iwf_id, scrapedIwfId]);
+
+            const { error: updErr } = await supabaseAdmin
+              .from('admin_review_queue')
+              .update({
+                status: 'APPROVED',
+                resolved_at: nowIso,
+                resolved_by: user.email || user.id,
+                evidence: {
+                  ...currentEv,
+                  ...(updatedEvidence || {}),
+                  split_profile_backup: splitBackup,
+                  ...(shouldLinkProfiles ? { linked_second_db_lifter_id: secondDbLifterId } : {}),
+                  ...(notes ? { admin_notes: notes } : {}),
+                },
+              })
+              .eq('id', reviewId);
+
+            if (updErr) {
+              return NextResponse.json({ success: false, error: updErr.message }, { status: 500 });
+            }
+
+            return NextResponse.json({
+              success: true,
+              message: shouldLinkProfiles
+                ? `Moved ${resultsToSplit.length} meet result(s) onto IWF #${targetIwfId || targetDbLifterId} (DB #${targetDbLifterId}) and linked both IWF profiles.`
+                : `Moved ${resultsToSplit.length} meet result(s) onto IWF #${targetIwfId || targetDbLifterId} (DB #${targetDbLifterId}).`,
+            });
+          }
+
+          if (isMigrateProfile) {
+            const scrapedBio = currentEv.scraped_bio || {};
+            const parsedBirthYear =
+              scrapedBio.birth_year ? Number(scrapedBio.birth_year)
+                : (typeof scrapedBio.dob === 'string' && /^\d{4}/.test(scrapedBio.dob) ? Number(scrapedBio.dob.slice(0, 4)) : null);
+
+            const { data: resultsToMove } = await supabaseAdmin
+              .from('iwf_meet_results')
+              .select('db_result_id, db_lifter_id, birth_year, manual_override')
+              .eq('db_lifter_id', primaryDbLifterId);
+
+            if (resultsToMove && resultsToMove.length > 0) {
+              for (const row of resultsToMove) {
+                const updateFields: Record<string, any> = {
+                  db_lifter_id: secondDbLifterId,
+                  updated_at: nowIso,
+                };
+                if (!row.manual_override && parsedBirthYear && !isNaN(parsedBirthYear)) {
+                  updateFields.birth_year = parsedBirthYear;
+                }
+                const { error: moveErr } = await supabaseAdmin
+                  .from('iwf_meet_results')
+                  .update(updateFields)
+                  .eq('db_result_id', row.db_result_id);
+
+                if (moveErr) {
+                  return NextResponse.json(
+                    { success: false, error: `Failed to migrate iwf_meet_results #${row.db_result_id}: ${moveErr.message}` },
+                    { status: 500 }
+                  );
+                }
+              }
+            }
+
+            migratedBackup = {
+              moved_results: resultsToMove || [],
+              from_db_lifter_id: primaryDbLifterId,
+              to_db_lifter_id: secondDbLifterId,
+            };
+          }
+
+          const { data: existingAlias } = await supabaseAdmin
+            .from('athlete_aliases')
+            .select('id')
+            .or(
+              `and(iwf_db_lifter_id.eq.${primaryDbLifterId},iwf_db_lifter_id_2.eq.${secondDbLifterId}),and(iwf_db_lifter_id.eq.${secondDbLifterId},iwf_db_lifter_id_2.eq.${primaryDbLifterId})`
+            )
+            .limit(1)
+            .maybeSingle();
+
+          if (!existingAlias) {
+            const { error: aliasErr } = await supabaseAdmin
+              .from('athlete_aliases')
+              .insert({
+                iwf_db_lifter_id: primaryDbLifterId,
+                iwf_db_lifter_id_2: secondDbLifterId,
+                match_confidence: currentItem.confidence_score || 100,
+                manual_override: true,
+                updated_at: nowIso,
+              });
+
+            if (aliasErr) {
+              return NextResponse.json(
+                { success: false, error: `Failed to insert IWF ↔ IWF alias: ${aliasErr.message}` },
+                { status: 500 }
+              );
+            }
+          }
+
+          await triggerIwfShardRefresh([currentEv.db_iwf_id, scrapedIwfId]);
+
+          const { error: updErr } = await supabaseAdmin
+            .from('admin_review_queue')
+            .update({
+              status: 'APPROVED',
+              resolved_at: nowIso,
+              resolved_by: user.email || user.id,
+              evidence: {
+                ...currentEv,
+                ...(updatedEvidence || {}),
+                linked_second_db_lifter_id: secondDbLifterId,
+                ...(migratedBackup ? { migrated_profile_backup: migratedBackup } : {}),
+                ...(notes ? { admin_notes: notes } : {}),
+              },
+            })
+            .eq('id', reviewId);
+
+          if (updErr) {
+            return NextResponse.json({ success: false, error: updErr.message }, { status: 500 });
+          }
+
+          return NextResponse.json({
+            success: true,
+            message: isMigrateProfile
+              ? `Migrated results to IWF #${scrapedIwfId} (DB #${secondDbLifterId}) and linked both IWF profiles.`
+              : `Linked IWF ↔ IWF athlete pair (DB #${primaryDbLifterId} ↔ DB #${secondDbLifterId}, IWF #${scrapedIwfId}) in athlete_aliases.`,
+          });
+        }
+
         const repairAction: string = updatedEvidence?.repair_action || (updatedEvidence?.purge_result_id ? 'SCORECARD_PURGED' : 'CONFIRMED_OFFICIAL');
         const targetResultId = updatedEvidence?.db_result_id ? Number(updatedEvidence.db_result_id) : (updatedEvidence?.purge_result_id ? Number(updatedEvidence.purge_result_id) : null);
         const nowIso = new Date().toISOString();
@@ -1249,9 +1660,7 @@ export async function POST(request: Request) {
             gender: newProfile.gender ? String(newProfile.gender).trim().toUpperCase() : origResult.gender,
             birth_year: newProfile.birth_year ? Number(newProfile.birth_year) : (origResult.birth_year ?? null),
             iwf_lifter_id: newProfile.iwf_lifter_id ? Number(newProfile.iwf_lifter_id) : null,
-            iwf_athlete_url: newProfile.iwf_lifter_id
-              ? `https://iwf.sport/weightlifting_/athletes-bios/?id=${Number(newProfile.iwf_lifter_id)}`
-              : null
+            iwf_athlete_url: newProfile.iwf_athlete_url || null
           };
 
           const { data: createdLifter, error: createErr } = await supabaseAdmin
@@ -1476,6 +1885,70 @@ export async function POST(request: Request) {
           .eq('id', reviewId);
 
         return NextResponse.json({ success: true, message: 'IWF repair execution rolled back and item reverted to pending.' });
+      } else if (
+        resolution === 'PENDING' &&
+        (currentItem.evidence?.linked_second_db_lifter_id || currentItem.evidence?.split_profile_backup)
+      ) {
+        const currentEv = { ...(currentItem.evidence || {}) };
+        const primaryDbLifterId = Number(currentItem.primary_entity_id || currentEv.db_lifter_id);
+        const secondDbLifterId = Number(
+          currentEv.linked_second_db_lifter_id || currentEv.split_profile_backup?.to_db_lifter_id
+        );
+
+        const movedToRestore =
+          currentEv.migrated_profile_backup?.moved_results ||
+          currentEv.split_profile_backup?.moved_results ||
+          [];
+
+        if (movedToRestore.length > 0) {
+          for (const prev of movedToRestore) {
+            await supabaseAdmin
+              .from('iwf_meet_results')
+              .update({
+                db_lifter_id: prev.db_lifter_id,
+                birth_year: prev.birth_year ?? null,
+                competition_age: prev.competition_age ?? null,
+                manual_override: prev.manual_override ?? false,
+                updated_at: new Date().toISOString(),
+              })
+              .eq('db_result_id', prev.db_result_id);
+          }
+        }
+
+        if (currentEv.linked_second_db_lifter_id && primaryDbLifterId && secondDbLifterId) {
+          await supabaseAdmin
+            .from('athlete_aliases')
+            .delete()
+            .or(
+              `and(iwf_db_lifter_id.eq.${primaryDbLifterId},iwf_db_lifter_id_2.eq.${secondDbLifterId}),and(iwf_db_lifter_id.eq.${secondDbLifterId},iwf_db_lifter_id_2.eq.${primaryDbLifterId})`
+            );
+        }
+
+        await triggerIwfShardRefresh([currentEv.db_iwf_id, currentEv.scraped_iwf_id]);
+
+        delete currentEv.linked_second_db_lifter_id;
+        delete currentEv.migrated_profile_backup;
+        delete currentEv.split_profile_backup;
+        if (notes) currentEv.admin_notes = notes;
+
+        const { error: revertErr } = await supabaseAdmin
+          .from('admin_review_queue')
+          .update({
+            evidence: currentEv,
+            status: 'PENDING',
+            resolved_at: null,
+            resolved_by: null
+          })
+          .eq('id', reviewId);
+
+        if (revertErr) {
+          return NextResponse.json({ success: false, error: revertErr.message }, { status: 500 });
+        }
+
+        return NextResponse.json({
+          success: true,
+          message: `Removed IWF ↔ IWF alias (DB #${primaryDbLifterId} ↔ DB #${secondDbLifterId}) and reverted item to pending.`
+        });
       }
     }
 
@@ -1485,30 +1958,99 @@ export async function POST(request: Request) {
       const candidateLifterId = Number(currentItem.candidate_entity_id);
 
       if (resolution === 'APPROVED' && primaryLifterId && candidateLifterId) {
-        // Reassign all meet results from typo lifter to canonical lifter
-        const { data: resultsToMove } = await supabaseAdmin
-          .from('usaw_meet_results')
-          .select('result_id')
-          .eq('lifter_id', primaryLifterId);
-
-        if (resultsToMove && resultsToMove.length > 0) {
-          await supabaseAdmin
-            .from('usaw_meet_results')
-            .update({ lifter_id: candidateLifterId })
-            .eq('lifter_id', primaryLifterId);
-        }
-
-        // Archive primary typo lifter row in evidence before removing obsolete row
+        // Archive primary lifter row in evidence before removing obsolete row
         const { data: primaryLifterRow } = await supabaseAdmin
           .from('usaw_lifters')
           .select('*')
           .eq('lifter_id', primaryLifterId)
           .single();
 
-        await supabaseAdmin
+        // 3a. Reassign all meet results from primary lifter to canonical candidate lifter
+        const { data: resultsToMove } = await supabaseAdmin
+          .from('usaw_meet_results')
+          .select('result_id')
+          .eq('lifter_id', primaryLifterId);
+
+        if (resultsToMove && resultsToMove.length > 0) {
+          const { error: moveResErr } = await supabaseAdmin
+            .from('usaw_meet_results')
+            .update({ lifter_id: candidateLifterId })
+            .eq('lifter_id', primaryLifterId);
+
+          if (moveResErr) {
+            return NextResponse.json(
+              { success: false, error: `Failed to reassign usaw_meet_results: ${moveResErr.message}` },
+              { status: 500 }
+            );
+          }
+        }
+
+        // 3b. Migrate athlete_aliases from primaryLifterId to candidateLifterId (avoiding duplicate links)
+        const movedAliasIds: number[] = [];
+        const { data: primaryAliases, error: aliasFetchErr } = await supabaseAdmin
+          .from('athlete_aliases')
+          .select('id, iwf_db_lifter_id, owlcms_lifter_id')
+          .eq('usaw_lifter_id', primaryLifterId);
+
+        if (aliasFetchErr) {
+          return NextResponse.json(
+            { success: false, error: `Failed to inspect athlete_aliases: ${aliasFetchErr.message}` },
+            { status: 500 }
+          );
+        }
+
+        if (primaryAliases && primaryAliases.length > 0) {
+          const { data: candidateAliases } = await supabaseAdmin
+            .from('athlete_aliases')
+            .select('id, iwf_db_lifter_id, owlcms_lifter_id')
+            .eq('usaw_lifter_id', candidateLifterId);
+
+          for (const alias of primaryAliases) {
+            const isDuplicateOnCandidate = (candidateAliases || []).some(
+              (c: any) =>
+                (alias.iwf_db_lifter_id && c.iwf_db_lifter_id === alias.iwf_db_lifter_id) ||
+                (alias.owlcms_lifter_id && c.owlcms_lifter_id === alias.owlcms_lifter_id)
+            );
+
+            if (isDuplicateOnCandidate) {
+              const { error: delAliasErr } = await supabaseAdmin
+                .from('athlete_aliases')
+                .delete()
+                .eq('id', alias.id);
+              if (delAliasErr) {
+                return NextResponse.json(
+                  { success: false, error: `Failed to remove duplicate athlete_aliases #${alias.id}: ${delAliasErr.message}` },
+                  { status: 500 }
+                );
+              }
+            } else {
+              const { error: updAliasErr } = await supabaseAdmin
+                .from('athlete_aliases')
+                .update({ usaw_lifter_id: candidateLifterId, updated_at: new Date().toISOString() })
+                .eq('id', alias.id);
+              if (updAliasErr) {
+                return NextResponse.json(
+                  { success: false, error: `Failed to migrate athlete_aliases #${alias.id}: ${updAliasErr.message}` },
+                  { status: 500 }
+                );
+              }
+              movedAliasIds.push(alias.id);
+            }
+          }
+        }
+
+        // 3c. Delete obsolete primary lifter row and surface any FK errors instead of failing silently
+        const { error: deleteLifterErr } = await supabaseAdmin
           .from('usaw_lifters')
           .delete()
           .eq('lifter_id', primaryLifterId);
+
+        if (deleteLifterErr) {
+          return NextResponse.json(
+            { success: false, error: `Failed to delete obsolete usaw_lifters #${primaryLifterId}: ${deleteLifterErr.message}` },
+            { status: 500 }
+          );
+        }
 
         // 4. Update status and append reviewer notes to evidence
         const currentEv = currentItem.evidence || {};
@@ -1542,6 +2084,7 @@ export async function POST(request: Request) {
         finalEvidence.merge_backup = {
           primary_lifter: primaryLifterRow,
           moved_result_ids: (resultsToMove || []).map((r: any) => r.result_id),
+          moved_alias_ids: movedAliasIds,
           executed_at: new Date().toISOString()
         };
 
@@ -1560,15 +2103,19 @@ export async function POST(request: Request) {
         const shardRefreshUrl = process.env.HETZNER_SHARD_REFRESH_URL;
         const shardSecret = process.env.HETZNER_SHARD_REFRESH_SECRET || process.env.INTERNAL_WEBHOOK_SECRET || process.env.WEBHOOK_SECRET || '';
         if (shardRefreshUrl) {
-          fetch(shardRefreshUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              usaw_id: Number(canonicalUsawId) || canonicalUsawId,
-              secret: shardSecret
-            }),
-            signal: AbortSignal.timeout(5000)
-          }).catch((err) => console.warn(`[Shard Refresh] Warning: ${err?.message || err}`));
+          try {
+            await fetch(shardRefreshUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                usaw_id: Number(canonicalUsawId) || canonicalUsawId,
+                secret: shardSecret
+              }),
+              signal: AbortSignal.timeout(5000)
+            });
+          } catch (err: any) {
+            console.warn(`[Shard Refresh] Warning: ${err?.message || err}`);
+          }
         }
 
         const updatePayload: Record<string, any> = {
@@ -1607,6 +2154,12 @@ export async function POST(request: Request) {
             .from('usaw_meet_results')
             .update({ lifter_id: primaryLifterId })
             .in('result_id', backup.moved_result_ids);
+        }
+        if (backup.moved_alias_ids && backup.moved_alias_ids.length > 0) {
+          await supabaseAdmin
+            .from('athlete_aliases')
+            .update({ usaw_lifter_id: primaryLifterId, updated_at: new Date().toISOString() })
+            .in('id', backup.moved_alias_ids);
         }
 
         const baseEvidence = updatedEvidence || currentItem.evidence || {};

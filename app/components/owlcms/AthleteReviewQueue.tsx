@@ -175,6 +175,9 @@ export function AthleteReviewQueue({ onCountChange }: AthleteReviewQueueProps) {
     iwf_lifter_id: string;
   }>>({});
   const [iwfReassignTargetMap, setIwfReassignTargetMap] = useState<Record<string, string>>({});
+  const [bioSplitSelections, setBioSplitSelections] = useState<Record<string, number[]>>({});
+  const [bioOtherSplitSelections, setBioOtherSplitSelections] = useState<Record<string, number[]>>({});
+  const [bioSplitLinkMap, setBioSplitLinkMap] = useState<Record<string, boolean>>({});
 
   const getFormerNameDisplay = (item: AdminReviewItem): boolean => {
     if (formerNameDisplayMap[item.id] !== undefined) {
@@ -1128,7 +1131,9 @@ export function AthleteReviewQueue({ onCountChange }: AthleteReviewQueueProps) {
                         {item.category === 'homonym_split' && (ev.operation_type === 'scorecard_attribution' || item.title.includes('Collapsed'))
                           ? `${ev.athlete_name || ev.split_plan?.originalAthleteName || 'Athlete'} (Scorecard Attribution Across ${(ev.split_plan?.splits || ev.split_plan?.athletes || []).length || 4} Distinct Athletes)`
                           : item.category === 'iwf_duplicate'
-                            ? `${ev.athlete_name || item.title.replace(/^IWF Same-Meet Duplicate:\s*/i, '').split('(')[0].trim()}${ev.db_lifter_id ? ` (Database Lifter #${ev.db_lifter_id})` : ''} • ${ev.iwf_meet_id ? `Official IWF Event #${ev.iwf_meet_id}` : `Database Meet #${ev.db_meet_id || 'Unknown'}`}`
+                            ? (ev.scraped_bio || ev.db_bio || ev.scraped_iwf_id)
+                              ? `${ev.db_name || 'DB Athlete'} ↔ ${ev.scraped_name || 'Scraped Athlete'} (IWF ↔ IWF Bio-Page Conflict)`
+                              : `${ev.athlete_name || item.title.replace(/^IWF Same-Meet Duplicate:\s*/i, '').split('(')[0].trim()}${ev.db_lifter_id ? ` (Database Lifter #${ev.db_lifter_id})` : ''} • ${ev.iwf_meet_id ? `Official IWF Event #${ev.iwf_meet_id}` : `Database Meet #${ev.db_meet_id || 'Unknown'}`}`
                             : item.title}
                       </span>
                       {item.category === 'duplicate_profile' ? (
@@ -1155,9 +1160,13 @@ export function AthleteReviewQueue({ onCountChange }: AthleteReviewQueueProps) {
                       ) : item.category === 'iwf_duplicate' ? (
                         <span
                           className="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/30"
-                          title="Multiple distinct meet results with identical or closely matching athlete names were recorded in this single competition. Review whether these represent one athlete contesting dual weight classes or distinct individuals."
+                          title={(ev.scraped_bio || ev.db_bio || ev.scraped_iwf_id)
+                            ? 'Two different official IWF athlete IDs matched by name during --sync-names, with inconclusive bio-page metadata. Review to link as an IWF ↔ IWF alias or reject as distinct athletes.'
+                            : 'Multiple distinct meet results with identical or closely matching athlete names were recorded in this single competition. Review whether these represent one athlete contesting dual weight classes or distinct individuals.'}
                         >
-                          Issue: Same-Meet Name Collision
+                          {(ev.scraped_bio || ev.db_bio || ev.scraped_iwf_id)
+                            ? 'Issue: IWF ↔ IWF Bio Conflict'
+                            : 'Issue: Same-Meet Name Collision'}
                         </span>
                       ) : (
                         <>
@@ -1218,7 +1227,17 @@ export function AthleteReviewQueue({ onCountChange }: AthleteReviewQueueProps) {
                             statusTitle = 'USAW and IWF profiles linked in athlete_aliases.';
                           } else if (item.category === 'iwf_duplicate') {
                             const actionType = ev.repair_execution?.action_type;
-                            if (actionType === 'NEW_ATHLETE_CREATED') {
+                            if (ev.split_profile_backup) {
+                              const splitCount = ev.split_profile_backup.moved_results?.length ?? 0;
+                              statusText = `Split ${splitCount} Result(s) to IWF #${ev.scraped_iwf_id || item.candidate_entity_id}`;
+                              statusTitle = `Separated ${splitCount} meet result(s) onto distinct profile DB #${ev.split_profile_backup.to_db_lifter_id} (no alias link).`;
+                            } else if (ev.migrated_profile_backup) {
+                              statusText = `Migrated Results to IWF #${ev.scraped_iwf_id || item.candidate_entity_id} & Linked`;
+                              statusTitle = 'Reassigned meet results onto the new IWF ID and linked both IWF profiles in athlete_aliases.';
+                            } else if (ev.linked_second_db_lifter_id) {
+                              statusText = 'IWF ↔ IWF Profiles Linked';
+                              statusTitle = `Linked DB #${item.primary_entity_id || ev.db_lifter_id} ↔ DB #${ev.linked_second_db_lifter_id} in athlete_aliases.`;
+                            } else if (actionType === 'NEW_ATHLETE_CREATED') {
                               statusText = `Split to New Profile (#${ev.repair_execution.provisioned_db_lifter_id})`;
                               statusTitle = 'Meet result reassigned to newly provisioned IWF athlete profile with manual_override lock.';
                             } else if (actionType === 'SCORECARD_REASSIGNED') {
@@ -1594,9 +1613,9 @@ export function AthleteReviewQueue({ onCountChange }: AthleteReviewQueueProps) {
                                       USAW Sport80 #{internalId} <ExternalLink className="w-2.5 h-2.5" />
                                     </a>
                                   )}
-                                  {split.linked_iwf_id && (
+                                  {split.linked_iwf_url && (
                                     <a
-                                      href={`https://iwf.sport/weightlifting_/athletes-bios/?athlete_id=${split.linked_iwf_id}`}
+                                      href={split.linked_iwf_url}
                                       target="_blank"
                                       rel="noopener noreferrer"
                                       className="text-emerald-400 hover:text-emerald-300 flex items-center gap-0.5 text-[10px] font-medium"
@@ -2078,9 +2097,9 @@ export function AthleteReviewQueue({ onCountChange }: AthleteReviewQueueProps) {
                             <ExternalLink className="w-3 h-3 text-indigo-400" />
                           </Link>
                         )}
-                        {iwfRegistryId && (
+                        {iwfRegistryId && (ev.iwf_athlete_url || ev.iwf_athlete?.iwf_athlete_url) && (
                           <a
-                            href={`https://iwf.sport/weightlifting_/athletes-bios/?id=${iwfRegistryId}`}
+                            href={ev.iwf_athlete_url || ev.iwf_athlete?.iwf_athlete_url}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 dark:bg-sky-950/80 dark:hover:bg-sky-900/60 dark:border-sky-800/60 dark:text-sky-300 dark:hover:text-sky-200 transition flex items-center gap-1.5"
@@ -2136,6 +2155,443 @@ export function AthleteReviewQueue({ onCountChange }: AthleteReviewQueueProps) {
 
                 {/* 4. Stream: iwf_duplicate */}
                 {item.category === 'iwf_duplicate' && (() => {
+                  const isBioConflict = Boolean(
+                    ev.scraped_bio ||
+                    ev.db_bio ||
+                    ev.scraped_iwf_id ||
+                    (Array.isArray(ev.federations) && ev.federations[0] === 'IWF' && ev.federations[1] === 'IWF')
+                  );
+
+                  if (isBioConflict) {
+                    const dbBio = ev.db_bio || {};
+                    const scrapedBio = ev.scraped_bio || {};
+                    const otherLifter = ev.other_lifter || {};
+                    const dbLifterId = item.primary_entity_id || ev.db_lifter_id;
+                    const dbIwfId = ev.db_iwf_id;
+                    const scrapedIwfId = ev.scraped_iwf_id || item.candidate_entity_id;
+                    const dbBioUrl = ev.db_athlete_url || dbBio.url || null;
+                    const scrapedBioUrl = ev.scraped_athlete_url || scrapedBio.url || otherLifter.iwf_athlete_url || null;
+                    const extractDobFromUrl = (url?: string | null) => url?.match(/(\d{4}-\d{2}-\d{2})/)?.[1] || null;
+                    const dbDob = dbBio.dob || dbBio.date_of_birth || dbBio.birth_date || extractDobFromUrl(dbBioUrl) || dbBio.birth_year || ev.birth_year || '—';
+                    const dbGender = dbBio.gender || ev.gender || '—';
+                    const dbCountry = dbBio.country_name || dbBio.country_code || dbBio.nation || ev.country_name || ev.country_code || '—';
+                    const scrapedDob = scrapedBio.dob || scrapedBio.date_of_birth || scrapedBio.birth_date || extractDobFromUrl(scrapedBioUrl) || scrapedBio.birth_year || otherLifter.birth_year || '—';
+                    const scrapedGender = scrapedBio.gender || otherLifter.gender || '—';
+                    const scrapedCountry = scrapedBio.country_name || scrapedBio.country_code || scrapedBio.country || scrapedBio.nation || otherLifter.country_name || otherLifter.country_code || '—';
+                    const primaryResults: any[] = Array.isArray(ev.primary_results) ? ev.primary_results : [];
+                    const otherResults: any[] = Array.isArray(ev.other_results) ? ev.other_results : [];
+                    const scrapedYearNum = typeof scrapedDob === 'string' && /^\d{4}/.test(scrapedDob)
+                      ? Number(scrapedDob.slice(0, 4))
+                      : (typeof scrapedDob === 'number' ? scrapedDob : null);
+                    const defaultSelectedIds = primaryResults
+                      .filter((r: any) =>
+                        (ev.db_meet_id && Number(r.db_meet_id) === Number(ev.db_meet_id)) ||
+                        (scrapedYearNum && Number(r.birth_year) === scrapedYearNum)
+                      )
+                      .map((r: any) => Number(r.db_result_id));
+                    const selectedSplitIds =
+                      bioSplitSelections[item.id] !== undefined
+                        ? bioSplitSelections[item.id]
+                        : defaultSelectedIds;
+                    const toggleSplitResult = (resultId: number) => {
+                      setBioSplitSelections((prev) => {
+                        const current = prev[item.id] !== undefined ? prev[item.id] : defaultSelectedIds;
+                        const next = current.includes(resultId)
+                          ? current.filter((id) => id !== resultId)
+                          : [...current, resultId];
+                        return { ...prev, [item.id]: next };
+                      });
+                    };
+                    const selectedOtherSplitIds = bioOtherSplitSelections[item.id] || [];
+                    const toggleOtherSplitResult = (resultId: number) => {
+                      setBioOtherSplitSelections((prev) => {
+                        const current = prev[item.id] || [];
+                        const next = current.includes(resultId)
+                          ? current.filter((id) => id !== resultId)
+                          : [...current, resultId];
+                        return { ...prev, [item.id]: next };
+                      });
+                    };
+
+                    return (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                          {/* Stored Database IWF Profile */}
+                          <div className="p-3.5 rounded-xl bg-app-tertiary/40 border border-app-primary space-y-2">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-sky-400">
+                                Stored Database Profile (IWF)
+                              </span>
+                              <span className="text-[10px] font-mono text-app-muted">
+                                DB #{dbLifterId || '—'} • IWF #{dbIwfId || '—'}
+                              </span>
+                            </div>
+                            <div className="text-sm font-bold text-app-primary">
+                              {ev.db_name || dbBio.name || 'Unknown'}
+                            </div>
+                            <div className="grid grid-cols-3 gap-2 text-[11px] text-app-secondary">
+                              <div>
+                                <span className="text-app-muted block text-[10px]">DOB / Year</span>
+                                <span className="font-mono">{dbDob}</span>
+                              </div>
+                              <div>
+                                <span className="text-app-muted block text-[10px]">Gender</span>
+                                <span>{dbGender}</span>
+                              </div>
+                              <div>
+                                <span className="text-app-muted block text-[10px]">Country</span>
+                                <span>{dbCountry}</span>
+                              </div>
+                            </div>
+                            {(dbIwfId || dbBioUrl) && (
+                              <div className="flex items-center gap-3 pt-1 text-[11px]">
+                                {dbIwfId && (
+                                  <Link
+                                    href={`/athlete/iwf/${dbIwfId}`}
+                                    target="_blank"
+                                    className="text-indigo-400 hover:text-indigo-300 inline-flex items-center gap-1"
+                                  >
+                                    <span>OWLanalytics Profile</span>
+                                    <ExternalLink className="w-3 h-3" />
+                                  </Link>
+                                )}
+                                {dbBioUrl && (
+                                  <a
+                                    href={dbBioUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-sky-400 hover:text-sky-300 inline-flex items-center gap-1"
+                                  >
+                                    <span>IWF Bio Page</span>
+                                    <ExternalLink className="w-3 h-3" />
+                                  </a>
+                                )}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Scraped Official IWF Bio */}
+                          <div className="p-3.5 rounded-xl bg-amber-500/5 border border-amber-500/30 space-y-2">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400">
+                                Scraped Official Bio (IWF)
+                              </span>
+                              <span className="text-[10px] font-mono text-app-muted">
+                                {ev.other_db_lifter_id ? `DB #${ev.other_db_lifter_id} • ` : ''}IWF #{scrapedIwfId || '—'}
+                              </span>
+                            </div>
+                            <div className="text-sm font-bold text-app-primary">
+                              {ev.scraped_name || scrapedBio.name || 'Unknown'}
+                            </div>
+                            <div className="grid grid-cols-3 gap-2 text-[11px] text-app-secondary">
+                              <div>
+                                <span className="text-app-muted block text-[10px]">DOB / Year</span>
+                                <span className="font-mono">{scrapedDob}</span>
+                              </div>
+                              <div>
+                                <span className="text-app-muted block text-[10px]">Gender</span>
+                                <span>{scrapedGender}</span>
+                              </div>
+                              <div>
+                                <span className="text-app-muted block text-[10px]">Country</span>
+                                <span>{scrapedCountry}</span>
+                              </div>
+                            </div>
+                            {((ev.other_db_lifter_id && scrapedIwfId) || scrapedBioUrl) && (
+                              <div className="flex items-center gap-3 pt-1 text-[11px]">
+                                {ev.other_db_lifter_id && scrapedIwfId && (
+                                  <Link
+                                    href={`/athlete/iwf/${scrapedIwfId}`}
+                                    target="_blank"
+                                    className="text-indigo-400 hover:text-indigo-300 inline-flex items-center gap-1"
+                                  >
+                                    <span>OWLanalytics Profile</span>
+                                    <ExternalLink className="w-3 h-3" />
+                                  </Link>
+                                )}
+                                {scrapedBioUrl && (
+                                  <a
+                                    href={scrapedBioUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-amber-400 hover:text-amber-300 inline-flex items-center gap-1"
+                                  >
+                                    <span>IWF Bio Page</span>
+                                    <ExternalLink className="w-3 h-3" />
+                                  </a>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {ev.reason && (
+                          <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 text-xs text-app-secondary">
+                            <strong className="text-app-primary">Flagged Reason:</strong> {ev.reason}
+                          </div>
+                        )}
+
+                        {item.status === 'APPROVED' && (ev.split_profile_backup || ev.migrated_profile_backup || ev.linked_second_db_lifter_id) && (
+                          <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-200">
+                            {ev.split_profile_backup ? (
+                              <span>
+                                <strong>Resolution:</strong> Split{' '}
+                                <strong>{ev.split_profile_backup.moved_results?.length ?? 0}</strong> meet result(s) from{' '}
+                                <code className="text-emerald-100">DB #{ev.split_profile_backup.from_db_lifter_id}</code> onto distinct profile{' '}
+                                <code className="text-emerald-100">DB #{ev.split_profile_backup.to_db_lifter_id}</code> (IWF #{scrapedIwfId}, no alias link).
+                              </span>
+                            ) : ev.migrated_profile_backup ? (
+                              <span>
+                                <strong>Resolution:</strong> Migrated{' '}
+                                <strong>{ev.migrated_profile_backup.moved_results?.length ?? 0}</strong> meet result(s) from{' '}
+                                <code className="text-emerald-100">DB #{ev.migrated_profile_backup.from_db_lifter_id}</code> to{' '}
+                                <code className="text-emerald-100">DB #{ev.migrated_profile_backup.to_db_lifter_id}</code> (IWF #{scrapedIwfId}) and linked both IWF profiles in <code className="text-emerald-100">athlete_aliases</code>.
+                              </span>
+                            ) : (
+                              <span>
+                                <strong>Resolution:</strong> Linked{' '}
+                                <code className="text-emerald-100">DB #{dbLifterId}</code> ↔{' '}
+                                <code className="text-emerald-100">DB #{ev.linked_second_db_lifter_id}</code> in <code className="text-emerald-100">athlete_aliases</code>.
+                              </span>
+                            )}
+                          </div>
+                        )}
+
+                        {item.status === 'PENDING' && primaryResults.length > 0 && (
+                          <div className="p-3 rounded-xl bg-app-tertiary/30 border border-app-primary space-y-2">
+                            <div className="flex items-center justify-between gap-2 flex-wrap">
+                              <span className="text-[11px] font-semibold text-app-primary">
+                                Meet Results on {dbIwfId ? `IWF #${dbIwfId} ` : ''}(DB #{dbLifterId}) ({primaryResults.length} total) — select any results belonging to IWF #{scrapedIwfId} to move:
+                              </span>
+                              <div className="flex items-center gap-2 text-[10px]">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setBioSplitSelections((prev) => ({
+                                      ...prev,
+                                      [item.id]: primaryResults.map((r: any) => Number(r.db_result_id)),
+                                    }))
+                                  }
+                                  className="text-sky-400 hover:text-sky-300 cursor-pointer"
+                                >
+                                  Select All
+                                </button>
+                                <span className="text-app-muted">•</span>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setBioSplitSelections((prev) => ({ ...prev, [item.id]: [] }))
+                                  }
+                                  className="text-app-muted hover:text-app-primary cursor-pointer"
+                                >
+                                  Clear
+                                </button>
+                              </div>
+                            </div>
+                            <div className="max-h-48 overflow-y-auto divide-y divide-white/5 rounded-lg border border-white/5 bg-black/20">
+                              {primaryResults.map((r: any) => {
+                                const rid = Number(r.db_result_id);
+                                const checked = selectedSplitIds.includes(rid);
+                                const meetTitle = r.iwf_meets?.meet || `Meet #${r.db_meet_id}`;
+                                const meetDateStr = r.iwf_meets?.date_iso || r.iwf_meets?.date || r.date || '—';
+                                return (
+                                  <label
+                                    key={rid}
+                                    className={`flex items-center justify-between gap-3 px-2.5 py-1.5 text-[11px] cursor-pointer hover:bg-white/[0.04] ${
+                                      checked ? 'bg-purple-500/10' : ''
+                                    }`}
+                                  >
+                                    <span className="flex items-center gap-2 min-w-0">
+                                      <input
+                                        type="checkbox"
+                                        checked={checked}
+                                        onChange={() => toggleSplitResult(rid)}
+                                        className="rounded border-slate-600 bg-slate-900 text-purple-500 focus:ring-0"
+                                      />
+                                      <span className="font-mono text-app-muted shrink-0">{meetDateStr}</span>
+                                      <span className="text-app-primary truncate" title={meetTitle}>{meetTitle}</span>
+                                    </span>
+                                    <span className="flex items-center gap-2 shrink-0 text-[10px] font-mono text-app-secondary">
+                                      <span>{r.weight_class || '—'}</span>
+                                      <span>Total: {r.total ?? '—'}</span>
+                                      {r.birth_year && <span className="text-app-muted">b.{r.birth_year}</span>}
+                                    </span>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+                        {item.status === 'PENDING' && otherResults.length > 0 && (
+                          <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/30 space-y-2">
+                            <div className="flex items-center justify-between gap-2 flex-wrap">
+                              <span className="text-[11px] font-semibold text-app-primary">
+                                Meet Results on {scrapedIwfId ? `IWF #${scrapedIwfId} ` : ''}(DB #{ev.other_db_lifter_id || otherLifter.db_lifter_id}) ({otherResults.length} total) — select any results belonging to IWF #{dbIwfId} to move:
+                              </span>
+                              <div className="flex items-center gap-2 text-[10px]">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setBioOtherSplitSelections((prev) => ({
+                                      ...prev,
+                                      [item.id]: otherResults.map((r: any) => Number(r.db_result_id)),
+                                    }))
+                                  }
+                                  className="text-sky-400 hover:text-sky-300 cursor-pointer"
+                                >
+                                  Select All
+                                </button>
+                                <span className="text-app-muted">•</span>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setBioOtherSplitSelections((prev) => ({ ...prev, [item.id]: [] }))
+                                  }
+                                  className="text-app-muted hover:text-app-primary cursor-pointer"
+                                >
+                                  Clear
+                                </button>
+                              </div>
+                            </div>
+                            <div className="max-h-48 overflow-y-auto divide-y divide-white/5 rounded-lg border border-white/5 bg-black/20">
+                              {otherResults.map((r: any) => {
+                                const rid = Number(r.db_result_id);
+                                const checked = selectedOtherSplitIds.includes(rid);
+                                const meetTitle = r.iwf_meets?.meet || `Meet #${r.db_meet_id}`;
+                                const meetDateStr = r.iwf_meets?.date_iso || r.iwf_meets?.date || r.date || '—';
+                                return (
+                                  <label
+                                    key={rid}
+                                    className={`flex items-center justify-between gap-3 px-2.5 py-1.5 text-[11px] cursor-pointer hover:bg-white/[0.04] ${
+                                      checked ? 'bg-indigo-500/10' : ''
+                                    }`}
+                                  >
+                                    <span className="flex items-center gap-2 min-w-0">
+                                      <input
+                                        type="checkbox"
+                                        checked={checked}
+                                        onChange={() => toggleOtherSplitResult(rid)}
+                                        className="rounded border-slate-600 bg-slate-900 text-indigo-500 focus:ring-0"
+                                      />
+                                      <span className="font-mono text-app-muted shrink-0">{meetDateStr}</span>
+                                      <span className="text-app-primary truncate" title={meetTitle}>{meetTitle}</span>
+                                    </span>
+                                    <span className="flex items-center gap-2 shrink-0 text-[10px] font-mono text-app-secondary">
+                                      <span>{r.weight_class || '—'}</span>
+                                      <span>Total: {r.total ?? '—'}</span>
+                                      {r.birth_year && <span className="text-app-muted">b.{r.birth_year}</span>}
+                                    </span>
+                                  </label>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+                        {item.status === 'PENDING' && (primaryResults.length > 0 || otherResults.length > 0) && (
+                          <label className="flex items-center gap-2 text-xs text-app-secondary cursor-pointer select-none pt-1">
+                            <input
+                              type="checkbox"
+                              checked={Boolean(bioSplitLinkMap[item.id])}
+                              onChange={(e) =>
+                                setBioSplitLinkMap((prev) => ({
+                                  ...prev,
+                                  [item.id]: e.target.checked,
+                                }))
+                              }
+                              className="rounded border-slate-600 bg-slate-900 text-emerald-500 focus:ring-0"
+                            />
+                            <span>
+                              Also link both IWF profiles in <code className="text-sky-400 font-mono text-[11px]">athlete_aliases</code> when moving results
+                            </span>
+                          </label>
+                        )}
+
+                        {item.status === 'PENDING' && (
+                          <div className="flex items-center gap-2.5 flex-wrap pt-1">
+                            <button
+                              type="button"
+                              disabled={actionInProgress === item.id}
+                              onClick={() => handleResolve(item.id, 'APPROVED')}
+                              className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>Approve &amp; Link IWF ↔ IWF Pair</span>
+                            </button>
+                            <button
+                              type="button"
+                              disabled={actionInProgress === item.id}
+                              onClick={() =>
+                                handleResolve(item.id, 'APPROVED', undefined, {
+                                  repair_action: 'MIGRATE_IWF_PROFILE',
+                                })
+                              }
+                              className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-sky-600 hover:bg-sky-500 text-white transition disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                              title="Move all results onto the new IWF ID and keep both IWF bio URLs linked in athlete_aliases"
+                            >
+                              <ArrowRight className="w-3.5 h-3.5" />
+                              <span>Migrate Results to IWF #{scrapedIwfId} &amp; Link Both</span>
+                            </button>
+                            {primaryResults.length > 0 && (
+                              <button
+                                type="button"
+                                disabled={actionInProgress === item.id || selectedSplitIds.length === 0}
+                                onClick={() =>
+                                  handleResolve(item.id, 'APPROVED', undefined, {
+                                    repair_action: 'SPLIT_IWF_PROFILE',
+                                    split_direction: 'PRIMARY_TO_OTHER',
+                                    selected_result_ids: selectedSplitIds,
+                                    link_profiles: Boolean(bioSplitLinkMap[item.id]),
+                                  })
+                                }
+                                className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-purple-600 hover:bg-purple-500 text-white transition disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                                title="Move selected results from stored profile onto IWF #scrapedIwfId"
+                              >
+                                <GitFork className="w-3.5 h-3.5" />
+                                <span>
+                                  Move {selectedSplitIds.length} Result(s) → IWF #{scrapedIwfId}
+                                  {bioSplitLinkMap[item.id] ? ' & Link' : ''}
+                                </span>
+                              </button>
+                            )}
+                            {otherResults.length > 0 && (
+                              <button
+                                type="button"
+                                disabled={actionInProgress === item.id || selectedOtherSplitIds.length === 0}
+                                onClick={() =>
+                                  handleResolve(item.id, 'APPROVED', undefined, {
+                                    repair_action: 'SPLIT_IWF_PROFILE',
+                                    split_direction: 'OTHER_TO_PRIMARY',
+                                    selected_result_ids: selectedOtherSplitIds,
+                                    link_profiles: Boolean(bioSplitLinkMap[item.id]),
+                                  })
+                                }
+                                className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                                title="Move selected results from candidate profile onto stored IWF #dbIwfId"
+                              >
+                                <GitFork className="w-3.5 h-3.5" />
+                                <span>
+                                  Move {selectedOtherSplitIds.length} Result(s) → IWF #{dbIwfId}
+                                  {bioSplitLinkMap[item.id] ? ' & Link' : ''}
+                                </span>
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              disabled={actionInProgress === item.id}
+                              onClick={() => handleResolve(item.id, 'REJECTED')}
+                              className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/40 transition disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                            >
+                              <XCircle className="w-3.5 h-3.5" />
+                              <span>Reject (Distinct Athletes)</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
+
                   const dbMeetId = ev.db_meet_id;
                   const iwfMeetId = ev.iwf_meet_id;
                   const dbLifterId = ev.db_lifter_id || ev.all_lifters?.[0]?.db_lifter_id;
@@ -2144,7 +2600,7 @@ export function AthleteReviewQueue({ onCountChange }: AthleteReviewQueueProps) {
                   const meetName = ev.meet_name || ev.event_name || 'International Competition';
 
                   const owlanalyticsAthleteUrl = iwfLifterId ? `/athlete/iwf/${iwfLifterId}` : null;
-                  const iwfAthleteUrl = ev.iwf_athlete_url || (iwfLifterId ? `https://iwf.sport/weightlifting_/athletes-bios/?id=${iwfLifterId}` : null);
+                  const iwfAthleteUrl = ev.iwf_athlete_url || null;
                   const owlanalyticsMeetUrl = ev.owlanalytics_meet_url || (iwfMeetId ? `/meet/iwf/${iwfMeetId}` : (dbMeetId ? `/meet/iwf/${dbMeetId}` : null));
                   const scorecards: any[] = ev.duplicate_scorecards || [];
                   const allLifters: any[] = ev.all_lifters || [];
@@ -2506,7 +2962,7 @@ export function AthleteReviewQueue({ onCountChange }: AthleteReviewQueueProps) {
                           </span>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             {displayLifters.map((l: any, idx: number) => {
-                              const iwfProfileUrl = l.iwf_athlete_url || l.iwf_url || (l.iwf_lifter_id ? `https://iwf.sport/weightlifting_/athletes-bios/?id=${l.iwf_lifter_id}` : null);
+                              const iwfProfileUrl = l.iwf_athlete_url || l.iwf_url || null;
                               return (
                                 <div key={idx} className="p-2.5 rounded-lg bg-white/[0.03] border border-white/5 flex items-center justify-between gap-2 text-[11px] flex-wrap">
                                   <div className="min-w-0">

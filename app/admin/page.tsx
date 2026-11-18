@@ -30,18 +30,46 @@ export default function AdminPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [pendingMeetsCount, setPendingMeetsCount] = useState<number>(0);
   const [pendingReviewCount, setPendingReviewCount] = useState<number>(0);
+  const [lastIwfImport, setLastIwfImport] = useState<{ timestamp: string; scope: string } | null>(null);
 
   const fetchPendingCount = async () => {
     try {
-      const res = await fetch('/api/owlcms/pending-count');
-      const data = await res.json();
+      const [pendingRes, revRes, iwfRunsRes] = await Promise.all([
+        fetch('/api/owlcms/pending-count'),
+        fetch('/api/admin/review-queue?limit=1'),
+        fetch('/api/admin/iwf-runs?limit=10'),
+      ]);
+
+      const data = await pendingRes.json();
       if (data && typeof data.count === 'number') {
         setPendingMeetsCount(data.count);
       }
-      const revRes = await fetch('/api/admin/review-queue?limit=1');
+
       const revData = await revRes.json();
       if (revData && typeof revData.counts?.total === 'number') {
         setPendingReviewCount(revData.counts.total);
+      }
+
+      if (iwfRunsRes.ok) {
+        const iwfData = await iwfRunsRes.json();
+        const latestLive = Array.isArray(iwfData?.runs)
+          ? iwfData.runs.find((r: any) => r.status === 'SUCCESS' && !r.dry_run)
+          : null;
+        if (latestLive) {
+          const iso = latestLive.completed_at || latestLive.created_at;
+          const formatted = new Intl.DateTimeFormat('en-US', {
+            timeZone: 'America/New_York',
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+            timeZoneName: 'short',
+          }).format(new Date(iso));
+          const scope = latestLive.event_id
+            ? `Event #${latestLive.event_id}`
+            : `Year ${latestLive.year ?? '—'}`;
+          setLastIwfImport({ timestamp: formatted, scope });
+        }
       }
     } catch {
       // ignore
@@ -181,10 +209,18 @@ export default function AdminPage() {
                     <UploadCloud className="h-6 w-6" />
                   </div>
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="text-lg font-bold transition-colors text-app-primary group-hover:text-sky-400">
                         Competition Importers
                       </h3>
+                      {lastIwfImport && (
+                        <span
+                          className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 border border-emerald-400/30 text-emerald-300"
+                          title={`Last live IWF import (${lastIwfImport.scope})`}
+                        >
+                          Last IWF: {lastIwfImport.timestamp}
+                        </span>
+                      )}
                     </div>
                     <p className="text-xs text-app-secondary mt-0.5">
                       Ingest OWLCMS competition JSON files and run targeted IWF Results Pipeline scrapers

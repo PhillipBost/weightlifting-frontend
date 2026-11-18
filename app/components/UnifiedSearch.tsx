@@ -309,7 +309,7 @@ export function UnifiedSearch({ placeholder, variant = 'hero' }: UnifiedSearchPr
                     combinedAthletes.push({
                         id: `iwf-${r.id}`,
                         label: r.name,
-                        subLabel: `${displayGenderIwf}${displayGenderIwf && r.country ? ' • ' : ''}${r.country || 'N/A'} • #${r.id}`,
+                        subLabel: `${displayGenderIwf}${displayGenderIwf && r.country ? ' • ' : ''}${r.country || 'N/A'} • #${r.iwfId || r.id}`,
                         category: 'Athletes',
                         icon: <User className="h-4 w-4" />,
                         data: { ...r, source: 'IWF', type: 'athlete' },

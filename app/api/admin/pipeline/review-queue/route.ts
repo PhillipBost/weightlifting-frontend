@@ -96,11 +96,17 @@ export async function GET(request: Request) {
       );
     }
 
-    query = query
-      .order('confidence_score', { ascending: false, nullsFirst: false })
-      .order('evaluated_at', { ascending: false, nullsFirst: false })
-      .order('created_at', { ascending: false })
-      .range(offset, offset + pageSize - 1);
+    if (statusParam === 'APPROVED' || statusParam === 'REJECTED') {
+      query = query
+        .order('updated_at', { ascending: false, nullsFirst: false })
+        .order('created_at', { ascending: false });
+    } else {
+      query = query
+        .order('confidence_score', { ascending: false, nullsFirst: false })
+        .order('evaluated_at', { ascending: false, nullsFirst: false })
+        .order('created_at', { ascending: false });
+    }
+    query = query.range(offset, offset + pageSize - 1);
 
     const { data: rows, error, count } = await query;
     if (error) {
@@ -183,7 +189,7 @@ export async function GET(request: Request) {
           tableColumn: 'iwf_lifters.db_lifter_id',
           iwfLifterId,
           owlanalyticsUrl: iwfLifterId ? `/athlete/iwf/${iwfLifterId}` : null,
-          officialUrl: live?.iwf_athlete_url || (iwfLifterId ? `https://iwf.sport/weightlifting_/athletes-bios/?id=${iwfLifterId}` : null)
+          officialUrl: live?.iwf_athlete_url || null
         };
       }
       if (fedCode === 'USAW') {
