@@ -296,7 +296,6 @@ export function IwfUploader() {
   const [activeModalTab, setActiveModalTab] = useState<'scraper' | 'linker'>('scraper');
   const [copiedModalLogs, setCopiedModalLogs] = useState<boolean>(false);
   const [selectedRunIds, setSelectedRunIds] = useState<Set<number>>(new Set());
-  const [expandedSyncRunIds, setExpandedSyncRunIds] = useState<Set<number>>(new Set());
   const [isDeletingRuns, setIsDeletingRuns] = useState<boolean>(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
 
@@ -1365,23 +1364,18 @@ export function IwfUploader() {
                         </span>
                         {((response.importStats.syncFailedCount ?? 0) > 0 ||
                           (response.importStats.syncUnmatchedCount ?? 0) > 0 ||
-                          (response.importStats.syncConflictsStagedCount ?? 0) > 0 ||
-                          (response.importStats.syncFlaggedConflicts?.length ?? 0) > 0 ||
-                          (response.importStats.lockedSkipped ?? 0) > 0) && (
+                          (response.importStats.syncConflictsStagedCount ?? 0) > 0) && (
                           <div className="p-2 rounded-lg bg-amber-950/40 border border-amber-700/50 space-y-1 text-[11px]">
                             {(response.importStats.syncFailedCount ?? 0) > 0 && (
                               <div className="text-rose-300 font-semibold">
                                 {response.importStats.syncFailedCount} failed update(s)
                               </div>
                             )}
-                            {((response.importStats.syncConflictsStagedCount ?? 0) > 0 ||
-                              (response.importStats.syncFlaggedConflicts?.length ?? 0) > 0) && (
+                            {(response.importStats.syncConflictsStagedCount ?? 0) > 0 && (
                               <div className="text-amber-200 space-y-0.5">
                                 <div className="flex items-center justify-between gap-2 font-semibold">
                                   <span>
-                                    {(response.importStats.syncConflictsStagedCount ?? 0) > 0
-                                      ? `${response.importStats.syncConflictsStagedCount} IWF ID conflict(s) newly staged for review:`
-                                      : `${response.importStats.syncFlaggedConflicts?.length} IWF ID conflict(s) pending review:`}
+                                    {response.importStats.syncConflictsStagedCount} IWF ID conflict(s) newly staged for review:
                                   </span>
                                   <Link href="/admin/review" className="text-sky-300 hover:text-sky-200 underline text-[10px]">
                                     Open Review
@@ -1408,19 +1402,6 @@ export function IwfUploader() {
                                   ))}
                               </div>
                             )}
-                            {(response.importStats.lockedSkipped ?? 0) > 0 && (
-                              <div className="text-slate-300 space-y-0.5">
-                                <div className="font-semibold">
-                                  {response.importStats.lockedSkipped} locked override(s) skipped:
-                                </div>
-                                {Array.isArray(response.importStats.lockedAthletes) &&
-                                  response.importStats.lockedAthletes.map((entry, idx) => (
-                                    <div key={idx} className="text-[10px] text-slate-300/90 pl-2">
-                                      • {formatSyncEntry(entry)}
-                                    </div>
-                                  ))}
-                              </div>
-                            )}
                           </div>
                         )}
                         <div className="text-base font-bold text-sky-200">
@@ -1429,16 +1410,6 @@ export function IwfUploader() {
                         <div className="text-[11px] text-sky-300/80">
                           {response.importStats.lockedSkipped ?? 0} locked override(s) skipped
                         </div>
-                        {Array.isArray(response.importStats.updatedAthletes) && response.importStats.updatedAthletes.length > 0 && (
-                          <div className="pt-1.5 mt-1.5 border-t border-sky-800/40 space-y-0.5 text-[10px] text-sky-200/90 max-h-44 overflow-y-auto">
-                            {response.importStats.updatedAthletes.map((item, idx) => (
-                              <div key={`${item.db_result_id ?? idx}`} className="truncate">
-                                {item.old_name} → <strong className="text-white">{item.new_name}</strong>
-                                {item.weight_class ? ` (${item.weight_class})` : ''}
-                              </div>
-                            ))}
-                          </div>
-                        )}
                       </div>
                     ) : response.dryRun ? (
                       response.importStats.wouldSkip ? (
@@ -1968,22 +1939,17 @@ export function IwfUploader() {
                               <div className="text-[11px] text-sky-300 space-y-1">
                                 {((run.import_stats.syncFailedCount ?? 0) > 0 ||
                                   (run.import_stats.syncUnmatchedCount ?? 0) > 0 ||
-                                  (run.import_stats.syncConflictsStagedCount ?? 0) > 0 ||
-                                  (run.import_stats.syncFlaggedConflicts?.length ?? 0) > 0 ||
-                                  (run.import_stats.lockedSkipped ?? 0) > 0) && (
+                                  (run.import_stats.syncConflictsStagedCount ?? 0) > 0) && (
                                   <div className="space-y-0.5 pb-1 border-b border-slate-800/80">
                                     {(run.import_stats.syncFailedCount ?? 0) > 0 && (
                                       <div className="text-[10px] text-rose-300 font-semibold">
                                         {run.import_stats.syncFailedCount} failed update(s)
                                       </div>
                                     )}
-                                    {((run.import_stats.syncConflictsStagedCount ?? 0) > 0 ||
-                                      (run.import_stats.syncFlaggedConflicts?.length ?? 0) > 0) && (
+                                    {(run.import_stats.syncConflictsStagedCount ?? 0) > 0 && (
                                       <div className="text-[10px] text-amber-200 space-y-0.5">
                                         <div className="font-semibold">
-                                          {(run.import_stats.syncConflictsStagedCount ?? 0) > 0
-                                            ? `${run.import_stats.syncConflictsStagedCount} conflict(s) newly staged:`
-                                            : `${run.import_stats.syncFlaggedConflicts?.length} conflict(s) pending review:`}
+                                          {run.import_stats.syncConflictsStagedCount} conflict(s) newly staged:
                                         </div>
                                         {Array.isArray(run.import_stats.syncFlaggedConflicts) &&
                                           run.import_stats.syncFlaggedConflicts.map((entry: any, idx: number) => (
@@ -2006,19 +1972,6 @@ export function IwfUploader() {
                                           ))}
                                       </div>
                                     )}
-                                    {(run.import_stats.lockedSkipped ?? 0) > 0 && (
-                                      <div className="text-[10px] text-slate-300 space-y-0.5">
-                                        <div className="font-semibold">
-                                          {run.import_stats.lockedSkipped} locked skipped:
-                                        </div>
-                                        {Array.isArray(run.import_stats.lockedAthletes) &&
-                                          run.import_stats.lockedAthletes.map((entry: any, idx: number) => (
-                                            <div key={idx} className="text-[10px] text-slate-300/90 pl-1.5 break-words">
-                                              • {formatSyncEntry(entry)}
-                                            </div>
-                                          ))}
-                                      </div>
-                                    )}
                                   </div>
                                 )}
                                 <div>
@@ -2028,40 +1981,6 @@ export function IwfUploader() {
                                     ? ` • ${run.import_stats.lockedSkipped} locked skipped`
                                     : ''}
                                 </div>
-                                {Array.isArray(run.import_stats.updatedAthletes) &&
-                                  run.import_stats.updatedAthletes.length > 0 && (() => {
-                                    const isExpanded = expandedSyncRunIds.has(run.id);
-                                    const visibleUpdates = isExpanded
-                                      ? run.import_stats.updatedAthletes
-                                      : run.import_stats.updatedAthletes.slice(0, 4);
-                                    return (
-                                      <div className="text-[10px] text-slate-300 font-normal space-y-0.5 pt-0.5">
-                                        {visibleUpdates.map((item: any, idx: number) => (
-                                          <div key={`${item.db_result_id ?? idx}`} className="break-words" title={`${item.old_name} → ${item.new_name}`}>
-                                            {item.old_name} → <span className="text-white">{item.new_name}</span>
-                                          </div>
-                                        ))}
-                                        {run.import_stats.updatedAthletes.length > 4 && (
-                                          <button
-                                            type="button"
-                                            onClick={() =>
-                                              setExpandedSyncRunIds((prev) => {
-                                                const next = new Set(prev);
-                                                if (next.has(run.id)) next.delete(run.id);
-                                                else next.add(run.id);
-                                                return next;
-                                              })
-                                            }
-                                            className="text-[10px] text-sky-400 hover:text-sky-300 underline cursor-pointer pt-0.5"
-                                          >
-                                            {isExpanded
-                                              ? 'Show fewer'
-                                              : `Show all ${run.import_stats.updatedAthletes.length} name updates`}
-                                          </button>
-                                        )}
-                                      </div>
-                                    );
-                                  })()}
                               </div>
                             ) : run.dry_run ? (
                               <div className="text-[11px] text-amber-300/90 font-medium space-y-0.5">

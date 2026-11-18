@@ -407,7 +407,9 @@ export async function POST(req: NextRequest) {
             failedUpdates: sumNum((s) => s?.importStats?.failedUpdates),
             updatedAthletes: aggregatedUpdatedAthletes.length > 0 ? aggregatedUpdatedAthletes : undefined,
             unmatchedAthletes: aggregatedUnmatchedAthletes.length > 0 ? aggregatedUnmatchedAthletes : undefined,
-            flaggedForReview: aggregatedFlaggedForReview.length > 0 ? aggregatedFlaggedForReview : undefined,
+            flaggedForReview: parsedSummaries.some((s) => Array.isArray(s?.importStats?.flaggedForReview))
+              ? aggregatedFlaggedForReview
+              : undefined,
             alreadyInQueue: aggregatedAlreadyInQueue.length > 0 ? aggregatedAlreadyInQueue : undefined,
             lockedAthletes: aggregatedLockedAthletes.length > 0 ? aggregatedLockedAthletes : undefined,
             existingResults: sumNum((s) => s?.importStats?.existingResults),
@@ -630,6 +632,11 @@ export async function POST(req: NextRequest) {
             }
           : undefined;
 
+      const hasStructuredSyncConflictSummary =
+        parsedSummary?.importStats?.flaggedForReviewCount !== undefined ||
+        Array.isArray(parsedSummary?.importStats?.flaggedForReview);
+      const structuredFlaggedForReview = parsedSummary?.importStats?.flaggedForReview;
+
       const mergedStats = {
         ...(parsedSummary?.importStats || {}),
         wouldSkip,
@@ -646,11 +653,14 @@ export async function POST(req: NextRequest) {
           (parsedSummary?.importStats?.unmatchedAthletes?.length ?? 0) > 0
             ? parsedSummary.importStats.unmatchedAthletes
             : (syncUnmatchedAthletes.length > 0 ? syncUnmatchedAthletes : undefined),
-        syncConflictsStagedCount: parsedSummary?.importStats?.flaggedForReviewCount ?? syncConflictsStagedCount,
-        syncFlaggedConflicts:
-          (parsedSummary?.importStats?.flaggedForReview?.length ?? 0) > 0
-            ? parsedSummary.importStats.flaggedForReview
-            : (syncFlaggedConflicts.length > 0 ? syncFlaggedConflicts : undefined),
+        syncConflictsStagedCount: hasStructuredSyncConflictSummary
+          ? parsedSummary?.importStats?.flaggedForReviewCount
+          : syncConflictsStagedCount,
+        syncFlaggedConflicts: hasStructuredSyncConflictSummary
+          ? (Array.isArray(structuredFlaggedForReview) && structuredFlaggedForReview.length > 0
+              ? structuredFlaggedForReview
+              : undefined)
+          : (syncFlaggedConflicts.length > 0 ? syncFlaggedConflicts : undefined),
         syncFailedCount: parsedSummary?.importStats?.failedUpdates ?? syncFailedCount,
         existingResults: parsedSummary?.importStats?.existingResults,
         simulatedUpdates: parsedSummary?.importStats?.simulatedUpdates,
