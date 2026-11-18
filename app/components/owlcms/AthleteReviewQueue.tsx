@@ -730,7 +730,7 @@ export function AthleteReviewQueue({ onCountChange }: AthleteReviewQueueProps) {
               : 'text-app-secondary hover:text-app-primary'
           }`}
         >
-          Cross-Federation Evaluator Worker
+          Cross-Federation Matching Runner
         </button>
       </div>
 
@@ -945,7 +945,7 @@ export function AthleteReviewQueue({ onCountChange }: AthleteReviewQueueProps) {
                 <span>Cross-Federation Athlete Linking</span>
                 <span
                   className="inline-flex cursor-help"
-                  title="Populated by link-new-iwf-athletes.js during IWF imports (ambiguous USAW/OWLCMS ↔ IWF pairs in admin_review_queue) plus 60–79% REVIEW_NEEDED pairs from the Cross-Federation Evaluator Worker."
+                  title="Populated automatically during IWF meet imports (link-new-iwf-athletes.js) when an athlete is a close but uncertain match to a USAW or OWLCMS profile, plus any 60% to 79% matches surfaced by Run Matching Batch."
                 >
                   <Info className="w-3 h-3 text-indigo-400 shrink-0" />
                 </span>

@@ -17,8 +17,7 @@ import {
   BookmarkPlus,
   UploadCloud,
   X,
-  Search,
-  Info
+  Search
 } from 'lucide-react';
 
 interface EnrichAuditReport {
@@ -166,18 +165,12 @@ export function QuarantineReviewQueue({ onCountChange }: QuarantineReviewQueuePr
           <div>
             <h3 className="text-base font-bold text-app-primary flex items-center gap-2 flex-wrap">
               <span>OWLCMS Meet Collision Quarantine</span>
-              <span
-                className="inline-flex cursor-help"
-                title="Populated automatically when an OWLCMS file uploaded via Competition Importers matches an existing meet's name and date. The .gz payload is held in Supabase Storage (/api/owlcms/pending) instead of overwriting database results. Actions: Update Existing Meet merges missing athlete fields; Import as New Meet creates a separate meet; Ignore & Block Future Uploads blocklists the file's SHA-256 hash; Delete Upload removes the quarantined file."
-              >
-                <Info className="w-4 h-4 text-amber-400" />
-              </span>
               <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
                 {meets.length} {meets.length === 1 ? 'Meet' : 'Meets'} Held
               </span>
             </h3>
             <p className="text-xs text-app-secondary mt-0.5">
-              Staged automatically when an OWLCMS upload matches an existing meet&apos;s name &amp; date. Held safely in storage—nothing is written to the database until you choose an action below.
+              Populated manually when you upload an OWLCMS file on the <strong>Admin → Competition Importers → Upload OWLCMS</strong> page (<code>/admin/importers</code>) and its meet name and date match a meet already in the database. Held safely in storage until you choose an action below.
             </p>
           </div>
         </div>

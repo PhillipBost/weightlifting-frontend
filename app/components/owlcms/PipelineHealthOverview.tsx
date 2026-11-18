@@ -12,8 +12,7 @@ import {
   Copy,
   Check,
   ChevronDown,
-  ChevronUp,
-  Info
+  ChevronUp
 } from 'lucide-react';
 import { HistoricalBackfillDialog } from './HistoricalBackfillDialog';
 
@@ -136,34 +135,31 @@ export function PipelineHealthOverview({ onQueueChanged }: PipelineHealthOvervie
       {/* Top Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h4 className="text-sm font-bold text-app-primary flex items-center gap-2">
-            <span>Cross-Federation Evaluation Queue &amp; Worker Telemetry</span>
-            <code className="text-[11px] font-mono px-2 py-0.5 rounded bg-white/[0.03] border border-white/5 text-indigo-400">
-              athlete_linking_evaluations
-            </code>
-            <span
-              className="inline-flex cursor-help"
-              title="Auto-populated during USAW, IWF, and OWLCMS imports (and via Seed Historical Backfill). No scheduled cron drains this table—click Process Batch to run run-athlete-linking-evaluator.js. Outcomes: ≥80% → auto-linked in athlete_aliases (MATCHED); 60–79% → human review (REVIEW_NEEDED); <60% → VETTED_ISOLATED."
-            >
-              <Info className="w-3.5 h-3.5 text-indigo-400" />
-            </span>
+          <h4 className="text-sm font-bold text-app-primary flex items-center gap-2 flex-wrap">
+            <span>Cross-Federation Athlete Matching Queue</span>
           </h4>
-          <p className="text-xs text-app-secondary mt-0.5">
-            Decoupled evaluation ledger enforcing universal demographic anchoring <code className="text-app-primary">(gender, birth_year)</code> across USAW, IWF, and OWLCMS.
+          <p className="text-xs text-app-secondary mt-1">
+            Compares athletes across USAW, IWF, and OWLCMS by name, gender, and birth year.
           </p>
-          <p className="text-[11px] text-app-muted mt-1">
-            Tasks are queued automatically during USAW/IWF/OWLCMS ingestion (or via <strong>Seed Historical Backfill</strong>), but <strong>no cron job drains them</strong>—click <strong>Process Batch</strong> to score queued tasks: ≥80% auto-links into <code>athlete_aliases</code> (<code>MATCHED</code>), 60–79% stages for review (<code>REVIEW_NEEDED</code>), and &lt;60% marks <code>VETTED_ISOLATED</code>.
-          </p>
+          <div className="text-[11px] text-app-muted mt-1.5 space-y-0.5">
+            <div>
+              <strong>How athletes enter this list:</strong> Added automatically whenever new USAW, IWF, or OWLCMS meet results are imported, or manually via <strong>Queue Existing Athletes for Matching</strong>.
+            </div>
+            <div>
+              <strong>When matching runs:</strong> Nothing runs on a schedule. Click <strong>Run Matching Batch</strong> below to score waiting athletes: 80%+ is auto-linked, 60% to 79% is sent below for human review, and under 60% is marked as no match found.
+            </div>
+          </div>
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
           <button
             type="button"
             onClick={() => setIsBackfillOpen(true)}
-            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 transition flex items-center gap-1.5"
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 transition flex items-center gap-1.5 cursor-pointer"
+            title="Manually scan older meets already in the database and add their athletes to the waiting queue"
           >
             <Database className="w-3.5 h-3.5 text-indigo-400" />
-            <span>Seed Historical Backfill</span>
+            <span>Queue Existing Athletes for Matching</span>
           </button>
 
           <button
@@ -182,49 +178,49 @@ export function PipelineHealthOverview({ onQueueChanged }: PipelineHealthOvervie
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 space-y-1">
           <div className="text-[11px] font-semibold text-app-muted uppercase tracking-wider">
-            Pending Tasks
+            Waiting to Be Checked
           </div>
           <div className="text-2xl font-bold text-sky-400">
             {statusData ? statusData.totalPending.toLocaleString() : '—'}
           </div>
           <div className="text-[10px] text-app-muted">
-            Queued for cross-federation evaluation (<code className="text-sky-400">PENDING</code>)
+            Athletes queued for matching
           </div>
         </div>
 
         <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 space-y-1">
           <div className="text-[11px] font-semibold text-app-muted uppercase tracking-wider">
-            Needs Review (60–79%)
+            Needs Human Review (60–79%)
           </div>
           <div className="text-2xl font-bold text-amber-400">
             {statusData ? statusData.totalReviewNeeded.toLocaleString() : '—'}
           </div>
           <div className="text-[10px] text-app-muted">
-            Staged for human verification (<code className="text-amber-400">REVIEW_NEEDED</code>)
+            Uncertain matches awaiting your decision
           </div>
         </div>
 
         <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 space-y-1">
           <div className="text-[11px] font-semibold text-app-muted uppercase tracking-wider">
-            Matches Established (≥80%)
+            Auto-Linked (80%+)
           </div>
           <div className="text-2xl font-bold text-emerald-400">
             {statusData ? statusData.totalMatched.toLocaleString() : '—'}
           </div>
           <div className="text-[10px] text-app-muted">
-            Linked in <code className="text-emerald-400">athlete_aliases</code> (<code className="text-emerald-400">MATCHED</code>)
+            High-confidence cross-federation links
           </div>
         </div>
 
         <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 space-y-1">
           <div className="text-[11px] font-semibold text-app-muted uppercase tracking-wider">
-            Vetted Isolated (&lt;60%)
+            No Match Found (&lt;60%)
           </div>
           <div className="text-2xl font-bold text-app-primary">
             {statusData ? statusData.totalIsolated.toLocaleString() : '—'}
           </div>
           <div className="text-[10px] text-app-muted">
-            Vetted with no peer match (<code className="text-app-secondary">VETTED_ISOLATED</code>)
+            Checked with no peer match found
           </div>
         </div>
       </div>
@@ -343,10 +339,10 @@ export function PipelineHealthOverview({ onQueueChanged }: PipelineHealthOvervie
           )}
           <span>
             {isDraining
-              ? 'Running Evaluator Worker...'
+              ? 'Running Matching Batch...'
               : dryRun
-                ? `Simulate Batch (${batchLimit})`
-                : `Process Batch (${batchLimit})`}
+                ? `Simulate Matching Batch (${batchLimit})`
+                : `Run Matching Batch (${batchLimit})`}
           </span>
         </button>
       </div>
