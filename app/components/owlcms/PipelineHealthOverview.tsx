@@ -12,7 +12,8 @@ import {
   Copy,
   Check,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Info
 } from 'lucide-react';
 import { HistoricalBackfillDialog } from './HistoricalBackfillDialog';
 
@@ -140,9 +141,18 @@ export function PipelineHealthOverview({ onQueueChanged }: PipelineHealthOvervie
             <code className="text-[11px] font-mono px-2 py-0.5 rounded bg-white/[0.03] border border-white/5 text-indigo-400">
               athlete_linking_evaluations
             </code>
+            <span
+              className="inline-flex cursor-help"
+              title="Auto-populated during USAW, IWF, and OWLCMS imports (and via Seed Historical Backfill). No scheduled cron drains this table—click Process Batch to run run-athlete-linking-evaluator.js. Outcomes: ≥80% → auto-linked in athlete_aliases (MATCHED); 60–79% → human review (REVIEW_NEEDED); <60% → VETTED_ISOLATED."
+            >
+              <Info className="w-3.5 h-3.5 text-indigo-400" />
+            </span>
           </h4>
           <p className="text-xs text-app-secondary mt-0.5">
             Decoupled evaluation ledger enforcing universal demographic anchoring <code className="text-app-primary">(gender, birth_year)</code> across USAW, IWF, and OWLCMS.
+          </p>
+          <p className="text-[11px] text-app-muted mt-1">
+            Tasks are queued automatically during USAW/IWF/OWLCMS ingestion (or via <strong>Seed Historical Backfill</strong>), but <strong>no cron job drains them</strong>—click <strong>Process Batch</strong> to score queued tasks: ≥80% auto-links into <code>athlete_aliases</code> (<code>MATCHED</code>), 60–79% stages for review (<code>REVIEW_NEEDED</code>), and &lt;60% marks <code>VETTED_ISOLATED</code>.
           </p>
         </div>
 
@@ -304,7 +314,7 @@ export function PipelineHealthOverview({ onQueueChanged }: PipelineHealthOvervie
 
           <label
             className="flex items-center gap-1.5 cursor-pointer select-none"
-            title="Re-evaluate non-blacklisted VETTED_ISOLATED and REVIEW_NEEDED records"
+            title="Re-evaluate VETTED_ISOLATED and REVIEW_NEEDED records (skipping previously rejected candidate pairings pairwise)"
           >
             <input
               type="checkbox"

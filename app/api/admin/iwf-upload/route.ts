@@ -815,6 +815,21 @@ export async function POST(req: NextRequest) {
                 safeClose();
                 return;
               }
+              if (linkerRes.code !== 0) {
+                await recordRunCompletion({
+                  status: 'FAILED',
+                  exitCode: linkerRes.code,
+                  combinedLogs,
+                  linkerLogs,
+                  errorMessage: `Linker script exited with code ${linkerRes.code}`,
+                });
+                sendEvent('error', {
+                  error: `Linker script exited with code ${linkerRes.code}`,
+                  logs: [combinedLogs, linkerLogs].filter(Boolean).join('\n'),
+                });
+                safeClose();
+                return;
+              }
             }
 
             if (!dryRun) {
@@ -895,13 +910,23 @@ export async function POST(req: NextRequest) {
     if (!syncNames) {
       const linkerScript = path.join(repoRoot, 'scripts', 'production', 'link-new-iwf-athletes.js');
       const linkerArgs = dryRun ? ['--days', '3', '--dry-run'] : ['--days', '3'];
-      await runSpawnStream({
+      const linkerRes = await runSpawnStream({
         scriptPath: linkerScript,
         args: linkerArgs,
         cwd: repoRoot,
         env: childEnv,
         onChunk: (text) => { linkerLogs += text; onChunk(text); },
       });
+      if (linkerRes.code !== 0) {
+        await recordRunCompletion({
+          status: 'FAILED',
+          exitCode: linkerRes.code,
+          combinedLogs,
+          linkerLogs,
+          errorMessage: `Linker script exited with code ${linkerRes.code}`,
+        });
+        throw new Error(`Linker script exited with code ${linkerRes.code}`);
+      }
     }
     if (!dryRun) {
       try {

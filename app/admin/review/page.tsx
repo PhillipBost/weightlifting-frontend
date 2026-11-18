@@ -80,13 +80,14 @@ export default function AdminReviewSuitePage() {
             </Link>
 
             <div className="flex items-center gap-2 flex-wrap">
-              <div className="flex items-center gap-1.5 p-1 card-primary flex-wrap">
+              <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-900/90 border border-slate-700/80 shadow-sm flex-wrap">
                 <button
+                  type="button"
                   onClick={() => setActiveTab('athlete_review')}
-                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                     activeTab === 'athlete_review'
-                      ? 'bg-accent-secondary text-white shadow'
-                      : 'text-app-secondary hover:text-app-primary hover:bg-app-hover'
+                      ? 'bg-indigo-600 text-white shadow'
+                      : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
                   }`}
                 >
                   <Users className="w-3.5 h-3.5" />
@@ -99,11 +100,12 @@ export default function AdminReviewSuitePage() {
                 </button>
 
                 <button
+                  type="button"
                   onClick={() => setActiveTab('meet_review')}
-                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                     activeTab === 'meet_review'
                       ? 'bg-amber-600 text-white shadow'
-                      : 'text-app-secondary hover:text-app-primary hover:bg-app-hover'
+                      : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
                   }`}
                 >
                   <ShieldAlert className="w-3.5 h-3.5" />

@@ -176,8 +176,11 @@ export function AthleteReviewQueue({ onCountChange }: AthleteReviewQueueProps) {
   }>>({});
   const [iwfReassignTargetMap, setIwfReassignTargetMap] = useState<Record<string, string>>({});
   const [bioSplitSelections, setBioSplitSelections] = useState<Record<string, number[]>>({});
+  const [usawDupSelections, setUsawDupSelections] = useState<Record<string, number[]>>({});
   const [bioOtherSplitSelections, setBioOtherSplitSelections] = useState<Record<string, number[]>>({});
   const [bioSplitLinkMap, setBioSplitLinkMap] = useState<Record<string, boolean>>({});
+  const [topSection, setTopSection] = useState<'review_queue' | 'evaluator_worker'>('review_queue');
+  const [evalQueueStatus, setEvalQueueStatus] = useState<ReviewStatus>('PENDING');
 
   const getFormerNameDisplay = (item: AdminReviewItem): boolean => {
     if (formerNameDisplayMap[item.id] !== undefined) {
@@ -705,6 +708,65 @@ export function AthleteReviewQueue({ onCountChange }: AthleteReviewQueueProps) {
 
   return (
     <div className="w-full space-y-5">
+      {/* Top-Level Workspace Switcher */}
+      <div className="flex items-center gap-2 p-1 rounded-xl bg-app-secondary/60 border border-app-primary w-fit">
+        <button
+          type="button"
+          onClick={() => setTopSection('review_queue')}
+          className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+            topSection === 'review_queue'
+              ? 'bg-indigo-600 text-white shadow'
+              : 'text-app-secondary hover:text-app-primary'
+          }`}
+        >
+          Identity Review Queue
+        </button>
+        <button
+          type="button"
+          onClick={() => setTopSection('evaluator_worker')}
+          className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+            topSection === 'evaluator_worker'
+              ? 'bg-indigo-600 text-white shadow'
+              : 'text-app-secondary hover:text-app-primary'
+          }`}
+        >
+          Cross-Federation Evaluator Worker
+        </button>
+      </div>
+
+      {topSection === 'evaluator_worker' ? (
+        <div className="space-y-5">
+          <PipelineHealthOverview
+            onQueueChanged={() => {
+              setCrossFedRefreshTick((t) => t + 1);
+              fetchData();
+            }}
+          />
+          <div className="flex items-center gap-1 bg-white/[0.02] p-1 rounded-lg border border-app-primary w-fit">
+            {(['PENDING', 'APPROVED', 'REJECTED', 'ALL'] as ReviewStatus[]).map((st) => (
+              <button
+                key={st}
+                type="button"
+                onClick={() => setEvalQueueStatus(st)}
+                className={`px-3 py-1 rounded-md text-[11px] font-semibold transition cursor-pointer ${
+                  evalQueueStatus === st
+                    ? 'bg-app-secondary text-app-primary shadow-sm border border-app-primary'
+                    : 'text-app-secondary hover:text-app-primary hover:bg-app-hover'
+                }`}
+              >
+                {st}
+              </button>
+            ))}
+          </div>
+          <AmbiguousReviewQueue
+            searchQuery={searchQuery}
+            selectedStatus={evalQueueStatus}
+            refreshTrigger={crossFedRefreshTick}
+            onActionComplete={() => fetchData()}
+          />
+        </div>
+      ) : (
+      <>
       {/* Unified Administrative Dashboard Header Card */}
       <div className="card-primary space-y-4 p-4 sm:p-5">
         {/* Top Header Row */}
@@ -879,7 +941,15 @@ export function AthleteReviewQueue({ onCountChange }: AthleteReviewQueueProps) {
               }`}
           >
             <div className="flex items-start justify-between gap-1.5 min-h-[2.5rem]">
-              <span className="text-xs font-semibold text-app-primary leading-snug">Cross-Federation Athlete Linking</span>
+              <span className="text-xs font-semibold text-app-primary leading-snug inline-flex items-center gap-1">
+                <span>Cross-Federation Athlete Linking</span>
+                <span
+                  className="inline-flex cursor-help"
+                  title="Populated by link-new-iwf-athletes.js during IWF imports (ambiguous USAW/OWLCMS ↔ IWF pairs in admin_review_queue) plus 60–79% REVIEW_NEEDED pairs from the Cross-Federation Evaluator Worker."
+                >
+                  <Info className="w-3 h-3 text-indigo-400 shrink-0" />
+                </span>
+              </span>
               <span className="p-1 rounded-md bg-indigo-500/10 text-indigo-400 shrink-0">
                 <Globe className="w-3.5 h-3.5" />
               </span>
@@ -1071,26 +1141,8 @@ export function AthleteReviewQueue({ onCountChange }: AthleteReviewQueueProps) {
         </div>
       )}
 
-      {/* Cross-Federation Athlete Linking Pipeline Suite (athlete_linking_evaluations) */}
-      {activeCategory === 'cross_federation' && (
-        <div className="space-y-5">
-          <PipelineHealthOverview
-            onQueueChanged={() => {
-              setCrossFedRefreshTick((t) => t + 1);
-              fetchData();
-            }}
-          />
-          <AmbiguousReviewQueue
-            searchQuery={searchQuery}
-            selectedStatus={selectedStatus}
-            refreshTrigger={crossFedRefreshTick}
-            onActionComplete={() => fetchData()}
-          />
-        </div>
-      )}
-
       {/* 5. Loading State */}
-      {loading && activeCategory !== 'cross_federation' && (
+      {loading && (
         <div className="p-12 text-center rounded-2xl card-primary text-app-secondary space-y-2 shadow-sm">
           <Loader2 className="w-6 h-6 animate-spin mx-auto text-indigo-400" />
           <p className="text-xs">Loading queue items...</p>
@@ -1098,7 +1150,7 @@ export function AthleteReviewQueue({ onCountChange }: AthleteReviewQueueProps) {
       )}
 
       {/* 6. Empty State */}
-      {!loading && items.length === 0 && activeCategory !== 'cross_federation' && (
+      {!loading && items.length === 0 && (
         <div className="p-12 text-center rounded-2xl card-primary text-app-secondary space-y-2 shadow-sm">
           <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto" />
           <h4 className="text-sm font-semibold text-app-primary">No Review Items Found</h4>
@@ -1111,7 +1163,7 @@ export function AthleteReviewQueue({ onCountChange }: AthleteReviewQueueProps) {
       )}
 
       {/* 7. Review Cards List */}
-      {!loading && items.length > 0 && activeCategory !== 'cross_federation' && (
+      {!loading && items.length > 0 && (
         <div className="space-y-6">
           {items.map((item) => {
             const isActing = actionInProgress === item.id;
@@ -1332,7 +1384,7 @@ export function AthleteReviewQueue({ onCountChange }: AthleteReviewQueueProps) {
                             {isActing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
                             <span>Approve Result Attribution</span>
                           </button>
-                        ) : item.category === 'iwf_duplicate' ? null : (
+                        ) : (item.category === 'iwf_duplicate' || item.category === 'cross_federation') ? null : (
                           <button
                             onClick={() => {
                               const extraEv = item.category === 'name_change_merge'
@@ -1359,7 +1411,26 @@ export function AthleteReviewQueue({ onCountChange }: AthleteReviewQueueProps) {
                             })()}</span>
                           </button>
                         )}
-                        {item.category !== 'iwf_duplicate' && (
+                        {item.category === 'duplicate_profile' && Array.isArray(ev.secondary_results) && ev.secondary_results.length > 0 && (() => {
+                          const selectedUsawIds = usawDupSelections[item.id] || [];
+                          return (
+                            <button
+                              onClick={() =>
+                                handleResolve(item.id, 'APPROVED', undefined, {
+                                  repair_action: 'SELECTIVE_USAW_MOVE',
+                                  selected_result_ids: selectedUsawIds,
+                                })
+                              }
+                              disabled={isActing || selectedUsawIds.length === 0}
+                              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-600 hover:bg-purple-500 text-white transition flex items-center gap-1.5 shadow disabled:opacity-50"
+                              title="Move only the selected meet results onto the primary profile and keep the secondary lifter row intact with its remaining results"
+                            >
+                              <GitFork className="w-3.5 h-3.5" />
+                              <span>Move {selectedUsawIds.length} Selected → Primary (#{item.candidate_entity_id})</span>
+                            </button>
+                          );
+                        })()}
+                        {item.category !== 'iwf_duplicate' && item.category !== 'cross_federation' && (
                           <button
                             onClick={() => handleResolve(item.id, 'REJECTED')}
                             disabled={isActing}
@@ -2027,6 +2098,119 @@ export function AthleteReviewQueue({ onCountChange }: AthleteReviewQueueProps) {
                         </div>
                       </div>
 
+                      {/* Granular Meet Results Comparison & Selective Move (Duplicate Profile Records) */}
+                      {isDuplicate && item.status === 'PENDING' && (() => {
+                        const secondaryResults: any[] = Array.isArray(ev.secondary_results) ? ev.secondary_results : [];
+                        const primaryResults: any[] = Array.isArray(ev.primary_results) ? ev.primary_results : [];
+                        const selectedUsawIds = usawDupSelections[item.id] || [];
+                        const toggleUsawResult = (resultId: number) => {
+                          setUsawDupSelections((prev) => {
+                            const current = prev[item.id] || [];
+                            const next = current.includes(resultId)
+                              ? current.filter((id) => id !== resultId)
+                              : [...current, resultId];
+                            return { ...prev, [item.id]: next };
+                          });
+                        };
+
+                        return (
+                          <div className="space-y-3">
+                            {secondaryResults.length > 0 && (
+                              <div className="p-3 rounded-xl bg-app-tertiary/30 border border-app-primary space-y-2">
+                                <div className="flex items-center justify-between gap-2 flex-wrap">
+                                  <span className="text-[11px] font-semibold text-app-primary">
+                                    Meet Results on Secondary Row (lifter_id: {item.primary_entity_id}) ({secondaryResults.length} total) — select results belonging to Primary #{item.candidate_entity_id} to move:
+                                  </span>
+                                  <div className="flex items-center gap-2 text-[10px]">
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setUsawDupSelections((prev) => ({
+                                          ...prev,
+                                          [item.id]: secondaryResults.map((r: any) => Number(r.result_id)),
+                                        }))
+                                      }
+                                      className="text-sky-400 hover:text-sky-300 cursor-pointer"
+                                    >
+                                      Select All
+                                    </button>
+                                    <span className="text-app-muted">•</span>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setUsawDupSelections((prev) => ({ ...prev, [item.id]: [] }))
+                                      }
+                                      className="text-app-muted hover:text-app-primary cursor-pointer"
+                                    >
+                                      Clear
+                                    </button>
+                                  </div>
+                                </div>
+                                <div className="max-h-52 overflow-y-auto divide-y divide-white/5 rounded-lg border border-white/5 bg-black/20">
+                                  {secondaryResults.map((r: any) => {
+                                    const rid = Number(r.result_id);
+                                    const checked = selectedUsawIds.includes(rid);
+                                    return (
+                                      <label
+                                        key={rid}
+                                        className={`flex items-center justify-between gap-3 px-2.5 py-1.5 text-[11px] cursor-pointer hover:bg-white/[0.04] ${
+                                          checked ? 'bg-purple-500/10' : ''
+                                        }`}
+                                      >
+                                        <span className="flex items-center gap-2 min-w-0">
+                                          <input
+                                            type="checkbox"
+                                            checked={checked}
+                                            onChange={() => toggleUsawResult(rid)}
+                                            className="rounded border-slate-600 bg-slate-900 text-purple-500 focus:ring-0"
+                                          />
+                                          <span className="font-mono text-app-muted shrink-0">{r.date || '—'}</span>
+                                          <span className="text-app-primary truncate" title={r.meet_name || `Meet #${r.meet_id}`}>
+                                            {r.meet_name || `Meet #${r.meet_id}`}
+                                          </span>
+                                        </span>
+                                        <span className="flex items-center gap-2 shrink-0 text-[10px] font-mono text-app-secondary">
+                                          <span>{r.weight_class || '—'}</span>
+                                          <span>Total: {r.total ?? '—'}</span>
+                                          {r.wso && <span className="text-sky-300/80">{r.wso}</span>}
+                                          {r.club_name && <span className="text-app-muted truncate max-w-[140px]">{r.club_name}</span>}
+                                        </span>
+                                      </label>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+
+                            {primaryResults.length > 0 && (
+                              <div className="p-3 rounded-xl bg-emerald-950/20 border border-emerald-800/40 space-y-2">
+                                <span className="text-[11px] font-semibold text-emerald-300 block">
+                                  Existing Meet Results on Primary Profile (lifter_id: {item.candidate_entity_id}) ({primaryResults.length} total):
+                                </span>
+                                <div className="max-h-44 overflow-y-auto divide-y divide-white/5 rounded-lg border border-white/5 bg-black/20">
+                                  {primaryResults.map((r: any) => (
+                                    <div key={r.result_id} className="flex items-center justify-between gap-3 px-2.5 py-1.5 text-[11px]">
+                                      <span className="flex items-center gap-2 min-w-0">
+                                        <span className="font-mono text-app-muted shrink-0">{r.date || '—'}</span>
+                                        <span className="text-app-primary truncate" title={r.meet_name || `Meet #${r.meet_id}`}>
+                                          {r.meet_name || `Meet #${r.meet_id}`}
+                                        </span>
+                                      </span>
+                                      <span className="flex items-center gap-2 shrink-0 text-[10px] font-mono text-app-secondary">
+                                        <span>{r.weight_class || '—'}</span>
+                                        <span>Total: {r.total ?? '—'}</span>
+                                        {r.wso && <span className="text-emerald-300/80">{r.wso}</span>}
+                                        {r.club_name && <span className="text-app-muted truncate max-w-[140px]">{r.club_name}</span>}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
+
                       {/* Former Name Profile Display Toggle (Strictly for Authentic Name Changes) */}
                       {isNameChange && (
                         <div className="p-3 bg-white/[0.02] border border-white/5 rounded-xl flex items-center justify-between gap-4">
@@ -2149,6 +2333,29 @@ export function AthleteReviewQueue({ onCountChange }: AthleteReviewQueueProps) {
                           </p>
                         </div>
                       </div>
+
+                      {item.status === 'PENDING' && (
+                        <div className="flex items-center gap-2.5 flex-wrap pt-1">
+                          <button
+                            type="button"
+                            disabled={isActing}
+                            onClick={() => handleResolve(item.id, 'APPROVED')}
+                            className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition disabled:opacity-50 cursor-pointer flex items-center gap-1.5 shadow"
+                          >
+                            {isActing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                            <span>Approve Cross-Federation Link</span>
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isActing}
+                            onClick={() => handleResolve(item.id, 'REJECTED')}
+                            className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/40 transition disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                          >
+                            <XCircle className="w-3.5 h-3.5" />
+                            <span>Reject Proposal (Leave Database Unchanged)</span>
+                          </button>
+                        </div>
+                      )}
                     </div>
                   );
                 })()}
@@ -2180,6 +2387,13 @@ export function AthleteReviewQueue({ onCountChange }: AthleteReviewQueueProps) {
                     const scrapedCountry = scrapedBio.country_name || scrapedBio.country_code || scrapedBio.country || scrapedBio.nation || otherLifter.country_name || otherLifter.country_code || '—';
                     const primaryResults: any[] = Array.isArray(ev.primary_results) ? ev.primary_results : [];
                     const otherResults: any[] = Array.isArray(ev.other_results) ? ev.other_results : [];
+                    const isSameDbProfile = Boolean(
+                      (dbLifterId && ev.other_db_lifter_id && Number(ev.other_db_lifter_id) === Number(dbLifterId)) ||
+                      (dbLifterId && otherLifter?.db_lifter_id && Number(otherLifter.db_lifter_id) === Number(dbLifterId)) ||
+                      (dbIwfId && scrapedIwfId && Number(dbIwfId) === Number(scrapedIwfId))
+                    );
+                    const dbDisplayName = ev.db_name || dbBio.name || 'Unknown';
+                    const scrapedDisplayName = ev.scraped_name || scrapedBio.name || otherLifter.athlete_name || 'Unknown';
                     const scrapedYearNum = typeof scrapedDob === 'string' && /^\d{4}/.test(scrapedDob)
                       ? Number(scrapedDob.slice(0, 4))
                       : (typeof scrapedDob === 'number' ? scrapedDob : null);
@@ -2357,57 +2571,72 @@ export function AthleteReviewQueue({ onCountChange }: AthleteReviewQueueProps) {
                           </div>
                         )}
 
+                        {item.status === 'PENDING' && isSameDbProfile && (
+                          <div className="p-3 rounded-xl bg-sky-500/10 border border-sky-500/30 text-xs text-sky-200">
+                            <strong>Same Athlete Profile Detected</strong> (<code>DB #{dbLifterId}</code> •{' '}
+                            <code>IWF #{dbIwfId || scrapedIwfId}</code>): Both records point to the same profile with a name
+                            formatting difference (<code>{dbDisplayName}</code> vs <code>{scrapedDisplayName}</code>). No profile
+                            linking or result migration is needed.
+                          </div>
+                        )}
+
                         {item.status === 'PENDING' && primaryResults.length > 0 && (
                           <div className="p-3 rounded-xl bg-app-tertiary/30 border border-app-primary space-y-2">
                             <div className="flex items-center justify-between gap-2 flex-wrap">
                               <span className="text-[11px] font-semibold text-app-primary">
-                                Meet Results on {dbIwfId ? `IWF #${dbIwfId} ` : ''}(DB #{dbLifterId}) ({primaryResults.length} total) — select any results belonging to IWF #{scrapedIwfId} to move:
+                                {isSameDbProfile
+                                  ? `Meet Results on ${dbIwfId ? `IWF #${dbIwfId} ` : ''}(DB #${dbLifterId}) (${primaryResults.length} total)`
+                                  : `Meet Results on ${dbIwfId ? `IWF #${dbIwfId} ` : ''}(DB #${dbLifterId}) (${primaryResults.length} total) — select any results belonging to IWF #${scrapedIwfId} to move:`}
                               </span>
-                              <div className="flex items-center gap-2 text-[10px]">
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    setBioSplitSelections((prev) => ({
-                                      ...prev,
-                                      [item.id]: primaryResults.map((r: any) => Number(r.db_result_id)),
-                                    }))
-                                  }
-                                  className="text-sky-400 hover:text-sky-300 cursor-pointer"
-                                >
-                                  Select All
-                                </button>
-                                <span className="text-app-muted">•</span>
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    setBioSplitSelections((prev) => ({ ...prev, [item.id]: [] }))
-                                  }
-                                  className="text-app-muted hover:text-app-primary cursor-pointer"
-                                >
-                                  Clear
-                                </button>
-                              </div>
+                              {!isSameDbProfile && (
+                                <div className="flex items-center gap-2 text-[10px]">
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setBioSplitSelections((prev) => ({
+                                        ...prev,
+                                        [item.id]: primaryResults.map((r: any) => Number(r.db_result_id)),
+                                      }))
+                                    }
+                                    className="text-sky-400 hover:text-sky-300 cursor-pointer"
+                                  >
+                                    Select All
+                                  </button>
+                                  <span className="text-app-muted">•</span>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setBioSplitSelections((prev) => ({ ...prev, [item.id]: [] }))
+                                    }
+                                    className="text-app-muted hover:text-app-primary cursor-pointer"
+                                  >
+                                    Clear
+                                  </button>
+                                </div>
+                              )}
                             </div>
                             <div className="max-h-48 overflow-y-auto divide-y divide-white/5 rounded-lg border border-white/5 bg-black/20">
                               {primaryResults.map((r: any) => {
                                 const rid = Number(r.db_result_id);
-                                const checked = selectedSplitIds.includes(rid);
+                                const checked = !isSameDbProfile && selectedSplitIds.includes(rid);
                                 const meetTitle = r.iwf_meets?.meet || `Meet #${r.db_meet_id}`;
                                 const meetDateStr = r.iwf_meets?.date_iso || r.iwf_meets?.date || r.date || '—';
                                 return (
                                   <label
                                     key={rid}
-                                    className={`flex items-center justify-between gap-3 px-2.5 py-1.5 text-[11px] cursor-pointer hover:bg-white/[0.04] ${
-                                      checked ? 'bg-purple-500/10' : ''
-                                    }`}
+                                    className={`flex items-center justify-between gap-3 px-2.5 py-1.5 text-[11px] ${
+                                      isSameDbProfile ? '' : 'cursor-pointer hover:bg-white/[0.04]'
+                                    } ${checked ? 'bg-purple-500/10' : ''}`}
                                   >
                                     <span className="flex items-center gap-2 min-w-0">
-                                      <input
-                                        type="checkbox"
-                                        checked={checked}
-                                        onChange={() => toggleSplitResult(rid)}
-                                        className="rounded border-slate-600 bg-slate-900 text-purple-500 focus:ring-0"
-                                      />
+                                      {!isSameDbProfile && (
+                                        <input
+                                          type="checkbox"
+                                          checked={checked}
+                                          onChange={() => toggleSplitResult(rid)}
+                                          className="rounded border-slate-600 bg-slate-900 text-purple-500 focus:ring-0"
+                                        />
+                                      )}
                                       <span className="font-mono text-app-muted shrink-0">{meetDateStr}</span>
                                       <span className="text-app-primary truncate" title={meetTitle}>{meetTitle}</span>
                                     </span>
@@ -2423,7 +2652,7 @@ export function AthleteReviewQueue({ onCountChange }: AthleteReviewQueueProps) {
                           </div>
                         )}
 
-                        {item.status === 'PENDING' && otherResults.length > 0 && (
+                        {item.status === 'PENDING' && !isSameDbProfile && otherResults.length > 0 && (
                           <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/30 space-y-2">
                             <div className="flex items-center justify-between gap-2 flex-wrap">
                               <span className="text-[11px] font-semibold text-app-primary">
@@ -2489,7 +2718,7 @@ export function AthleteReviewQueue({ onCountChange }: AthleteReviewQueueProps) {
                           </div>
                         )}
 
-                        {item.status === 'PENDING' && (primaryResults.length > 0 || otherResults.length > 0) && (
+                        {item.status === 'PENDING' && !isSameDbProfile && (primaryResults.length > 0 || otherResults.length > 0) && (
                           <label className="flex items-center gap-2 text-xs text-app-secondary cursor-pointer select-none pt-1">
                             <input
                               type="checkbox"
@@ -2510,72 +2739,105 @@ export function AthleteReviewQueue({ onCountChange }: AthleteReviewQueueProps) {
 
                         {item.status === 'PENDING' && (
                           <div className="flex items-center gap-2.5 flex-wrap pt-1">
-                            <button
-                              type="button"
-                              disabled={actionInProgress === item.id}
-                              onClick={() => handleResolve(item.id, 'APPROVED')}
-                              className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
-                            >
-                              <CheckCircle2 className="w-3.5 h-3.5" />
-                              <span>Approve &amp; Link IWF ↔ IWF Pair</span>
-                            </button>
-                            <button
-                              type="button"
-                              disabled={actionInProgress === item.id}
-                              onClick={() =>
-                                handleResolve(item.id, 'APPROVED', undefined, {
-                                  repair_action: 'MIGRATE_IWF_PROFILE',
-                                })
-                              }
-                              className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-sky-600 hover:bg-sky-500 text-white transition disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
-                              title="Move all results onto the new IWF ID and keep both IWF bio URLs linked in athlete_aliases"
-                            >
-                              <ArrowRight className="w-3.5 h-3.5" />
-                              <span>Migrate Results to IWF #{scrapedIwfId} &amp; Link Both</span>
-                            </button>
-                            {primaryResults.length > 0 && (
-                              <button
-                                type="button"
-                                disabled={actionInProgress === item.id || selectedSplitIds.length === 0}
-                                onClick={() =>
-                                  handleResolve(item.id, 'APPROVED', undefined, {
-                                    repair_action: 'SPLIT_IWF_PROFILE',
-                                    split_direction: 'PRIMARY_TO_OTHER',
-                                    selected_result_ids: selectedSplitIds,
-                                    link_profiles: Boolean(bioSplitLinkMap[item.id]),
-                                  })
-                                }
-                                className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-purple-600 hover:bg-purple-500 text-white transition disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
-                                title="Move selected results from stored profile onto IWF #scrapedIwfId"
-                              >
-                                <GitFork className="w-3.5 h-3.5" />
-                                <span>
-                                  Move {selectedSplitIds.length} Result(s) → IWF #{scrapedIwfId}
-                                  {bioSplitLinkMap[item.id] ? ' & Link' : ''}
-                                </span>
-                              </button>
-                            )}
-                            {otherResults.length > 0 && (
-                              <button
-                                type="button"
-                                disabled={actionInProgress === item.id || selectedOtherSplitIds.length === 0}
-                                onClick={() =>
-                                  handleResolve(item.id, 'APPROVED', undefined, {
-                                    repair_action: 'SPLIT_IWF_PROFILE',
-                                    split_direction: 'OTHER_TO_PRIMARY',
-                                    selected_result_ids: selectedOtherSplitIds,
-                                    link_profiles: Boolean(bioSplitLinkMap[item.id]),
-                                  })
-                                }
-                                className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
-                                title="Move selected results from candidate profile onto stored IWF #dbIwfId"
-                              >
-                                <GitFork className="w-3.5 h-3.5" />
-                                <span>
-                                  Move {selectedOtherSplitIds.length} Result(s) → IWF #{dbIwfId}
-                                  {bioSplitLinkMap[item.id] ? ' & Link' : ''}
-                                </span>
-                              </button>
+                            {isSameDbProfile ? (
+                              <>
+                                <button
+                                  type="button"
+                                  disabled={actionInProgress === item.id}
+                                  onClick={() =>
+                                    handleResolve(item.id, 'APPROVED', undefined, {
+                                      repair_action: 'CONFIRM_SAME_PROFILE_UPDATE_NAME',
+                                    })
+                                  }
+                                  className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                                >
+                                  <CheckCircle2 className="w-3.5 h-3.5" />
+                                  <span>Confirm Same Athlete &amp; Update Name to &ldquo;{scrapedDisplayName}&rdquo;</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={actionInProgress === item.id}
+                                  onClick={() =>
+                                    handleResolve(item.id, 'APPROVED', undefined, {
+                                      repair_action: 'CONFIRM_SAME_PROFILE_KEEP_NAME',
+                                    })
+                                  }
+                                  className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-sky-600 hover:bg-sky-500 text-white transition disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                                >
+                                  <CheckCircle2 className="w-3.5 h-3.5" />
+                                  <span>Confirm Same Athlete (Keep &ldquo;{dbDisplayName}&rdquo;)</span>
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <button
+                                  type="button"
+                                  disabled={actionInProgress === item.id}
+                                  onClick={() => handleResolve(item.id, 'APPROVED')}
+                                  className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                                >
+                                  <CheckCircle2 className="w-3.5 h-3.5" />
+                                  <span>Approve &amp; Link IWF ↔ IWF Pair</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={actionInProgress === item.id}
+                                  onClick={() =>
+                                    handleResolve(item.id, 'APPROVED', undefined, {
+                                      repair_action: 'MIGRATE_IWF_PROFILE',
+                                    })
+                                  }
+                                  className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-sky-600 hover:bg-sky-500 text-white transition disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                                  title="Move all results onto the new IWF ID and keep both IWF bio URLs linked in athlete_aliases"
+                                >
+                                  <ArrowRight className="w-3.5 h-3.5" />
+                                  <span>Migrate Results to IWF #{scrapedIwfId} &amp; Link Both</span>
+                                </button>
+                                {primaryResults.length > 0 && (
+                                  <button
+                                    type="button"
+                                    disabled={actionInProgress === item.id || selectedSplitIds.length === 0}
+                                    onClick={() =>
+                                      handleResolve(item.id, 'APPROVED', undefined, {
+                                        repair_action: 'SPLIT_IWF_PROFILE',
+                                        split_direction: 'PRIMARY_TO_OTHER',
+                                        selected_result_ids: selectedSplitIds,
+                                        link_profiles: Boolean(bioSplitLinkMap[item.id]),
+                                      })
+                                    }
+                                    className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-purple-600 hover:bg-purple-500 text-white transition disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                                    title="Move selected results from stored profile onto IWF #scrapedIwfId"
+                                  >
+                                    <GitFork className="w-3.5 h-3.5" />
+                                    <span>
+                                      Move {selectedSplitIds.length} Result(s) → IWF #{scrapedIwfId}
+                                      {bioSplitLinkMap[item.id] ? ' & Link' : ''}
+                                    </span>
+                                  </button>
+                                )}
+                                {otherResults.length > 0 && (
+                                  <button
+                                    type="button"
+                                    disabled={actionInProgress === item.id || selectedOtherSplitIds.length === 0}
+                                    onClick={() =>
+                                      handleResolve(item.id, 'APPROVED', undefined, {
+                                        repair_action: 'SPLIT_IWF_PROFILE',
+                                        split_direction: 'OTHER_TO_PRIMARY',
+                                        selected_result_ids: selectedOtherSplitIds,
+                                        link_profiles: Boolean(bioSplitLinkMap[item.id]),
+                                      })
+                                    }
+                                    className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                                    title="Move selected results from candidate profile onto stored IWF #dbIwfId"
+                                  >
+                                    <GitFork className="w-3.5 h-3.5" />
+                                    <span>
+                                      Move {selectedOtherSplitIds.length} Result(s) → IWF #{dbIwfId}
+                                      {bioSplitLinkMap[item.id] ? ' & Link' : ''}
+                                    </span>
+                                  </button>
+                                )}
+                              </>
                             )}
                             <button
                               type="button"
@@ -3858,6 +4120,8 @@ export function AthleteReviewQueue({ onCountChange }: AthleteReviewQueueProps) {
             </div>
           </div>
         </div>
+      )}
+      </>
       )}
     </div>
   );

@@ -223,7 +223,7 @@ export default function AdminPage() {
                       )}
                     </div>
                     <p className="text-xs text-app-secondary mt-0.5">
-                      Ingest OWLCMS competition JSON files and run targeted IWF Results Pipeline scrapers
+                      Ingest OWLCMS competition JSON files, run IWF Results Pipeline scrapers, and backfill USAW WSO &amp; membership records
                     </p>
                   </div>
                 </div>

@@ -2,14 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Shield, UploadCloud, Globe, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Shield, UploadCloud, Globe, RefreshCw, Database } from 'lucide-react';
 import { AuthGuard } from '../../components/AuthGuard';
 import { ROLES } from '../../../lib/roles';
 import { OwlcmsUploader } from '../../components/owlcms/OwlcmsUploader';
 import { IwfUploader } from '../../components/owlcms/IwfUploader';
+import { UsawWsoBackfill } from '../../components/owlcms/UsawWsoBackfill';
 
 export default function CompetitionImportersPage() {
-  const [activeTab, setActiveTab] = useState<'owlcms' | 'iwf'>('owlcms');
+  const [activeTab, setActiveTab] = useState<'owlcms' | 'iwf' | 'usaw'>('owlcms');
   const [isRevalidating, setIsRevalidating] = useState<boolean>(false);
   const [revalidateNotice, setRevalidateNotice] = useState<string | null>(null);
 
@@ -44,6 +45,8 @@ export default function CompetitionImportersPage() {
       const tab = params.get('tab');
       if (tab === 'iwf' || tab === 'iwf_importer') {
         setActiveTab('iwf');
+      } else if (tab === 'usaw' || tab === 'usaw_wso') {
+        setActiveTab('usaw');
       } else if (tab === 'owlcms' || tab === 'importer') {
         setActiveTab('owlcms');
       }
@@ -107,6 +110,18 @@ export default function CompetitionImportersPage() {
                   <Globe className="w-3.5 h-3.5" />
                   <span>IWF Results Pipeline</span>
                 </button>
+
+                <button
+                  onClick={() => setActiveTab('usaw')}
+                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    activeTab === 'usaw'
+                      ? 'bg-indigo-600 text-white shadow'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  <Database className="w-3.5 h-3.5" />
+                  <span>USAW WSO &amp; Membership</span>
+                </button>
               </div>
 
               <button
@@ -139,6 +154,9 @@ export default function CompetitionImportersPage() {
             </div>
             <div className={activeTab === 'iwf' ? 'block' : 'hidden'}>
               <IwfUploader />
+            </div>
+            <div className={activeTab === 'usaw' ? 'block' : 'hidden'}>
+              <UsawWsoBackfill />
             </div>
           </div>
         </div>

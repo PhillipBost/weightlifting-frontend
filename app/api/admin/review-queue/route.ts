@@ -255,6 +255,30 @@ export async function GET(request: Request) {
         (ncLifters || []).forEach((l: any) => ncLifterMap.set(l.lifter_id, l));
       }
 
+      const dupLifterIds = new Set<number>();
+      consolidationItems.forEach((item: any) => {
+        if (item.category === 'duplicate_profile') {
+          if (item.primary_entity_id) dupLifterIds.add(Number(item.primary_entity_id));
+          if (item.candidate_entity_id) dupLifterIds.add(Number(item.candidate_entity_id));
+        }
+      });
+
+      const usawResultsByLifterMap = new Map<number, any[]>();
+      if (dupLifterIds.size > 0) {
+        const { data: dupResults } = await supabaseAdmin
+          .from('usaw_meet_results')
+          .select('result_id, lifter_id, meet_id, meet_name, date, weight_class, total, wso, club_name, age_category')
+          .in('lifter_id', Array.from(dupLifterIds))
+          .order('date', { ascending: false });
+
+        for (const r of dupResults || []) {
+          const lid = Number(r.lifter_id);
+          const arr = usawResultsByLifterMap.get(lid) || [];
+          arr.push(r);
+          usawResultsByLifterMap.set(lid, arr);
+        }
+      }
+
       items = items.map((item: any) => {
         if (!consolidationCategories.includes(item.category)) return item;
         const ev = item.evidence || {};
@@ -287,7 +311,13 @@ export async function GET(request: Request) {
             membership_number: healedMember,
             internal_ids: healedInternalIds.length > 0 ? healedInternalIds : ev.internal_ids,
             former_name: ev.former_name || healedPrimary,
-            canonical_name: ev.canonical_name || healedCandidate
+            canonical_name: ev.canonical_name || healedCandidate,
+            ...(item.category === 'duplicate_profile'
+              ? {
+                  secondary_results: item.primary_entity_id ? (usawResultsByLifterMap.get(Number(item.primary_entity_id)) || []) : [],
+                  primary_results: item.candidate_entity_id ? (usawResultsByLifterMap.get(Number(item.candidate_entity_id)) || []) : [],
+                }
+              : {}),
           }
         };
       });
@@ -1380,18 +1410,75 @@ export async function POST(request: Request) {
             }
           }
 
+          const nowIso = new Date().toISOString();
+
           if (secondDbLifterId === primaryDbLifterId) {
-            return NextResponse.json(
-              { success: false, error: 'Primary and secondary db_lifter_id are identical.' },
-              { status: 400 }
-            );
+            const isMigrateOrSplit =
+              updatedEvidence?.repair_action === 'MIGRATE_IWF_PROFILE' ||
+              updatedEvidence?.repair_action === 'SPLIT_IWF_PROFILE';
+
+            if (isMigrateOrSplit) {
+              return NextResponse.json(
+                { success: false, error: 'Cannot migrate or split results when both sides reference the same db_lifter_id.' },
+                { status: 400 }
+              );
+            }
+
+            const shouldUpdateName = updatedEvidence?.repair_action === 'CONFIRM_SAME_PROFILE_UPDATE_NAME';
+            const scrapedName = String(currentEv.scraped_name || currentEv.scraped_bio?.name || '').trim();
+
+            if (shouldUpdateName && scrapedName) {
+              const { error: nameUpdErr } = await supabaseAdmin
+                .from('iwf_lifters')
+                .update({
+                  athlete_name: scrapedName,
+                  updated_at: nowIso,
+                })
+                .eq('db_lifter_id', primaryDbLifterId);
+
+              if (nameUpdErr) {
+                return NextResponse.json(
+                  { success: false, error: `Failed to update athlete name: ${nameUpdErr.message}` },
+                  { status: 500 }
+                );
+              }
+            }
+
+            await triggerIwfShardRefresh([currentEv.db_iwf_id, scrapedIwfId]);
+
+            const { error: sameUpdErr } = await supabaseAdmin
+              .from('admin_review_queue')
+              .update({
+                status: 'APPROVED',
+                resolved_at: nowIso,
+                resolved_by: user.email || user.id,
+                evidence: {
+                  ...currentEv,
+                  ...(updatedEvidence || {}),
+                  same_profile_confirmed: true,
+                  ...(shouldUpdateName && scrapedName ? { updated_athlete_name: scrapedName } : {}),
+                  ...(notes ? { admin_notes: notes } : {}),
+                },
+              })
+              .eq('id', reviewId);
+
+            if (sameUpdErr) {
+              return NextResponse.json({ success: false, error: sameUpdErr.message }, { status: 500 });
+            }
+
+            return NextResponse.json({
+              success: true,
+              message:
+                shouldUpdateName && scrapedName
+                  ? `Confirmed same athlete profile (DB #${primaryDbLifterId}) and updated name to "${scrapedName}".`
+                  : `Confirmed same athlete profile (DB #${primaryDbLifterId}, IWF #${scrapedIwfId}).`,
+            });
           }
 
           const isMigrateProfile = updatedEvidence?.repair_action === 'MIGRATE_IWF_PROFILE';
           const isSplitProfile = updatedEvidence?.repair_action === 'SPLIT_IWF_PROFILE';
           let migratedBackup: Record<string, any> | null = null;
           let splitBackup: Record<string, any> | null = null;
-          const nowIso = new Date().toISOString();
 
           if (isSplitProfile) {
             const selectedIds: number[] = Array.isArray(updatedEvidence?.selected_result_ids)
@@ -1958,6 +2045,18 @@ export async function POST(request: Request) {
       const candidateLifterId = Number(currentItem.candidate_entity_id);
 
       if (resolution === 'APPROVED' && primaryLifterId && candidateLifterId) {
+        const isSelectiveUsawMove = updatedEvidence?.repair_action === 'SELECTIVE_USAW_MOVE';
+        const selectedUsawResultIds: number[] = isSelectiveUsawMove && Array.isArray(updatedEvidence?.selected_result_ids)
+          ? updatedEvidence.selected_result_ids.map(Number).filter((n: number) => !isNaN(n) && n > 0)
+          : [];
+
+        if (isSelectiveUsawMove && selectedUsawResultIds.length === 0) {
+          return NextResponse.json(
+            { success: false, error: 'Select at least one meet result to move to the primary profile.' },
+            { status: 400 }
+          );
+        }
+
         // Archive primary lifter row in evidence before removing obsolete row
         const { data: primaryLifterRow } = await supabaseAdmin
           .from('usaw_lifters')
@@ -1965,17 +2064,23 @@ export async function POST(request: Request) {
           .eq('lifter_id', primaryLifterId)
           .single();
 
-        // 3a. Reassign all meet results from primary lifter to canonical candidate lifter
-        const { data: resultsToMove } = await supabaseAdmin
+        // 3a. Reassign selected (or all) meet results from secondary lifter to canonical candidate lifter
+        let resultsQuery = supabaseAdmin
           .from('usaw_meet_results')
           .select('result_id')
           .eq('lifter_id', primaryLifterId);
+        if (isSelectiveUsawMove) {
+          resultsQuery = resultsQuery.in('result_id', selectedUsawResultIds);
+        }
+        const { data: resultsToMove } = await resultsQuery;
 
         if (resultsToMove && resultsToMove.length > 0) {
+          const movedIds = resultsToMove.map((r: any) => r.result_id);
           const { error: moveResErr } = await supabaseAdmin
             .from('usaw_meet_results')
             .update({ lifter_id: candidateLifterId })
-            .eq('lifter_id', primaryLifterId);
+            .eq('lifter_id', primaryLifterId)
+            .in('result_id', movedIds);
 
           if (moveResErr) {
             return NextResponse.json(
@@ -1985,12 +2090,23 @@ export async function POST(request: Request) {
           }
         }
 
+        let shouldDeletePrimaryLifter = true;
+        if (isSelectiveUsawMove) {
+          const { count: remainingCount } = await supabaseAdmin
+            .from('usaw_meet_results')
+            .select('result_id', { count: 'exact', head: true })
+            .eq('lifter_id', primaryLifterId);
+          shouldDeletePrimaryLifter = (remainingCount ?? 0) === 0;
+        }
+
         // 3b. Migrate athlete_aliases from primaryLifterId to candidateLifterId (avoiding duplicate links)
         const movedAliasIds: number[] = [];
-        const { data: primaryAliases, error: aliasFetchErr } = await supabaseAdmin
-          .from('athlete_aliases')
-          .select('id, iwf_db_lifter_id, owlcms_lifter_id')
-          .eq('usaw_lifter_id', primaryLifterId);
+        const { data: primaryAliases, error: aliasFetchErr } = shouldDeletePrimaryLifter
+          ? await supabaseAdmin
+              .from('athlete_aliases')
+              .select('id, iwf_db_lifter_id, owlcms_lifter_id')
+              .eq('usaw_lifter_id', primaryLifterId)
+          : { data: [], error: null };
 
         if (aliasFetchErr) {
           return NextResponse.json(
@@ -2039,17 +2155,19 @@ export async function POST(request: Request) {
           }
         }
 
-        // 3c. Delete obsolete primary lifter row and surface any FK errors instead of failing silently
-        const { error: deleteLifterErr } = await supabaseAdmin
-          .from('usaw_lifters')
-          .delete()
-          .eq('lifter_id', primaryLifterId);
+        // 3c. Delete obsolete secondary lifter row only when no results remain on it
+        if (shouldDeletePrimaryLifter) {
+          const { error: deleteLifterErr } = await supabaseAdmin
+            .from('usaw_lifters')
+            .delete()
+            .eq('lifter_id', primaryLifterId);
 
-        if (deleteLifterErr) {
-          return NextResponse.json(
-            { success: false, error: `Failed to delete obsolete usaw_lifters #${primaryLifterId}: ${deleteLifterErr.message}` },
-            { status: 500 }
-          );
+          if (deleteLifterErr) {
+            return NextResponse.json(
+              { success: false, error: `Failed to delete obsolete usaw_lifters #${primaryLifterId}: ${deleteLifterErr.message}` },
+              { status: 500 }
+            );
+          }
         }
 
         // 4. Update status and append reviewer notes to evidence
@@ -2082,9 +2200,10 @@ export async function POST(request: Request) {
         finalEvidence.canonical_name = currentEv.canonical_name || healedCandidate;
 
         finalEvidence.merge_backup = {
-          primary_lifter: primaryLifterRow,
+          primary_lifter: shouldDeletePrimaryLifter ? primaryLifterRow : null,
           moved_result_ids: (resultsToMove || []).map((r: any) => r.result_id),
           moved_alias_ids: movedAliasIds,
+          kept_secondary_lifter: !shouldDeletePrimaryLifter,
           executed_at: new Date().toISOString()
         };
 
